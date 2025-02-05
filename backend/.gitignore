@@ -1,0 +1,119 @@
+# .gitignore file for React (Vite) frontend and ASP.NET backend project
+
+# General OS/IDE files
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE/Editor specific files
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs (Rider, WebStorm, etc.)
+.idea/
+*.iml
+
+# Visual Studio specific
+.vs/
+*.suo
+*.user
+*.vcxproj.user
+*.vcxproj.filters
+*.sln.docstates
+
+# Build results
+###############
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa]rm64/
+build/
+[Bb]uild/
+bld/
+[Bb]in/
+[Oo]bj/
+Log/
+Logs/
+*.log
+log-*.txt
+
+# ASP.NET / .NET specific
+##########################
+*.DotSettings
+*.DotSettings.user
+*.dwp
+*.pidb
+*.force_names
+*.pyc
+*.pyo
+*.[Cc]ache
+*.sdf
+*.tmp
+*.swp
+*~
+~$*
+appsettings.Development.json # Often contains sensitive local dev info, consider using User Secrets or environment variables instead.
+# Uncomment if you want to exclude other appsettings variants:
+# appsettings.*.json
+# !appsettings.json # Keep the base one
+UserSecretsId # Often generated in .csproj, should not be committed
+*.publish.xml
+*.pubxml
+*.pubxml.user
+*.pfx
+*.key
+TestResults/
+*.mdf
+*.ldf
+*.dbmdl
+*_i.c
+*_p.c
+*.ncb
+[Pp]ackages/ # If using packages.config (older NuGet style)
+project.lock.json # Generated in obj/ folder, already covered but can be explicit
+project.assets.json # Generated in obj/ folder, already covered but can be explicit
+$RECYCLE.BIN/
+
+# Frontend (Node.js / Vite / React) specific
+##############################################
+node_modules/
+dist/
+build/ # Sometimes used instead of dist
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json # Optional: uncomment if you ONLY use yarn.lock
+yarn.lock # Optional: uncomment if you ONLY use package-lock.json
+pnpm-lock.yaml # Optional: uncomment if you don't use pnpm
+.env.local
+.env.*.local
+.env # Generic .env file, might contain secrets - use .env.example instead
+.eslintcache
+.stylelintcache
+.vite/ # Vite development cache
+coverage/
+*.tsbuildinfo
+
+# Other common temporary/generated files
+########################################
+temp/
+tmp/
+*.bak
+*.temp
+
+# End of file
