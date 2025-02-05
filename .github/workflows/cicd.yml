@@ -1,0 +1,66 @@
+name: CI/CD for Web App
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  backend:
+    name: Backend (.NET 8.0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET 8.0
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Lint .NET code
+        run: dotnet format --verify-no-changes
+
+      - name: Run .NET tests
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Build .NET app
+        run: dotnet build --configuration Release --no-restore
+
+  frontend:
+    name: Frontend (React.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: frontend
+
+      - name: Lint React code
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Run React tests
+        run: npm test -- --watchAll=false
+        working-directory: frontend
+
+      - name: Build React app
+        run: npm run build
+        working-directory: frontend
