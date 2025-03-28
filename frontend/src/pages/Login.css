@@ -1,0 +1,252 @@
+/* Login.css */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.login-container {
+    position: relative;
+    overflow: hidden;
+    min-width: 100vw;
+    display: flex;
+    flex-wrap: wrap;
+    min-height: 100vh;
+    background-color: #e5e7eb; /* Light gray */
+    font-family: 'Arial';
+  }
+
+.login-container.shifted .image-section {
+  transform: translateX(-100%);
+}
+
+.register-form,
+.login-form {
+  width: 50vw;
+  min-height: 100%;
+  padding: 2rem;
+  box-sizing: border-box;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+  .login-form {
+    width: 50%;
+    /* min-width: 300px; */
+    padding: 2rem;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-container {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .form-content {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+    text-align: left;
+    width: 100%;
+  }
+
+
+  .login-form h1 {
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .login-form h3 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .button {
+    width: 30%;
+    background-color: #882434;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.5);
+    
+    transition: background-color 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: #b82626;
+  }
+  
+  .forgot-password {
+    color: #882434;
+    margin-top: 8px;
+    font-weight: bold;
+    font-size: 0.8rem;
+  }
+  
+  .separator {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 16px 0;
+  }
+  
+  .separator div {
+    flex: 1;
+    height: 1px;
+    background-color: #d1d5db;
+  }
+  
+  .separator p {
+    padding: 0 8px;
+    color: #6b7280;
+  }
+  
+  .google-button {
+    display: flex;
+    align-items: center;
+    border: 1px solid #d1d5db;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .google-button:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  }
+  
+  .google-button img {
+    width: 20px;
+    margin-right: 8px;
+  }
+  
+  .image-section {
+    position: absolute;
+    top: 0;
+    left: 50vw;
+    width: 50vw;
+    height: 100%;
+    background-color: #9ca3af; /* Dark gray */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+    transition: transform 0.8s ease;
+    pointer-events: none;
+  }
+
+  .slogan {
+    font-style: italic;
+    color: #882434;
+    font-weight: bold;
+  }
+  
+  .ball {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%; /* Makes it a circle */
+    background-color: black;
+    vertical-align: middle;
+    margin: 0 5px;
+  }
+
+  .link-text {
+    color: #882434;
+    cursor: pointer;
+    text-decoration: none;
+    text-decoration: underline;
+    font-weight: bold;
+  }
+  
+  .link-text:hover {
+    color: #b82626;
+  }
+  
+  .error-message {
+    text-align: center;
+    color: red;
+    margin-top: 0.5rem;
+  }
+  
+  .login-image {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+  }
+
+  .image-section {
+    width: 50%;
+    vertical-align: middle;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #c0bcbc;
+  }
+  
+  .no-account {
+    width: 100%;
+  }
+
+  .move-right {
+    z-index: 2;
+    position: absolute;
+    left: 50%;
+    top: 0;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .outer-wrapper {
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
