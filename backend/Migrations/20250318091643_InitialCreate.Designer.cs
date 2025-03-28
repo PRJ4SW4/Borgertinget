@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using UserAuthentication.Data;
+using backend.Data;
 
 #nullable disable
 
-namespace UserAuthentication.Migrations
+namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20250318091643_InitialCreate")]

@@ -1,4 +1,4 @@
-namespace UserAuthentication.Models
+namespace backend.Models
 {
     public class User
     {

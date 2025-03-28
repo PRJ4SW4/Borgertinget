@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using UserAuthentication.Models;
+using backend.Models;
 
-namespace UserAuthentication.Data;
+namespace backend.Data;
 
 public class DataContext : DbContext
 {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 
-namespace UserAuthentication.Data
+namespace backend.Data
 {
     public class DataContextFactory : IDesignTimeDbContextFactory<DataContext>
     {
