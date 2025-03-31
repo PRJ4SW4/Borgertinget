@@ -51,11 +51,11 @@ jobs:
 
       - name: Install Frontend Dependencies
         run: npm install
-        working-directory: frontend
+        working-directory: basic-frontend
 
       - name: Lint Frontend Code
         run: npm run lint
-        working-directory: frontend
+        working-directory: basic-frontend
 
       - name: Build Frontend
         run: npm run build
