@@ -16,7 +16,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   const [registerEmail, setRegisterEmail] = useState<string>("");
   const [error, setError] = useState<string | null>("");
   const [success, setSuccess] = useState<string | null>("");
-  const [showRegister, setShowRegister] = useState(false);
+  //const [showRegister, setShowRegister] = useState(false);
   const [startSlide, setStartSlide] = useState(false);
   const navigate = useNavigate();
 
