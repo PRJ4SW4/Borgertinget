@@ -28,13 +28,13 @@ jobs:
           dotnet-version: "8.0"
 
       - name: Restore dependencies
-        run: dotnet restore BasicBackend
+        run: dotnet restore backend
 
       - name: Build Backend
-        run: dotnet build --configuration Release BasicBackend
+        run: dotnet build --configuration Release backend
 
       - name: Run Backend Tests
-        run: dotnet test BasicBackend --no-build --verbosity normal
+        run: dotnet test backend --no-build --verbosity normal
 
   frontend:
     name: Frontend (React.js)
@@ -51,16 +51,16 @@ jobs:
 
       - name: Install Frontend Dependencies
         run: npm install
-        working-directory: basic-frontend
+        working-directory: frontend
 
       - name: Lint Frontend Code
         run: npm run lint
-        working-directory: basic-frontend
+        working-directory: frontend
 
       - name: Build Frontend
         run: npm run build
-        working-directory: basic-frontend
+        working-directory: frontend
 
       - name: Run Frontend Tests
         run: npm test
-        working-directory: basic-frontend
+        working-directory: frontend
