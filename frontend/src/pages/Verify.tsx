@@ -19,7 +19,7 @@ const VerifyEmail = () => {
           }
         });
     }
-  }, []);
+  }, [message, searchParams]);
 
   return <div>{message}</div>;
 };
