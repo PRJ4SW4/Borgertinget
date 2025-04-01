@@ -1,16 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using UserAuthentication.Data;
-using UserAuthentication.Models;
-using UserAuthentication.DTOs;
+using backend.Data;
+using backend.Models;
+using backend.DTOs;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BCrypt.Net;
-using UserAuthentication.Services;
+using backend.Services;
 
-namespace UserAuthentication.Controllers
+namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

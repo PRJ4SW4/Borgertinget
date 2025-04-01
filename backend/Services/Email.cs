@@ -2,7 +2,7 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 
-namespace UserAuthentication.Services
+namespace backend.Services
 {
     public class EmailService
     {

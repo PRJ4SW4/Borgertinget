@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using UserAuthentication.Data;
+using backend.Data;
 
 #nullable disable
 
-namespace UserAuthentication.Migrations
+namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20250318103408_BCrypt")]
@@ -24,7 +24,7 @@ namespace UserAuthentication.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("UserAuthentication.Models.User", b =>
+            modelBuilder.Entity("backend.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

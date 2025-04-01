@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace UserAuthentication.Migrations
+namespace backend.Migrations
 {
     /// <inheritdoc />
     public partial class UserTable : Migration
