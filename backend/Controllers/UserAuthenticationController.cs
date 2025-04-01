@@ -1,14 +1,15 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using backend.Data;
-using backend.Models;
-using backend.DTOs;
-using Microsoft.IdentityModel.Tokens;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BCrypt.Net;
+using backend.Data;
+using backend.DTOs;
+using backend.Models;
 using backend.Services;
+using BCrypt.Net;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace backend.Controllers
 {
@@ -20,7 +21,11 @@ namespace backend.Controllers
         private readonly IConfiguration _config;
         private readonly EmailService _emailService;
 
-        public UsersController(DataContext context, IConfiguration config, EmailService emailService)
+        public UsersController(
+            DataContext context,
+            IConfiguration config,
+            EmailService emailService
+        )
         {
             _context = context;
             _config = config;
@@ -40,17 +45,16 @@ namespace backend.Controllers
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(new { error = "Invalid input", details = ModelState});
+                return BadRequest(new { error = "Invalid input", details = ModelState });
 
             // 1. Check om brugernavn eller email allerede findes
-            var existingUserName = await _context.Users
-                .AnyAsync(u => u.UserName == dto.Username);
+            var existingUserName = await _context.Users.AnyAsync(u => u.UserName == dto.Username);
 
-            var existingEmail = await _context.Users
-                .AnyAsync(u => u.Email == dto.Email);
+            var existingEmail = await _context.Users.AnyAsync(u => u.Email == dto.Email);
 
-            var existingEmailAndUserName = await _context.Users
-                .AnyAsync(u => u.Email == dto.Email && u.UserName == dto.Username);
+            var existingEmailAndUserName = await _context.Users.AnyAsync(u =>
+                u.Email == dto.Email && u.UserName == dto.Username
+            );
 
             if (existingEmailAndUserName)
                 return BadRequest(new { error = "Brugernavn og email er allerede i brug." });
@@ -71,7 +75,8 @@ namespace backend.Controllers
                 UserName = dto.Username,
                 Email = dto.Email,
                 PasswordHash = hashedPassword,
-                VerificationToken = verificationToken
+                VerificationToken = verificationToken,
+                Roles = new List<string> { "User" },
             };
 
             // 4. Gem i databasen
@@ -83,16 +88,27 @@ namespace backend.Controllers
             _emailService.SendVerificationEmail(user.Email, verificationLink);
 
             // Returnér en DTO eller blot ID/brugernavn
-            return Ok(new { message = "Registrering succesfuld", user.Id, user.UserName, user.Email });
+            return Ok(
+                new
+                {
+                    message = "Registrering succesfuld",
+                    user.Id,
+                    user.UserName,
+                    user.Email,
+                }
+            );
         }
 
         [HttpGet("verify")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string token)
         {
             Console.WriteLine("Inde i verify");
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.VerificationToken.ToLower() == token.ToLower());
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.VerificationToken.ToLower() == token.ToLower()
+            );
 
-            if (user == null) return BadRequest("Ugyldigt eller udløbet verifikationslink.");
+            if (user == null)
+                return BadRequest("Ugyldigt eller udløbet verifikationslink.");
 
             Console.WriteLine("Bruger fundet");
             user.IsVerified = true;
@@ -100,29 +116,28 @@ namespace backend.Controllers
             user.VerificationToken = null;
             await _context.SaveChangesAsync();
 
-            return Ok(new {message = "Email verificeret! Du kan nu logge ind."});
+            return Ok(new { message = "Email verificeret! Du kan nu logge ind." });
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
- 
             // 1. Find bruger ud fra E-mail eller brugernavn
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == dto.EmailOrUsername
-                                    || u.UserName == dto.EmailOrUsername);
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.Email == dto.EmailOrUsername || u.UserName == dto.EmailOrUsername
+            );
 
             if (user == null)
-                return BadRequest(new {error = "Bruger findes ikke"});
+                return BadRequest(new { error = "Bruger findes ikke" });
 
             // 2. Sammenlign indtastet password med gemt hash
             var isMatch = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
             if (!isMatch)
-                return BadRequest(new {error = "Forkert adgangskode"});
-            
+                return BadRequest(new { error = "Forkert adgangskode" });
+
             // 3. Tjek om email er verificeret
             if (!user.IsVerified)
-                return BadRequest(new {error = "Email er ikke verificeret"});
+                return BadRequest(new { error = "Email er ikke verificeret" });
 
             // 4. Ved succes login – evt. generér en JWT token eller lignende
             // (Her bare et eksempel)
@@ -130,25 +145,36 @@ namespace backend.Controllers
             var token = GenerateJwtToken(user); // Du skal implementere denne metode
             return Ok(new { token });
         }
+
         private string GenerateJwtToken(User user)
         {
             var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim("userId", user.Id.ToString())
+                new Claim("userId", user.Id.ToString()),
             };
+
+            foreach (var role in user.Roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var token = new JwtSecurityToken(
                 _config["Jwt:Issuer"],
                 _config["Jwt:Audience"],
                 claims,
                 expires: DateTime.UtcNow.AddHours(1),
-                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
+                signingCredentials: new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256
+                )
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            // ✅ Dette returnerer en **gyldig JWT string**
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            Console.WriteLine("Generated Token: " + tokenString); // Debugging
+            return tokenString;
         }
-
     }
 }
