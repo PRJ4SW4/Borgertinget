@@ -1,5 +1,5 @@
 // src/services/apiService.ts
-import type { PageSummaryDto, PageDetailDto, AnswerOptionDto, QuestionDto } from '../types/pageTypes'; // Import types
+import type { PageSummaryDto, PageDetailDto } from '../types/pageTypes'; // Import types
 import type { FlashcardCollectionSummaryDto, FlashcardCollectionDetailDto } from '../types/flashcardTypes';
 
 const API_BASE_URL = '/api'; // Adjust if needed
