@@ -13,6 +13,8 @@ public class DataContext : DbContext
     public DbSet<Page> Pages { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<AnswerOption> AnswerOptions { get; set; }
+    public DbSet<Flashcard> Flashcards { get; set; }
+    public DbSet<FlashcardCollection> FlashcardCollections { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,9 +43,16 @@ public class DataContext : DbContext
             .WithOne(o => o.Question)
             .HasForeignKey(o => o.QuestionId);
 
+        // Configure FlashcardCollection <-> Flashcard relationship
+        modelBuilder
+            .Entity<FlashcardCollection>()
+            .HasMany(c => c.Flashcards)
+            .WithOne(f => f.FlashcardCollection)
+            .HasForeignKey(f => f.CollectionId);
+
         // --- SEED DATA ---
 
-        // 1. Seed Pages (Your existing data)
+        // 1. Seed Pages
         modelBuilder
             .Entity<Page>()
             .HasData(
@@ -87,7 +96,6 @@ public class DataContext : DbContext
                     ParentPageId = 3,
                     DisplayOrder = 2,
                 }
-            // Add more pages if needed
             );
 
         // 2. Seed Questions (Linked to Pages)
@@ -123,7 +131,6 @@ public class DataContext : DbContext
                     PageId = 5, // Links to "Venstre"
                     QuestionText = "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?",
                 }
-            // Add more questions if needed
             );
 
         // 3. Seed Answer Options (Linked to Questions)
@@ -230,7 +237,82 @@ public class DataContext : DbContext
                     IsCorrect = false,
                     DisplayOrder = 3,
                 }
-            // Add more options if needed
+            );
+
+        // --- FLASHCARDS ---
+
+        modelBuilder
+            .Entity<FlashcardCollection>()
+            .HasData(
+                new FlashcardCollection
+                {
+                    CollectionId = 1,
+                    Title = "Politikerne og deres navne",
+                    DisplayOrder = 1,
+                },
+                new FlashcardCollection
+                {
+                    CollectionId = 2,
+                    Title = "Politiske begreber",
+                    DisplayOrder = 2,
+                }
+            );
+
+        modelBuilder
+            .Entity<Flashcard>()
+            .HasData(
+                // Cards for Collection 1
+                new Flashcard
+                {
+                    FlashcardId = 1,
+                    CollectionId = 1,
+                    DisplayOrder = 1,
+                    FrontContentType = FlashcardContentType.Image,
+                    FrontImagePath = "/uploads/flashcards/mettef.png",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Mette Frederiksen",
+                },
+                new Flashcard
+                {
+                    FlashcardId = 2,
+                    CollectionId = 1,
+                    DisplayOrder = 2,
+                    FrontContentType = FlashcardContentType.Image,
+                    FrontImagePath = "/uploads/flashcards/larsl.png",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Lars Løkke Rasmussen",
+                },
+                new Flashcard
+                {
+                    FlashcardId = 3,
+                    CollectionId = 1,
+                    DisplayOrder = 3,
+                    FrontContentType = FlashcardContentType.Text,
+                    FrontText = "Hvem er formand for Danmarksdemokraterne?",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Inger Støjberg",
+                },
+                // Cards for Collection 2
+                new Flashcard
+                {
+                    FlashcardId = 4,
+                    CollectionId = 2,
+                    DisplayOrder = 1,
+                    FrontContentType = FlashcardContentType.Text,
+                    FrontText = "Hvad betyder 'Demokrati'?",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Folkestyre",
+                },
+                new Flashcard
+                {
+                    FlashcardId = 5,
+                    CollectionId = 2,
+                    DisplayOrder = 2,
+                    FrontContentType = FlashcardContentType.Text,
+                    FrontText = "Hvad er 'Finansloven'?",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Statens budget for det kommende år",
+                }
             );
     }
 }

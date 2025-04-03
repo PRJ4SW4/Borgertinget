@@ -1,5 +1,6 @@
 // src/services/apiService.ts
 import type { PageSummaryDto, PageDetailDto, AnswerOptionDto, QuestionDto } from '../types/pageTypes'; // Import types
+import type { FlashcardCollectionSummaryDto, FlashcardCollectionDetailDto } from '../types/flashcardTypes';
 
 const API_BASE_URL = '/api'; // Adjust if needed
 
@@ -57,4 +58,36 @@ export const fetchPageDetails = async (id: string | number): Promise<PageDetailD
     throw new Error(`Failed to fetch page details for ID ${id}: ${response.statusText}`);
   }
   return await response.json() as PageDetailDto;
+};
+
+// --- Flashcard Functions ---
+
+// Fetches the list of all flashcard collections for the sidebar
+export const fetchFlashcardCollections = async (): Promise<FlashcardCollectionSummaryDto[]> => {
+  const response = await fetch(`${API_BASE_URL}/flashcards/collections`);
+  if (!response.ok) {
+      console.error("API Error:", response.status, await response.text());
+      throw new Error('Failed to fetch flashcard collections');
+  }
+  return await response.json() as FlashcardCollectionSummaryDto[];
+};
+
+// Fetches the details (including all cards) for a single collection by its ID
+export const fetchFlashcardCollectionDetails = async (collectionId: string | number): Promise<FlashcardCollectionDetailDto | null> => {
+  // Don't fetch if ID is missing or invalid
+  if (!collectionId || collectionId === 'undefined' || collectionId === 'null') {
+      console.warn("fetchFlashcardCollectionDetails called with invalid ID:", collectionId);
+      return null;
+  }
+  const response = await fetch(`${API_BASE_URL}/flashcards/collections/${collectionId}`);
+
+  if (response.status === 404) {
+      console.warn(`Flashcard collection not found: ID ${collectionId}`);
+      return null; // Return null if collection doesn't exist
+  }
+  if (!response.ok) {
+      console.error("API Error:", response.status, await response.text());
+      throw new Error(`Failed to fetch details for flashcard collection ${collectionId}`);
+  }
+  return await response.json() as FlashcardCollectionDetailDto;
 };

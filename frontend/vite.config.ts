@@ -20,7 +20,12 @@ export default defineConfig({
         secure: false,      // Set to false if your backend uses HTTPS with a self-signed dev certificate
         // Optional: If your backend API routes don't start with /api, you might need to rewrite
         // rewrite: (path) => path.replace(/^\/api/, '') // Removes /api prefix before forwarding
-      }
+      },
+      '/uploads': { // New rule for image uploads folder
+            target: backendUrl, // Your ASP.NET Core backend URL
+            changeOrigin: true,
+            secure: false, // If using self-signed HTTPS cert
+        }
     },
     // Optional: Define the port for the Vite dev server explicitly if needed
     // port: 5173
