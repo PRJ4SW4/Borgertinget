@@ -33,7 +33,7 @@ function PageContent() {
       }
       catch (err) { 
         if (err instanceof Error) { setError(err.message); } else { setError("An unknown error occurred while fetching page details.");}
-        console.error(`Failed to load page ${pageId}:`, err);
+        console.error("Failed to load page %s:", pageId, err);
         setPageDetails(null); // Ensure details are cleared on error
       }
       finally { setIsLoading(false); }
