@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using backend.Data;
 using backend.Services;
+using backend.Services.AutomationServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
@@ -135,6 +136,10 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+
+// For altinget scraping
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<AltingetScraperService>();
 
 var app = builder.Build();
 
