@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Verify from "./pages/Verify";
+import LearningLayout from './layouts/LearningLayout';
+import PageContent from './components/PageContent';
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
@@ -21,6 +23,18 @@ function App() {
       <Route path="/login" element={<Login setToken={setToken} />} />
       <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
       <Route path="/verify" element={<Verify />} />
+
+      <Route
+          path="/learning"
+          // Apply the SAME protection logic as /home if needed
+          // If learning is public, just use: element={<LearningLayout />}
+          element={token ? <LearningLayout /> : <Navigate to="/login" />}
+        >
+          {/* Nested routes render inside LearningLayout's <Outlet /> */}
+          <Route index element={<p>Velkommen til læringsområdet!</p>} />
+          <Route path=":pageId" element={<PageContent />} />
+      </Route>
+
       <Route path="*" element={<Navigate to={token ? "/home" : "/login"} />} />
     </Routes>
   );
