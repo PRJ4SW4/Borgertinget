@@ -1,5 +1,4 @@
 // src/layouts/LearningLayout.tsx
-import React from 'react';
 import { Outlet } from 'react-router-dom';
 import SideNav from '../components/SideNav';
 import './LearningLayout.css';

@@ -1,5 +1,5 @@
 // src/components/FlashcardSideNav.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom'; // useLocation can be useful
 import { fetchFlashcardCollections } from '../services/ApiService'; // Adjust path if needed
 import type { FlashcardCollectionSummaryDto } from '../types/flashcardTypes'; // Adjust path if needed

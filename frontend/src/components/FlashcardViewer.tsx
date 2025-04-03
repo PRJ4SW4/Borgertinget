@@ -1,5 +1,5 @@
 // src/components/FlashcardViewer.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchFlashcardCollectionDetails } from '../services/ApiService'; // Adjust path if needed
 import type { FlashcardCollectionDetailDto, FlashcardDto } from '../types/flashcardTypes'; // Adjust path
