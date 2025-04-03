@@ -45,7 +45,7 @@
   /* Indentation for nested sub-menus */
   .sub-menu ul.sub-menu{
     /* Add padding to the left to create indentation */
-    padding-left: 1.5em; /* Adjust indentation level as needed */
+    padding-left: 1em; /* Adjust indentation level as needed */
     /* Optional: Add some top margin for spacing */
     margin-top: 4px;
     /* Optional: Style nested lists slightly differently if needed */

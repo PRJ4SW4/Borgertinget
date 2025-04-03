@@ -15,4 +15,25 @@ public class PageDetailDto
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty; // The Markdown content
     public int? ParentPageId { get; set; }
+
+    // This is for previous and next buttons to work
+    public int? PreviousSiblingId { get; set; }
+    public int? NextSiblingId { get; set; }
+
+    public List<QuestionDto> AssociatedQuestions { get; set; } = new List<QuestionDto>();
+}
+
+public class AnswerOptionDto
+{
+    public int Id { get; set; } // AnswerOptionId
+    public string OptionText { get; set; } = string.Empty;
+    // NOTE: Do NOT send IsCorrect to the frontend yet.
+    // The client shouldn't know the correct answer upfront.
+}
+
+public class QuestionDto
+{
+    public int Id { get; set; } // QuestionId
+    public string QuestionText { get; set; } = string.Empty;
+    public List<AnswerOptionDto> Options { get; set; } = new List<AnswerOptionDto>();
 }

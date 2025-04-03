@@ -25,4 +25,6 @@ public class Page
 
     // Optional: Add an order field if you need specific sorting under a parent
     public int DisplayOrder { get; set; } = 0;
+
+    public virtual ICollection<Question> AssociatedQuestions { get; set; } = new List<Question>();
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250403050103_UpdatePageQuestionRelationshipToOneToMany")]
+    partial class UpdatePageQuestionRelationshipToOneToMany
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,104 +51,6 @@ namespace backend.Migrations
                     b.HasIndex("QuestionId");
 
                     b.ToTable("AnswerOptions");
-
-                    b.HasData(
-                        new
-                        {
-                            AnswerOptionId = 1,
-                            DisplayOrder = 1,
-                            IsCorrect = true,
-                            OptionText = "Studiet af magtstrukturer og beslutningsprocesser",
-                            QuestionId = 1
-                        },
-                        new
-                        {
-                            AnswerOptionId = 2,
-                            DisplayOrder = 2,
-                            IsCorrect = false,
-                            OptionText = "Analyse af internationale handelsaftaler",
-                            QuestionId = 1
-                        },
-                        new
-                        {
-                            AnswerOptionId = 3,
-                            DisplayOrder = 3,
-                            IsCorrect = false,
-                            OptionText = "Udforskning af historiske monarkier",
-                            QuestionId = 1
-                        },
-                        new
-                        {
-                            AnswerOptionId = 4,
-                            DisplayOrder = 1,
-                            IsCorrect = false,
-                            OptionText = "Social mobilitet",
-                            QuestionId = 2
-                        },
-                        new
-                        {
-                            AnswerOptionId = 5,
-                            DisplayOrder = 2,
-                            IsCorrect = true,
-                            OptionText = "Magtdeling",
-                            QuestionId = 2
-                        },
-                        new
-                        {
-                            AnswerOptionId = 6,
-                            DisplayOrder = 3,
-                            IsCorrect = false,
-                            OptionText = "Kulturel assimilation",
-                            QuestionId = 2
-                        },
-                        new
-                        {
-                            AnswerOptionId = 7,
-                            DisplayOrder = 1,
-                            IsCorrect = false,
-                            OptionText = "Planøkonomi",
-                            QuestionId = 3
-                        },
-                        new
-                        {
-                            AnswerOptionId = 8,
-                            DisplayOrder = 2,
-                            IsCorrect = false,
-                            OptionText = "Høj grad af omfordeling",
-                            QuestionId = 3
-                        },
-                        new
-                        {
-                            AnswerOptionId = 9,
-                            DisplayOrder = 3,
-                            IsCorrect = true,
-                            OptionText = "Frit marked og privat ejendomsret",
-                            QuestionId = 3
-                        },
-                        new
-                        {
-                            AnswerOptionId = 10,
-                            DisplayOrder = 1,
-                            IsCorrect = false,
-                            OptionText = "Individuel konkurrence",
-                            QuestionId = 4
-                        },
-                        new
-                        {
-                            AnswerOptionId = 11,
-                            DisplayOrder = 2,
-                            IsCorrect = true,
-                            OptionText = "Social lighed og fællesskabets velfærd",
-                            QuestionId = 4
-                        },
-                        new
-                        {
-                            AnswerOptionId = 12,
-                            DisplayOrder = 3,
-                            IsCorrect = false,
-                            OptionText = "Traditionelle hierarkier",
-                            QuestionId = 4
-                        });
                 });
 
             modelBuilder.Entity("Page", b =>
@@ -181,14 +86,14 @@ namespace backend.Migrations
                         new
                         {
                             Id = 1,
-                            Content = "Indhold for Politik 101...",
+                            Content = "Lorem Ipsum lorem ipsum...\n\n her er en Heading skirt",
                             DisplayOrder = 1,
                             Title = "Politik 101"
                         },
                         new
                         {
                             Id = 2,
-                            Content = "Indhold for Den Politiske Akse...",
+                            Content = "Lorem Ipsum lorem ipsum...",
                             DisplayOrder = 1,
                             ParentPageId = 1,
                             Title = "Den Politiske Akse"
@@ -196,7 +101,7 @@ namespace backend.Migrations
                         new
                         {
                             Id = 3,
-                            Content = "Indhold for Venstre vs Højre...",
+                            Content = "Lorem Ipsum lorem ipsum...",
                             DisplayOrder = 1,
                             ParentPageId = 2,
                             Title = "Venstre vs Højre"
@@ -239,32 +144,6 @@ namespace backend.Migrations
                     b.HasIndex("PageId");
 
                     b.ToTable("Questions");
-
-                    b.HasData(
-                        new
-                        {
-                            QuestionId = 1,
-                            PageId = 1,
-                            QuestionText = "Hvad beskæftiger politologi sig primært med?"
-                        },
-                        new
-                        {
-                            QuestionId = 2,
-                            PageId = 1,
-                            QuestionText = "Hvilket begreb dækker over fordelingen af autoritet i et samfund?"
-                        },
-                        new
-                        {
-                            QuestionId = 3,
-                            PageId = 4,
-                            QuestionText = "Hvilket økonomisk princip forbindes ofte med højreorienteret politik?"
-                        },
-                        new
-                        {
-                            QuestionId = 4,
-                            PageId = 5,
-                            QuestionText = "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?"
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
