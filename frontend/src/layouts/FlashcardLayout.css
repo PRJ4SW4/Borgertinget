@@ -1,0 +1,51 @@
+/* src/layouts/FlashcardLayout.css */
+
+/* Main container for the flashcard section layout */
+.flashcard-layout {
+    display: flex; /* Use Flexbox for side-by-side layout */
+    /* Set minimum height to fill viewport minus any fixed header (adjust 60px as needed) */
+    min-height: calc(100vh - 60px);
+    background-color: #ffffff; /* Optional: Set base background */
+  }
+  
+  /* Container specifically for the sidebar navigation */
+  .flashcard-sidenav-container {
+    width: 250px; /* Set the desired width for the sidebar */
+    flex-shrink: 0; /* Prevent the sidebar from shrinking when content is wide */
+    background-color: #f8f9fa; /* A common light background for sidebars */
+    border-right: 1px solid #dee2e6; /* A subtle border to separate sidebar from content */
+    padding: 1rem; /* Padding inside the sidebar */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
+    overflow-y: auto; /* Add vertical scrollbar ONLY if sidebar content overflows */
+  }
+  
+  /* Container for the main content area (where flashcards are viewed) */
+  .flashcard-content-area {
+    flex-grow: 1; /* Allow this area to expand and fill the remaining width */
+    padding: 1.5rem 2rem; /* Padding inside the main content area (top/bottom, left/right) */
+    box-sizing: border-box;
+    overflow-y: auto; /* Add vertical scrollbar if main content overflows */
+  }
+  
+  /* Responsive Design: Stack layout on smaller screens */
+  @media (max-width: 768px) {
+    .flashcard-layout {
+      flex-direction: column; /* Change direction to vertical stacking */
+      min-height: 100vh; /* Ensure full height */
+    }
+  
+    .flashcard-sidenav-container {
+      width: 100%; /* Sidebar takes full width */
+      border-right: none; /* Remove the side border */
+      border-bottom: 1px solid #dee2e6; /* Add a border below the sidebar */
+      /* Optionally limit the height of the sidebar on mobile */
+      max-height: 40vh; /* Example: Max 40% of viewport height */
+      overflow-y: auto; /* Ensure it scrolls if content exceeds max-height */
+      flex-shrink: initial; /* Not needed in column layout */
+    }
+  
+    .flashcard-content-area {
+      padding: 1rem; /* Adjust padding for smaller screens */
+      flex-grow: 1; /* Ensure it takes remaining vertical space */
+    }
+  }

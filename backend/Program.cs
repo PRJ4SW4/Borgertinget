@@ -138,6 +138,9 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+// For static images from wwwroot folder
+app.UseStaticFiles();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
