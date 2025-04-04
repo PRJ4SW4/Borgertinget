@@ -1,0 +1,56 @@
+/* src/components/LandingPage/First/FirstSection.module.css */
+.firstSection {
+  display: flex;
+  align-items: center; /* Centrerer indholdet lodret */
+  min-height: 80vh; /* Juster efter behov */
+  padding: 2rem;
+  background-color: #fff; /* Hvid baggrund eller en anden farve */
+}
+
+.content {
+  flex: 1; /* Tager den ledige plads */
+  padding-right: 2rem; /* Plads mellem tekst og billede */
+}
+
+.content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.content p {
+  font-size: 1.1rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.imageContainer {
+  flex: 1; /* Tager den ledige plads */
+  display: flex;
+  justify-content: center; /* Centrerer billedet i containeren */
+}
+
+.image {
+  max-width: 90%; /* Sikrer at billedet ikke bliver for bredt */
+  height: auto;
+  border-radius: 5px; /* Valgfri: afrundede hjørner */
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); /* Valgfri: let skygge */
+}
+
+/* Responsivt design (juster breakpoints efter behov) */
+@media (max-width: 768px) {
+  .firstSection {
+    flex-direction: column; /* Vis indhold over hinanden på mindre skærme */
+    text-align: center;
+  }
+
+  .content {
+    padding-right: 0;
+    margin-bottom: 2rem;
+  }
+
+  .imageContainer {
+    margin-top: 2rem;
+  }
+}

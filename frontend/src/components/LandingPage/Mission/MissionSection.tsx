@@ -1,15 +1,28 @@
-// src/components/LandingPage/PurposeSection.tsx
+// src/components/LandingPage/Mission/MissionSection.tsx
 import React from "react";
 import styles from "./MissionSection.module.css";
+import missionImage from "../../../assets/denmark_map.png"; // Juster stien til dit billede
+// Import af eventuelle andre komponenter
 
-interface MissionSectionProps {}
+interface MissionSectionProps {
+  id?: string;
+  missionText: string; // Prop til at modtage din missionstekst
+}
 
-const MissionSection: React.FC<MissionSectionProps> = () => {
+const MissionSection: React.FC<MissionSectionProps> = ({ id, missionText }) => {
   return (
-    <section id="purpose" className={styles.purpose}>
-      <h2>Formålet med Projektet</h2>
-      <p>Uddyb her formålet og visionen bag dit React-projekt.</p>
-      {/* ... mere indhold ... */}
+    <section id={id} className={styles.missionSection}>
+      <div className={styles.imageContainer}>
+        <img
+          src={missionImage}
+          alt="Kort over Danmark"
+          className={styles.image}
+        />
+      </div>
+      <div className={styles.content}>
+        <h1>Vores mission</h1>
+        <p>{missionText}</p>
+      </div>
     </section>
   );
 };

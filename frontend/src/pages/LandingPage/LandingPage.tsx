@@ -12,6 +12,10 @@ import styles from "./LandingPage.module.css";
 interface LandingPageProps {}
 
 const LandingPage: React.FC<LandingPageProps> = () => {
+  const missionTekst = `
+  Indsæt tekst som skal placeres på MissionTekst component
+`;
+
   useEffect(() => {
     const smoothScroll = (targetId: string) => {
       const targetElement = document.getElementById(targetId);
@@ -81,7 +85,7 @@ const LandingPage: React.FC<LandingPageProps> = () => {
       </nav>
       <HeroSection id="hero" /> {/* Tilføj ID'er til sektionerne */}
       <FirstSection id="first" />
-      <MissionSection id="mission" />
+      <MissionSection id="mission" missionText={/* Din missionstekst */} />
       <FeaturesSection id="features1" /> {/* Brug unikke ID'er */}
       <TeamSection id="team" />
       <FeaturesSection id="features2" /> {/* Brug unikke ID'er */}

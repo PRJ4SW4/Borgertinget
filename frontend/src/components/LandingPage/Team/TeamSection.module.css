@@ -1,0 +1,56 @@
+/* src/components/LandingPage/Team/TeamSection.module.css */
+.teamSection {
+  padding: 4rem 2rem;
+  background-color: #fff;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.description {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 3rem;
+  white-space: pre-line; /* For at bevare linjeskift i din tekst */
+}
+
+.membersGrid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(150px, 1fr)
+  ); /* Responsivt grid */
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.memberCard {
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.memberImage {
+  width: 100%;
+  height: auto;
+  border-radius: 50%; /* Gør billedet rundt */
+  margin-bottom: 0.5rem;
+  object-fit: cover; /* Sikrer at billedet dækker containeren uden forvrængning */
+}
+
+.memberName {
+  font-size: 1rem;
+  color: #333;
+  margin-top: 0;
+}
+
+/* Responsivt design (juster breakpoints efter behov) */
+@media (max-width: 768px) {
+  .membersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
