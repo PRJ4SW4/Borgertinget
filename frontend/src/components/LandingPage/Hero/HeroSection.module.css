@@ -1,0 +1,14 @@
+/* src/components/LandingPage/Hero/HeroSection.module.css */
+.hero {
+  display: flex;
+  justify-content: center; /* Centrerer billedet vandret */
+  align-items: center; /* Centrerer billedet lodret (hvis sektionen har højde) */
+  min-height: 100vh; /* Får sektionen til at fylde mindst hele skærmens højde */
+  background-color: #f8f8f8; /* En neutral baggrundsfarve */
+  padding: 2rem; /* Lidt padding omkring indholdet */
+}
+
+.heroImage {
+  max-width: 80%; /* Sikrer at billedet ikke bliver for bredt på store skærme */
+  height: auto; /* Bevarer billedets proportioner */
+}
