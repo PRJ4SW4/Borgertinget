@@ -24,6 +24,9 @@ function App() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  // Placeholder for politikerImage - husk at erstatte med faktiske billeder senere
+  const placeholderImage = ""; // Eller en URL til et standardbillede
+
   return (
     <Routes>
       <Route path="/login" element={<Login setToken={setToken} />} />
@@ -36,7 +39,7 @@ function App() {
       <Route path="/verify" element={<Verify />} />
       <Route path="*" element={<Navigate to={token ? "/home" : "/login"} />} />
       <Route path="/Polidle" element={<Polidle />} />
-      // gamemodes
+      {/* gamemodes */}
       <Route path="/ClassicMode" element={<ClassicMode />} />
       <Route
         path="/CitatMode"
@@ -44,6 +47,7 @@ function App() {
           <CitatMode
             citat="Sample Citat"
             correctPolitiker="Sample Politician"
+            politikerImage={placeholderImage} // Tilføjet politikerImage prop
           />
         }
       />
@@ -53,6 +57,7 @@ function App() {
           <FotoBlurMode
             imageUrl="sample-image-url.jpg"
             correctPolitiker="Sample Politician"
+            politikerImage={placeholderImage} // Tilføjet politikerImage prop
           />
         }
       />
