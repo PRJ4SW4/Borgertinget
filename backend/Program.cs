@@ -121,6 +121,8 @@ builder.Services.AddSwaggerGen(options =>
 
 // Tilføj EmailService
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<TwitterService>();  
+
 
 // CORS
 builder.Services.AddCors(options =>

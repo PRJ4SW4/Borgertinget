@@ -7,25 +7,28 @@ using System.Linq;
 using HtmlAgilityPack;
 using backend.Data;
 using backend.DTOs;
+using backend.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace backend.Services{
 
 public class TwitterService
 {
     private readonly HttpClient _httpClient;
     private readonly string _bearerToken;
-
-    
-    private readonly  DataContext _dbContext;  
+    private readonly DataContext _dbContext; // Tilføjet for at kunne bruge DataContext
 
 
-    public TwitterService(HttpClient httpClient, IConfiguration config, DataContext dbContext )
+    public TwitterService(HttpClient httpClient, IConfiguration config, DataContext dbContext)
     {
         _httpClient = httpClient;
         _bearerToken = config["TwitterApi:BearerToken"];
-        _dbContext = dbContext;
+        _dbContext = dbContext;  // Inject DataContext to access the database
+
     }
 
 
-public async Task<List<string>> GetUserTweets(string userId, int count = 5) // kan godt være vi skal ændre den til at tahe 10 tweets fra hvert ide
+public async Task<List<string>> GetUserTweets(string userId, int count = 5)
 {
     // 1. Bygger URL'en til Twitter API, inkl. funktioner tager userId, som er den bruger vi vil hente tweets fra og count, som er hvor mange tweets vi vil hente
     // herunder definere vi så hvad vi vil have med i vores response, som er medier og link
@@ -85,88 +88,92 @@ public async Task<List<string>> GetUserTweets(string userId, int count = 5) // k
         return tweetTexts;
     }
 
-    public async Task<List<TweetDto>> GetStructuredTweets(string userId, int count = 5)
-    {
-        string url = $"https://api.twitter.com/2/users/{userId}/tweets" +
-                     $"?max_results={count}" +
-                     $"&expansions=attachments.media_keys" +
-                     $"&media.fields=preview_image_url,url,type" +
-                     "&tweet.fields=entities,public_metrics";
-                     // Dette er er de ting vi henter fra public_metrics for at få likes og retweets.
-
-
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _bearerToken);
-
-        var response = await _httpClient.GetAsync(url);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            return new List<TweetDto>(); // tom liste ved fejl
-        }
-
-        var jsonResponse = await response.Content.ReadAsStringAsync();
-        var json = JObject.Parse(jsonResponse);
-
-        var tweets = json["data"];
-        var media = json["includes"]?["media"];
-        var tweetDtos = new List<TweetDto>();
-
-        if (tweets != null)
-        {
-           foreach (var tweet in tweets)
+  public async Task<List<TweetDto>> GetStructuredTweets(string userId, int count = 5)
 {
-    string text = tweet["text"]?.ToString() ?? "";
-    // Fjern t.co-links fra teksten
-    text = System.Text.RegularExpressions.Regex.Replace(text, @"https:\/\/t\.co\/\S+", "").Trim();
+    string url = $"https://api.twitter.com/2/users/{userId}/tweets" +
+                 $"?max_results={count}" +
+                 $"&expansions=attachments.media_keys" +
+                 $"&media.fields=preview_image_url,url,type" +
+                 "&tweet.fields=entities,public_metrics";
 
-    string mediaUrl = "";
+    _httpClient.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _bearerToken);
 
-    //  1. Tjek efter billede fra Twitter-medier
-    var mediaKeys = tweet["attachments"]?["media_keys"];
-    if (mediaKeys != null && media != null)
+    var response = await _httpClient.GetAsync(url);
+
+    if (!response.IsSuccessStatusCode)
     {
-        foreach (var key in mediaKeys)
+        return new List<TweetDto>(); // Empty list if there's an error fetching tweets
+    }
+
+    var jsonResponse = await response.Content.ReadAsStringAsync();
+    var json = JObject.Parse(jsonResponse);
+
+    var tweets = json["data"];
+    var media = json["includes"]?["media"];
+    var tweetDtos = new List<TweetDto>();
+
+    if (tweets != null)
+    {
+        foreach (var tweet in tweets)
         {
-            var matchedMedia = media.FirstOrDefault(m => m["media_key"]?.ToString() == key?.ToString());
-            if (matchedMedia != null)
+            string text = tweet["text"]?.ToString() ?? "";
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"https:\/\/t\.co\/\S+", "").Trim(); // Remove short links
+
+            string mediaUrl = "";
+
+            // Check if the tweet contains media (image/video)
+            var mediaKeys = tweet["attachments"]?["media_keys"];
+            if (mediaKeys != null && media != null)
             {
-                mediaUrl = matchedMedia["url"]?.ToString() ?? matchedMedia["preview_image_url"]?.ToString() ?? "";
-                break;
-            }
-        }
-    }
-
-    //  2. Hvis intet billede fra Twitter, tjek efter link (og hent OpenGraph-billede)
-    if (string.IsNullOrEmpty(mediaUrl))
-    {
-        var link = tweet["entities"]?["urls"]?.FirstOrDefault()?["expanded_url"]?.ToString();
-
-        if (!string.IsNullOrEmpty(link))
-        {
-            var ogImage = await GetOpenGraphImageAsync(link);
-            if (!string.IsNullOrEmpty(ogImage))
-                mediaUrl = ogImage;
-        }
-    }
-
-    //  3. Hent antal likes, retweets og replies fra public_metrics
-    var metrics = tweet["public_metrics"];
-    int likes = metrics?["like_count"]?.ToObject<int>() ?? 0;
-    int retweets = metrics?["retweet_count"]?.ToObject<int>() ?? 0;
-    int replies = metrics?["reply_count"]?.ToObject<int>() ?? 0;
-
-    var tweetDto = new TweetDto
+                foreach (var key in mediaKeys)
                 {
-                    Text = text,
-                    ImageUrl = mediaUrl,
-                    Likes = likes,
-                    Retweets = retweets,
-                    Replies = replies
-                };
-                tweetDtos.Add(tweetDto);
+                    var matchedMedia = media.FirstOrDefault(m => m["media_key"]?.ToString() == key?.ToString());
+                    if (matchedMedia != null)
+                    {
+                        mediaUrl = matchedMedia["url"]?.ToString() ?? matchedMedia["preview_image_url"]?.ToString() ?? "";
+                        break;
+                    }
+                }
+            }
 
-                // gem tweet i databasen
+            // If no media URL from Twitter, check for OpenGraph image
+            if (string.IsNullOrEmpty(mediaUrl))
+            {
+                var link = tweet["entities"]?["urls"]?.FirstOrDefault()?["expanded_url"]?.ToString();
+                if (!string.IsNullOrEmpty(link))
+                {
+                    var ogImage = await GetOpenGraphImageAsync(link);
+                    if (!string.IsNullOrEmpty(ogImage))
+                        mediaUrl = ogImage;
+                }
+            }
+
+            // Extract public metrics (likes, retweets, replies)
+            var metrics = tweet["public_metrics"];
+            int likes = metrics?["like_count"]?.ToObject<int>() ?? 0;
+            int retweets = metrics?["retweet_count"]?.ToObject<int>() ?? 0;
+            int replies = metrics?["reply_count"]?.ToObject<int>() ?? 0;
+
+            // Create the DTO to return to the frontend
+            var tweetDto = new TweetDto
+            {
+                Text = text,
+                ImageUrl = mediaUrl,
+                Likes = likes,
+                Retweets = retweets,
+                Replies = replies
+            };
+
+            tweetDtos.Add(tweetDto);
+
+            
+            var politician = await _dbContext.PoliticianTwitterIds
+                .FirstOrDefaultAsync(p => p.TwitterUserId == userId); // ja det er det.
+
+            if (politician != null)
+            {
+                // Create a new Tweet entity to save in the database
                 var tweetEntity = new Tweet
                 {
                     Text = text,
@@ -174,20 +181,20 @@ public async Task<List<string>> GetUserTweets(string userId, int count = 5) // k
                     Likes = likes,
                     Retweets = retweets,
                     Replies = replies,
-                    UserId = userId,  
+                    PoliticianTwitterId = politician.Id, // Associate the tweet with the politician
                     
                 };
-                _dbContext.Tweets.Add(tweetEntity); 
-            }
 
-            await _dbContext.SaveChangesAsync();  
+                _dbContext.Tweets.Add(tweetEntity); // Add the tweet to the database
+            }
         }
 
-        return tweetDtos;
+        // Commit the changes to the database
+        await _dbContext.SaveChangesAsync();
     }
 
-    
-
+    return tweetDtos; // Return the DTO list to the frontend
+}
     private async Task<string?> GetOpenGraphImageAsync(string url)
     {
         try
@@ -217,3 +224,4 @@ public async Task<List<string>> GetUserTweets(string userId, int count = 5) // k
     }
 }
 
+}

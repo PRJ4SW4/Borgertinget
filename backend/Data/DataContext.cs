@@ -18,6 +18,11 @@ public class DataContext : DbContext
 
     public DbSet<Tweet> Tweets { get; set; }
 
+     public DbSet<Subscription> Subscriptions { get; set; } // bruges til at hente subscriptions for user
+
+    public DbSet<PoliticianTwitterId> PoliticianTwitterIds { get; set; }  // Add this line
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -316,5 +321,29 @@ public class DataContext : DbContext
                     BackText = "Statens budget for det kommende år",
                 }
             );
+            
+        // Configure one-to-many relationship between User and Subscription
+        modelBuilder.Entity<Subscription>()
+            .HasOne(s => s.User) // Each subscription has one user
+            .WithMany(u => u.Subscriptions) // A user can have many subscriptions
+            .HasForeignKey(s => s.UserId) // Foreign key on the Subscription table
+            .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete if user is deleted
+
+        // Configure one-to-many relationship between PoliticianTwitterId and Subscription
+        modelBuilder.Entity<Subscription>()
+            .HasOne(s => s.Politician) // Each subscription has one politician
+            .WithMany(p => p.Subscriptions) // A politician can have many subscriptions
+            .HasForeignKey(s => s.PoliticianTwitterId) // Foreign key on the Subscription table
+            .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete if politician is deleted
+
+        // Configure one-to-many relationship between PoliticianTwitterId and Tweet
+        modelBuilder.Entity<Tweet>()
+            .HasOne(t => t.Politician) // Each tweet has one politician
+            .WithMany(p => p.Tweets) // A politician can have many tweets
+            .HasForeignKey(t => t.PoliticianTwitterId) // Foreign key on the Tweet table
+            .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete if politician is deleted
+
+        // Optionally, we could define other relationships or configurations here (indexes, constraints, etc.)
     }
-}
+    }
+
