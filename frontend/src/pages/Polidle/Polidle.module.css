@@ -1,0 +1,107 @@
+.container {
+  text-align: center;
+  padding: 20px;
+  background-color: white; /* Hvid baggrund */
+  color: black; /* Hvid tekst */
+}
+
+.heading {
+  font-size: 3em;
+  margin-bottom: 10px;
+  color: #e31836; /* Rød farve for heading */
+}
+
+.subheading {
+  font-size: 1.2em;
+  margin-bottom: 20px;
+  color: black;
+}
+
+.gamemodeList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.gamemodeButton {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  margin: 10px 0;
+  background-color: #000000; /* Mørkere knapbaggrund */
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 500px;
+  box-shadow: 0 4px 8px rgb(255, 1, 1);
+}
+
+.gamemodeButton:hover {
+  background-color: #f6f6f6;
+}
+
+.gamemodeSymbol {
+  font-size: 2em;
+  margin-right: 20px;
+}
+
+.gamemodeText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.gamemodeName {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.gamemodeDescription {
+  font-size: 0.9em;
+  color: #bbb;
+}
+
+.backButton {
+  padding: 10px 20px;
+  margin-top: 20px;
+  background-color: #4a5162;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.guess-result {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: 5px;
+  width: 300px;
+  height: 80px;
+  box-sizing: border-box;
+}
+
+.correct {
+  background-color: lightgreen;
+}
+
+.incorrect {
+  background-color: lightcoral;
+}
+
+.resultImage {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.resultName {
+  font-size: 1.2em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
