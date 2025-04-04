@@ -9,6 +9,10 @@ interface FotoBlurModeProps {
   politikerImage: string;
 }
 
+interface GuessInput {
+  politikker: string;
+}
+
 const FotoBlurMode: React.FC<FotoBlurModeProps> = ({
   imageUrl,
   correctPolitiker,
@@ -17,7 +21,7 @@ const FotoBlurMode: React.FC<FotoBlurModeProps> = ({
   const [guess, setGuess] = useState("");
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  const handleGuess = (guessInput: any) => {
+  const handleGuess = (guessInput: GuessInput) => {
     const guessName = guessInput.politikker.toLowerCase();
     const correctName = correctPolitiker.toLowerCase();
     const result = guessName === correctName;

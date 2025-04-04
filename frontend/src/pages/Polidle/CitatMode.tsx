@@ -9,6 +9,10 @@ interface CitatModeProps {
   politikerImage: string;
 }
 
+interface GuessInput {
+  politikker: string;
+}
+
 const CitatMode: React.FC<CitatModeProps> = ({
   citat,
   correctPolitiker,
@@ -17,7 +21,7 @@ const CitatMode: React.FC<CitatModeProps> = ({
   const [guess, setGuess] = useState("");
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  const handleGuess = (guessInput: any) => {
+  const handleGuess = (guessInput: GuessInput) => {
     const guessName = guessInput.politikker.toLowerCase();
     const correctName = correctPolitiker.toLowerCase();
     const result = guessName === correctName;
@@ -30,7 +34,7 @@ const CitatMode: React.FC<CitatModeProps> = ({
       <h1 className={styles.heading}>Polidle - Citat Mode</h1>
       <p className={styles.paragraph}>Hvem sagde dette citat?</p>
       <p className={styles.citat}>"{citat}"</p> //Todo: Skal kobles til DB, så
-      //TODO: citat tages fra "Dagens Polidle"
+      {/* TODO: citat tages fra "Dagens Polidle" */}
       <GameSelector /> {/* Tilføj GameSelector */}
       <Input onGuess={handleGuess} />
       {isCorrect !== null && (

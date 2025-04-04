@@ -5,8 +5,17 @@ import GuessList from "../../components/Polidle/GuessList/GuessList";
 import styles from "./Polidle.module.css";
 import GameSelector from "../../components/Polidle/GamemodeSelector/GamemodeSelector"; // Import GameSelector
 
+interface PoliticianGuess {
+  politikker: string;
+  køn: string;
+  parti: string;
+  alder: number;
+  region: string;
+  uddannelse: string;
+}
+
 const ClassicMode: React.FC = () => {
-  const [guesses, setGuesses] = useState([
+  const [guesses, setGuesses] = useState<PoliticianGuess[]>([
     {
       politikker: "Mette Frederiksen",
       køn: "Kvinde",
@@ -26,7 +35,7 @@ const ClassicMode: React.FC = () => {
     // ... flere gæt ...
   ]);
 
-  const correctAnswers = {
+  const correctAnswers: PoliticianGuess = {
     politikker: "Mette Frederiksen",
     køn: "Kvinde",
     parti: "Socialdemokratiet",
@@ -35,7 +44,7 @@ const ClassicMode: React.FC = () => {
     uddannelse: "Cand.jur",
   };
 
-  const handleGuess = (guess: any) => {
+  const handleGuess = (guess: PoliticianGuess) => {
     setGuesses([...guesses, guess]);
   };
 

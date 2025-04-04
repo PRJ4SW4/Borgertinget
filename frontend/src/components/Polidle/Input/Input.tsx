@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import "./Input.css";
 
 interface InputProps {
-  onGuess: (guess: any) => void;
+  onGuess: (guess: {
+    politikker: string;
+    køn: string;
+    parti: string;
+    alder: number;
+    region: string;
+    uddannelse: string;
+  }) => void;
 }
 
 const Input: React.FC<InputProps> = ({ onGuess }) => {
