@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using HtmlAgilityPack;
+using backend.Data;
 using backend.DTOs;
 
 public class TwitterService
@@ -12,7 +13,11 @@ public class TwitterService
     private readonly HttpClient _httpClient;
     private readonly string _bearerToken;
 
-    public TwitterService(HttpClient httpClient, IConfiguration config)
+    
+    private readonly  DataContext _dbContext;  
+
+
+    public TwitterService(HttpClient httpClient, IConfiguration config, DataContext dbContext )
     {
         _httpClient = httpClient;
         _bearerToken = config["TwitterApi:BearerToken"];

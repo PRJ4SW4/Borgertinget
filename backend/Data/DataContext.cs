@@ -16,6 +16,8 @@ public class DataContext : DbContext
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<FlashcardCollection> FlashcardCollections { get; set; }
 
+    public DbSet<Tweet> Tweets { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
