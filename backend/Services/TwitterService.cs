@@ -21,10 +21,11 @@ public class TwitterService
     {
         _httpClient = httpClient;
         _bearerToken = config["TwitterApi:BearerToken"];
+        _dbContext = dbContext;
     }
 
 
-public async Task<List<string>> GetUserTweets(string userId, int count = 5)
+public async Task<List<string>> GetUserTweets(string userId, int count = 5) // kan godt være vi skal ændre den til at tahe 10 tweets fra hvert ide
 {
     // 1. Bygger URL'en til Twitter API, inkl. funktioner tager userId, som er den bruger vi vil hente tweets fra og count, som er hvor mange tweets vi vil hente
     // herunder definere vi så hvad vi vil have med i vores response, som er medier og link
@@ -155,20 +156,37 @@ public async Task<List<string>> GetUserTweets(string userId, int count = 5)
     int retweets = metrics?["retweet_count"]?.ToObject<int>() ?? 0;
     int replies = metrics?["reply_count"]?.ToObject<int>() ?? 0;
 
-    //  4. Tilføj alt samlet til DTO
-    tweetDtos.Add(new TweetDto
-    {
-        Text = text,
-        ImageUrl = mediaUrl,
-        Likes = likes,
-        Retweets = retweets,
-        Replies = replies
-    });
+    var tweetDto = new TweetDto
+                {
+                    Text = text,
+                    ImageUrl = mediaUrl,
+                    Likes = likes,
+                    Retweets = retweets,
+                    Replies = replies
+                };
+                tweetDtos.Add(tweetDto);
+
+                // gem tweet i databasen
+                var tweetEntity = new Tweet
+                {
+                    Text = text,
+                    ImageUrl = mediaUrl,
+                    Likes = likes,
+                    Retweets = retweets,
+                    Replies = replies,
+                    UserId = userId,  
+                    
+                };
+                _dbContext.Tweets.Add(tweetEntity); 
             }
+
+            await _dbContext.SaveChangesAsync();  
         }
 
         return tweetDtos;
     }
+
+    
 
     private async Task<string?> GetOpenGraphImageAsync(string url)
     {
