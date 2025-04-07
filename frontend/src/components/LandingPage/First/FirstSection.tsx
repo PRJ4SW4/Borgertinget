@@ -3,6 +3,7 @@ import React from "react";
 import styles from "./FirstSection.module.css";
 import firstSectionImage from "../../../assets/first_section_image.jpg"; // Juster stien til dit eksempelbillede
 // TODO: Log ind knap component her >>>> import Button from "../../Common/Button";
+import Button from "../../common/Button";
 
 interface FirstSectionProps {
   id?: string;

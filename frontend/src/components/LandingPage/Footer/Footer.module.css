@@ -1,0 +1,40 @@
+/* src/components/LandingPage/Footer/Footer.module.css */
+.footer {
+  background-color: #333; /* En mørk baggrundsfarve til footeren */
+  color: #f8f8f8; /* Lys tekstfarve */
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between; /* Placerer logo til venstre og tekst til højre */
+  align-items: center; /* Centrerer elementerne vertikalt */
+}
+
+.logoContainer {
+  /* Ingen yderligere styling nødvendig for containeren i dette simple layout */
+}
+
+.logo {
+  max-height: 50px; /* Begræns logoets højde */
+  height: auto;
+}
+
+.placeholderText {
+  text-align: right; /* Justerer teksten til højre */
+}
+
+.placeholderText p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+/* Responsivt design (juster breakpoints efter behov) */
+@media (max-width: 600px) {
+  .footer {
+    flex-direction: column; /* Vis logo og tekst over hinanden på små skærme */
+    text-align: center;
+  }
+
+  .placeholderText {
+    text-align: center;
+    margin-top: 1rem;
+  }
+}
