@@ -17,5 +17,7 @@ public class Tweet
     public int PoliticianTwitterId { get; set; }  // Foreign key to Politician
     public PoliticianTwitterId Politician { get; set; } // Navigation property
 
+    public DateTime CreatedAt { get; set; } // Add this line
+
     
 }}
