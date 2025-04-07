@@ -20,10 +20,7 @@ const VerifyEmail = () => {
           }
         });
     }
-  }, [searchParams, message]); // Tilføjet searchParams og message til dependency array
-  // Bemærk: 'message' i dependency array kan potentielt skabe et uendeligt loop i visse scenarier.
-  // Overvej om det er den ønskede adfærd. Hvis 'message' kun skal sættes én gang ved fejl,
-  // kan du fjerne det fra dependency arrayet.
+  }, [searchParams, message]);
 
   return <div>{message}</div>;
 };
