@@ -3,13 +3,13 @@ import React from "react";
 import styles from "./TeamSection.module.css";
 
 // Importer billederne (juster stierne så de passer til din projektstruktur)
-import jakobLund from "../../../assets/team/jakob_lund.jpg";
-import kevinNguyen from "../../../assets/team/kevin_nguyen.jpg";
-import lasseFink from "../../../assets/team/lasse_fink.jpg";
-import magnusHvidsten from "../../../assets/team/magnus_hvidsten.jpg";
-import lucasStillborg from "../../../assets/team/lucas_stillborg.jpg";
-import simonNowack from "../../../assets/team/simon_nowack.jpg";
-import reneSchumacher from "../../../assets/team/rene_schumacher.jpg";
+import jakobLund from "../../../assets/team/jakob_lund.png";
+import kevinNguyen from "../../../assets/team/kevin_nguyen.png";
+import lasseFink from "../../../assets/team/lasse_fink.png";
+import magnusHvidsten from "../../../assets/team/magnus_hvidsten.png";
+import lucasStillborg from "../../../assets/team/lucas_stillborg.png";
+import simonNowack from "../../../assets/team/simon_nowack.png";
+import reneSchumacher from "../../../assets/team/rene_schumacher.png";
 import oliviaHee from "../../../assets/team/olivia_hee.png"; // Brug .png hvis det er formatet
 
 interface TeamMember {

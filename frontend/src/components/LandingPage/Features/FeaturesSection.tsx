@@ -4,7 +4,7 @@ import styles from "./FeaturesSection.module.css";
 import Button from "../../common/Button"; // Antager din genbrugelige knapkomponent
 // Importer dine tre billeder (juster stierne)
 import featureImage1 from "../../../assets/features/feature_1.png";
-import featureImage2 from "../../../assets/features/feature_2.jpg";
+import featureImage2 from "../../../assets/features/feature_2.png";
 import featureImage3 from "../../../assets/features/feature_3.png";
 
 interface FeatureItem {
