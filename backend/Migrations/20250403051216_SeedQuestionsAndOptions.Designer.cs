@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250403051216_SeedQuestionsAndOptions")]
+    partial class SeedQuestionsAndOptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -145,137 +148,6 @@ namespace backend.Migrations
                             IsCorrect = false,
                             OptionText = "Traditionelle hierarkier",
                             QuestionId = 4
-                        });
-                });
-
-            modelBuilder.Entity("Flashcard", b =>
-                {
-                    b.Property<int>("FlashcardId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("FlashcardId"));
-
-                    b.Property<int>("BackContentType")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("BackImagePath")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("BackText")
-                        .HasColumnType("text");
-
-                    b.Property<int>("CollectionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("FrontContentType")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("FrontImagePath")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("FrontText")
-                        .HasColumnType("text");
-
-                    b.HasKey("FlashcardId");
-
-                    b.HasIndex("CollectionId");
-
-                    b.ToTable("Flashcards");
-
-                    b.HasData(
-                        new
-                        {
-                            FlashcardId = 1,
-                            BackContentType = 0,
-                            BackText = "Mette Frederiksen",
-                            CollectionId = 1,
-                            DisplayOrder = 1,
-                            FrontContentType = 1,
-                            FrontImagePath = "/uploads/flashcards/mettef.png"
-                        },
-                        new
-                        {
-                            FlashcardId = 2,
-                            BackContentType = 0,
-                            BackText = "Lars Løkke Rasmussen",
-                            CollectionId = 1,
-                            DisplayOrder = 2,
-                            FrontContentType = 1,
-                            FrontImagePath = "/uploads/flashcards/larsl.png"
-                        },
-                        new
-                        {
-                            FlashcardId = 3,
-                            BackContentType = 0,
-                            BackText = "Inger Støjberg",
-                            CollectionId = 1,
-                            DisplayOrder = 3,
-                            FrontContentType = 0,
-                            FrontText = "Hvem er formand for Danmarksdemokraterne?"
-                        },
-                        new
-                        {
-                            FlashcardId = 4,
-                            BackContentType = 0,
-                            BackText = "Folkestyre",
-                            CollectionId = 2,
-                            DisplayOrder = 1,
-                            FrontContentType = 0,
-                            FrontText = "Hvad betyder 'Demokrati'?"
-                        },
-                        new
-                        {
-                            FlashcardId = 5,
-                            BackContentType = 0,
-                            BackText = "Statens budget for det kommende år",
-                            CollectionId = 2,
-                            DisplayOrder = 2,
-                            FrontContentType = 0,
-                            FrontText = "Hvad er 'Finansloven'?"
-                        });
-                });
-
-            modelBuilder.Entity("FlashcardCollection", b =>
-                {
-                    b.Property<int>("CollectionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CollectionId"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.HasKey("CollectionId");
-
-                    b.ToTable("FlashcardCollections");
-
-                    b.HasData(
-                        new
-                        {
-                            CollectionId = 1,
-                            DisplayOrder = 1,
-                            Title = "Politikerne og deres navne"
-                        },
-                        new
-                        {
-                            CollectionId = 2,
-                            DisplayOrder = 2,
-                            Title = "Politiske begreber"
                         });
                 });
 
@@ -444,17 +316,6 @@ namespace backend.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("Flashcard", b =>
-                {
-                    b.HasOne("FlashcardCollection", "FlashcardCollection")
-                        .WithMany("Flashcards")
-                        .HasForeignKey("CollectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FlashcardCollection");
-                });
-
             modelBuilder.Entity("Page", b =>
                 {
                     b.HasOne("Page", "ParentPage")
@@ -474,11 +335,6 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
-                });
-
-            modelBuilder.Entity("FlashcardCollection", b =>
-                {
-                    b.Navigation("Flashcards");
                 });
 
             modelBuilder.Entity("Page", b =>
