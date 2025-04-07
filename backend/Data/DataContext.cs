@@ -18,9 +18,8 @@ public class DataContext : DbContext
 
     public DbSet<Tweet> Tweets { get; set; }
 
-     public DbSet<Subscription> Subscriptions { get; set; } // bruges til at hente subscriptions for user
-
-    public DbSet<PoliticianTwitterId> PoliticianTwitterIds { get; set; }  // Add this line
+     public DbSet<Subscription> Subscriptions { get; set; } 
+    public DbSet<PoliticianTwitterId> PoliticianTwitterIds { get; set; }  
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -321,29 +320,92 @@ public class DataContext : DbContext
                     BackText = "Statens budget for det kommende år",
                 }
             );
+
             
-        // Configure one-to-many relationship between User and Subscription
-        modelBuilder.Entity<Subscription>()
-            .HasOne(s => s.User) // Each subscription has one user
-            .WithMany(u => u.Subscriptions) // A user can have many subscriptions
-            .HasForeignKey(s => s.UserId) // Foreign key on the Subscription table
-            .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete if user is deleted
+          // === Konfiguration for PoliticianTwitterId ===
+        modelBuilder.Entity<PoliticianTwitterId>(entity =>
+        {
+            // ... (din eksisterende konfiguration for index, relationer, required fields) ...
+            entity.HasIndex(p => p.TwitterUserId).IsUnique();
+            entity.HasMany(p => p.Tweets)
+                  .WithOne(t => t.Politician)
+                  .HasForeignKey(t => t.PoliticianTwitterId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(p => p.Subscriptions)
+                  .WithOne(s => s.Politician)
+                  .HasForeignKey(s => s.PoliticianTwitterId);
+            entity.Property(p => p.TwitterUserId).IsRequired();
+            entity.Property(p => p.Name).IsRequired();
+            entity.Property(p => p.TwitterHandle).IsRequired();
 
-        // Configure one-to-many relationship between PoliticianTwitterId and Subscription
-        modelBuilder.Entity<Subscription>()
-            .HasOne(s => s.Politician) // Each subscription has one politician
-            .WithMany(p => p.Subscriptions) // A politician can have many subscriptions
-            .HasForeignKey(s => s.PoliticianTwitterId) // Foreign key on the Subscription table
-            .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete if politician is deleted
+            // --- SEED POLITICIAN DATA ---
+            entity.HasData(
+                new PoliticianTwitterId
+                {
+                    Id = 1, 
+                    TwitterUserId = "806068174567460864",
+                    // Justeret navnet lidt for klarhed baseret på kontoen
+                    Name = "Statsministeriet",
+                    TwitterHandle = "Statsmin"
+                },
+                new PoliticianTwitterId
+                {
+                    Id = 2, 
+                    TwitterUserId = "123868861",
+                    // Brugt det fulde navn fra Twitter profilen
+                    Name = "Venstre, Danmarks Liberale Parti",
+                    TwitterHandle = "venstredk"
+                },
+                new PoliticianTwitterId
+                {
+                    Id = 3,
+                    TwitterUserId = "2965907578",
+                    Name = "Troels Lund Poulsen",
+                    TwitterHandle = "troelslundp"
+                }
+                // Tilføj flere politikere/partier her med unikke Id'er...
+            );
+        });
 
-        // Configure one-to-many relationship between PoliticianTwitterId and Tweet
-        modelBuilder.Entity<Tweet>()
-            .HasOne(t => t.Politician) // Each tweet has one politician
-            .WithMany(p => p.Tweets) // A politician can have many tweets
-            .HasForeignKey(t => t.PoliticianTwitterId) // Foreign key on the Tweet table
-            .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete if politician is deleted
+        
+            modelBuilder.Entity<Tweet>(entity =>
+            {
+                entity.HasIndex(t => new { t.PoliticianTwitterId, t.TwitterTweetId }).IsUnique();
+                entity.Property(t => t.TwitterTweetId).IsRequired();
+                entity.Property(t => t.Text).IsRequired();
+            });
 
-        // Optionally, we could define other relationships or configurations here (indexes, constraints, etc.)
-    }
-    }
+            // === MINIMAL Konfiguration for User ===
+            modelBuilder.Entity<User>(entity =>
+            {
+            
+                entity.HasMany(u => u.Subscriptions)        
+                    .WithOne(s => s.User)               
+                    .HasForeignKey(s => s.UserId);     
+                
 
+            
+             
+           
+        });
+
+        
+            
+            modelBuilder.Entity<Subscription>(entity =>
+            {
+                
+                
+
+                entity.HasIndex(s => s.UserId);
+                entity.HasIndex(s => s.PoliticianTwitterId);
+            entity.HasData(
+            
+             new Subscription { Id = 1, UserId = 1, PoliticianTwitterId = 1 },
+             
+             new Subscription { Id = 2, UserId = 1, PoliticianTwitterId = 2 },
+             
+             new Subscription { Id = 3, UserId = 1, PoliticianTwitterId = 3 }
+         );
+     });
+        }
+}

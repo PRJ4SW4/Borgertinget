@@ -11,6 +11,9 @@ public class Tweet
     public int Retweets { get; set; }
     public int Replies { get; set; }
 
+    public string TwitterTweetId { get; set; } // Tilføj denne! Gør den unik pr. politiker evt.
+
+
     public int PoliticianTwitterId { get; set; }  // Foreign key to Politician
     public PoliticianTwitterId Politician { get; set; } // Navigation property
 
