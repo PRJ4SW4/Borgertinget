@@ -15,7 +15,7 @@ on:
 
 jobs:
   backend:
-    name: Backend (.NET 8.0)
+    name: Backend (.NET 9.0)
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +25,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: "8.0"
+          dotnet-version: "9.0"
 
       - name: Restore dependencies
         run: dotnet restore backend

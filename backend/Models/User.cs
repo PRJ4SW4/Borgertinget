@@ -9,5 +9,6 @@ namespace backend.Models
         public string PasswordHash { get; set; } = null!;
         public bool IsVerified { get; set; } = false;
         public string? VerificationToken { get; set; }
+        public List<string> Roles { get; set; } = new();
     }
 }
