@@ -19,7 +19,12 @@ interface LandingPageProps {}
 
 const LandingPage: React.FC<LandingPageProps> = () => {
   const missionTekst = `
-    Indsæt tekst som skal placeres på MissionTekst component
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
+    incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
+    exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute 
+    irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
+    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia 
+    deserunt mollit anim id est laborum."
   `;
 
   const featuresData1: FeatureItem[] = [
@@ -145,6 +150,7 @@ const LandingPage: React.FC<LandingPageProps> = () => {
           </li>
         </ul>
       </nav>
+      //TODO: Indsæt navbar HER
       <HeroSection id="hero" />
       <FirstSection id="first" />
       <MissionSection id="mission" missionText={missionTekst} />
