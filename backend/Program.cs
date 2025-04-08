@@ -72,7 +72,7 @@ builder.Services.AddSwaggerGen(options =>
 });
     
     // Tilføj EmailService
-    builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<EmailService>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -84,6 +84,8 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+builder.Services.AddHttpClient(); // til OAuth
 
 builder.Services.AddControllers();
 
