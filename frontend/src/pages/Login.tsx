@@ -140,15 +140,13 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   
             <p className="forgot-password">Glemt kodeord?</p>
             <p>Log på med</p>
-            {/* ===== START: Ny Google Login Knap ===== */}
             <button
-              type="button" // Vigtigt så den ikke submitter login-formen
-              onClick={handleGoogleLogin} // Vi definerer denne funktion nedenfor
-              className="google-login-button" // Tilføj evt. styling i Login.css
+              type="button"
+              onClick={handleGoogleLogin} 
+              className="google-login-button"
+              aria-label="Log på med Google" 
             >
-              Log på med Google
             </button>
-            {/* ===== SLUT: Ny Google Login Knap ===== */}
             <p className="no-account">
               Har du ikke en konto? Opret en <span className="link-text" onClick={() => setStartSlide(true)}>her</span>
             </p>

@@ -146,24 +146,41 @@ html, body {
     color: #6b7280;
   }
   
-  .google-button {
-    display: flex;
-    align-items: center;
-    border: 1px solid #d1d5db;
-    padding: 8px 16px;
-    border-radius: 8px;
+  .google-login-button {
+    /* Nulstil standard knap-udseende */
+    background-color: transparent; /* Eller 'white' hvis du bruger farve-logo */
+    border: none; /* Fjerner standard kant */
+    padding: 0;   /* Fjerner standard padding */
     cursor: pointer;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+    /* Sæt størrelse på knappen */
+    width: 40px;  /* Juster efter behov */
+    height: 40px; /* Juster efter behov */
+  
+    /* Indsæt Google logo som baggrund */
+    /* !!! ERSTAT MED DEN RIGTIGE STI TIL DIN LOGO-FIL !!! */
+    background-image: url('../images/GoogleLogo.png'); /* Eksempel-sti */
+  
+    /* Styr hvordan baggrundsbilledet vises */
+    background-size: contain; /* Får hele logoet til at passe ind i knappen */
+    background-repeat: no-repeat; /* Undgå at logoet gentages */
+    background-position: center; /* Centrerer logoet i knappen */
+  
+    /* Valgfrit: Gør den lidt pænere */
+    border-radius: 50%; /* Gør knappen rund */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Lille skygge */
+    transition: box-shadow 0.2s ease-in-out; /* Blød overgang for effekter */
   }
   
-  .google-button:hover {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  /* Valgfrit: Hover-effekt */
+  .google-login-button:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
   
-  .google-button img {
-    width: 20px;
-    margin-right: 8px;
+  /* Valgfrit: Focus-outline for tilgængelighed */
+  .google-login-button:focus {
+    outline: 2px solid dodgerblue; /* Eller en anden passende farve */
+    outline-offset: 2px;
   }
   
   .image-section {
