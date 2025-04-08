@@ -1,56 +1,123 @@
 /* src/components/LandingPage/First/FirstSection.module.css */
 .firstSection {
   display: flex;
-  align-items: center; /* Centrerer indholdet lodret */
-  min-height: 80vh; /* Juster efter behov */
-  padding: 2rem;
-  background-color: #fff; /* Hvid baggrund eller en anden farve */
+  /* Ændret til flex-start for at rykke indholdet mod toppen */
+  align-items: flex-start;
+  min-height: 80vh;
+  padding: 4rem 2rem 2rem 2rem; /* Øget top-padding, juster efter behov */
+  background-color: #fff;
+  position: relative; /* Kan være nyttigt for absolut positionering ift. hele sektionen */
 }
 
 .content {
-  flex: 1; /* Tager den ledige plads */
-  padding-right: 2rem; /* Plads mellem tekst og billede */
+  flex: 1;
+  padding-right: 2rem;
+  /* Gør .content til relativ positioneringskontekst for knappen */
+  position: relative;
+  /* Sørg for at .content har nok højde til at positionere knappen i bunden.
+     Vi giver den minimum højde svarende til billedet, hvis det hjælper.
+     Eller vi kan give den padding i bunden for at skabe plads. */
+  padding-bottom: 6rem; /* Tilføjet for at give plads til den absolut positionerede knap */
+  display: flex; /* Gør det muligt at adskille tekstblok og knap nemmere */
+  flex-direction: column; /* Arranger tekstblok og knap lodret */
+  /* Hvis du vil have tekstblokken til at fylde mindre lodret: */
+  /* justify-content: flex-start; */
 }
 
 .content h1 {
-  font-size: 2.5rem;
+  font-size: 4rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: #000000;
 }
 
 .content p {
-  font-size: 1.1rem;
-  color: #666;
+  font-size: 1.7rem;
+  color: #000000;
   line-height: 1.6;
-  margin-bottom: 2rem;
+  margin-bottom: 2rem; /* Margin under paragraffen før knappen */
+}
+
+/* Ny styling for Call-To-Action knappen */
+.ctaButton {
+  /* Absolut positionering ift. .content */
+  position: absolute;
+  /* Afstand fra bunden af .content containeren */
+  bottom: -4rem; /* Juster denne værdi for at ramme den nederste 1/3 cirka */
+  /* Centrering vandret */
+  left: 50%;
+  transform: translateX(-50%);
+
+  /* Større knap styling */
+  padding: 1rem 2.5rem; /* Øget padding for større knap */
+  font-size: 1.3rem; /* Øget skriftstørrelse */
+  /* Tilføj evt. andre stilarter fra din standard Button, hvis de overskrives */
+  cursor: pointer;
+  /* Du skal måske tilføje baggrundsfarve, border-radius osv. her,
+     hvis de ikke arves korrekt fra din Button komponent */
+  /* Eksempel:
+   background-color: #007bff;
+   color: white;
+   border: none;
+   border-radius: 5px;
+   */
 }
 
 .imageContainer {
-  flex: 1; /* Tager den ledige plads */
+  flex: 1;
   display: flex;
-  justify-content: center; /* Centrerer billedet i containeren */
+  justify-content: center;
+  /* Juster billedets lodrette position, hvis align-items: flex-start på .firstSection er for højt */
+  align-items: flex-start; /* Matcher .firstSection eller center/flex-end */
+  padding-top: 1rem; /* Lidt padding for at justere billedet ned */
 }
 
 .image {
-  max-width: 90%; /* Sikrer at billedet ikke bliver for bredt */
+  max-width: 100%;
   height: auto;
-  border-radius: 5px; /* Valgfri: afrundede hjørner */
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); /* Valgfri: let skygge */
+  max-height: 60vh; /* Sæt evt. en max højde på billedet */
+  border-radius: 30px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Responsivt design (juster breakpoints efter behov) */
+/* Responsivt design */
 @media (max-width: 768px) {
   .firstSection {
-    flex-direction: column; /* Vis indhold over hinanden på mindre skærme */
+    flex-direction: column;
+    align-items: center; /* Centrer kolonnerne vandret */
     text-align: center;
+    padding: 2rem; /* Juster padding for mobil */
   }
 
   .content {
     padding-right: 0;
     margin-bottom: 2rem;
+    /* Skift til statisk positionering eller juster absolut positionering for mobil */
+    position: static; /* Nemmeste løsning: lad knappen følge normal flow */
+    padding-bottom: 0; /* Nulstil padding */
+    align-items: center; /* Centrer tekst og knap i kolonnen */
+  }
+
+  /* Juster knappen for mobil layout */
+  .ctaButton {
+    position: static; /* Ophæv absolut positionering */
+    transform: none; /* Nulstil transform */
+    margin-top: 2rem; /* Tilføj afstand over knappen */
+    /* Du vil måske justere størrelsen igen for mobil */
+    /* padding: 0.8rem 2rem; */
+    /* font-size: 1.1rem; */
   }
 
   .imageContainer {
-    margin-top: 2rem;
+    margin-top: 1rem; /* Reduceret afstand */
+    align-items: center;
+    padding-top: 0;
+  }
+
+  .content h1 {
+    font-size: 2.5rem; /* Mindre overskrift på mobil */
+  }
+
+  .content p {
+    font-size: 1rem;
   }
 }

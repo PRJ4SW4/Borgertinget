@@ -1,14 +1,26 @@
 /* src/components/LandingPage/Hero/HeroSection.module.css */
 .hero {
-  display: flex;
-  justify-content: center; /* Centrerer billedet vandret */
-  align-items: center; /* Centrerer billedet lodret (hvis sektionen har højde) */
-  min-height: 100vh; /* Får sektionen til at fylde mindst hele skærmens højde */
-  background-color: #f8f8f8; /* En neutral baggrundsfarve */
-  padding: 2rem; /* Lidt padding omkring indholdet */
+  /* Får sektionen til at fylde præcis hele skærmens højde */
+  height: 100vh;
+  /* Fjerner flexbox, da billedet selv skal styre udfyldningen */
+  /* display: flex; */
+  /* justify-content: center; */
+  /* align-items: center; */
+  /* Fjerner padding, så billedet kan gå helt til kanten */
+  /* padding: 2rem; */
+  background-color: #f8f8f8; /* Kan beholdes som fallback, hvis billedet ikke loader */
+  overflow: hidden; /* Forhindrer evt. scrollbars hvis billedet er marginalt større */
+  position: relative; /* Kan være nyttigt, hvis du senere vil placere tekst ovenpå */
 }
 
 .heroImage {
-  max-width: 80%; /* Sikrer at billedet ikke bliver for bredt på store skærme */
-  height: auto; /* Bevarer billedets proportioner */
+  /* Får billedet til at fylde hele containerens bredde og højde */
+  width: 100%;
+  height: 100%;
+  /* Skalerer billedet til at dække hele området, bevarer proportioner, beskærer om nødvendigt */
+  object-fit: cover;
+  /* Fjerner max-width begrænsningen */
+  /* max-width: 80%; */
+  /* height: auto; er ikke nødvendig når height er 100% */
+  display: block; /* Fjerner potentiel lille ekstra plads under billedet */
 }
