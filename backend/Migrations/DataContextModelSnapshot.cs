@@ -17,7 +17,7 @@ namespace backend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.3")
+                .HasAnnotation("ProductVersion", "9.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -47,7 +47,7 @@ namespace backend.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("AnswerOptions");
+                    b.ToTable("AnswerOptions", (string)null);
 
                     b.HasData(
                         new
@@ -186,7 +186,7 @@ namespace backend.Migrations
 
                     b.HasIndex("CollectionId");
 
-                    b.ToTable("Flashcards");
+                    b.ToTable("Flashcards", (string)null);
 
                     b.HasData(
                         new
@@ -262,7 +262,7 @@ namespace backend.Migrations
 
                     b.HasKey("CollectionId");
 
-                    b.ToTable("FlashcardCollections");
+                    b.ToTable("FlashcardCollections", (string)null);
 
                     b.HasData(
                         new
@@ -306,7 +306,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ParentPageId");
 
-                    b.ToTable("Pages");
+                    b.ToTable("Pages", (string)null);
 
                     b.HasData(
                         new
@@ -369,7 +369,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
 
                     b.HasData(
                         new
@@ -430,17 +430,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Email = "dev@testing.com",
-                            IsVerified = true,
-                            PasswordHash = "$2a$11$iY0AyIP8UXG/zXamCidMueL7sxYpyWTn/vOcfhyCF7l7VScIIlhyq",
-                            UserName = "dev"
-                        });
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("AnswerOption", b =>
