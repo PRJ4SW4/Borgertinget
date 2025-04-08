@@ -72,6 +72,28 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     }
   };
 
+  const handleGoogleLogin = () => {
+    const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+    const clientId = '16121037113-cioi5949kloah9uac0c4laqknumogptc.apps.googleusercontent.com';
+
+    const redirectUri = 'http://localhost:5218/auth/google/callback'; // Din backend callback
+
+    const options = {
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'openid profile email', // Standard scopes til login
+      // state: 'tilfaeldig-sikkerheds-streng' // Implementeres senere for CSRF-beskyttelse
+    };
+
+    const queryString = new URLSearchParams(options).toString();
+
+    // Omdirigerer brugerens browser
+    console.log("Redirecting to Google:", `${googleAuthUrl}?${queryString}`); // God til debugging
+    window.location.href = `${googleAuthUrl}?${queryString}`;
+  };
+
   return (
     <div className="outer-wrapper">
       <div className={`login-container ${startSlide ? "shifted" : ""}`}>
@@ -118,6 +140,15 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   
             <p className="forgot-password">Glemt kodeord?</p>
             <p>Log på med</p>
+            {/* ===== START: Ny Google Login Knap ===== */}
+            <button
+              type="button" // Vigtigt så den ikke submitter login-formen
+              onClick={handleGoogleLogin} // Vi definerer denne funktion nedenfor
+              className="google-login-button" // Tilføj evt. styling i Login.css
+            >
+              Log på med Google
+            </button>
+            {/* ===== SLUT: Ny Google Login Knap ===== */}
             <p className="no-account">
               Har du ikke en konto? Opret en <span className="link-text" onClick={() => setStartSlide(true)}>her</span>
             </p>
