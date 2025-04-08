@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -12,9 +13,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250408094308_AddDailySelectionsTableAndTrackingLogic")]
+    partial class AddDailySelectionsTableAndTrackingLogic
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -190,24 +193,6 @@ namespace backend.Migrations
                     b.ToTable("daily_selections");
                 });
 
-            modelBuilder.Entity("backend.Models.FakeParti", b =>
-                {
-                    b.Property<int>("PartiId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PartiId"));
-
-                    b.Property<string>("PartiNavn")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("PartiId");
-
-                    b.ToTable("FakePartier");
-                });
-
             modelBuilder.Entity("backend.Models.FakePolitiker", b =>
                 {
                     b.Property<int>("Id")
@@ -222,9 +207,6 @@ namespace backend.Migrations
                     b.Property<string>("Køn")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("PartiId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("PolitikerNavn")
                         .IsRequired()
@@ -246,8 +228,6 @@ namespace backend.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PartiId");
 
                     b.ToTable("FakePolitikere");
                 });
@@ -365,17 +345,6 @@ namespace backend.Migrations
                     b.Navigation("SelectedPolitiker");
                 });
 
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.HasOne("backend.Models.FakeParti", "FakeParti")
-                        .WithMany("FakePolitikers")
-                        .HasForeignKey("PartiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FakeParti");
-                });
-
             modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
                 {
                     b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
@@ -402,11 +371,6 @@ namespace backend.Migrations
             modelBuilder.Entity("Question", b =>
                 {
                     b.Navigation("AnswerOptions");
-                });
-
-            modelBuilder.Entity("backend.Models.FakeParti", b =>
-                {
-                    b.Navigation("FakePolitikers");
                 });
 
             modelBuilder.Entity("backend.Models.FakePolitiker", b =>

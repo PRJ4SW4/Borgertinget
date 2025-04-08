@@ -1,4 +1,4 @@
-using backend.Models; // Sørg for at FakePolitiker og PolidleGamemodeTracker er i dette namespace
+using backend.Models; // Sørg for at FakePolitiker, FakeParti og PolidleGamemodeTracker er i dette namespace
 using Microsoft.EntityFrameworkCore;
 
 // Tilføj using for de nye modeller, hvis de er i et andet namespace
@@ -22,7 +22,9 @@ public class DataContext : DbContext
     // --- NYE DbSets for Polidle ---
     // Husk at rette modelnavnet til Politician når du skifter fra FakePolitiker
     public DbSet<FakePolitiker> FakePolitikere { get; set; }
+    public DbSet<FakeParti> FakePartier { get; set; } // <--- TILFØJET DbSet for FakeParti
     public DbSet<PolidleGamemodeTracker> GameTrackings { get; set; }
+    public DbSet<DailySelection> DailySelections { get; set; }
     // -----------------------------
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -68,22 +70,48 @@ public class DataContext : DbContext
             .HasKey(pgt => new { pgt.PolitikerId, pgt.GameMode }); // Definerer PK som (PolitikerId, GameMode)
 
         // 2. Konfigurer En-til-mange relation mellem FakePolitiker og PolidleGamemodeTracker
-        //    En FakePolitiker (p) har mange GameTrackings (GameTrackings collection i FakePolitiker)
-        //    En PolidleGamemodeTracker (pgt) har én FakePolitiker (FakePolitiker navigation prop i PolidleGamemodeTracker)
-        //    Fremmednøglen er PolitikerId i PolidleGamemodeTracker
         modelBuilder.Entity<PolidleGamemodeTracker>()
-            .HasOne(pgt => pgt.FakePolitiker)       // Fra Tracker peg på én Politiker
+            .HasOne(pgt => pgt.FakePolitiker)      // Fra Tracker peg på én Politiker
             .WithMany(p => p.GameTrackings)        // Fra Politiker peg på mange Trackings
             .HasForeignKey(pgt => pgt.PolitikerId) // Specificer FK kolonnen i Tracker
             .OnDelete(DeleteBehavior.Cascade);     // Eksempel: Slet tracking-rækker hvis politikeren slettes
 
         // 3. Konfigurer Enum-til-String konvertering for GameMode (Valgfrit, men anbefalet)
-        //    Gemmer enum som 'Klassisk', 'Citat', 'Foto' i databasen i stedet for 0, 1, 2
         modelBuilder.Entity<PolidleGamemodeTracker>()
            .Property(pgt => pgt.GameMode)
            .HasConversion<string>() // Konverter til string
            .HasMaxLength(50);      // Sæt en passende max længde
+
+        // --- Konfiguration for DailySelection ---
+        modelBuilder.Entity<DailySelection>()
+            .HasKey(ds => new { ds.SelectionDate, ds.GameMode }); // Sammensat PK
+
+        // Konfigurer relation til FakePolitiker (En DailySelection har én Politiker)
+        modelBuilder.Entity<DailySelection>()
+            .HasOne(ds => ds.SelectedPolitiker)
+            .WithMany() // En politiker kan være valgt mange gange (over tid/gamemodes)
+            .HasForeignKey(ds => ds.SelectedPolitikerID)
+            .OnDelete(DeleteBehavior.Restrict); // Undgå at slette en politiker hvis de er et dagligt valg?
+
+        // Konfigurer evt. Enum-til-String for GameMode her også, hvis den ikke er globalt konfigureret
+        modelBuilder.Entity<DailySelection>()
+            .Property(ds => ds.GameMode)
+            .HasConversion<string>()
+            .HasMaxLength(50);
         // ------------------------------------
+
+        // --- NYT: Konfiguration for FakeParti <-> FakePolitiker relation ---
+        // Antagelser:
+        // 1. Din `FakePolitiker` model har en `int PartiId` foreign key property.
+        // 2. Din `FakePolitiker` model har en `FakeParti FakeParti` navigation property.
+        // Juster `.HasForeignKey()` og `.WithOne()` hvis dine properties hedder noget andet.
+
+        modelBuilder.Entity<FakeParti>()
+            .HasMany(p => p.FakePolitikers)
+            .WithOne(fp => fp.FakeParti) // Matcher navigation property i FakePolitiker
+            .HasForeignKey(fp => fp.PartiId) // Matcher foreign key property i FakePolitiker
+            .OnDelete(DeleteBehavior.Restrict);
+        // -------------------------------------------------------------------
 
 
         // --- EKSISTERENDE SEED DATA ---
@@ -93,6 +121,9 @@ public class DataContext : DbContext
         modelBuilder.Entity<AnswerOption>().HasData( /* ... dine AnswerOption data ... */ );
         modelBuilder.Entity<FlashcardCollection>().HasData( /* ... dine FlashcardCollection data ... */ );
         modelBuilder.Entity<Flashcard>().HasData( /* ... dine Flashcard data ... */ );
+        // Tilføj evt. seed data for FakeParti og FakePolitiker her, hvis nødvendigt
+        // modelBuilder.Entity<FakeParti>().HasData( /* ... dine FakeParti data ... */ );
+        // modelBuilder.Entity<FakePolitiker>().HasData( /* ... dine FakePolitiker data ... */ );
         // -----------------------------
     }
 }
