@@ -121,8 +121,9 @@ builder.Services.AddSwaggerGen(options =>
 
 // Tilføj EmailService
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddHostedService<TweetFetchingService>(); // <--- TILFØJ DENNE LINJE
+
 builder.Services.AddHttpClient<TwitterService>();
-builder.Services.AddHostedService<TweetFetchingService>();
 
 
 // CORS

@@ -116,11 +116,14 @@ namespace backend.Services
             {
                 continue;
             }
-
+     
             // --- Kun NYE tweets når hertil ---
             string text = tweet["text"]?.ToString() ?? "";
             text = System.Text.RegularExpressions.Regex.Replace(text, @"https?:\/\/t\.co\/\S+", "").Trim();
             string mediaUrl = "";
+
+                    Console.WriteLine($"DEBUG: Tweet ID {twitterTweetId} - Text Length BEFORE Save: {text.Length}");
+
             var mediaKeys = tweet["attachments"]?["media_keys"];
             if (mediaKeys != null && media != null)
             {

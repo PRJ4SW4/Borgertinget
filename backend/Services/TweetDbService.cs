@@ -18,6 +18,7 @@ namespace backend.Services // Eller f.eks. backend.BackgroundServices
         private readonly ILogger<TweetFetchingService> _logger;
         // Interval sat til 1 gang i døgnet
         private readonly TimeSpan _period = TimeSpan.FromHours(24);
+        //private readonly TimeSpan _period = TimeSpan.FromMinutes(1);
 
         public TweetFetchingService(IServiceScopeFactory scopeFactory, ILogger<TweetFetchingService> logger)
         {
