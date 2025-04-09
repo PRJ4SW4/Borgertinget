@@ -7,6 +7,12 @@ using backend.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+
+
+using Microsoft.AspNetCore.Authorization; // Add this line
+
+
 // using System.Security.Claims; // Til rigtig bruger ID senere
 using System.Threading.Tasks;
 
@@ -25,15 +31,35 @@ namespace backend.Controllers // Sørg for at namespace passer
         }
 
         [HttpGet("feed")]
+
+
+       
+         [Authorize] // Alternativt kan du bruge bare [Authorize] hvis du vil have det til at gælde for alle brugere
 public async Task<ActionResult<List<TweetDto>>> GetMyFeed(/* CancellationToken cancellationToken */)
 {
-    int currentUserId = 1; // Stadig hardcoded til test
+       
+   // int currentUserId = 1;  // dette er hardcode til den id min første account har, dette laver jeg nu om
+
+
+   var userIdString = User.FindFirstValue("userId");
+
+    // ---> TILFØJ DENNE BLOK <---
+    // Tjek om ID blev fundet og konverter til int
+    if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))
+    {
+        // Håndter fejl: ID mangler eller er ugyldigt format
+        // Logger fejlen og returnerer Unauthorized.
+        // Overvej om en anden statuskode (f.eks. BadRequest) er mere passende.
+        Console.WriteLine($"Error: Could not parse User ID from claim. Claim value: '{userIdString ?? "null"}'"); // Brug ILogger her
+        return Unauthorized("Kunne ikke identificere brugeren korrekt fra token.");
+    }
+    // --------------------------
 
     try
     {
         // 1. Find fulgte politikere (som før)
         var subscribedPoliticianIds = await _context.Subscriptions
-            .Where(s => s.UserId == currentUserId)
+            .Where(s => s.UserId == currentUserId) // Brug ID fra JWT token
             .Select(s => s.PoliticianTwitterId)
             .ToListAsync(/* cancellationToken */);
 
