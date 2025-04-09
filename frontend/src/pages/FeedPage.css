@@ -1,0 +1,6 @@
+.feed-title {
+    text-align: center; /* Centrerer teksten */
+    margin-top: 20px;   /* Lidt luft over */
+    margin-bottom: 30px; /* Lidt mere luft under */
+    color: #333; /* Måske en mørk farve */
+  }

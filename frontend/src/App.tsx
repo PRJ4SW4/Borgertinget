@@ -6,6 +6,8 @@ import Verify from "./pages/Verify";
 import LearningLayout from './layouts/LearningLayout';
 import PageContent from './components/PageContent';
 import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
+import FeedPage from './pages/FeedPage'; // Tilføj denne linje
+
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
@@ -24,6 +26,8 @@ function App() {
       <Route path="/login" element={<Login setToken={setToken} />} />
       <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
       <Route path="/verify" element={<Verify />} />
+      <Route path="/feed" 
+        element={token ? <FeedPage /> : <Navigate to="/login" />} /> // Vis FeedPage hvis logget ind, ellers login
 
       <Route
           path="/learning"
