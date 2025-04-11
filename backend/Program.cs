@@ -152,6 +152,7 @@ builder.Services.AddCors(options =>
 
 // Registrer Controllers
 builder.Services.AddControllers();
+builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 
 
 // -----------------------------------------
