@@ -1,4 +1,4 @@
-// Controllers/CalendarController.cs (New File)
+// Controllers/CalendarController.cs
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using backend.Models;
@@ -19,7 +19,7 @@ public class CalendarController : ControllerBase
 
     /// Manually triggers the Altinget calendar scrape and returns the raw results.
     /// FOR TESTING/DEBUGGING ONLY.
-    // GET: api/test/scrape-altinget-now
+    // GET: api/calendar/scrape-altinget-now
     [HttpGet("scrape-altinget-now")]
     public async Task<ActionResult<List<CalendarEvent>>> TriggerAltingetScrape()
     {

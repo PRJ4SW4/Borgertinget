@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250403151058_AddScrapedAltingetEvent")]
-    partial class AddScrapedAltingetEvent
+    [Migration("20250411063959_AddCalendarEventModel")]
+    partial class AddCalendarEventModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
