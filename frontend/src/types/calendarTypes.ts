@@ -9,6 +9,14 @@ export interface CalendarEventDto {
     sourceUrl?: string | null;
 }
 
+// --- Define a specific type for the 'resource' property ---
+export interface RbcResource {
+    location?: string | null;
+    sourceUrl?: string | null;
+    // Add any other custom data you might attach to an event here
+}
+// ---
+
 // Type expected by react-big-calendar components
 export interface RbcEvent {
     id: number;
@@ -16,5 +24,7 @@ export interface RbcEvent {
     start: Date; // JS Date object
     end: Date;   // JS Date object
     allDay?: boolean;
-    resource?: any; // Can hold original event data or other info
+    // --- Use the specific type instead of 'any' ---
+    resource?: RbcResource;
+    // ---
 }
