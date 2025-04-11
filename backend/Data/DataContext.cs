@@ -15,10 +15,14 @@ public class DataContext : DbContext
     public DbSet<AnswerOption> AnswerOptions { get; set; }
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<FlashcardCollection> FlashcardCollections { get; set; }
+    public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Index for the CalendarEvents SourceUrl to make syncing events faster
+        modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
 
         // Configure the self-referencing relationship
         modelBuilder

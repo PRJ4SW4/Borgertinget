@@ -140,6 +140,7 @@ builder.Services.AddControllers();
 // For altinget scraping
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<AltingetScraperService>();
+builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 
 var app = builder.Build();
 
