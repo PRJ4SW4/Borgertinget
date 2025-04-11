@@ -1,0 +1,38 @@
+
+.button-container {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.button-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.circle-button {
+    width: 80px;
+    height: 80px;
+    align-items: center;
+    justify-content: center;
+  }
+
+.circle-button:hover {
+    transform: scale(1.05);
+}
+
+
+.icon-image {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.button-label {
+    margin-top: 0.75rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+}

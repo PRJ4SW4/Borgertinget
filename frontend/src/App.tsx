@@ -6,6 +6,11 @@ import Verify from "./pages/Verify";
 import LearningLayout from './layouts/LearningLayout';
 import PageContent from './components/PageContent';
 import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
+import AdminPage from './components/AdminPages/AdminPage'; // Import new layout
+import AdminBruger from "./components/AdminPages/AdminBruger";
+import AdminIndhold from "./components/AdminPages/AdminIndhold";
+import AdminLearing from "./components/AdminPages/AdminLearing";
+import AdminPolls from "./components/AdminPages/AdminPolls";
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
@@ -42,6 +47,12 @@ function App() {
       />
 
       <Route path="*" element={<Navigate to={token ? "/home" : "/login"} />} />
+      {/* Admin routes */}
+      <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
+      <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to ="/home" />} />
+      <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to ="/home" />} />
+      <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to ="/home" />} />
+      <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to ="/home" />} />
     </Routes>
   );
 }
