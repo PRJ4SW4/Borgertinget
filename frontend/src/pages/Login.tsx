@@ -15,6 +15,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   const [registerPassword, setRegisterPassword] = useState<string>("");
   const [registerEmail, setRegisterEmail] = useState<string>("");
   const [error, setError] = useState<string | null>("");
+  const [showPopup, setShowPopup] = useState(false);
   const [success, setSuccess] = useState<string | null>("");
   //const [showRegister, setShowRegister] = useState(false);
   const [startSlide, setStartSlide] = useState(false);
@@ -61,12 +62,20 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
 
     } catch (error) {
         if (axios.isAxiosError(error)) {
-          if (error.response && error.response.data.error) {
-              setError(error.response.data.error); // Fanger backend-fejlbesked
+            const responseData = error.response?.data;
+            
+            if (responseData?.errors) {
+              const firstKey = Object.keys(responseData.errors)[0];
+              const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
+
+              setError(firstError); // Fanger backend-fejlbesked
+              setShowPopup(true);
           } else {
+              console.log("Unexpected Axios error shape:", error.response?.data);
               setError("Noget gik galt. Prøv igen.");
           }
       } else {
+          console.log("No connection or unknown error:", error);
           setError("Ingen forbindelse til serveren.");
       }
     }
@@ -108,9 +117,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
                 />
-                <div className="error-message">
-                  <p>{error || "\u00A0"}</p>
-                </div>
+
               </div>
   
               <button className="button" type="submit">Log på</button>
@@ -163,9 +170,6 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
                 required
               />
               </div>
-              <div className="error-message">
-                  <p>{error || "\u00A0"}</p>
-                </div>
               <button className="button" type="submit">Opret konto</button>
             </form>
   
@@ -180,8 +184,22 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
           <img src={loginImage} className="login-image" alt="Login visual" />
         </div>
       </div>
+
+    {showPopup && error && (
+      <div className="popup-overlay" onClick={() => setShowPopup(false)}>
+        <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+        <button className="close-button" onClick={() => setShowPopup(false)}>
+          &times;
+        </button>
+        <h2>Fejl</h2>
+        <p>{error}</p>
     </div>
+    </div>
+    )}
+  </div>
   );
+
+  
   
   };
 

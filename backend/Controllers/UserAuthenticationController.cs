@@ -13,8 +13,8 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace backend.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
         private readonly DataContext _context;
@@ -45,7 +45,14 @@ namespace backend.Controllers
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(new { error = "Invalid input", details = ModelState });
+            {
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return BadRequest(new { error = errors });
+            }
 
             // 1. Check om brugernavn eller email allerede findes
             var existingUserName = await _context.Users.AnyAsync(u => u.UserName == dto.Username);
@@ -57,6 +64,7 @@ namespace backend.Controllers
             );
 
             if (existingEmailAndUserName)
+            
                 return BadRequest(new { error = "Brugernavn og email er allerede i brug." });
 
             if (existingUserName)
