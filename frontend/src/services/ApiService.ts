@@ -1,6 +1,7 @@
 // src/services/apiService.ts
 import type { PageSummaryDto, PageDetailDto } from '../types/pageTypes'; // Import types
 import type { FlashcardCollectionSummaryDto, FlashcardCollectionDetailDto } from '../types/flashcardTypes';
+import type { CalendarEventDto } from '../types/calendarTypes'; // Assuming you create this type file
 
 const API_BASE_URL = '/api'; // Adjust if needed
 
@@ -90,4 +91,26 @@ export const fetchFlashcardCollectionDetails = async (collectionId: string | num
       throw new Error(`Failed to fetch details for flashcard collection ${collectionId}`);
   }
   return await response.json() as FlashcardCollectionDetailDto;
+};
+
+// --- Calendar Functions ---
+// Fetches stored calendar events, optionally by date range
+export const fetchCalendarEvents = async (startDate?: string, endDate?: string): Promise<CalendarEventDto[]> => {
+  // Construct query parameters if dates are provided
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  const queryString = params.toString();
+
+  const url = `${API_BASE_URL}/calendar/events${queryString ? `?${queryString}` : ''}`;
+  console.log("Fetching calendar events from:", url); // For debugging
+
+  const response = await fetch(url); // Use API_BASE_URL if needed
+
+  if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API Error fetching calendar events:", response.status, errorText);
+      throw new Error(`Failed to fetch calendar events (${response.status})`);
+  }
+  return await response.json() as CalendarEventDto[];
 };

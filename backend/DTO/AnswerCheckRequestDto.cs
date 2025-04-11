@@ -10,11 +10,12 @@ public class AnswerCheckRequestDto
     public int SelectedAnswerOptionId { get; set; } // ID of the option the user selected
 }
 
+// TODO: Should be moved to a different file
 // Dtos/AnswerCheckResponseDto.cs
 public class AnswerCheckResponseDto
 {
     public bool IsCorrect { get; set; } // Was the selected option the correct one?
-    // Optional: You could add more feedback here later if needed
+    // TODO: Could add more feedback here later if needed
     // public string? Explanation { get; set; }
     // public int CorrectAnswerOptionId { get; set; }
 }

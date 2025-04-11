@@ -1,5 +1,4 @@
 // Dtos/FlashcardCollectionDetailDto.cs
-using System.Collections.Generic; // Required for List<>
 
 public class FlashcardCollectionDetailDto
 {
