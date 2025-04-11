@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateCalendarEventEntity : Migration
+    public partial class AddCalendarEventToDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,7 +22,7 @@ namespace backend.Migrations
                     StartDateTimeUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     Location = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
                     SourceUrl = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
-                    LastScrapedUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    LastScrapedUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
