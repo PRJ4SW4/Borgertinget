@@ -1,5 +1,5 @@
 // src/components/CalendarView.tsx
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 // Removed react-big-calendar imports
 
 // --- date-fns Imports ---
