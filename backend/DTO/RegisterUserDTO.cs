@@ -12,10 +12,6 @@ namespace backend.DTOs
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Password er påkrævet")]
-        [RegularExpression(
-            pattern: @"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$",
-            ErrorMessage = "Kodeordet skal have mindst 8 tegn, mindst én stor og én lille bogstav, samt mindst ét tal"
-        )]
         public string Password { get; set; }
     }
 }

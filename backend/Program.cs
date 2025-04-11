@@ -135,6 +135,8 @@ builder.Services.AddCors(options =>
     );
 });
 
+builder.Services.AddHttpClient(); // til OAuth
+
 builder.Services.AddControllers();
 
 // For altinget scraping

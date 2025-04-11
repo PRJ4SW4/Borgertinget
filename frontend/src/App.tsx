@@ -7,6 +7,7 @@ import LearningLayout from './layouts/LearningLayout';
 import PageContent from './components/PageContent';
 import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
 import CalendarView from './components/CalendarView'
+import LoginSuccessPage from './pages/LoginSuccessPage'; 
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
@@ -43,6 +44,7 @@ function App() {
           element={token ? <FlashcardLayout /> : <Navigate to="/login" />}
       />
 
+      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />}/>
       <Route path="*" element={<Navigate to={token ? "/home" : "/login"} />} />
     </Routes>
   );

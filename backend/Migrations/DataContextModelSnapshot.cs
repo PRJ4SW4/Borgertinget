@@ -48,7 +48,7 @@ namespace backend.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("AnswerOptions");
+                    b.ToTable("AnswerOptions", (string)null);
 
                     b.HasData(
                         new
@@ -223,7 +223,7 @@ namespace backend.Migrations
 
                     b.HasIndex("CollectionId");
 
-                    b.ToTable("Flashcards");
+                    b.ToTable("Flashcards", (string)null);
 
                     b.HasData(
                         new
@@ -299,7 +299,7 @@ namespace backend.Migrations
 
                     b.HasKey("CollectionId");
 
-                    b.ToTable("FlashcardCollections");
+                    b.ToTable("FlashcardCollections", (string)null);
 
                     b.HasData(
                         new
@@ -343,7 +343,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ParentPageId");
 
-                    b.ToTable("Pages");
+                    b.ToTable("Pages", (string)null);
 
                     b.HasData(
                         new
@@ -406,7 +406,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
 
                     b.HasData(
                         new
@@ -467,7 +467,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("AnswerOption", b =>
