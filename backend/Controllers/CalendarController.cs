@@ -1,34 +1,32 @@
-// Controllers/TestController.cs (New File)
+// Controllers/CalendarController.cs (New File)
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using backend.Models; // Adjust if ScrapedAltingetEvent is here
-using backend.Services.AutomationServices; // Adjust namespace if needed
+using backend.Models;
+using backend.Services.AutomationServices;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TestController : ControllerBase
+public class CalendarController : ControllerBase
 {
     private readonly AltingetScraperService _scraperService;
 
     // Inject the scraper service via constructor
-    public TestController(AltingetScraperService scraperService)
+    public CalendarController(AltingetScraperService scraperService)
     {
         _scraperService = scraperService;
     }
 
-    /// <summary>
     /// Manually triggers the Altinget calendar scrape and returns the raw results.
     /// FOR TESTING/DEBUGGING ONLY.
-    /// </summary>
     // GET: api/test/scrape-altinget-now
     [HttpGet("scrape-altinget-now")]
-    public async Task<ActionResult<List<ScrapedAltingetEvent>>> TriggerAltingetScrape()
+    public async Task<ActionResult<List<CalendarEvent>>> TriggerAltingetScrape()
     {
         try
         {
             // Directly call the scraping method
-            List<ScrapedAltingetEvent> events = await _scraperService.ScrapeEventsAsync();
+            List<CalendarEvent> events = await _scraperService.ScrapeEventsAsync();
 
             // Return the list as JSON with a 200 OK status
             return Ok(events);
@@ -42,10 +40,8 @@ public class TestController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Manually triggers the RunAutomation method (which includes console logging).
     /// FOR TESTING/DEBUGGING ONLY.
-    /// </summary>
     // POST: api/test/run-altinget-automation
     [HttpPost("run-altinget-automation")] // Use POST as it conceptually "runs" a process
     public async Task<ActionResult> RunAutomationEndpoint()

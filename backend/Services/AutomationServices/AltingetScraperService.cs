@@ -1,4 +1,5 @@
-// Services/AltingetScraperService.cs (New File)
+// Source: Services/AltingetScraperService.cs
+
 using System;
 using System.Collections.Generic;
 using System.Globalization; // For parsing Danish dates/times
@@ -6,17 +7,17 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using backend.Data;
 using HtmlAgilityPack;
-using Newtonsoft.Json; // Use the parser library
+using Newtonsoft.Json; // Parser library
 
 namespace backend.Services.AutomationServices;
 
 public class AltingetScraperService : IAutomationService
 {
-    private readonly DataContext? _context; // Keep if needed for saving later
+    private readonly DataContext? _context;
     private readonly IHttpClientFactory _httpClientFactory; // Inject factory
     private const string AltingetCalendarUrl = "https://www.altinget.dk/kalender";
     private const string CustomUserAgent =
-        "MyBorgertingetCalendarBot/1.0 (+http://borgertinget/botinfo)"; // Replace
+        "MyBorgertingetCalendarBot/1.0 (+http://borgertinget/botinfo)";
 
     // Inject both dependencies
     public AltingetScraperService(DataContext context, IHttpClientFactory httpClientFactory)
@@ -25,10 +26,10 @@ public class AltingetScraperService : IAutomationService
         _httpClientFactory = httpClientFactory;
     }
 
-    // This method scrapes and returns the list - saving is separate
-    public async Task<List<ScrapedAltingetEvent>> ScrapeEventsAsync()
+    // This method scrapes and returns the list
+    public async Task<List<CalendarEvent>> ScrapeEventsAsync()
     {
-        var eventsList = new List<ScrapedAltingetEvent>();
+        var eventsList = new List<CalendarEvent>();
         var httpClient = _httpClientFactory.CreateClient();
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(CustomUserAgent);
 
@@ -105,7 +106,7 @@ public class AltingetScraperService : IAutomationService
 
             foreach (var eventLinkNode in eventLinkNodes)
             {
-                var scrapedEvent = new ScrapedAltingetEvent
+                var scrapedEvent = new CalendarEvent
                 {
                     EventDate = currentDate,
                     RawDate = rawDate, // Store the raw date string found for this group
@@ -183,7 +184,7 @@ public class AltingetScraperService : IAutomationService
         Console.WriteLine(
             $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Starting Altinget scrape automation..."
         );
-        List<ScrapedAltingetEvent> events;
+        List<CalendarEvent> events;
         try
         {
             // Call the actual scraping method

@@ -1,8 +1,8 @@
-// Models/ScrapedAltingetEvent.cs (or similar location)
-public class ScrapedAltingetEvent
+// Models/CalendarEvent.cs
+public class CalendarEvent
 {
-    public DateOnly? EventDate { get; set; } // Use DateOnly for just the date part
-    public TimeOnly? EventTime { get; set; } // Use TimeOnly for just the time part
+    public DateOnly? EventDate { get; set; } // DateOnly for just the date part
+    public TimeOnly? EventTime { get; set; } // TimeOnly for just the time part
     public DateTime? StartDateTimeCEST { get; set; } // Combined
     public string Title { get; set; } = string.Empty;
     public string? Location { get; set; }

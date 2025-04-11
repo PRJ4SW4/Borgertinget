@@ -27,8 +27,7 @@ public class AnswerOptionDto
 {
     public int Id { get; set; } // AnswerOptionId
     public string OptionText { get; set; } = string.Empty;
-    // NOTE: Do NOT send IsCorrect to the frontend yet.
-    // The client shouldn't know the correct answer upfront.
+    
 }
 
 public class QuestionDto
