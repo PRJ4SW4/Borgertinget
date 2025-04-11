@@ -1,5 +1,6 @@
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 
 namespace backend.Data;
 
