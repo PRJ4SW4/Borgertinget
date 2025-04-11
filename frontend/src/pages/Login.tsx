@@ -14,15 +14,15 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   const [registerUsername, setRegisterUsername] = useState<string>("");
   const [registerPassword, setRegisterPassword] = useState<string>("");
   const [registerEmail, setRegisterEmail] = useState<string>("");
-  const [error, setError] = useState<string | null>("");
-  const [success, setSuccess] = useState<string | null>("");
-  //const [showRegister, setShowRegister] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>("");
+  const [statusHeader, setStatusHeader] = useState<string | null>("Fejl");
+  const [showPopup, setShowPopup] = useState(false);
   const [startSlide, setStartSlide] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
+    setStatusMessage(null);
 
     try {
       const response = await axios.post("http://localhost:5218/api/users/login", { 
@@ -39,17 +39,19 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     catch (error) {
       if (axios.isAxiosError(error)) {
           const errorMessage = error.response?.data?.error || "Noget gik galt. Prøv igen.";
-          setError(errorMessage); // Sikrer at der altid er en fejlmeddelelse
+          setStatusMessage(errorMessage); // Sikrer at der altid er en fejlmeddelelse
+          setShowPopup(true);
       } else {
-          setError("Ingen forbindelse til serveren.");
+          setStatusMessage("Ingen forbindelse til serveren.");
+          setShowPopup(true);
       }
     }
   };
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSuccess(null);
-    setError(null);
+    setStatusMessage(null);
+    setStatusHeader("Fejl");
 
     try {
         const response = await axios.post("http://localhost:5218/api/users/register", { 
@@ -57,17 +59,34 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
         Email: registerEmail, 
         Password: registerPassword
       });
-      setSuccess(response.data.message);
+      setStatusMessage(response.data.message);
+      setStatusHeader("Succes");
+      setShowPopup(true);
 
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-          if (error.response && error.response.data.error) {
-              setError(error.response.data.error); // Fanger backend-fejlbesked
+    } 
+    catch (error) {
+      if (axios.isAxiosError(error)) {
+          const responseData = error.response?.data;
+          console.log("Response Data:", responseData); // Log responseData
+          console.log("Error:", error); // Log error
+          if (responseData?.error) {
+            setStatusMessage(responseData.error); // Fanger backend-fejlbesked
+            setShowPopup(true);
+          } else if (responseData?.errors) {
+            const firstKey = Object.keys(responseData.errors)[0];
+            const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
+
+            setStatusMessage(firstError); // Fanger backend-fejlbesked
+            setShowPopup(true);
           } else {
-              setError("Noget gik galt. Prøv igen.");
+            console.log("Unexpected Axios error shape:", error.response?.data);
+            setStatusMessage("Noget gik galt. Prøv igen.");
+            setShowPopup(true);
           }
       } else {
-          setError("Ingen forbindelse til serveren.");
+        console.log("No connection or unknown error:", error);
+        setStatusMessage("Ingen forbindelse til serveren.");
+        setShowPopup(true);
       }
     }
   };
@@ -121,24 +140,22 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
               </div>
   
               <div className="form-group">
-                <p>Kodeord</p>
+                <p>Adgangskode</p>
                 <input
                   className="input-field"
                   type="password"
-                  placeholder="Indtast kodeord"
+                  placeholder="Indtast adgangskode"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
                 />
-                <div className="error-message">
-                  <p>{error || "\u00A0"}</p>
-                </div>
+
               </div>
   
               <button className="button" type="submit">Log på</button>
             </form>
   
-            <p className="forgot-password">Glemt kodeord?</p>
+            <p className="forgot-password">Glemt adgangskode?</p>
             <p>Log på med</p>
             <button
               type="button"
@@ -157,7 +174,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
         <div className="register-form">
           <div className="form-content">
             <h1>Opret en konto</h1>
-            {success && <p style={{ color: "green" }}>{success}</p>}
+            {/* {success && <p style={{ color: "green" }}>{success}</p>} */}
             <form onSubmit={handleRegister} className="form-container">
             <div className="form-group">
             <p>Brugernavn</p>
@@ -182,19 +199,16 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
               />
               </div>
               <div className="form-group">
-              <p>Kodeord</p>
+              <p>Adgangskode</p>
               <input
                 className="input-field"
                 type="password"
-                placeholder="Indtast kodeord"
+                placeholder="Indtast adgangskode"
                 value={registerPassword}
                 onChange={(e) => setRegisterPassword(e.target.value)}
                 required
               />
               </div>
-              <div className="error-message">
-                  <p>{error || "\u00A0"}</p>
-                </div>
               <button className="button" type="submit">Opret konto</button>
             </form>
   
@@ -209,8 +223,22 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
           <img src={loginImage} className="login-image" alt="Login visual" />
         </div>
       </div>
+
+    {showPopup && statusMessage && statusHeader && (
+      <div className="popup-overlay" onClick={() => setShowPopup(false)}>
+        <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+        <button className="close-button" onClick={() => setShowPopup(false)}>
+          &times;
+        </button>
+        <h2>{statusHeader}</h2>
+        <p>{statusMessage}</p>
     </div>
+    </div>
+    )}
+  </div>
   );
+
+  
   
   };
 

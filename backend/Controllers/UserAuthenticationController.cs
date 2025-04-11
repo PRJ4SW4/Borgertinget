@@ -12,11 +12,12 @@ using backend.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.RegularExpressions;
 
 namespace backend.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
         private readonly DataContext _context;
@@ -45,9 +46,6 @@ namespace backend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new { error = "Invalid input", details = ModelState });
-
             // 1. Check om brugernavn eller email allerede findes
             var existingUserName = await _context.Users.AnyAsync(u => u.UserName == dto.Username);
 
@@ -58,6 +56,7 @@ namespace backend.Controllers
             );
 
             if (existingEmailAndUserName)
+            
                 return BadRequest(new { error = "Brugernavn og email er allerede i brug." });
 
             if (existingUserName)
@@ -65,6 +64,12 @@ namespace backend.Controllers
 
             if (existingEmail)
                 return BadRequest(new { error = "Email er allerede i brug." });
+
+            if (string.IsNullOrEmpty(dto.Password))
+                return BadRequest(new { error = "Adgangskode er påkrævet." });
+            
+            if (!Regex.IsMatch(dto.Password, @"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$"))
+                return BadRequest(new { error = "Adgangskode skal have mindst 8 tegn, et stort og et lille bogstav, samt et tal." });
 
             // 2. Hash password med BCrypt
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
