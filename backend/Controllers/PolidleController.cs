@@ -45,7 +45,7 @@ namespace backend.Controllers
                 var dto = new DailyPoliticianDto
                 {
                     Id = politician.Id,
-                    Name = politician.PolitikerNavn,
+                    PolitikerNavn = politician.PolitikerNavn,
                     // Party = politician.Party, // Tilføj Party property til FakePolitiker
                     Region = politician.Region,
                     Køn = politician.Køn,
