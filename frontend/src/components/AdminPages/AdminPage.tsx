@@ -15,6 +15,7 @@ import AdminBrugerLogo from "../../images/BrugerLogo.png"
 import AdminIndholdLogo from "../../images/InholdLogo.png"
 import AdminLaeringLogo from "../../images/AdminLaeringLogo.png" 
 import AdminPollsLogo from "../../images/AdminPollsLogo.png"
+import BorgertingetIcon from "../../images/BorgertingetIcon.png"
 
 
 
@@ -39,20 +40,23 @@ function AdminPage() {
 
 
     return (
-    
-    <div className="button-container">
-            {/* buttons.map works like a foreach(btn in buttons). idx is a key that react needs */} 
-            {buttons.map((btn, idx) => ( 
-                <div key={idx} className='button-wrapper' onClick={() => navigate(btn.route)}>
-                    <div className='circle-button'> 
-                        <img src={btn.icon} alt={btn.label} className='icon-image'/>
-                    </div>
-                    <span className='button-label'>{btn.label}</span>
-                </div>
-            ))}
-    </div>
+    <div>
+        <div><img src={BorgertingetIcon} className='Borgertinget-Icon'></img></div>
 
-        
+        <div className='top-red-line'></div>
+
+        <div className="button-container">
+                {/* buttons.map works like a foreach(btn in buttons). idx is a key that react needs */} 
+                {buttons.map((btn, idx) => ( 
+                    <div key={idx} className='button-wrapper' onClick={() => navigate(btn.route)}>
+                        <div className='circle-button'> 
+                            <img src={btn.icon} alt={btn.label} className='icon-image'/>
+                        </div>
+                        <span className='button-label'>{btn.label}</span>
+                    </div>
+                ))}
+        </div>
+    </div>
     ) 
 }
 
