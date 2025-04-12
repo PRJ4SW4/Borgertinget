@@ -84,6 +84,7 @@ builder
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
+
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
 
@@ -122,7 +123,6 @@ builder.Services.AddSwaggerGen(options =>
 // Tilføj EmailService
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddHostedService<TweetFetchingService>(); // <--- TILFØJ DENNE LINJE
-
 builder.Services.AddHttpClient<TwitterService>();
 
 

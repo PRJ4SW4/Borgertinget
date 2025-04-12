@@ -344,7 +344,6 @@ public class DataContext : DbContext
                 {
                     Id = 1, 
                     TwitterUserId = "806068174567460864",
-                    // Justeret navnet lidt for klarhed baseret på kontoen
                     Name = "Statsministeriet",
                     TwitterHandle = "Statsmin"
                 },
@@ -352,7 +351,6 @@ public class DataContext : DbContext
                 {
                     Id = 2, 
                     TwitterUserId = "123868861",
-                    // Brugt det fulde navn fra Twitter profilen
                     Name = "Venstre, Danmarks Liberale Parti",
                     TwitterHandle = "venstredk"
                 },
@@ -363,7 +361,7 @@ public class DataContext : DbContext
                     Name = "Troels Lund Poulsen",
                     TwitterHandle = "troelslundp"
                 }
-                // Tilføj flere politikere/partier her med unikke Id'er...
+                
             );
         });
 
@@ -375,7 +373,7 @@ public class DataContext : DbContext
                 entity.Property(t => t.Text).IsRequired();
             });
 
-            // === MINIMAL Konfiguration for User ===
+           
             modelBuilder.Entity<User>(entity =>
             {
             
