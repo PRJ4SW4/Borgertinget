@@ -122,6 +122,10 @@ builder.Services.AddSwaggerGen(options =>
 // Tilføj EmailService
 builder.Services.AddScoped<EmailService>();
 
+//oda.ft crawler
+builder.Services.AddScoped<HttpService>();
+
+
 // CORS
 builder.Services.AddCors(options =>
 {
