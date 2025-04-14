@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class AktorEntity : Migration
+    public partial class AddAktorEntity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,8 +39,8 @@ namespace backend.Migrations
                     FunctionStartDate = table.Column<string>(type: "text", nullable: true),
                     PositionsOfTrust = table.Column<string>(type: "text", nullable: true),
                     Email = table.Column<string>(type: "text", nullable: true),
-                    Ministers = table.Column<List<string>>(type: "text[]", nullable: true),
-                    Spokesmen = table.Column<List<string>>(type: "text[]", nullable: true),
+                    Ministers = table.Column<string>(type: "text", nullable: true),
+                    Spokesmen = table.Column<string>(type: "text", nullable: true),
                     ParliamentaryPositionsOfTrust = table.Column<List<string>>(type: "text[]", nullable: true),
                     Constituencies = table.Column<string>(type: "text", nullable: true),
                     Nominations = table.Column<string>(type: "text", nullable: true),

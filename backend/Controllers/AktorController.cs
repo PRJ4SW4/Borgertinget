@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -150,6 +151,7 @@ public class AktorController : ControllerBase{
 
         int totalAddedCount = 0;
         int totalUpdatedCount = 0;
+        int totalDeletedCount = 0;
         string? nextLink = initialApiUrl;
 
         while (!string.IsNullOrEmpty(nextLink))
@@ -162,39 +164,42 @@ public class AktorController : ControllerBase{
                     responseJson.TryGetProperty("value", out var valueProperty) &&
                     valueProperty.ValueKind == JsonValueKind.Array)
                 {
-                    var externalAktors = JsonSerializer.Deserialize<List<CreateAktor>>(valueProperty.GetRawText());
+                var externalAktors = JsonSerializer.Deserialize<List<CreateAktor>>(valueProperty.GetRawText());
 
-                    if (externalAktors != null)
+                if (externalAktors != null)
                     {
                         int addedCount = 0;
                         int updatedCount = 0;
+                        int deletedCount = 0; // <-- Add counter for deletions
 
                         foreach (var aktorDto in externalAktors)
                         {
-                            
+                            //Parse biografi details first for every record
                             var bioDetails = BioParser.ParseBiografiXml(aktorDto.biografi);
-                            if (bioDetails.GetValueOrDefault("Status") as string == "1"){
-                                
-                                var existingAktor = await _context.Aktor.FirstOrDefaultAsync(a => a.Id == aktorDto.Id);
+                            string? apiStatus = bioDetails.GetValueOrDefault("Status") as string;
 
-                                if (existingAktor == null)
+                            // Look for aktor in DB with same ID
+                            var existingAktor = await _context.Aktor
+                                                        .FirstOrDefaultAsync(a => a.Id == aktorDto.Id);
+
+                            //Decide action based on API status and local existence
+                            if (apiStatus == "1") // --- Politician is ACTIVE in API data ---
+                            {
+                                if (existingAktor == null) // Active in API, NOT in DB -> ADD
                                 {
                                     var newAktor = new Aktor
                                     {
+                                        
                                         Id = aktorDto.Id,
                                         navn = aktorDto.navn,
                                         fornavn = aktorDto.fornavn,
                                         efternavn = aktorDto.efternavn,
                                         biografi = aktorDto.biografi,
-                                        startdato = aktorDto.startdato.HasValue
-                                            ? DateTime.SpecifyKind(aktorDto.startdato.Value, DateTimeKind.Utc)
-                                            : null,
-                                        slutdato = aktorDto.slutdato.HasValue
-                                            ? DateTime.SpecifyKind(aktorDto.slutdato.Value, DateTimeKind.Utc)
-                                            : null,
+                                        startdato = aktorDto.startdato.HasValue ? DateTime.SpecifyKind(aktorDto.startdato.Value, DateTimeKind.Utc) : null,
+                                        slutdato = aktorDto.slutdato.HasValue ? DateTime.SpecifyKind(aktorDto.slutdato.Value, DateTimeKind.Utc) : null,
                                         opdateringsdato = DateTime.UtcNow,
-                                        
-                                        // Parsed fields from bioDetails dictionary
+
+                                        // Parsed fields
                                         Party = bioDetails.GetValueOrDefault("Party") as string,
                                         PartyShortname = bioDetails.GetValueOrDefault("PartyShortname") as string,
                                         Sex = bioDetails.GetValueOrDefault("Sex") as string,
@@ -211,27 +216,24 @@ public class AktorController : ControllerBase{
                                         Educations = bioDetails.GetValueOrDefault("Educations") as List<string>,
                                         Occupations = bioDetails.GetValueOrDefault("Occupations") as List<string>,
                                         PublicationTitles = bioDetails.GetValueOrDefault("PublicationTitles") as List<string>,
-
-
+                                        // Add other parsed fields: Ministers, Spokesmen if needed
+                                        Ministers = bioDetails.GetValueOrDefault("Ministers") as List<string>,
+                                        Spokesmen = bioDetails.GetValueOrDefault("Spokesmen") as List<string>
                                     };
                                     _context.Aktor.Add(newAktor);
                                     addedCount++;
                                 }
-                                else
+                                else // Active in API, EXISTS in DB -> UPDATE
                                 {
+                                    // Update properties of existingAktor
                                     existingAktor.navn = aktorDto.navn;
                                     existingAktor.fornavn = aktorDto.fornavn;
                                     existingAktor.efternavn = aktorDto.efternavn;
                                     existingAktor.biografi = aktorDto.biografi;
-                                    existingAktor.startdato = aktorDto.startdato.HasValue
-                                        ? DateTime.SpecifyKind(aktorDto.startdato.Value, DateTimeKind.Utc)
-                                        : null;
-                                    existingAktor.slutdato = aktorDto.slutdato.HasValue
-                                        ? DateTime.SpecifyKind(aktorDto.slutdato.Value, DateTimeKind.Utc)
-                                        : null;
+                                    existingAktor.startdato = aktorDto.startdato.HasValue ? DateTime.SpecifyKind(aktorDto.startdato.Value, DateTimeKind.Utc) : null;
+                                    existingAktor.slutdato = aktorDto.slutdato.HasValue ? DateTime.SpecifyKind(aktorDto.slutdato.Value, DateTimeKind.Utc) : null;
                                     existingAktor.opdateringsdato = DateTime.UtcNow;
-
-                                    // Parsed fields from bioDetails dictionary
+                                    // Update parsed fields
                                     existingAktor.Party = bioDetails.GetValueOrDefault("Party") as string;
                                     existingAktor.PartyShortname = bioDetails.GetValueOrDefault("PartyShortname") as string;
                                     existingAktor.Sex = bioDetails.GetValueOrDefault("Sex") as string;
@@ -248,16 +250,35 @@ public class AktorController : ControllerBase{
                                     existingAktor.Educations = bioDetails.GetValueOrDefault("Educations") as List<string>;
                                     existingAktor.Occupations = bioDetails.GetValueOrDefault("Occupations") as List<string>;
                                     existingAktor.PublicationTitles = bioDetails.GetValueOrDefault("PublicationTitles") as List<string>;
+                                    existingAktor.Ministers = bioDetails.GetValueOrDefault("Ministers") as List<string>;
+                                    existingAktor.Spokesmen = bioDetails.GetValueOrDefault("Spokesmen") as List<string>;
+
                                     updatedCount++;
                                 }
                             }
-                        }
-                        if (addedCount > 0 || updatedCount > 0) {
-                                    await _context.SaveChangesAsync();
+                            else // --- Politician is INACTIVE (Status != "1") in API data ---
+                            {
+                                if (existingAktor != null) // Inactive in API, EXISTS in DB -> DELETE
+                                {
+                                    _context.Aktor.Remove(existingAktor); // Remove the existing record
+                                    deletedCount++; // Increment deleted counter
+                                }
+                                // Else (Inactive in API, NOT in DB): Do nothing, already absent.
+                            }
+                        } // End foreach
+
+                        // Save changes if any adds, updates, OR deletes occurred
+                        if (addedCount > 0 || updatedCount > 0 || deletedCount > 0) // <-- Add deletedCount check
+                        {
+                            Console.WriteLine($"Saving changes for page. Added: {addedCount}, Updated: {updatedCount}, Deleted: {deletedCount}"); // Enhanced log
+                            await _context.SaveChangesAsync();
                         }
                         totalAddedCount += addedCount;
                         totalUpdatedCount += updatedCount;
-                    }
+                        // Keep track of total deleted // Declare this outside the 'while' loop
+                        totalDeletedCount += deletedCount; // Add this line here
+
+                    } // End if (externalAktors != null)
                 }
 
                 // Extract the next link
@@ -277,12 +298,9 @@ public class AktorController : ControllerBase{
             }
         }
 
-        return Ok($"Successfully added {totalAddedCount} and updated {totalUpdatedCount} aktors from the external API.");
+        return Ok($"Successfully added {totalAddedCount}, updated {totalUpdatedCount} and deleted {totalDeletedCount} aktors from the external API.");
     }
 }
-
-
-
 
 
 

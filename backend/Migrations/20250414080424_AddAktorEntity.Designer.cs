@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250413141103_AktorEntity")]
-    partial class AktorEntity
+    [Migration("20250414080424_AddAktorEntity")]
+    partial class AddAktorEntity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -431,8 +431,8 @@ namespace backend.Migrations
                     b.Property<string>("FunctionStartDate")
                         .HasColumnType("text");
 
-                    b.PrimitiveCollection<List<string>>("Ministers")
-                        .HasColumnType("text[]");
+                    b.Property<string>("Ministers")
+                        .HasColumnType("text");
 
                     b.Property<string>("Nominations")
                         .HasColumnType("text");
@@ -461,8 +461,8 @@ namespace backend.Migrations
                     b.Property<string>("Sex")
                         .HasColumnType("text");
 
-                    b.PrimitiveCollection<List<string>>("Spokesmen")
-                        .HasColumnType("text[]");
+                    b.Property<string>("Spokesmen")
+                        .HasColumnType("text");
 
                     b.Property<string>("biografi")
                         .HasColumnType("text");

@@ -428,8 +428,8 @@ namespace backend.Migrations
                     b.Property<string>("FunctionStartDate")
                         .HasColumnType("text");
 
-                    b.PrimitiveCollection<List<string>>("Ministers")
-                        .HasColumnType("text[]");
+                    b.Property<string>("Ministers")
+                        .HasColumnType("text");
 
                     b.Property<string>("Nominations")
                         .HasColumnType("text");
@@ -458,8 +458,8 @@ namespace backend.Migrations
                     b.Property<string>("Sex")
                         .HasColumnType("text");
 
-                    b.PrimitiveCollection<List<string>>("Spokesmen")
-                        .HasColumnType("text[]");
+                    b.Property<string>("Spokesmen")
+                        .HasColumnType("text");
 
                     b.Property<string>("biografi")
                         .HasColumnType("text");

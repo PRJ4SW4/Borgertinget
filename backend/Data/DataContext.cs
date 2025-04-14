@@ -53,7 +53,7 @@ public class DataContext : DbContext
             .HasMany(c => c.Flashcards)
             .WithOne(f => f.FlashcardCollection)
             .HasForeignKey(f => f.CollectionId);
-
+         
         // Configure Constituencies
             modelBuilder.Entity<Aktor>()
                 .Property(a => a.Constituencies) // Target the List<string> property
@@ -93,6 +93,18 @@ public class DataContext : DbContext
                      v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                      v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
                  );
+            modelBuilder.Entity<Aktor>()
+                 .Property(a => a.Ministers)
+                 .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 );
+            modelBuilder.Entity<Aktor>()
+                 .Property(a => a.Spokesmen)
+                 .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 ); 
 
         // --- SEED DATA ---
 
