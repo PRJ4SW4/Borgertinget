@@ -138,6 +138,8 @@ builder.Services.AddHttpClient(); // til OAuth
 
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<AdministratorService>();
+
 var app = builder.Build();
 
 // For static images from wwwroot folder
