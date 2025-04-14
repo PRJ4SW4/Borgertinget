@@ -11,6 +11,8 @@ import AdminBruger from "./components/AdminPages/AdminBruger";
 import AdminIndhold from "./components/AdminPages/AdminIndhold";
 import AdminLearing from "./components/AdminPages/AdminLearing";
 import AdminPolls from "./components/AdminPages/AdminPolls";
+import LoginSuccessPage from './pages/LoginSuccessPage'; 
+
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
@@ -46,6 +48,7 @@ function App() {
           element={token ? <FlashcardLayout /> : <Navigate to="/login" />}
       />
 
+      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />}/>
       <Route path="*" element={<Navigate to={token ? "/home" : "/login"} />} />
       {/* Admin routes */}
       <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />

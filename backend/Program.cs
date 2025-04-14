@@ -134,6 +134,8 @@ builder.Services.AddCors(options =>
     );
 });
 
+builder.Services.AddHttpClient(); // til OAuth
+
 builder.Services.AddControllers();
 
 var app = builder.Build();
