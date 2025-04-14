@@ -1,4 +1,5 @@
 namespace backend.DTO;
+using System.Text.Json.Serialization;
 //Backend purposes
 public class UpdateAktor{
         public DateTime? slutdato {get; set;} //Kun for grupper, ministertitler- og -områder
@@ -7,6 +8,7 @@ public class UpdateAktor{
 }
 
 public class CreateAktor{
+    [JsonPropertyName("id")]
     public int Id{get; set;}
     public string? navn{get; set;}
     
