@@ -9,7 +9,7 @@ export interface CalendarEventDto {
     sourceUrl?: string | null;
 }
 
-// --- Define a specific type for the 'resource' property ---
+// --- A specific type for the 'resource' property ---
 export interface RbcResource {
     location?: string | null;
     sourceUrl?: string | null;
@@ -24,7 +24,6 @@ export interface RbcEvent {
     start: Date; // JS Date object
     end: Date;   // JS Date object
     allDay?: boolean;
-    // --- Use the specific type instead of 'any' ---
+    // Specific type, previously used any but typescript ofc does not allow that
     resource?: RbcResource;
-    // ---
 }

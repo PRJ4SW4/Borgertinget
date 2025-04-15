@@ -94,18 +94,12 @@ export const fetchFlashcardCollectionDetails = async (collectionId: string | num
 };
 
 // --- Calendar Functions ---
-// Fetches stored calendar events, optionally by date range
-export const fetchCalendarEvents = async (startDate?: string, endDate?: string): Promise<CalendarEventDto[]> => {
-  // Construct query parameters if dates are provided
-  const params = new URLSearchParams();
-  if (startDate) params.append('startDate', startDate);
-  if (endDate) params.append('endDate', endDate);
-  const queryString = params.toString();
-
-  const url = `${API_BASE_URL}/calendar/events${queryString ? `?${queryString}` : ''}`;
+// Fetches stored calendar events
+export const fetchCalendarEvents = async (): Promise<CalendarEventDto[]> => {
+  const url = `${API_BASE_URL}/calendar/events`;
   console.log("Fetching calendar events from:", url); // For debugging
 
-  const response = await fetch(url); // Use API_BASE_URL if needed
+  const response = await fetch(url);
 
   if (!response.ok) {
       const errorText = await response.text();

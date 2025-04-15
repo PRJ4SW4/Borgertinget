@@ -11,8 +11,8 @@ import { da } from 'date-fns/locale';
 import { toZonedTime } from 'date-fns-tz';
 // ---
 
-import { fetchCalendarEvents } from '../services/ApiService'; // Adjust path if needed
-import type { CalendarEventDto } from '../types/calendarTypes'; // Adjust path if needed
+import { fetchCalendarEvents } from '../../services/ApiService'; // Adjust path if needed
+import type { CalendarEventDto } from '../../types/calendarTypes'; // Adjust path if needed
 
 // Import CSS for this component
 import './CalendarView.css';

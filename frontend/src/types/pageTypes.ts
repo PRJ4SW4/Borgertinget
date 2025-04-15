@@ -5,7 +5,7 @@ export interface PageSummaryDto {
     title: string;
     parentPageId: number | null;
     displayOrder: number;
-    hasChildren: boolean; // Added this in the backend example, useful here
+    hasChildren: boolean;
   }
   
   export interface PageDetailDto {
@@ -16,10 +16,10 @@ export interface PageSummaryDto {
     // --- Next/Previous Requirement ---
     previousSiblingId: number | null;
     nextSiblingId: number | null;
-    // --- End Next/Previous Requirement ---
+    // --- /Next/Previous Requirement ---
     // --- Questions Requirement ---
     associatedQuestions: QuestionDto[]; // Now an array
-    // --- End Questions Requirement ---
+    // --- /Questions Requirement ---
   }
 
   export interface AnswerOptionDto {

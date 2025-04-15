@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { fetchPageDetails, checkAnswer } from '../services/ApiService'; // Import checkAnswer
-import type { PageDetailDto } from '../types/pageTypes';
+import { fetchPageDetails, checkAnswer } from '../../services/ApiService'; // Import checkAnswer
+import type { PageDetailDto } from '../../types/pageTypes';
 import './PageContent.css'; // Ensure CSS is imported
 
 type PageParams = { pageId: string; };

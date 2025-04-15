@@ -1,8 +1,8 @@
 // src/components/SideNav.tsx
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { fetchPagesStructure } from '../services/ApiService';
-import type { PageSummaryDto, PageNode } from '../types/pageTypes';
+import { fetchPagesStructure } from '../../services/ApiService';
+import type { PageSummaryDto, PageNode } from '../../types/pageTypes';
 import './SideNav.css';
 
 // --- Helper function buildTree (keep as is) ---

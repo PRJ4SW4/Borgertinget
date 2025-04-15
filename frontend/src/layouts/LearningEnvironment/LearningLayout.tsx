@@ -1,6 +1,6 @@
 // src/layouts/LearningLayout.tsx
 import { Outlet } from 'react-router-dom';
-import SideNav from '../components/SideNav';
+import SideNav from '../../components/LearningEnvironment/SideNav';
 import './LearningLayout.css';
 
 // No props, return type is implicitly JSX.Element
