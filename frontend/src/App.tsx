@@ -6,6 +6,7 @@ import Verify from "./pages/Verify";
 import LearningLayout from './layouts/LearningLayout';
 import PageContent from './components/PageContent';
 import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
+import CalendarView from './components/CalendarView'
 import LoginSuccessPage from './pages/LoginSuccessPage'; 
 import PartyPage from "./pages/PartyPage";
 import PoliticianPage from "./pages/PoliticianPage";
@@ -28,6 +29,7 @@ function App() {
       <Route path="/login" element={<Login setToken={setToken} />} />
       <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
       <Route path="/verify" element={<Verify />} />
+      <Route path="/kalender" element={<CalendarView />} />
 
       <Route
           path="/learning"
