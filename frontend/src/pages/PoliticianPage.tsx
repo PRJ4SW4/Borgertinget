@@ -150,16 +150,7 @@ const PoliticianPage: React.FC = () => {
 
       {/* Other Details Outside the Box */}
       <article className="politician-details">
-        {/* Display biography if available */}
-        {politician.biografi && (
-            <section className="detail-section biography-section">
-              <h3>Biografi</h3>
-              {/* Use dangerouslySetInnerHTML ONLY if the source is TRUSTED and contains HTML */}
-              {/* <p dangerouslySetInnerHTML={{ __html: politician.biografi }}></p> */}
-              {/* Safer: Treat as plain text or use a library to sanitize */}
-              <p>{politician.biografi}</p>
-            </section>
-        )}
+        
 
         <section className="detail-section">
             <h3>Grundlæggende Information</h3> {/* Danish */}
