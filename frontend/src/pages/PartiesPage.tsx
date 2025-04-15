@@ -70,7 +70,7 @@ const PartiesPage: React.FC = () => {
              const errorBody = await response.json();
              // Use error message from body if available, otherwise keep the status text
              errorMsg = errorBody.message || errorBody.title || errorMsg;
-          } catch (_e) { // <-- Fix 1 & 2: Use _e and add comment
+          } catch { // <-- Fix 1 & 2: Use _e and add comment
             /* Intentional: Ignore error parsing the error body, already have status text */
           }
           throw new Error(errorMsg); // Throw the consolidated error message

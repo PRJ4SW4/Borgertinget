@@ -41,7 +41,7 @@ const PoliticianPage: React.FC = () => {
             try {
               const errorBody = await response.json();
               errorMsg = errorBody.message || errorBody.title || errorMsg;
-            } catch (_e) { // <-- Fix 1 & 2: Use _e and add comment
+            } catch  { // <-- Fix 1 & 2: Use _e and add comment
               /* Intentional: Ignore error parsing the error body, already have status text */
             }
             throw new Error(errorMsg); // Throw the consolidated error message
