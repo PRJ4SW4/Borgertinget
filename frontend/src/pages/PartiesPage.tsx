@@ -65,16 +65,31 @@ const PartiesPage: React.FC = () => {
 
         if (!response.ok) {
           let errorMsg = `HTTP error ${response.status}: ${response.statusText}`;
-           try { const errorBody = await response.json(); errorMsg = errorBody.message || errorBody.title || errorMsg; } catch(e) {}
-           throw new Error(errorMsg);
+          // Try to parse a more specific error message from the response body
+          try {
+             const errorBody = await response.json();
+             // Use error message from body if available, otherwise keep the status text
+             errorMsg = errorBody.message || errorBody.title || errorMsg;
+          } catch (_e) { // <-- Fix 1 & 2: Use _e and add comment
+            /* Intentional: Ignore error parsing the error body, already have status text */
+          }
+          throw new Error(errorMsg); // Throw the consolidated error message
         }
 
         const data: string[] = await response.json();
         setParties(data);
 
-      } catch (err: any) {
+      } catch (err: unknown) { // <-- Fix 3: Use unknown instead of any
         console.error("Fetch error:", err);
-        setError(err.message || `Failed to fetch list of parties`);
+        // Type checking before accessing properties
+        let message = 'Failed to fetch list of parties'; // Default message
+        if (err instanceof Error) {
+            message = err.message; // Use message property if it's an Error
+        } else if (typeof err === 'string') {
+            message = err; // Use the error directly if it's a string
+        }
+        // You could add more checks here for other error types if needed
+        setError(message);
       } finally {
         setLoading(false);
       }

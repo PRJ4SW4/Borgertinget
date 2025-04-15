@@ -25,8 +25,8 @@ export interface IAktor {
     functionFormattedTitle?: string | null;
     functionStartDate?: string | null;
     currentConstituency?: string | null;
-    parliamentaryPositionsOfTrust?: string | null;
-    positionsOfTrust?: string | null;
+    parliamentaryPositionsOfTrust?: string[] | null;
+    positionsOfTrust?: string[] | null;
     publicationsText?: string | null; // Full text if needed
   
     // --- List fields (originally stored as JSON strings in DB) ---
@@ -37,6 +37,8 @@ export interface IAktor {
     educations?: string[] | null;
     occupations?: string[] | null;
     publicationTitles?: string[] | null;
+    spokesmen?: string[] | null;
+    ministers?: string[] | null;
   
     // If your API returns JSON strings like "constituenciesJson",
     // you would define those here instead as:
