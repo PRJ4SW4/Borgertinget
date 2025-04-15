@@ -1,11 +1,55 @@
 // src/pages/PartiesPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Import Link for navigation
+import "./PartiesPage.css"
+
+import socialdemokratietLogo from '../images/PartyLogos/socialdemokratiet.webp'; // Example
+import venstreLogo from '../images/PartyLogos/Venstre.png';             // Example
+import moderaterneLogo from '../images/PartyLogos/Moderaterne.png';  
+import alternativetLogo from '../images/PartyLogos/alternativet.png';
+import borgernesLogo from '../images/PartyLogos/borgernesParti.jpg';
+import centrumLogo from '../images/PartyLogos/centrumDemokraterne.png';
+import danmarksLogo from '../images/PartyLogos/danmarksDemokraterne.jpg';
+import DFLogo from '../images/PartyLogos/DanskFolkeparti.png';
+import enhedslistenLogo from '../images/PartyLogos/enhedslisten.jpg';
+import inuitLogo from '../images/PartyLogos/InuitAtaqatigiit.png';
+import javnaLogo from '../images/PartyLogos/Javnaðarflokkurin.png';
+import konsvertiveLogo from '../images/PartyLogos/konservative.png';
+import kristeligtLogo from '../images/PartyLogos/KristeligFolkeparti.png';
+import LALogo from '../images/PartyLogos/LiberalAlliance.png';
+import naleraq from '../images/PartyLogos/NaleraqLogo.svg';
+import radikale from '../images/PartyLogos/radikaleVenstre.png';
+import sambands from '../images/PartyLogos/sambandspartiet.png';
+import SF from '../images/PartyLogos/SocialistiskeFolkeparti.png';
+const partyLogoMap: { [key: string]: string } = {
+  "Socialdemokratiet": socialdemokratietLogo,
+  "Venstre": venstreLogo, // Use the full name if that's what the API returns
+  "Moderaterne": moderaterneLogo,
+  "Alternativet": alternativetLogo,
+  "Borgernes Parti": borgernesLogo,
+  "Centrum-Demokraterne": centrumLogo,
+  "Danmarksdemokraterne": danmarksLogo,
+  "Dansk Folkeparti": DFLogo,
+  "Det Konservative Folkeparti": konsvertiveLogo,
+  "Enhedslisten": enhedslistenLogo,
+  "Inuit Ataqatigiit": inuitLogo,
+  "Javnaðarflokkurin": javnaLogo,
+  "Kristeligt Folkeparti": kristeligtLogo,
+  "Liberal Alliance": LALogo,
+  "Naleraq": naleraq,
+  "Radikale Venstre": radikale,
+  "Sambandsflokkurin": sambands,
+  "Socialistisk Folkeparti": SF,
+  // ... add mappings for other parties ...
+  // Parties not listed here will use the defaultLogo
+};
 
 const PartiesPage: React.FC = () => {
   const [parties, setParties] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+
 
   useEffect(() => {
     // Fetch the list of unique party names when the component mounts
@@ -53,21 +97,35 @@ const PartiesPage: React.FC = () => {
   return (
     <div className="parties-page">
       <nav>
-          <Link to="/">← Tilbage</Link> {/* Navigation back */}
+          <Link to="/">← Tilbage</Link>
       </nav>
       <h2>Partier</h2>
 
       {parties.length > 0 ? (
-        <ul className="party-list"> {/* Use a class for styling */}
-          {parties.map((partyName) => (
-            <li key={partyName}>
-              {/* Link each name to the individual party page */}
-              {/* Encode the party name for the URL path */}
-              <Link to={`/party/${encodeURIComponent(partyName)}`}>
-                {partyName}
-              </Link>
-            </li>
-          ))}
+        // --- Use a different class for the grid container ---
+        <ul className="parties-grid-list">
+          {parties.map((partyName) => {
+            // --- Step 3: Get the correct logo source ---
+            const logoSrc = partyLogoMap[partyName];
+
+            return (
+              <li key={partyName}>
+                 {/* --- Link wraps the grid item content --- */}
+                <Link to={`/party/${encodeURIComponent(partyName)}`} className="party-grid-link">
+                   {/* --- Display Logo --- */}
+                  <img
+                    src={logoSrc}
+                    alt={`${partyName} logo`}
+                    className="party-grid-logo"
+                    // Basic onError to hide if even default fails
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none';}}
+                  />
+                  {/* --- Display Party Name --- */}
+                  <span className="party-grid-name">{partyName}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="info-message">Ingen partier fundet</p>
