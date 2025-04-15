@@ -1,3 +1,6 @@
+// /backend/Models/LearningEnvironment/Page.cs
+namespace backend.Models.LearningEnvironment;
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema; // Required for ForeignKey attribute
 
@@ -10,7 +13,7 @@ public class Page
     [StringLength(200)]
     public string Title { get; set; } = string.Empty;
 
-    // Store the Markdown content here. Use 'text' type in PostgreSQL.
+    // I store the Markdown content here.
     public string Content { get; set; } = string.Empty;
 
     // Foreign key for self-referencing hierarchy
@@ -23,8 +26,9 @@ public class Page
     // Navigation property for child pages
     public virtual ICollection<Page> ChildPages { get; set; } = new List<Page>();
 
-    // Optional: Add an order field if you need specific sorting under a parent
+    // Order field for specific sorting under a parent
     public int DisplayOrder { get; set; } = 0;
 
+    // A list of a pages associated questions
     public virtual ICollection<Question> AssociatedQuestions { get; set; } = new List<Question>();
 }

@@ -1,6 +1,10 @@
+using backend.DTO.Calendar;
+using backend.DTO.LearningEnvironment;
 using backend.Models;
-using Microsoft.EntityFrameworkCore;
+using backend.Models.Calendar;
+using backend.Models.LearningEnvironment;
 using BCrypt.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Data;
 
@@ -11,19 +15,31 @@ public class DataContext : DbContext
 
     public DbSet<User> Users { get; set; } = null!;
 
+    // --- Learning Environment Setup ---
     public DbSet<Page> Pages { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<AnswerOption> AnswerOptions { get; set; }
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<FlashcardCollection> FlashcardCollections { get; set; }
+
+    // --- /Learning Environment Setup ---
+
+    // --- Calendar Setup ---
     public DbSet<CalendarEvent> CalendarEvents { get; set; }
+
+    // --- /Calendar Setup ---
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
+        // --- Calendar Setup ---
         // Index for the CalendarEvents SourceUrl to make syncing events faster
         modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
+
+        // --- /Calendar Setup ---
+
+        // --- Learning Environment Setup ---
 
         // Configure the self-referencing relationship
         modelBuilder
@@ -31,7 +47,7 @@ public class DataContext : DbContext
             .HasOne(p => p.ParentPage) // A page has one parent
             .WithMany(p => p.ChildPages) // A parent can have many children
             .HasForeignKey(p => p.ParentPageId) // The foreign key is ParentPageId
-            .OnDelete(DeleteBehavior.Restrict); // Or Cascade, SetNull, etc. depending on desired behavior when a parent is deleted
+            .OnDelete(DeleteBehavior.Cascade); // Cascade deletions. Can be changed
 
         // This configuration tells EF Core that one Page can have many Questions,
         // and each Question points back to one Page using the PageId foreign key.
@@ -55,7 +71,11 @@ public class DataContext : DbContext
             .WithOne(f => f.FlashcardCollection)
             .HasForeignKey(f => f.CollectionId);
 
+        // --- /Learning Environment Setup ---
+
         // --- SEED DATA ---
+
+        // --- Learning Environment Seeding ---
 
         // 1. Seed Pages
         modelBuilder
@@ -319,5 +339,9 @@ public class DataContext : DbContext
                     BackText = "Statens budget for det kommende år",
                 }
             );
+
+        // --- /Learning Environment Seeding ---
+
+        // --- /SEED DATA ---
     }
 }

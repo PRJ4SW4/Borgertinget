@@ -1,4 +1,6 @@
-// Models/Question.cs
+// /backend/Models/LearningEnvironment/Question.cs
+namespace backend.Models.LearningEnvironment;
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

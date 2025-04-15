@@ -1,7 +1,12 @@
+// /backend/Controllers/LearningEnvironment/PagesController.cs
+namespace backend.Controllers;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Data;
+using backend.DTO.LearningEnvironment;
+using backend.Models.LearningEnvironment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,4 +1,6 @@
-// Models/Flashcard.cs
+// /backend/Models/LearningEnvironment/Flashcard.cs
+namespace backend.Models.LearningEnvironment;
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -26,7 +28,7 @@ public class Flashcard
     public FlashcardContentType FrontContentType { get; set; } = FlashcardContentType.Text;
     public string? FrontText { get; set; } // Null if Image
 
-    [StringLength(500)] // Example max path length
+    [StringLength(500)] // Max length
     public string? FrontImagePath { get; set; } // Null if Text, relative path like /uploads/flashcards/abc.png
 
     // Back Side

@@ -9,7 +9,7 @@ namespace backend.Data
     {
         public DataContext CreateDbContext(string[] args)
         {
-            // Bygger konfigurationen ud fra appsettings.json
+            // Builds configuration from appsettings.json
             IConfigurationRoot config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false)

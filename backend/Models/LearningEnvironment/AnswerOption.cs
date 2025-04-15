@@ -1,4 +1,6 @@
-// Models/AnswerOption.cs
+// /backend/Models/LearningEnvironment/AnswerOption.cs
+namespace backend.Models.LearningEnvironment;
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -13,7 +15,7 @@ public class AnswerOption
     [Required]
     public bool IsCorrect { get; set; }
 
-    public int DisplayOrder { get; set; } = 0; // Optional ordering
+    public int DisplayOrder { get; set; } = 0; // Ordering
 
     // Foreign Key to Question
     [Required]

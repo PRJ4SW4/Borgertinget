@@ -1,8 +1,9 @@
-namespace backend.DTOs;
+// /backend/DTO/Calendar/CalendarEventDTO.cs
+namespace backend.DTO.Calendar;
 
 using System.ComponentModel.DataAnnotations;
 
-public class CalendarEventDto
+public class CalendarEventDTO
 {
     public int Id { get; set; } // Event ID from database
     public string Title { get; set; } = string.Empty;

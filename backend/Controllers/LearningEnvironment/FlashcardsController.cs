@@ -1,9 +1,12 @@
-// Controllers/FlashcardsController.cs
+// /backend/Controllers/LearningEnvironment/FlashcardsController.cs
+namespace backend.Controllers;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Data; // Your DbContext namespace
+using backend.DTO.LearningEnvironment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,12 +29,12 @@ public class FlashcardsController : ControllerBase
 
     // GET: api/flashcards/collections - Get list for sidebar
     [HttpGet("collections")]
-    public async Task<ActionResult<IEnumerable<FlashcardCollectionSummaryDto>>> GetCollections()
+    public async Task<ActionResult<IEnumerable<FlashcardCollectionSummaryDTO>>> GetCollections()
     {
         var collections = await _context
             .FlashcardCollections.OrderBy(c => c.DisplayOrder) // Order collections
             .ThenBy(c => c.Title) // Secondary sort by title
-            .Select(c => new FlashcardCollectionSummaryDto
+            .Select(c => new FlashcardCollectionSummaryDTO
             {
                 // Map entity properties to DTO properties
                 CollectionId = c.CollectionId,
@@ -44,7 +47,7 @@ public class FlashcardsController : ControllerBase
 
     // GET: api/flashcards/collections/{collectionId} - Get details for viewer
     [HttpGet("collections/{collectionId}")]
-    public async Task<ActionResult<FlashcardCollectionDetailDto>> GetCollectionDetails(
+    public async Task<ActionResult<FlashcardCollectionDetailDTO>> GetCollectionDetails(
         int collectionId
     )
     {
@@ -63,14 +66,14 @@ public class FlashcardsController : ControllerBase
         }
 
         // Map the found collection and its flashcards to the Detail DTO
-        var collectionDetail = new FlashcardCollectionDetailDto
+        var collectionDetail = new FlashcardCollectionDetailDTO
         {
             CollectionId = collection.CollectionId,
             Title = collection.Title,
             Description = collection.Description,
             // Map each Flashcard entity to a FlashcardDto
             Flashcards = collection
-                .Flashcards.Select(f => new FlashcardDto
+                .Flashcards.Select(f => new FlashcardDTO
                 {
                     FlashcardId = f.FlashcardId,
                     FrontContentType = f.FrontContentType.ToString(), // Convert Enum value to string ("Text" or "Image")

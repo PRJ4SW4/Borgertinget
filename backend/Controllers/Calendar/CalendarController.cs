@@ -1,11 +1,13 @@
-// Controllers/CalendarController.cs
+// /backend/Controllers/Calendar/CalendarController.cs
+namespace backend.Controllers;
+
 using System;
 using System.Collections.Generic;
 // using System.Globalization; // No longer needed for parsing here
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Data; // Your DbContext namespace
-using backend.DTOs; // Your DTO namespace
+using backend.DTO.Calendar; // Your DTO namespace
 using backend.Models; // Your CalendarEvent entity namespace
 using backend.Services.AutomationServices;
 using Microsoft.AspNetCore.Authorization;
@@ -83,7 +85,7 @@ public class CalendarController : ControllerBase
     [HttpGet("events")]
     // [Authorize(Policy = "UserOrAdmin")] // Add Auth if needed
     // Removed startDate and endDate parameters
-    public async Task<ActionResult<IEnumerable<CalendarEventDto>>> GetEvents()
+    public async Task<ActionResult<IEnumerable<CalendarEventDTO>>> GetEvents()
     {
         _logger.LogInformation("Attempting to fetch all calendar events."); // Updated log message
 
@@ -99,7 +101,7 @@ public class CalendarController : ControllerBase
             // --- Execute Query and Map to DTO ---
             var events = await query
                 .OrderBy(e => e.StartDateTimeUtc) // Order events chronologically
-                .Select(e => new CalendarEventDto // Project to the DTO
+                .Select(e => new CalendarEventDTO // Project to the DTO
                 {
                     Id = e.Id,
                     Title = e.Title,

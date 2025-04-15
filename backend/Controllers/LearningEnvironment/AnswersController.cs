@@ -1,26 +1,27 @@
-// Controllers/AnswersController.cs (New File)
+// /backend/Controllers/LearningEnvironment/AnswersController.cs
+namespace backend.Controllers;
+
 using System.Threading.Tasks;
-using backend.Data; // Your DbContext namespace
+using backend.Data;
+using backend.DTO.LearningEnvironment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-// Import your DTOs if they are in a different namespace
 
 [Route("api/[controller]")]
 [ApiController]
 public class AnswersController : ControllerBase
 {
-    private readonly DataContext _context; // Use your actual DbContext class name
+    private readonly DataContext _context;
 
     public AnswersController(DataContext context)
     {
-        _context = context;
+        _context = context; // Injecting the DataContext
     }
 
     // POST: api/answers/check
     [HttpPost("check")]
-    public async Task<ActionResult<AnswerCheckResponseDto>> CheckAnswer(
-        AnswerCheckRequestDto request
+    public async Task<ActionResult<AnswerCheckResponseDTO>> CheckAnswer(
+        AnswerCheckRequestDTO request
     )
     {
         // Find the answer option the user selected in the database
@@ -37,7 +38,7 @@ public class AnswersController : ControllerBase
         }
 
         // Prepare the response based on the IsCorrect property
-        var response = new AnswerCheckResponseDto
+        var response = new AnswerCheckResponseDTO
         {
             IsCorrect = selectedOption.IsCorrect,
             // You could potentially fetch and include the correct answer ID here if needed:
