@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using backend.Data;
 using backend.Services;
+using backend.Services.AutomationServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
@@ -122,6 +123,10 @@ builder.Services.AddSwaggerGen(options =>
 // Tilføj EmailService
 builder.Services.AddScoped<EmailService>();
 
+//oda.ft crawler
+builder.Services.AddScoped<HttpService>();
+
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -137,6 +142,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient(); // til OAuth
 
 builder.Services.AddControllers();
+
+// For altinget scraping
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<AltingetScraperService>();
+builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 
 var app = builder.Build();
 

@@ -23,6 +23,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setStatusHeader("Fejl");
     setStatusMessage(null);
 
     try {

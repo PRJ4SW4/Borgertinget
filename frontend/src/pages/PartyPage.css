@@ -1,0 +1,69 @@
+/* Styles for the main page container (optional) */
+.partyPage {
+    padding: 1rem; /* Add some overall padding */
+  }
+
+/* Grid container */
+.party-member-list {
+    list-style: none; /* Remove default bullet points */
+    padding: 0;
+    margin: 20px 0; /* Add some margin around the grid */
+  
+    /* --- CSS Grid properties --- */
+    display: grid;
+    /* Create columns: as many as fit, min 120px wide, max 1fr */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem; /* Spacing between grid items */
+  }
+  
+  /* Individual grid item (the <li>) - remove specific styles if not needed */
+  .party-member-list li {
+     /* No specific grid styles needed here usually */
+     /* border: 1px solid #eee; */ /* Optional: border around each item */
+     /* text-align: center; */ /* Center content if needed */
+  }
+  
+  /* The link within the grid item - style for content stacking */
+  .party-member-link {
+    display: flex;            /* Use flexbox for content within the item */
+    flex-direction: column; /* Stack items vertically (image above name) */
+    align-items: center;      /* Center items horizontally */
+    text-decoration: none;    /* Remove underline */
+    color: inherit;           /* Use default text color */
+    padding: 10px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    height: 100%; /* Make link fill the list item if needed */
+    box-sizing: border-box;
+  }
+  
+  .party-member-link:hover {
+    background-color: #f0f0f0; /* Optional hover background */
+  }
+  
+  /* Style for the photo within the grid item */
+  .party-member-photo {
+    width: 60px;          /* Adjust photo size for grid */
+    height: 60px;         /* Adjust photo size for grid */
+    border-radius: 50%;   /* Keep it circular */
+    object-fit: cover;
+    margin-bottom: 8px;   /* Space between photo and name */
+    /* Remove margin-right from previous list style */
+    /* margin-right: 10px; */
+  }
+  
+  /* Style for the name within the grid item */
+  .party-member-name {
+    font-size: 0.9rem;    /* Adjust font size if needed */
+    text-align: center;   /* Center the name text */
+    /* Break long names if necessary */
+    word-break: break-word;
+  }
+  
+  /* Hide broken images */
+  .party-member-photo[style*="display: none"] {
+      display: none !important;
+      /* Optional: Add placeholder styles */
+      /* width: 60px; height: 60px; background: #eee; border-radius: 50%; margin-bottom: 8px; */
+  }
+  

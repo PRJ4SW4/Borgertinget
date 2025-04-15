@@ -5,8 +5,11 @@ import Home from "./pages/Home";
 import LearningLayout from './layouts/LearningLayout';
 import PageContent from './components/PageContent';
 import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
+import CalendarView from './components/CalendarView'
 import LoginSuccessPage from './pages/LoginSuccessPage'; 
-
+import PartyPage from "./pages/PartyPage";
+import PoliticianPage from "./pages/PoliticianPage";
+import PartiesPage from "./pages/PartiesPage";
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
@@ -24,6 +27,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login setToken={setToken} />} />
       <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
+      <Route path="/kalender" element={<CalendarView />} />
 
       <Route
           path="/learning"
@@ -35,6 +39,18 @@ function App() {
           <Route index element={<p>Velkommen til læringsområdet!</p>} />
           <Route path=":pageId" element={<PageContent />} />
       </Route>
+      <Route
+            path="/parties"
+            element={<PartiesPage />}
+          />
+      <Route
+            path="/party/:partyName"
+            element={<PartyPage />}
+          />
+      <Route
+            path="/politician/:id"
+            element={<PoliticianPage />}
+          />
 
       <Route
           path="/flashcards/*" // Match base path and potential nested paths
