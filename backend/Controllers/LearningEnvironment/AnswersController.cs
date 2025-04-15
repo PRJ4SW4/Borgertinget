@@ -7,47 +7,48 @@ using backend.DTO.LearningEnvironment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+// Specifies the route for this controller, defining the base URL segment for its endpoints as "api/answers".
 [Route("api/[controller]")]
+// Indicates that this is an API controller, enabling features like automatic HTTP 400 responses for invalid models.
 [ApiController]
 public class AnswersController : ControllerBase
 {
+    // A private readonly field to hold the DataContext instance, enabling database interactions.
     private readonly DataContext _context;
 
+    // Constructor for the AnswersController, injecting the DataContext via dependency injection.
     public AnswersController(DataContext context)
     {
-        _context = context; // Injecting the DataContext
+        // Assigns the injected DataContext instance to the private field for use within the controller.
+        _context = context;
     }
 
-    // POST: api/answers/check
+    // Defines an HTTP POST endpoint at "api/answers/check" for checking user-submitted answers.
     [HttpPost("check")]
     public async Task<ActionResult<AnswerCheckResponseDTO>> CheckAnswer(
         AnswerCheckRequestDTO request
     )
     {
-        // Find the answer option the user selected in the database
+        // Asynchronously retrieves the selected answer option from the database based on the provided AnswerOptionId.
         var selectedOption = await _context.AnswerOptions.FirstOrDefaultAsync(opt =>
             opt.AnswerOptionId == request.SelectedAnswerOptionId
         );
 
-        // Validate: Check if option exists and belongs to the correct question
+        // Validates that the selected answer option exists and belongs to the question specified in the request.
         if (selectedOption == null || selectedOption.QuestionId != request.QuestionId)
         {
-            // Return BadRequest or NotFound if the submitted data is invalid
-            // Using BadRequest might be better as it indicates a client-side issue (sending bad data)
+            // Returns an HTTP 400 Bad Request response if the selected option is invalid or doesn't match the question.
             return BadRequest("Invalid answer option or question ID mismatch.");
         }
 
-        // Prepare the response based on the IsCorrect property
+        // Creates a new AnswerCheckResponseDTO to encapsulate the result of the answer check.
         var response = new AnswerCheckResponseDTO
         {
+            // Sets the IsCorrect property of the response DTO based on the IsCorrect property of the selected answer option.
             IsCorrect = selectedOption.IsCorrect,
-            // You could potentially fetch and include the correct answer ID here if needed:
-            // CorrectAnswerOptionId = await _context.AnswerOptions
-            //    .Where(o => o.QuestionId == request.QuestionId && o.IsCorrect)
-            //    .Select(o => o.AnswerOptionId)
-            //    .FirstOrDefaultAsync() ?? 0 // Handle case where no correct answer is marked
         };
 
+        // Returns an HTTP 200 OK response containing the AnswerCheckResponseDTO, indicating whether the answer was correct.
         return Ok(response);
     }
 }

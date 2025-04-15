@@ -5,89 +5,111 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using backend.Data; // Your DbContext namespace
+using backend.Data;
 using backend.DTO.LearningEnvironment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-// Import your DTOs and the FlashcardContentType enum if they are in different namespaces
-// using backend.Dtos;
-// using backend.Models;
-
-
+// Specifies the route for this controller, defining the base URL segment for its endpoints.
 [Route("api/[controller]")]
+// Indicates that this is an API controller, providing features like automatic HTTP 400 responses for invalid models.
 [ApiController]
 // [Authorize] // Add later if needed
 public class FlashcardsController : ControllerBase
 {
+    // A private readonly field to hold the DataContext instance, enabling database interactions.
     private readonly DataContext _context; // Use your actual DbContext class name
 
+    // Constructor for the FlashcardsController, injecting the DataContext via dependency injection.
     public FlashcardsController(DataContext context)
     {
+        // Assigns the injected DataContext instance to the private field for use within the controller.
         _context = context;
     }
 
-    // GET: api/flashcards/collections - Get list for sidebar
+    // Defines an HTTP GET endpoint to retrieve a summary list of flashcard collections, typically for a sidebar or navigation menu.
     [HttpGet("collections")]
     public async Task<ActionResult<IEnumerable<FlashcardCollectionSummaryDTO>>> GetCollections()
     {
+        // Asynchronously retrieves flashcard collections from the database, applying ordering for consistent presentation.
         var collections = await _context
-            .FlashcardCollections.OrderBy(c => c.DisplayOrder) // Order collections
-            .ThenBy(c => c.Title) // Secondary sort by title
+            .FlashcardCollections
+            // Orders the collections primarily by their DisplayOrder, allowing manual arrangement of collections.
+            .OrderBy(c => c.DisplayOrder)
+            // Orders collections secondarily by their Title, ensuring alphabetical order within each display order group.
+            .ThenBy(c => c.Title)
+            // Projects the retrieved FlashcardCollection entities into FlashcardCollectionSummaryDTO objects, shaping the data for the response.
             .Select(c => new FlashcardCollectionSummaryDTO
             {
-                // Map entity properties to DTO properties
+                // Maps the CollectionId property from the FlashcardCollection entity to the DTO.
                 CollectionId = c.CollectionId,
+                // Maps the Title property from the FlashcardCollection entity to the DTO.
                 Title = c.Title,
+                // Maps the DisplayOrder property from the FlashcardCollection entity to the DTO.
                 DisplayOrder = c.DisplayOrder,
             })
-            .ToListAsync(); // Execute query
-        return Ok(collections); // Return HTTP 200 OK with the list
+            // Executes the query and returns the results as a List.
+            .ToListAsync();
+        // Returns an HTTP 200 OK response containing the list of flashcard collection summaries.
+        return Ok(collections);
     }
 
-    // GET: api/flashcards/collections/{collectionId} - Get details for viewer
+    // Defines an HTTP GET endpoint to retrieve detailed information for a specific flashcard collection, identified by its ID.
     [HttpGet("collections/{collectionId}")]
     public async Task<ActionResult<FlashcardCollectionDetailDTO>> GetCollectionDetails(
         int collectionId
     )
     {
-        // Find the specific collection and include its related flashcards
+        // Asynchronously retrieves a specific flashcard collection from the database, including its related flashcards.
         var collection = await _context
             .FlashcardCollections
-            // Eager load the Flashcards navigation property
-            // Also order the flashcards within the collection
+            // Eagerly loads the Flashcards navigation property, ensuring related flashcards are retrieved in the same query.
             .Include(c => c.Flashcards.OrderBy(f => f.DisplayOrder))
-            .FirstOrDefaultAsync(c => c.CollectionId == collectionId); // Find by ID
+            // Attempts to find a FlashcardCollection entity with the specified CollectionId.
+            .FirstOrDefaultAsync(c => c.CollectionId == collectionId);
 
-        // Handle case where the collection ID doesn't exist
+        // Handles the case where the specified collection ID does not exist in the database.
         if (collection == null)
         {
-            return NotFound($"Collection with ID {collectionId} not found."); // Return HTTP 404
+            // Returns an HTTP 404 Not Found response with a descriptive message.
+            return NotFound($"Collection with ID {collectionId} not found.");
         }
 
-        // Map the found collection and its flashcards to the Detail DTO
+        // Maps the retrieved FlashcardCollection entity and its associated Flashcard entities to a FlashcardCollectionDetailDTO object.
         var collectionDetail = new FlashcardCollectionDetailDTO
         {
+            // Maps the CollectionId property from the FlashcardCollection entity to the DTO.
             CollectionId = collection.CollectionId,
+            // Maps the Title property from the FlashcardCollection entity to the DTO.
             Title = collection.Title,
+            // Maps the Description property from the FlashcardCollection entity to the DTO.
             Description = collection.Description,
-            // Map each Flashcard entity to a FlashcardDto
+            // Maps each Flashcard entity to a FlashcardDTO, projecting the data into the desired format.
             Flashcards = collection
                 .Flashcards.Select(f => new FlashcardDTO
                 {
+                    // Maps the FlashcardId property from the Flashcard entity to the DTO.
                     FlashcardId = f.FlashcardId,
-                    FrontContentType = f.FrontContentType.ToString(), // Convert Enum value to string ("Text" or "Image")
+                    // Converts the FrontContentType enum value to its string representation ("Text" or "Image").
+                    FrontContentType = f.FrontContentType.ToString(),
+                    // Maps the FrontText property from the Flashcard entity to the DTO.
                     FrontText = f.FrontText,
-                    FrontImagePath = f.FrontImagePath, // Assign the relative path directly
+                    // Maps the FrontImagePath property from the Flashcard entity to the DTO.
+                    FrontImagePath = f.FrontImagePath,
+                    // Converts the BackContentType enum value to its string representation.
                     BackContentType = f.BackContentType.ToString(),
+                    // Maps the BackText property from the Flashcard entity to the DTO.
                     BackText = f.BackText,
-                    BackImagePath = f.BackImagePath, // Assign the relative path directly
+                    // Maps the BackImagePath property from the Flashcard entity to the DTO.
+                    BackImagePath = f.BackImagePath,
                 })
-                .ToList(), // Create the List<FlashcardDto>
+                // Converts the resulting IEnumerable<FlashcardDto> to a List.
+                .ToList(),
         };
 
-        return Ok(collectionDetail); // Return HTTP 200 OK with the details
+        // Returns an HTTP 200 OK response containing the detailed flashcard collection information.
+        return Ok(collectionDetail);
     }
 
-    // --- POST/PUT/DELETE methods for CRUD operations will be added later ---
+    // TODO: --- POST/PUT/DELETE methods for CRUD operations will be added later ---
 }
