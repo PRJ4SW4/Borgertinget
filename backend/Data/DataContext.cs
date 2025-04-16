@@ -16,10 +16,18 @@ public class DataContext : DbContext
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<FlashcardCollection> FlashcardCollections { get; set; }
 
+
     public DbSet<Tweet> Tweets { get; set; }
 
-     public DbSet<Subscription> Subscriptions { get; set; } 
+    public DbSet<Subscription> Subscriptions { get; set; } 
     public DbSet<PoliticianTwitterId> PoliticianTwitterIds { get; set; }  
+
+    
+    public DbSet<Poll> Polls { get; set; }
+    public DbSet<PollOption> PollOptions { get; set; }
+    public DbSet<UserVote> UserVotes { get; set; }
+
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -403,7 +411,12 @@ public class DataContext : DbContext
              new Subscription { Id = 2, UserId = 1, PoliticianTwitterId = 2 },
              
              new Subscription { Id = 3, UserId = 1, PoliticianTwitterId = 3 }
-         );
-     });
+             );
+
+            });
+
+              modelBuilder.Entity<UserVote>() // Vælg UserVote entiteten
+            .HasIndex(uv => new { uv.UserId, uv.PollId }) // Definer et index på disse to kolonner
+            .IsUnique(); // Specificer at dette index skal være unikt
         }
 }

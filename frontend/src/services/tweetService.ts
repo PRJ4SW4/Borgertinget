@@ -1,55 +1,105 @@
 // src/services/tweetService.ts
-// Ret sti til din type-fil hvis nødvendigt
-import { TweetDto } from '../types/tweetTypes';
+import { TweetDto, PoliticianInfoDto } from '../types/tweetTypes'; // Sørg for stien er korrekt
 
-// Definer en interface for det objekt backend nu returnerer
 interface PaginatedFeedResponse {
   tweets: TweetDto[];
   hasMore: boolean;
-  // Tilføj evt. andre felter backend sender med (totalCount etc.)
 }
 
-// Din backend URL
 const API_BASE_URL = 'http://localhost:5218';
 
-// Opdater funktionen til at acceptere parametre og returnere det nye format
-export const getFeed = async (page: number = 1, pageSize: number = 5): Promise<PaginatedFeedResponse> => {
+// --- HJÆLPEFUNKTION TIL HEADERS (Returnerer nu et Headers objekt) ---
+const getAuthHeaders = (): Headers => { // <--- Ændret returtype
+    const token = localStorage.getItem('jwt');
+    const headers = new Headers(); // <--- Opret Headers objekt
 
-  // Hent token (som før)
-  const token = localStorage.getItem('jwt');
-  const headers: HeadersInit = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  } else {
-    console.warn('JWT token not found for feed request.');
-  }
+    headers.set('Accept', 'application/json'); // <--- Brug .set()
+
+    if (token) {
+        headers.set('Authorization', `Bearer ${token}`); // <--- Brug .set()
+    } else {
+         console.warn('JWT token not found for request.');
+    }
+    return headers;
+}
+
+// --- Opdateret getFeed ---
+export const getFeed = async (
+    page: number = 1,
+    pageSize: number = 5,
+    politicianId: number | null = null
+): Promise<PaginatedFeedResponse> => {
+
+  // Få Headers objektet
+  const headers = getAuthHeaders();
+
+  // Valgfrit: Tjek om login er påkrævet for feedet
+  // if (!headers.has('Authorization')) { // <-- Brug .has()
+  //     return Promise.reject(new Error('Not authenticated'));
+  // }
 
   try {
-    // Tilføj page og pageSize til URL'en som query parametre
-    const apiUrl = `${API_BASE_URL}/api/feed?page=${page}&pageSize=${pageSize}`;
+    let apiUrl = `${API_BASE_URL}/api/feed?page=${page}&pageSize=${pageSize}`;
+    if (politicianId !== null) {
+        apiUrl += `&politicianId=${politicianId}`;
+    }
+    console.log("Fetching feed from URL:", apiUrl);
 
-    // Lav fetch kaldet med headers
     const response = await fetch(apiUrl, {
       method: 'GET',
-      headers: headers
+      headers: headers // <--- Send Headers objektet direkte med
     });
 
-    // Fejlhåndtering (som før, tjek response.ok etc.)
     if (!response.ok) {
-      let errorMsg = `Failed to fetch feed (Page ${page}). Status: ${response.status}`;
-       try { const errorData = await response.json(); errorMsg = errorData.message || errorData.title || errorMsg; } catch(e) {}
-       if (response.status === 401) { errorMsg = 'Authentication failed.'; /* Håndter logud? */ }
-      throw new Error(errorMsg);
+        let errorMsg = `Failed to fetch feed. Status: ${response.status}`;
+         try {
+             const errorData = await response.json();
+             errorMsg = errorData.message || errorData.title || JSON.stringify(errorData) || errorMsg;
+         } catch (e) {}
+        if (response.status === 401) { errorMsg = 'Manglende eller ugyldig godkendelse.'; }
+        throw new Error(errorMsg);
+    }
+    return await response.json() as PaginatedFeedResponse;
+  } catch (error) {
+    console.error(`Error in getFeed service (Page ${page}, Filter ${politicianId}):`, error);
+    throw error;
+  }
+};
+
+
+// --- Opdateret getSubscriptions funktion ---
+export const getSubscriptions = async (): Promise<PoliticianInfoDto[]> => {
+    // Få Headers objektet
+    const headers = getAuthHeaders();
+
+    // Brug .has() til at tjekke om Authorization header findes
+    if (!headers.has('Authorization')) { // <--- Rettet linje
+        console.warn('Not authenticated, returning empty subscriptions.');
+        return [];
     }
 
-    // Parse JSON og returner HELE objektet (med typen PaginatedFeedResponse)
-    return await response.json() as PaginatedFeedResponse;
+    try {
+        const apiUrl = `${API_BASE_URL}/api/subscriptions`;
+        console.log("Fetching subscriptions from URL:", apiUrl);
 
-  } catch (error) {
-    console.error(`Error in getFeed service (Page ${page}):`, error);
-    throw error; // Kast videre til FeedPage
-  }
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: headers // <--- Send Headers objektet direkte med
+        });
+
+        if (!response.ok) {
+            let errorMsg = `Failed to fetch subscriptions. Status: ${response.status}`;
+             try {
+                 const errorData = await response.json();
+                 errorMsg = errorData.message || errorData.title || JSON.stringify(errorData) || errorMsg;
+             } catch (e) {}
+            if (response.status === 401) { errorMsg = 'Manglende eller ugyldig godkendelse ved hentning af abonnementer.'; }
+            throw new Error(errorMsg);
+        }
+        return await response.json() as PoliticianInfoDto[];
+    } catch (error) {
+        console.error('Error in getSubscriptions service:', error);
+        return [];
+        // throw error; // Alternativt
+    }
 };

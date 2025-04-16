@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using backend.Hubs;                // <--- TILFØJ DENNE LINJE
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,8 +84,11 @@ builder
     });
 
 // Swagger
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
+
+
 
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
@@ -157,4 +162,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+app.MapHub<FeedHub>("/feedHub");
 app.Run();

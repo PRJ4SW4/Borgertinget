@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
 
+namespace Interfaces.PollsService
+{
+    
+
 
 public interface ISubject
 {
+    string State { get; set; }  // Add this property definition
     void Attach(IObserver observer);
     void Detach(IObserver observer);
     void Notify();
@@ -66,4 +71,6 @@ public class ConcreteObserver : IObserver
     {
         Console.WriteLine($"Observer {name} has been notified with state: {subject.State}");
     }
+}
+
 }

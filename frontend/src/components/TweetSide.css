@@ -7,9 +7,11 @@
   border-radius: 8px;
   margin-bottom: 15px;
   padding: 15px;
+  max-width: 1000px; /* Maksimal bredde for kortet */
   font-family: 'Arial', sans-serif;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  
+  margin-left: auto;
+  margin-right: auto;
 .tweet-card a { /* Links inde i kortet */
   color: #882434; text-decoration: none; }
 .tweet-card a:hover {
@@ -63,11 +65,12 @@
 
 .tweet-image { /* Omdøbt */
   width: 100%;
-  max-height: 600px;
+  max-height: 700px;
   object-fit: cover;
   border-radius: 8px;
   margin-top: 10px;
   display: block;
+  min-width: 400;
   border: 1px solid #f3f4f6;
 }
 

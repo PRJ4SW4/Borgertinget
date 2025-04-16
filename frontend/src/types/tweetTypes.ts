@@ -10,3 +10,8 @@ export interface TweetDto {
   authorName: string;
   authorHandle: string;
 }
+
+export interface PoliticianInfoDto {
+  id: number; 
+  name: string;
+}
