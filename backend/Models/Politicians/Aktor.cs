@@ -6,6 +6,8 @@ namespace backend.Models{
     public class Aktor
     {
         [Key]
+        
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; } // Unik id
         public string? biografi {get; set; } = string.Empty; // Biografi for personen eller gruppen
         public string? fornavn { get; set; } = string.Empty; //fornavn for personen
@@ -32,6 +34,8 @@ namespace backend.Models{
         public string? PositionsOfTrust { get; set; }
         
         public string? Email { get; set; }
+
+        public string? MinisterTitel {get; set;}
 
         // json collections
         public List<string>? Ministers { get; set; }
