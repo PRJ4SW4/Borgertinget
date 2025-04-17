@@ -17,7 +17,7 @@ namespace backend.Services
             _context = context;
         }
 
-        // POST Flashcard collecton
+        // POST Flashcard collection
         public async Task<int> CreateCollectionAsync(FlashcardCollectionDetailDto dto)
         {
             var collection = new FlashcardCollection
@@ -99,6 +99,55 @@ namespace backend.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        // DELETE Flashcard collection
+        public async Task DeleteFlashcardCollectionAsync(int collectionId)
+        {
+            var collection = await _context
+                .FlashcardCollections.Include(c => c.Flashcards)
+                .FirstOrDefaultAsync();
+
+            if (collection == null)
+            {
+                throw new KeyNotFoundException($"User with ID {collectionId} not found");
+            }
+
+            // Remove flashcards in Flashcardcollection
+            _context.Flashcards.RemoveRange(collection.Flashcards);
+
+            // Remove FlashcardCollection
+            _context.FlashcardCollections.Remove(collection);
+
+            await _context.SaveChangesAsync();
+        }
+
+        // GET user by username
+        public async Task<User> GetUserByUsernameAsync(string username)
+        {
+            // Search user by username
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException($"User with username {username} not found");
+            }
+
+            return user;
+        }
+
+        // Get all users
+        public async Task<User[]> GetAllUsersAsync()
+        {
+            // Search user by username
+            var users = await _context.Users.ToArrayAsync();
+
+            if (users == null)
+            {
+                throw new KeyNotFoundException($"Error finding users");
+            }
+
+            return users;
         }
 
         // PUT changing a Users username

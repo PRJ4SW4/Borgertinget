@@ -6,11 +6,15 @@ import Verify from "./pages/Verify";
 import LearningLayout from './layouts/LearningLayout';
 import PageContent from './components/PageContent';
 import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
+
+// Admin pages
+import CreateFlashcardCollection from './components/AdminPages/AddFlashcardCollection';
 import AdminPage from './components/AdminPages/AdminPage'; // Import new layout
 import AdminBruger from "./components/AdminPages/AdminBruger";
 import AdminIndhold from "./components/AdminPages/AdminIndhold";
 import AdminLearing from "./components/AdminPages/AdminLearing";
 import AdminPolls from "./components/AdminPages/AdminPolls";
+
 import LoginSuccessPage from './pages/LoginSuccessPage'; 
 
 
@@ -56,6 +60,7 @@ function App() {
       <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to ="/home" />} />
       <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to ="/home" />} />
       <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to ="/home" />} />
+      <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to ="/home" />} />
     </Routes>
   );
 }

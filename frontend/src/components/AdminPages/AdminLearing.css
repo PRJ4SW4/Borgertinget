@@ -1,0 +1,14 @@
+.Button {
+    width: 341;
+    height: 32;
+    border-radius: Radius/200;
+    padding: Space/200;
+    gap: Space/200;
+    background: #950018E5;
+    box-shadow: 0px 4px 4px 0px #00000040;
+    color: white;
+}
+
+.container {
+    background: var(--Background-element-red, #80273080);
+}
