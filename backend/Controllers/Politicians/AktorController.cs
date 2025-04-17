@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using backend.Services;
-using backend.Models; // Namespace containing Provider model
-using backend.Data; // Namespace for your DbContext (e.g., AppDbContext)
+using backend.Models; 
+using backend.Data;
 using backend.DTO.FT;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
@@ -59,14 +59,14 @@ public class AktorController : ControllerBase{
         }
         catch (Exception ex)
         {
-            // Log the exception details (consider using a proper logging framework)
+            //(consider using a proper logging framework) use the logger
             Console.WriteLine($"Error fetching politician with ID {id}: {ex.Message}");
             // Return a generic 500 Internal Server Error
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
     //sender politikere med samme partyName, bruger aktorDetailDto
-    [HttpGet("GetParty/{partyName}")] // Route definition: api/Aktor/GetParty/ThePartyName
+    [HttpGet("GetParty/{partyName}")]
     public async Task<ActionResult<IEnumerable<Aktor>>> GetParty(string partyName)
     {
         // Basic validation for the input party name
@@ -132,7 +132,7 @@ public class AktorController : ControllerBase{
     //https://oda.ft.dk/api/Akt%C3%B8r?$inlinecount=allpages endpoint der skal bruges i hvert fald
     //----------------------------------------//
     //                To DO:                  //
-    //        Overvejelser: Skal vi slette ikke aktive medlemmer? (gør processen mere ressource noget mere intensiv da vi skal tjekke hver aktør mod databasen)//
+    //                                        //
     //                                        //
     //                                        //
     //----------------------------------------//
@@ -193,8 +193,7 @@ public class AktorController : ControllerBase{
                  {
                     foreach (var relation in relationResponse.Value)
                     {
-                        // Assuming one person holds one primary minister role for simplicity.
-                        // If multiple roles are possible and needed, change value to List<int>
+                        // TODO: check If multiple roles are possible and needed, change value to List<int>
                         ministerRelationshipsMap[relation.FraAktorId] = relation.TilAktorId;
                     }
                      _logger.LogInformation("Fetched {Count} relationships from page: {Url}", relationResponse.Value.Count, nextRelationsLink);
@@ -374,8 +373,6 @@ public class AktorController : ControllerBase{
         aktor.PublicationTitles = bioDetails.GetValueOrDefault("PublicationTitles") as List<string> ?? new List<string>();
         aktor.Ministers = bioDetails.GetValueOrDefault("Ministers") as List<string> ?? new List<string>();
         aktor.Spokesmen = bioDetails.GetValueOrDefault("Spokesmen") as List<string> ?? new List<string>();
-
-        // Assign the fetched minister title
         aktor.MinisterTitel = ministerTitle;
 
         return aktor;

@@ -1,10 +1,9 @@
-// src/pages/PartiesPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { Link } from 'react-router-dom'; 
 import "./PartiesPage.css"
 
-import socialdemokratietLogo from '../images/PartyLogos/socialdemokratiet.webp'; // Example
-import venstreLogo from '../images/PartyLogos/Venstre.png';             // Example
+import socialdemokratietLogo from '../images/PartyLogos/socialdemokratiet.webp'; 
+import venstreLogo from '../images/PartyLogos/Venstre.png';             
 import moderaterneLogo from '../images/PartyLogos/Moderaterne.png';  
 import alternativetLogo from '../images/PartyLogos/alternativet.png';
 import borgernesLogo from '../images/PartyLogos/borgernesParti.jpg';
@@ -39,9 +38,7 @@ const partyLogoMap: { [key: string]: string } = {
   "Naleraq": naleraq,
   "Radikale Venstre": radikale,
   "Sambandsflokkurin": sambands,
-  "Socialistisk Folkeparti": SF,
-  // ... add mappings for other parties ...
-  // Parties not listed here will use the defaultLogo
+  "Socialistisk Folkeparti": SF
 };
 
 const PartiesPage: React.FC = () => {
@@ -59,36 +56,30 @@ const PartiesPage: React.FC = () => {
       setParties([]); // Clear previous results
 
       try {
-        // Use the new backend endpoint api/Aktor/GetParties
         const apiUrl = `http://localhost:5218/api/Aktor/GetParties`;
         const response = await fetch(apiUrl);
 
         if (!response.ok) {
           let errorMsg = `HTTP error ${response.status}: ${response.statusText}`;
-          // Try to parse a more specific error message from the response body
           try {
              const errorBody = await response.json();
-             // Use error message from body if available, otherwise keep the status text
              errorMsg = errorBody.message || errorBody.title || errorMsg;
-          } catch { // <-- Fix 1 & 2: Use _e and add comment
-            /* Intentional: Ignore error parsing the error body, already have status text */
+          } catch { //Deliberately empty
           }
-          throw new Error(errorMsg); // Throw the consolidated error message
+          throw new Error(errorMsg);
         }
 
         const data: string[] = await response.json();
         setParties(data);
 
-      } catch (err: unknown) { // <-- Fix 3: Use unknown instead of any
+      } catch (err: unknown) {
         console.error("Fetch error:", err);
-        // Type checking before accessing properties
         let message = 'Failed to fetch list of parties'; // Default message
         if (err instanceof Error) {
-            message = err.message; // Use message property if it's an Error
+            message = err.message; 
         } else if (typeof err === 'string') {
-            message = err; // Use the error directly if it's a string
+            message = err;
         }
-        // You could add more checks here for other error types if needed
         setError(message);
       } finally {
         setLoading(false);
@@ -96,7 +87,7 @@ const PartiesPage: React.FC = () => {
     };
 
     fetchParties();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   // --- Render loading state ---
   if (loading) {
@@ -117,15 +108,12 @@ const PartiesPage: React.FC = () => {
       <h2>Partier</h2>
 
       {parties.length > 0 ? (
-        // --- Use a different class for the grid container ---
         <ul className="parties-grid-list">
           {parties.map((partyName) => {
-            // --- Step 3: Get the correct logo source ---
             const logoSrc = partyLogoMap[partyName];
 
             return (
               <li key={partyName}>
-                 {/* --- Link wraps the grid item content --- */}
                 <Link to={`/party/${encodeURIComponent(partyName)}`} className="party-grid-link">
                    {/* --- Display Logo --- */}
                   <img

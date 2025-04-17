@@ -1,0 +1,14 @@
+/* src/layouts/MainLayout.css */
+.main-layout-container {
+    display: flex;
+    min-height: 100vh; /* Ensure layout takes full viewport height */
+  }
+  
+  /* Styling for the Navbar component within the layout will be handled in Navbar.css or inline */
+  
+  .main-content {
+    flex-grow: 1; /* Allows the main content to take up remaining space */
+    padding: 20px; /* Add some padding around the page content */
+    /* Add other styling like background color if needed */
+    overflow-y: auto; /* Allow content area to scroll if needed */
+  }
