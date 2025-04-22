@@ -153,6 +153,7 @@ builder.Services.AddCors(options =>
 // Registrer Controllers
 builder.Services.AddControllers();
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
+builder.Services.AddHostedService<DailySelectionJob>(); //* Bruges til udvælgelse af "dagens politiker"
 
 
 // -----------------------------------------

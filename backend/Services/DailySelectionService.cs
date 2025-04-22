@@ -1,128 +1,235 @@
-// Fil: DailySelectionService.cs
-namespace backend.Services; // Eller dit service-namespace
-
-using backend.Data;
+// DailySelectionService.cs
 using backend.Models;
-using backend.DTO; // Tilføj for DTOs
+using backend.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using backend.Data; // Sørg for using til DataContext
 
-// Klassen implementerer nu interfacet (som ligger i sin egen fil)
-public class DailySelectionService : IDailySelectionService
+namespace backend.Services
 {
-    private readonly DataContext _context;
-    private readonly ILogger<DailySelectionService> _logger;
-    private static readonly Random _random = new Random();
-
-    public DailySelectionService(DataContext context, ILogger<DailySelectionService> logger)
+    public class DailySelectionService : IDailySelectionService
     {
-        _context = context;
-        _logger = logger;
-    }
+        private readonly DataContext _context;
+        private readonly ILogger<DailySelectionService> _logger;
+        private readonly Random _random = new Random();
 
-    // Din eksisterende GetOrSelectDailyPoliticianAsync metode...
-    public async Task<FakePolitiker?> GetOrSelectDailyPoliticianAsync(GamemodeTypes gameMode)
-    {
-         // ... (Implementering som du har den) ...
-         // Sørg for at inkludere FakeParti her!
-         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-         var existingSelection = await _context.DailySelections
-             .Include(ds => ds.SelectedPolitiker)
-                 .ThenInclude(p => p.FakeParti) // VIGTIGT: Inkluder parti
-             .FirstOrDefaultAsync(ds => ds.SelectionDate == today && ds.GameMode == gameMode);
+        public DailySelectionService(DataContext context, ILogger<DailySelectionService> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
 
-         if (existingSelection?.SelectedPolitiker != null)
+        // --- Aldersberegning (uændret) ---
+        private int CalculateAge(DateOnly dateOfBirth, DateOnly referenceDate)
+        {
+            int age = referenceDate.Year - dateOfBirth.Year;
+            if (referenceDate.DayOfYear < dateOfBirth.DayOfYear)
+            {
+                age--;
+            }
+            return Math.Max(0, age);
+        }
+
+        // --- GetSelectedPoliticianIdAsync (uændret) ---
+        private async Task<int> GetSelectedPoliticianIdAsync(GamemodeTypes gameMode, DateOnly today)
+        {
+             var selection = await _context.DailySelections
+                .FirstOrDefaultAsync(ds => ds.SelectionDate == today && ds.GameMode == gameMode);
+
+            if (selection == null)
+            {
+                 _logger.LogError("No daily selection found for {GameMode} on {Date}. Run the daily selection job.", gameMode, today);
+                 throw new KeyNotFoundException($"Ingen dagens politiker fundet for {gameMode} d. {today}.");
+            }
+            return selection.SelectedPolitikerID;
+        }
+
+        // --- GetAllPoliticiansForGuessingAsync (uændret fra sidst) ---
+        public async Task<List<PoliticianSummaryDto>> GetAllPoliticiansForGuessingAsync()
+        {
+             return await _context.FakePolitikere // Korrekt DbSet navn
+                    .OrderBy(p => p.PolitikerNavn)
+                    .Select(p => new PoliticianSummaryDto { Id = p.Id, Name = p.PolitikerNavn })
+                    .ToListAsync();
+        }
+
+        // --- GetQuoteOfTheDayAsync (uændret fra sidst) ---
+         public async Task<QuoteDto> GetQuoteOfTheDayAsync()
+        {
+             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+             int politicianId = await GetSelectedPoliticianIdAsync(GamemodeTypes.Citat, today);
+
+             var quotePolitician = await _context.FakePolitikere // Korrekt DbSet navn
+                                         .Include(p => p.Quotes)
+                                         .FirstOrDefaultAsync(p => p.Id == politicianId);
+
+             if (quotePolitician == null) { throw new KeyNotFoundException($"Politiker med ID {politicianId} for dagens citat blev ikke fundet."); }
+              if (quotePolitician.Quotes == null || !quotePolitician.Quotes.Any()) { throw new InvalidOperationException($"Politiker {quotePolitician.PolitikerNavn} har ingen citater tilknyttet."); }
+
+              var quote = quotePolitician.Quotes.ElementAt(_random.Next(quotePolitician.Quotes.Count));
+              return new QuoteDto { QuoteText = quote.QuoteText };
+        }
+
+        // --- GetPhotoOfTheDayAsync (uændret fra sidst) ---
+        public async Task<PhotoDto> GetPhotoOfTheDayAsync()
+        {
+             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+             int politicianId = await GetSelectedPoliticianIdAsync(GamemodeTypes.Foto, today);
+
+             var photoPolitician = await _context.FakePolitikere // Korrekt DbSet navn
+                                             .Select(p => new { p.Id, p.Portræt })
+                                             .FirstOrDefaultAsync(p => p.Id == politicianId);
+
+            if (photoPolitician == null) { throw new KeyNotFoundException($"Politiker med ID {politicianId} for dagens foto blev ikke fundet."); }
+             if (photoPolitician.Portræt == null || photoPolitician.Portræt.Length == 0) { throw new InvalidOperationException($"Politiker med ID {politicianId} mangler portræt data."); }
+
+            return new PhotoDto { PortraitBase64 = Convert.ToBase64String(photoPolitician.Portræt) };
+        }
+
+
+        // --- ProcessGuessAsync (RETTET ved 'today' definition) ---
+        public async Task<GuessResultDto> ProcessGuessAsync(GuessRequestDto guessDto)
+        {
+            // RETTET: Sørg for at 'today' er DateOnly
+            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+            int targetPoliticianId = await GetSelectedPoliticianIdAsync(guessDto.GameMode, today);
+
+            var politicians = await _context.FakePolitikere // Korrekt DbSet navn
+                .Include(p => p.FakeParti)
+                .Where(p => p.Id == targetPoliticianId || p.Id == guessDto.GuessedPoliticianId)
+                .ToListAsync();
+
+            var targetPolitician = politicians.FirstOrDefault(p => p.Id == targetPoliticianId);
+            var guessedPolitician = politicians.FirstOrDefault(p => p.Id == guessDto.GuessedPoliticianId);
+
+            if (targetPolitician == null) throw new KeyNotFoundException($"Dagens politiker ({targetPoliticianId}) for {guessDto.GameMode} findes ikke i databasen.");
+            if (guessedPolitician == null) throw new KeyNotFoundException($"Den gættede politiker ({guessDto.GuessedPoliticianId}) findes ikke i databasen.");
+
+            // Kald til CalculateAge bruger nu den korrekte type for 'today'
+            int targetAge = CalculateAge(DateOnly.FromDateTime(targetPolitician.DateOfBirth), today);
+            int guessedAge = CalculateAge(DateOnly.FromDateTime(guessedPolitician.DateOfBirth), today);
+
+            var result = new GuessResultDto
+            {
+                IsCorrectGuess = targetPolitician.Id == guessedPolitician.Id,
+                GuessedPolitician = new GuessedPoliticianDetailsDto
+                {
+                    Id = guessedPolitician.Id,
+                    PolitikerNavn = guessedPolitician.PolitikerNavn,
+                    PartiNavn = guessedPolitician.FakeParti?.PartiNavn ?? "Ukendt Parti",
+                    Age = guessedAge,
+                    Køn = guessedPolitician.Køn,
+                    Uddannelse = guessedPolitician.Uddannelse,
+                    Region = guessedPolitician.Region
+                }
+            };
+
+            if (guessDto.GameMode == GamemodeTypes.Klassisk)
+            {
+                result.Feedback = new Dictionary<string, FeedbackType>();
+                result.Feedback.Add("Navn", result.IsCorrectGuess ? FeedbackType.Korrekt : FeedbackType.Forkert);
+                result.Feedback.Add("Køn", targetPolitician.Køn == guessedPolitician.Køn ? FeedbackType.Korrekt : FeedbackType.Forkert);
+
+                if (targetAge == guessedAge)
+                    result.Feedback.Add("Alder", FeedbackType.Korrekt);
+                else if (guessedAge < targetAge)
+                    result.Feedback.Add("Alder", FeedbackType.Højere);
+                else
+                    result.Feedback.Add("Alder", FeedbackType.Lavere);
+
+                result.Feedback.Add("Parti", targetPolitician.PartiId == guessedPolitician.PartiId ? FeedbackType.Korrekt : FeedbackType.Forkert);
+                result.Feedback.Add("Uddannelse", targetPolitician.Uddannelse == guessedPolitician.Uddannelse ? FeedbackType.Korrekt : FeedbackType.Forkert);
+                result.Feedback.Add("Region", targetPolitician.Region == guessedPolitician.Region ? FeedbackType.Korrekt : FeedbackType.Forkert);
+            }
+
+            return result;
+        }
+
+
+        // --- SelectAndSaveDailyPoliticiansAsync (RETTET variabel scope) ---
+         public async Task SelectAndSaveDailyPoliticiansAsync(DateOnly date)
          {
-             _logger.LogInformation("Found existing daily selection for {GameMode} on {Date}: PolitikerId {PolitikerId}", gameMode, today, existingSelection.SelectedPolitikerID);
-             return existingSelection.SelectedPolitiker;
-         }
-         // ... resten af din udvælgelseslogik ...
-          _logger.LogInformation("No existing selection found for {GameMode} on {Date}. Performing weighted selection.", gameMode, today);
-         // Implementer PerformWeightedSelectionAsync eller kald den her
-         // return await PerformWeightedSelectionAsync(gameMode, today); // Eksempel
-          return null; // Returner null indtil implementeret
-    }
+            _logger.LogInformation("Starting daily selection process for {Date}", date);
 
+             bool alreadyExists = await _context.DailySelections.AnyAsync(ds => ds.SelectionDate == date);
+             if (alreadyExists)
+             {
+                 _logger.LogWarning("Daily selections already exist for {Date}. Skipping generation.", date);
+                 return;
+             }
 
-    // Implementering af ProcessGuessAsync (fra forrige svar)
-    public async Task<GuessResultDto> ProcessGuessAsync(GuessRequestDto guessDto)
-    {
-        _logger.LogInformation("Processing guess for GameMode {GameMode}, GuessedId {GuessedId}", guessDto.GameMode, guessDto.GuessedPoliticianId);
+             var allPoliticians = await _context.FakePolitikere // Korrekt DbSet navn
+                                        .Include(p => p.Quotes)
+                                        .ToListAsync();
 
-        // 1. Hent dagens korrekte politiker (via GetOrSelectDailyPoliticianAsync)
-        //    SØRG FOR AT GetOrSelectDailyPoliticianAsync INKLUDERER PARTI!
-        var correctPolitician = await GetOrSelectDailyPoliticianAsync(guessDto.GameMode);
-        if (correctPolitician == null)
-        {
-             _logger.LogError("Could not find correct daily politician for GameMode {GameMode} to process guess.", guessDto.GameMode);
-             throw new KeyNotFoundException($"Ingen dagens politiker fundet for spiltype {guessDto.GameMode}.");
+             if (!allPoliticians.Any())
+             {
+                 _logger.LogError("No politicians found in the database. Cannot select daily politicians.");
+                 return;
+             }
+
+             // Vælg for Classic
+             var classicPolitician = allPoliticians[_random.Next(allPoliticians.Count)];
+
+             // RETTET: Deklarer variablerne FØR if/else
+             FakePolitiker? quotePolitician = null; // Brug nullable (?) hvis der er en chance for at de ikke bliver sat
+             FakePolitiker? photoPolitician = null;
+
+             // Vælg for Citat
+             var quoteCandidates = allPoliticians.Where(p => p.Quotes != null && p.Quotes.Any()).ToList();
+              if (!quoteCandidates.Any())
+              {
+                  // Tildel til den ydre variabel
+                  quotePolitician = allPoliticians[_random.Next(allPoliticians.Count)];
+                  _logger.LogWarning("No politicians with quotes found. Selected random politician {PoliticianId} for Quote mode.", quotePolitician.Id);
+              }
+              else
+              {
+                 // Tildel til den ydre variabel
+                 quotePolitician = quoteCandidates[_random.Next(quoteCandidates.Count)];
+              }
+
+             // Vælg for Foto
+             var photoCandidates = allPoliticians.Where(p => p.Portræt != null && p.Portræt.Length > 0).ToList();
+              if (!photoCandidates.Any())
+              {
+                   // Tildel til den ydre variabel
+                  photoPolitician = allPoliticians[_random.Next(allPoliticians.Count)];
+                  _logger.LogWarning("No politicians with portraits found. Selected random politician {PoliticianId} for Photo mode.", photoPolitician.Id);
+              }
+              else
+              {
+                  // Tildel til den ydre variabel
+                  photoPolitician = photoCandidates[_random.Next(photoCandidates.Count)];
+              }
+
+             // Sikkerhedstjek før brug - hvis en politiker af en eller anden grund ikke kunne vælges
+             if (classicPolitician == null || quotePolitician == null || photoPolitician == null)
+             {
+                 _logger.LogError("Could not select politicians for all gamemodes for {Date}. Aborting save.", date);
+                 return; // Undlad at gemme hvis noget gik galt
+             }
+
+              // --- Gem Valgene ---
+              // Variablerne er nu kendt her
+              var dailySelections = new List<DailySelection>
+              {
+                  // Brug .Id fra de nu korrekt scopede variabler
+                  new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Klassisk, SelectedPolitikerID = classicPolitician.Id },
+                  new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Citat, SelectedPolitikerID = quotePolitician.Id },
+                  new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Foto, SelectedPolitikerID = photoPolitician.Id }
+              };
+
+             await _context.DailySelections.AddRangeAsync(dailySelections);
+             await _context.SaveChangesAsync();
+
+             // Logningen bruger nu også de korrekt scopede variabler
+             _logger.LogInformation("Successfully selected and saved daily politicians for {Date}. Classic: {ClassicId}, Quote: {QuoteId}, Photo: {PhotoId}",
+                date, classicPolitician.Id, quotePolitician.Id, photoPolitician.Id);
         }
-         // Dobbelttjek parti-info (kan fjernes hvis GetOrSelect altid inkluderer det)
-        if (correctPolitician.FakeParti == null && correctPolitician.PartiId > 0) {
-             correctPolitician.FakeParti = await _context.FakePartier.FindAsync(correctPolitician.PartiId);
-             _logger.LogWarning("Manually loaded missing party for correct politician {PoliticianId}", correctPolitician.Id);
-        }
-
-
-        // 2. Hent den gættede politiker (inkluder parti!)
-        var guessedPolitician = await _context.FakePolitikere
-                                        .Include(p => p.FakeParti) // Inkluder parti-data!
-                                        .FirstOrDefaultAsync(p => p.Id == guessDto.GuessedPoliticianId);
-        if (guessedPolitician == null)
-        {
-             _logger.LogError("Could not find guessed politician with ID {GuessedId}.", guessDto.GuessedPoliticianId);
-             throw new KeyNotFoundException($"Den gættede politiker med ID {guessDto.GuessedPoliticianId} blev ikke fundet.");
-        }
-
-         _logger.LogInformation("Comparing Guessed: {GuessedName} (Party: {GuessedParty}) with Correct: {CorrectName} (Party: {CorrectParty})",
-            guessedPolitician.PolitikerNavn, guessedPolitician.FakeParti?.PartiNavn ?? "N/A",
-            correctPolitician.PolitikerNavn, correctPolitician.FakeParti?.PartiNavn ?? "N/A");
-
-
-        // 3. Byg resultat DTO
-        var result = new GuessResultDto { /* ... som i forrige svar ... */ };
-         result.IsCorrectGuess = correctPolitician.Id == guessedPolitician.Id;
-         result.Feedback = new Dictionary<string, FeedbackType>();
-         result.GuessedPolitician = new GuessedPoliticianDetailsDto
-        {
-             Id = guessedPolitician.Id,
-             PolitikerNavn = guessedPolitician.PolitikerNavn,
-             PartiNavn = guessedPolitician.FakeParti?.PartiNavn ?? "Ukendt Parti",
-             Alder = guessedPolitician.Alder,
-             Køn = guessedPolitician.Køn,
-             Uddannelse = guessedPolitician.Uddannelse,
-             Region = guessedPolitician.Region
-        };
-
-
-        // 4. Udfør sammenligninger og udfyld Feedback
-        result.Feedback["Navn"] = result.IsCorrectGuess ? FeedbackType.Korrekt : FeedbackType.Forkert;
-        result.Feedback["Parti"] = correctPolitician.PartiId == guessedPolitician.PartiId ? FeedbackType.Korrekt : FeedbackType.Forkert;
-         if (correctPolitician.Alder == guessedPolitician.Alder)
-            result.Feedback["Alder"] = FeedbackType.Korrekt;
-        else if (correctPolitician.Alder > guessedPolitician.Alder)
-            result.Feedback["Alder"] = FeedbackType.Højere;
-        else
-            result.Feedback["Alder"] = FeedbackType.Lavere;
-         result.Feedback["Region"] = string.Equals(correctPolitician.Region, guessedPolitician.Region, StringComparison.OrdinalIgnoreCase) ? FeedbackType.Korrekt : FeedbackType.Forkert;
-        result.Feedback["Køn"] = string.Equals(correctPolitician.Køn, guessedPolitician.Køn, StringComparison.OrdinalIgnoreCase) ? FeedbackType.Korrekt : FeedbackType.Forkert;
-        result.Feedback["Uddannelse"] = string.Equals(correctPolitician.Uddannelse, guessedPolitician.Uddannelse, StringComparison.OrdinalIgnoreCase) ? FeedbackType.Korrekt : FeedbackType.Forkert;
-
-
-        _logger.LogInformation("Guess result calculated for GuessedId {GuessedId}: IsCorrect={IsCorrect}, Feedback={FeedbackCount}",
-            guessDto.GuessedPoliticianId, result.IsCorrectGuess, result.Feedback.Count);
-
-        return result;
-    }
-
-    // Din private PerformWeightedSelectionAsync metode...
-    private async Task<FakePolitiker?> PerformWeightedSelectionAsync(GamemodeTypes gameMode, DateOnly today)
-    {
-        // ... (Implementering som du har den) ...
-         return null; // Returner null indtil implementeret
     }
 }

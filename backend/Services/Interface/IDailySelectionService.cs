@@ -1,20 +1,19 @@
-// Fil: IDailySelectionService.cs
-using backend.DTO;    // Tilføj for DTOs
-using backend.Models; // Tilføj for Models
+using backend.Models;
+using backend.DTO;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using System; // For DateOnly
 
-namespace backend.Services // Eller dit service-namespace
+namespace backend.Services
 {
     public interface IDailySelectionService
     {
-        /// <summary>
-        /// Henter eller udvælger dagens politiker for en given spiltype.
-        /// </summary>
-        Task<FakePolitiker?> GetOrSelectDailyPoliticianAsync(GamemodeTypes gameMode);
-
-        /// <summary>
-        /// Behandler et gæt fra en bruger mod dagens politiker for den givne spiltype.
-        /// </summary>
+        Task<List<PoliticianSummaryDto>> GetAllPoliticiansForGuessingAsync();
+        Task<QuoteDto> GetQuoteOfTheDayAsync();
+        Task<PhotoDto> GetPhotoOfTheDayAsync();
         Task<GuessResultDto> ProcessGuessAsync(GuessRequestDto guessDto);
+
+        // Denne metode kaldes typisk af en baggrundsjob/scheduled task
+        Task SelectAndSaveDailyPoliticiansAsync(DateOnly date);
     }
 }

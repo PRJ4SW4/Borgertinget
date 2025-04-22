@@ -1,10 +1,11 @@
 using backend.Models;
-using backend.Services; // Service namespace
-using backend.DTO;    // DTO namespace
+using backend.Services;
+using backend.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
-using System.Collections.Generic; // Tilføjet for KeyNotFoundException
+using System.Collections.Generic; // For List og KeyNotFoundException
+using System; // For Convert for Base64
 
 namespace backend.Controllers
 {
@@ -21,48 +22,65 @@ namespace backend.Controllers
             _logger = logger;
         }
 
-        // GET: api/polidle/daily/{gameMode}
-        // (Din eksisterende GetDailyPolitician metode er her...)
-        [HttpGet("daily/{gameMode}")]
-        [ProducesResponseType(typeof(DailyPoliticianDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<DailyPoliticianDto>> GetDailyPolitician(GamemodeTypes gameMode)
+        // --- NYT: Endpoint til at hente alle politikere til gætte-input ---
+        [HttpGet("politicians")]
+        [ProducesResponseType(typeof(List<PoliticianSummaryDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<PoliticianSummaryDto>>> GetAllPoliticians()
         {
-           _logger.LogInformation("Request received for daily politician for {GameMode}", gameMode);
+            _logger.LogInformation("Request received for all politician summaries.");
+            var politicians = await _selectionService.GetAllPoliticiansForGuessingAsync();
+            return Ok(politicians);
+        }
+
+        // --- NYT: Endpoint til at hente dagens Citat ---
+        [HttpGet("quote/today")]
+        [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<QuoteDto>> GetQuote()
+        {
+            _logger.LogInformation("Request received for today's quote.");
             try
             {
-                var politician = await _selectionService.GetOrSelectDailyPoliticianAsync(gameMode);
-
-                if (politician == null)
-                {
-                   _logger.LogWarning("No daily politician could be determined for {GameMode}", gameMode);
-                    return NotFound($"Kunne ikke finde eller vælge en dagens politiker for spiltype: {gameMode}.");
-                }
-
-                // Map til DTO - TILPAS DENNE MAPPING!
-                 var dto = new DailyPoliticianDto
-                 {
-                     Id = politician.Id,
-                     PolitikerNavn = politician.PolitikerNavn,
-                     // Sørg for at FakeParti er loaded! Ellers er politician.FakeParti null
-                     // PartiNavn = politician.FakeParti?.PartiNavn ?? "Ukendt Parti", // Eksempel
-                     Region = politician.Region,
-                     Køn = politician.Køn,
-                     Alder = politician.Alder
-                 };
-
-                return Ok(dto);
+                var quoteDto = await _selectionService.GetQuoteOfTheDayAsync();
+                return Ok(quoteDto);
+            }
+            catch (KeyNotFoundException knfex)
+            {
+                _logger.LogWarning("Could not find today's quote selection: {Message}", knfex.Message);
+                return NotFound(knfex.Message);
             }
             catch (Exception ex)
             {
-               _logger.LogError(ex, "An error occurred while getting daily politician for {GameMode}", gameMode);
-                return StatusCode(StatusCodes.Status500InternalServerError, "Der opstod en intern serverfejl.");
+                 _logger.LogError(ex, "Error getting today's quote.");
+                 return StatusCode(StatusCodes.Status500InternalServerError, "Fejl ved hentning af dagens citat.");
             }
         }
 
+         // --- NYT: Endpoint til at hente dagens Foto ---
+        [HttpGet("photo/today")]
+        [ProducesResponseType(typeof(PhotoDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<PhotoDto>> GetPhoto()
+        {
+             _logger.LogInformation("Request received for today's photo.");
+            try
+            {
+                var photoDto = await _selectionService.GetPhotoOfTheDayAsync();
+                return Ok(photoDto);
+            }
+            catch (KeyNotFoundException knfex)
+            {
+                _logger.LogWarning("Could not find today's photo selection: {Message}", knfex.Message);
+                return NotFound(knfex.Message);
+            }
+             catch (Exception ex)
+            {
+                 _logger.LogError(ex, "Error getting today's photo.");
+                 return StatusCode(StatusCodes.Status500InternalServerError, "Fejl ved hentning af dagens foto.");
+            }
+        }
 
-        // --- NYT ENDPOINT TIL AT HÅNDTERE GÆT ---
+        // --- BEHOLDT: Endpoint til at håndtere Gæt ---
         [HttpPost("guess")]
         [ProducesResponseType(typeof(GuessResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -70,7 +88,6 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<GuessResultDto>> PostGuess([FromBody] GuessRequestDto guessDto)
         {
-            // Tjekker automatisk for [Required] attributter pga. [ApiController]
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid guess request received: {ModelState}", ModelState);
@@ -82,23 +99,25 @@ namespace backend.Controllers
 
             try
             {
-                // Kald service-laget til at behandle gættet
                 var result = await _selectionService.ProcessGuessAsync(guessDto);
                 return Ok(result);
             }
-            catch (KeyNotFoundException knfex) // Specifik fejl hvis politiker/daglig valg ikke findes
+            catch (KeyNotFoundException knfex)
             {
                 _logger.LogWarning(knfex, "Could not process guess due to missing entity.");
-                // Returner 404 Not Found hvis enten dagens politiker eller den gættede ikke findes
-                return NotFound(knfex.Message); // Send service-lagets fejlbesked til klienten
+                return NotFound(knfex.Message); // Send service-lagets fejlbesked
             }
-            catch (Exception ex) // Generel fejlhåndtering
+            catch (InvalidOperationException ioex) // F.eks. hvis citat/foto mangler på politiker
+            {
+                _logger.LogWarning(ioex, "Could not process guess due to invalid state.");
+                return BadRequest(ioex.Message); // Send service-lagets fejlbesked
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while processing the guess for GameMode {GameMode}, GuessedId {GuessedId}",
                     guessDto.GameMode, guessDto.GuessedPoliticianId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Der opstod en fejl under behandling af dit gæt.");
             }
         }
-        // -----------------------------------------
     }
 }

@@ -19,7 +19,7 @@ namespace backend.DTO
         public int Id { get; set; }
         public string PolitikerNavn { get; set; } = string.Empty;
         public string PartiNavn { get; set; } = string.Empty; // Navn fra FakeParti
-        public int Alder { get; set; }
+        public int Age { get; set; } // Tilføjet for at beregne alder
         public string Køn { get; set; } = string.Empty;
         public string Uddannelse { get; set; } = string.Empty;
         public string Region { get; set; } = string.Empty;
