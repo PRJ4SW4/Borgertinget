@@ -18,6 +18,8 @@ public class DailySelectionJob : IHostedService, IDisposable
         _scopeFactory = scopeFactory; // Bruges til at få en scoped service (som DbContext)
     }
 
+//TODO: Ændre til udkommenteret for live run. Test-version forneden
+/*
     public Task StartAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Daily Selection Job starting.");
@@ -39,6 +41,30 @@ public class DailySelectionJob : IHostedService, IDisposable
 
         return Task.CompletedTask;
     }
+*/
+//* Sat til at køre job når der bruges 'dotnet run'. Bruges til TESTING!!
+    public Task StartAsync(CancellationToken stoppingToken)
+{
+    _logger.LogInformation("Daily Selection Job starting.");
+
+    // MIDLERTIDIGT TIL TEST: Kør med det samme (eller efter få sekunder)
+    var initialDelay = TimeSpan.FromSeconds(5); // Kør om 5 sekunder
+    // var initialDelay = TimeSpan.Zero; // Kør med det samme
+
+    // MIDLERTIDIGT TIL TEST: Sæt evt. perioden til noget kort, f.eks. hvert minut, hvis du vil teste flere gange
+    // TimeSpan period = TimeSpan.FromMinutes(1);
+    // Husk at ændre tilbage til TimeSpan.FromHours(24) senere!
+    TimeSpan period = TimeSpan.FromHours(24); // Normal periode
+
+    _timer = new Timer(DoWork, null, initialDelay, period);
+
+    _logger.LogInformation("Daily Selection Job timer scheduled.");
+
+    // Overvej at køre én gang ved opstart uanset hvad, hvis data mangler?
+    // CheckAndRunInitialSelectionAsync(); // Implementer evt. denne logik
+
+    return Task.CompletedTask;
+}
 
     private async void DoWork(object? state)
     {

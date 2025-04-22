@@ -39,6 +39,41 @@ namespace backend.Controllers
         }
 #endregion
 
+#region generate today
+
+        // === START: NYT MANUELT TRIGGER ENDPOINT ===
+        // POST /api/polidle/admin/generate-today
+        [HttpPost("admin/generate-today")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        // Valgfrit: Skjul endpoint fra offentlig Swagger dokumentation
+        // [ApiExplorerSettings(IgnoreApi = true)]
+        public async Task<ActionResult> GenerateDailySelectionForToday()
+        {
+            _logger.LogInformation("Manual trigger received for generating today's selections.");
+            try
+            {
+                // Hent dags dato (UTC for konsistens)
+                DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+                // Kald service-metoden der vælger og gemmer
+                await _selectionService.SelectAndSaveDailyPoliticiansAsync(today);
+
+                _logger.LogInformation("Manual daily selection generation completed successfully for {Date}.", today);
+                // Send et simpelt OK tilbage
+                return Ok($"Daily selections generated successfully for {today:yyyy-MM-dd}.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred during manual daily selection generation for today.");
+                // Returner en serverfejl hvis noget går galt
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while generating daily selections.");
+            }
+        }
+        // === SLUT: NYT MANUELT TRIGGER ENDPOINT ===
+
+#endregion
+
 #region Show todays quote
 
         // --- NYT: Endpoint til at hente dagens Citat ---
