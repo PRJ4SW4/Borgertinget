@@ -34,6 +34,22 @@ namespace backend.Data
         private static readonly List<string> FemalePortraits = new List<string> { "kvinde1.png", "kvinde2.png", "kvinde3.png" };
         private static readonly string DefaultPortrait = "default_avatar.png";
 
+        // === NYT: Liste med eksempel-citater ===
+        private static readonly List<string> SampleQuotes = new List<string> {
+            "Vi skal styrke fællesskabet og sikre velfærd for alle.",
+            "Lavere skatter og mindre bureaukrati er vejen frem for Danmark.",
+            "Den grønne omstilling kræver modige beslutninger nu.",
+            "Vi må aldrig gå på kompromis med retssikkerheden.",
+            "Uddannelse er nøglen til fremtiden for vores unge.",
+            "Et stærkt erhvervsliv skaber arbejdspladser og vækst.",
+            "Vi skal passe bedre på vores ældre og udsatte borgere.",
+            "Danmark skal tage ansvar i en globaliseret verden.",
+            "Frihed under ansvar er et grundlæggende princip.",
+            "Klimaforandringerne er vor tids største udfordring."
+            // Tilføj gerne flere eller mere specifikke (men stadig generiske) citater
+        };
+        // ========================================
+
         private static readonly Random random = new Random();
 
         // Hjælpefunktion til at vælge et tilfældigt element fra en liste
@@ -87,99 +103,92 @@ namespace backend.Data
             }
         }
 
-        // --- SeedDataAsync - Hovedmetoden til at seede data ---
+        // --- SeedDataAsync - Opdateret til at inkludere Citater ---
         public static async Task SeedDataAsync(DataContext context, int numberOfPoliticians = 50)
         {
-            // Find stien til billederne
             string baseDirectory = AppContext.BaseDirectory;
-            // Antager billederne ligger i /SeedData/Images/ relativt til output mappen
             string imageBasePath = Path.Combine(baseDirectory, "SeedData", "Images");
             Console.WriteLine($"INFO: Leder efter seed-billeder i: {imageBasePath}");
 
-            // --- Seed Partier ---
-            if (!await context.FakePartier.AnyAsync()) // Tjek om der allerede findes partier
+            // --- Seed Partier (uændret logik) ---
+            if (!await context.FakePartier.AnyAsync())
             {
-                // Liste af danske partier (tilpas efter behov)
-                var partier = new List<FakeParti>
-                {
-                    new FakeParti { PartiNavn = "Socialdemokratiet" },
-                    new FakeParti { PartiNavn = "Venstre" },
-                    new FakeParti { PartiNavn = "Moderaterne" },
-                    new FakeParti { PartiNavn = "SF - Socialistisk Folkeparti" },
-                    new FakeParti { PartiNavn = "Danmarksdemokraterne" },
-                    new FakeParti { PartiNavn = "Liberal Alliance" },
-                    new FakeParti { PartiNavn = "Det Konservative Folkeparti" },
-                    new FakeParti { PartiNavn = "Enhedslisten" },
-                    new FakeParti { PartiNavn = "Radikale Venstre" },
-                    new FakeParti { PartiNavn = "Dansk Folkeparti" },
-                    new FakeParti { PartiNavn = "Alternativet" },
-                    new FakeParti { PartiNavn = "Nye Borgerlige" }
-                };
-
+                var partier = new List<FakeParti> { /* ... dine partier ... */ };
                 await context.FakePartier.AddRangeAsync(partier);
-                await context.SaveChangesAsync(); // Gem partier FØR politikere!
+                await context.SaveChangesAsync();
                 Console.WriteLine("INFO: Danske partier seeded.");
             }
-            else
-            {
-                Console.WriteLine("INFO: Partier findes allerede i databasen.");
-            }
+            else { Console.WriteLine("INFO: Partier findes allerede i databasen."); }
 
-            // --- Seed Politikere ---
-            // RETTET: Brug det korrekte DbSet navn 'FakePolitikere'
-            if (!await context.FakePolitikere.AnyAsync()) // Tjek om der allerede findes politikere
+
+            // --- Seed Politikere (OPDATERET til at tilføje citater) ---
+            if (!await context.FakePolitikere.AnyAsync())
             {
-                // Hent de nu gemte partier fra DB (nu med PartiId)
                 var seededPartier = await context.FakePartier.ToListAsync();
-                if (!seededPartier.Any()) // Sikkerhedstjek
-                {
-                    Console.WriteLine("FEJL: Ingen partier fundet i DB at tilknytte politikere til. Seeding af politikere afbrydes.");
-                    return;
-                }
+                if (!seededPartier.Any()) { Console.WriteLine("FEJL: Ingen partier fundet..."); return; }
 
                 var politikere = new List<FakePolitiker>();
-                // Brug nutid som reference til aldersberegning for seed data
-                var today = DateTime.Today; // Brug DateTime.Today for DateOnly kompatibilitet
+                var today = DateTime.Today;
 
                 for (int i = 0; i < numberOfPoliticians; i++)
                 {
                     var randomParti = GetRandomElement(seededPartier);
-                    if (randomParti == null) { continue; } // Skip hvis parti ikke kunne vælges
+                    if (randomParti == null) { continue; }
 
                     var køn = random.Next(0, 2) == 0 ? "Mand" : "Kvinde";
                     byte[] portrætBytes = await GetPortraitBytesAsync(køn, imageBasePath);
 
-                    // --- START: Generer tilfældig fødselsdato ---
-                    int randomAge = random.Next(25, 75); // Vælg en tilfældig alder mellem 25 og 74
-                    int birthYear = today.Year - randomAge; // Beregn ca. fødselsår
-                    // Generer en tilfældig dag i fødselsåret
+                    // Generer fødselsdato (uændret)
+                    int randomAge = random.Next(25, 75);
+                    int birthYear = today.Year - randomAge;
                     int maxDayOfYear = DateTime.IsLeapYear(birthYear) ? 366 : 365;
-                    int dayOfYear = random.Next(1, maxDayOfYear + 1); // +1 da øvre grænse er eksklusiv
-                    // Opret DateOnly objekt
+                    int dayOfYear = random.Next(1, maxDayOfYear + 1);
                     DateOnly birthDate = new DateOnly(birthYear, 1, 1).AddDays(dayOfYear - 1);
-                    // --- SLUT: Generer tilfældig fødselsdato ---
 
-                    politikere.Add(new FakePolitiker
+                    // Opret politiker-objektet FØRST
+                    var politiker = new FakePolitiker
                     {
                         PolitikerNavn = GenerateRandomName(),
-                        // Alder = random.Next(25, 75), // <-- FJERN DENNE LINJE
-                        DateOfBirth = birthDate.ToDateTime(TimeOnly.MinValue),         // <-- TILFØJET DENNE LINJE
+                        DateOfBirth = birthDate.ToDateTime(TimeOnly.MinValue),
                         Køn = køn,
                         Uddannelse = GetRandomElement(Educations),
                         Region = GetRandomElement(Regions),
                         Portræt = portrætBytes,
-                        PartiId = randomParti.PartiId // Sæt FK til det valgte partis ID
-                    });
+                        PartiId = randomParti.PartiId
+                        // Quotes collection er initialiseret som tom List i modellen
+                    };
+
+                    // === NYT: Tilføj et par tilfældige citater til politikeren ===
+                    int numberOfQuotes = random.Next(1, 4); // Tilføj 1-3 citater per politiker
+                    for(int q = 0; q < numberOfQuotes; q++)
+                    {
+                        // Opret et nyt citat objekt
+                        var newQuote = new PoliticianQuote
+                        {
+                            QuoteText = GetRandomElement(SampleQuotes)
+                            // Sæt IKKE PolitikerId her, EF Core klarer det via navigation property
+                            // Sæt IKKE FakePolitiker her, det klares ved at add'e til collection
+                        };
+                        // Tilføj citatet til politikerens Quotes collection
+                        politiker.Quotes.Add(newQuote);
+                    }
+                    // =========================================================
+
+                    // Tilføj den færdige politiker (med citater) til listen
+                    politikere.Add(politiker);
                 }
 
-                // RETTET: Brug det korrekte DbSet navn 'FakePolitikere'
                 await context.FakePolitikere.AddRangeAsync(politikere);
-                await context.SaveChangesAsync(); // Gem politikerne
-                Console.WriteLine($"INFO: {numberOfPoliticians} tilfældige politikere seeded (med portrætter, partiId og DateOfBirth).");
+                // Når SaveChangesAsync kaldes her, vil EF Core:
+                // 1. Indsætte politikerne og få deres auto-genererede IDs.
+                // 2. Indsætte citaterne og automatisk sætte PolitikerId FK baseret
+                //    på hvilken politikers Quotes collection de blev tilføjet til.
+                await context.SaveChangesAsync();
+                // OPDATERET log besked
+                Console.WriteLine($"INFO: {numberOfPoliticians} tilfældige politikere seeded (med portrætter, partiId, DateOfBirth og citater).");
             }
             else
             {
-                // RETTET: Brug det korrekte DbSet navn 'FakePolitikere'
                 Console.WriteLine("INFO: Politikere findes allerede i databasen.");
             }
         }

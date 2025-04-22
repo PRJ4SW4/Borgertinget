@@ -25,6 +25,7 @@ public class DataContext : DbContext
     public DbSet<FakeParti> FakePartier { get; set; } // <--- TILFØJET DbSet for FakeParti
     public DbSet<PolidleGamemodeTracker> GameTrackings { get; set; }
     public DbSet<DailySelection> DailySelections { get; set; }
+    public DbSet<PoliticianQuote> PoliticianQuotes { get; set; }
     // -----------------------------
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -62,7 +63,7 @@ public class DataContext : DbContext
             .HasForeignKey(f => f.CollectionId);
         // ---------------------------------
 
-
+#region Polidle
         // --- NY KONFIGURATION for Polidle ---
 
         // 1. Konfigurer sammensat primærnøgle for PolidleGamemodeTracker
@@ -111,8 +112,16 @@ public class DataContext : DbContext
             .WithOne(fp => fp.FakeParti) // Matcher navigation property i FakePolitiker
             .HasForeignKey(fp => fp.PartiId) // Matcher foreign key property i FakePolitiker
             .OnDelete(DeleteBehavior.Restrict);
-        // -------------------------------------------------------------------
 
+
+        // === NYT: Konfiguration for FakePolitiker <-> PoliticianQuote relation ===
+            modelBuilder.Entity<PoliticianQuote>()
+                .HasOne(q => q.FakePolitiker)    // Et citat har én politiker
+                .WithMany(p => p.Quotes)        // En politiker har mange citater (via 'Quotes' collection i FakePolitiker)
+                .HasForeignKey(q => q.PolitikerId) // Fremmednøglen i PoliticianQuote tabellen
+                .OnDelete(DeleteBehavior.Cascade); // Slet citater hvis politikeren slettes
+        // -------------------------------------------------------------------
+#endregion
 
         // --- EKSISTERENDE SEED DATA ---
         // Behold al din eksisterende .HasData(...) konfiguration for Pages, Questions, etc.

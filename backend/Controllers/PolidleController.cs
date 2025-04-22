@@ -22,7 +22,13 @@ namespace backend.Controllers
             _logger = logger;
         }
 
+#region  politician-list
         // --- NYT: Endpoint til at hente alle politikere til gætte-input ---
+            /// <summary>
+            /// Controller for handling endpoints related to the Polidle game.
+            /// Provides functionality to retrieve politicians, daily quotes, daily photos, 
+            /// and process guesses made by users.
+            /// </summary>
         [HttpGet("politicians")]
         [ProducesResponseType(typeof(List<PoliticianSummaryDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<List<PoliticianSummaryDto>>> GetAllPoliticians()
@@ -31,8 +37,16 @@ namespace backend.Controllers
             var politicians = await _selectionService.GetAllPoliticiansForGuessingAsync();
             return Ok(politicians);
         }
+#endregion
+
+#region Show todays quote
 
         // --- NYT: Endpoint til at hente dagens Citat ---
+            /// <summary>
+            /// Controller for handling endpoints related to the Polidle game.
+            /// Provides functionality to retrieve politicians, daily quotes, daily photos, 
+            /// and process guesses made by users.
+            /// </summary>
         [HttpGet("quote/today")]
         [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -55,8 +69,15 @@ namespace backend.Controllers
                  return StatusCode(StatusCodes.Status500InternalServerError, "Fejl ved hentning af dagens citat.");
             }
         }
+#endregion
 
+#region show todays photo
          // --- NYT: Endpoint til at hente dagens Foto ---
+            /// <summary>
+            /// Controller for handling endpoints related to the Polidle game.
+            /// Provides functionality to retrieve politicians, daily quotes, daily photos, 
+            /// and process guesses made by users.
+            /// </summary>
         [HttpGet("photo/today")]
         [ProducesResponseType(typeof(PhotoDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -79,8 +100,14 @@ namespace backend.Controllers
                  return StatusCode(StatusCodes.Status500InternalServerError, "Fejl ved hentning af dagens foto.");
             }
         }
+#endregion
 
         // --- BEHOLDT: Endpoint til at håndtere Gæt ---
+            /// <summary>
+            /// Controller for handling endpoints related to the Polidle game.
+            /// Provides functionality to retrieve politicians, daily quotes, daily photos, 
+            /// and process guesses made by users.
+            /// </summary>
         [HttpPost("guess")]
         [ProducesResponseType(typeof(GuessResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
