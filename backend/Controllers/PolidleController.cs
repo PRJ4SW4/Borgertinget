@@ -116,9 +116,12 @@ public async Task<ActionResult> GenerateDailySelectionForDate([FromQuery] string
             /// Provides functionality to retrieve politicians, daily quotes, daily photos, 
             /// and process guesses made by users.
             /// </summary>
+        // --- Opdateret GetQuote ---
         [HttpGet("quote/today")]
         [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)] // Tilføjet for InvalidOperationException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<QuoteDto>> GetQuote()
         {
             _logger.LogInformation("Request received for today's quote.");
@@ -127,15 +130,23 @@ public async Task<ActionResult> GenerateDailySelectionForDate([FromQuery] string
                 var quoteDto = await _selectionService.GetQuoteOfTheDayAsync();
                 return Ok(quoteDto);
             }
-            catch (KeyNotFoundException knfex)
+            catch (KeyNotFoundException knfex) // Dagens valg findes slet ikke
             {
                 _logger.LogWarning("Could not find today's quote selection: {Message}", knfex.Message);
                 return NotFound(knfex.Message);
             }
-            catch (Exception ex)
+            // === NY CATCH BLOK ===
+            catch (InvalidOperationException ioex) // F.eks. hvis citat-tekst mangler i DB
             {
-                 _logger.LogError(ex, "Error getting today's quote.");
-                 return StatusCode(StatusCodes.Status500InternalServerError, "Fejl ved hentning af dagens citat.");
+                _logger.LogWarning("Could not retrieve quote due to invalid state: {Message}", ioex.Message);
+                // Returner 400 Bad Request (eller evt. 409 Conflict), da serveren ikke kan levere det forventede
+                return BadRequest(ioex.Message);
+            }
+            // =====================
+            catch (Exception ex) // Generel fejl
+            {
+                _logger.LogError(ex, "Error getting today's quote.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Fejl ved hentning af dagens citat.");
             }
         }
 #endregion
@@ -147,26 +158,36 @@ public async Task<ActionResult> GenerateDailySelectionForDate([FromQuery] string
             /// Provides functionality to retrieve politicians, daily quotes, daily photos, 
             /// and process guesses made by users.
             /// </summary>
+        // --- Opdateret GetPhoto ---
         [HttpGet("photo/today")]
         [ProducesResponseType(typeof(PhotoDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)] // Tilføjet for InvalidOperationException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<PhotoDto>> GetPhoto()
         {
-             _logger.LogInformation("Request received for today's photo.");
+            _logger.LogInformation("Request received for today's photo.");
             try
             {
                 var photoDto = await _selectionService.GetPhotoOfTheDayAsync();
                 return Ok(photoDto);
             }
-            catch (KeyNotFoundException knfex)
+            catch (KeyNotFoundException knfex) // Dagens valg findes slet ikke
             {
                 _logger.LogWarning("Could not find today's photo selection: {Message}", knfex.Message);
                 return NotFound(knfex.Message);
             }
-             catch (Exception ex)
+            // === NY CATCH BLOK ===
+            catch (InvalidOperationException ioex) // F.eks. hvis portræt-data mangler for politikeren
             {
-                 _logger.LogError(ex, "Error getting today's photo.");
-                 return StatusCode(StatusCodes.Status500InternalServerError, "Fejl ved hentning af dagens foto.");
+                _logger.LogWarning("Could not retrieve photo due to invalid state: {Message}", ioex.Message);
+                return BadRequest(ioex.Message);
+            }
+            // =====================
+            catch (Exception ex) // Generel fejl
+            {
+                _logger.LogError(ex, "Error getting today's photo.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Fejl ved hentning af dagens foto.");
             }
         }
 #endregion

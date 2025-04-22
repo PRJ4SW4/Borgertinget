@@ -31,6 +31,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.0" />
 
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.7.0" />
+
+    <Content Include="SeedData\Images\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
   </ItemGroup>
 
 </Project>
