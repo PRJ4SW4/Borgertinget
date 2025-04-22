@@ -524,7 +524,7 @@ namespace backend.Migrations
                     b.Property<DateTime?>("startdato")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("typeid")
+                    b.Property<int?>("typeid");
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
                     b.Property<int>("Id")
@@ -947,6 +947,7 @@ namespace backend.Migrations
                     b.Navigation("Subscriptions");
                 });
 #pragma warning restore 612, 618
-        }
+        });
     }
+}
 }
