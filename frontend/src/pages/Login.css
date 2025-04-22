@@ -1,5 +1,4 @@
-/* Login.css */
-
+/* ========== Global Reset ========== */
 html, body {
   margin: 0;
   padding: 0;
@@ -14,23 +13,32 @@ html, body {
   box-sizing: border-box;
 }
 
+/* ========== Containers & Layout ========== */
+.outer-wrapper {
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
 .login-container {
-    position: relative;
-    overflow: hidden;
-    min-width: 100vw;
-    display: flex;
-    flex-wrap: wrap;
-    min-height: 100vh;
-    background-color: #e5e7eb; /* Light gray */
-    font-family: 'Arial';
-  }
+  position: relative;
+  overflow: hidden;
+  min-width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-wrap: wrap;
+  background-color: #e5e7eb; /* Light gray */
+  font-family: 'Arial';
+}
 
 .login-container.shifted .image-section {
   transform: translateX(-100%);
 }
 
-.register-form,
-.login-form {
+/* ========== Login & Register Form Sections ========== */
+.login-form,
+.register-form {
   width: 50vw;
   min-height: 100%;
   padding: 2rem;
@@ -42,229 +50,253 @@ html, body {
   z-index: 1;
 }
 
-  .login-form {
-    width: 50%;
-    /* min-width: 300px; */
-    padding: 2rem;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
+.login-form {
+  flex-direction: column;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
-  .form-container {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
+.login-form h1 {
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  text-align: center;
+}
 
-  .form-content {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+.login-form h3 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
 
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 0.5rem;
-    text-align: left;
-    width: 100%;
-  }
+/* ========== Forms ========== */
+.form-container {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 
+.form-content {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  .login-form h1 {
-    margin-bottom: 0.5rem;
-    font-size: 2rem;
-    text-align: center;
-  }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  width: 100%;
+}
 
-  .login-form h3 {
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    text-align: center;
-  }
-  
-  .input-field {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 1rem;
-    box-sizing: border-box;
+.input-field {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
 
-    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.5);
-  }
-  
-  .button {
-    width: 30%;
-    background-color: #882434;
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    text-align: center;
-    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.5);
-    
-    transition: background-color 0.3s ease;
-  }
-  
-  .button:hover {
-    background-color: #b82626;
-  }
-  
-  .forgot-password {
-    color: #882434;
-    margin-top: 8px;
-    font-weight: bold;
-    font-size: 0.8rem;
-  }
-  
-  .separator {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    margin: 16px 0;
-  }
-  
-  .separator div {
-    flex: 1;
-    height: 1px;
-    background-color: #d1d5db;
-  }
-  
-  .separator p {
-    padding: 0 8px;
-    color: #6b7280;
-  }
-  
-  .google-login-button {
-    /* Nulstil standard knap-udseende */
-    background-color: transparent; /* Eller 'white' hvis du bruger farve-logo */
-    border: none; /* Fjerner standard kant */
-    padding: 0;   /* Fjerner standard padding */
-    cursor: pointer;
-  
-    /* Sæt størrelse på knappen */
-    width: 40px;  /* Juster efter behov */
-    height: 40px; /* Juster efter behov */
-  
-    /* Indsæt Google logo som baggrund */
-    /* !!! ERSTAT MED DEN RIGTIGE STI TIL DIN LOGO-FIL !!! */
-    background-image: url('../images/GoogleLogo.png'); /* Eksempel-sti */
-  
-    /* Styr hvordan baggrundsbilledet vises */
-    background-size: contain; /* Får hele logoet til at passe ind i knappen */
-    background-repeat: no-repeat; /* Undgå at logoet gentages */
-    background-position: center; /* Centrerer logoet i knappen */
-  
-    /* Valgfrit: Gør den lidt pænere */
-    border-radius: 50%; /* Gør knappen rund */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Lille skygge */
-    transition: box-shadow 0.2s ease-in-out; /* Blød overgang for effekter */
-  }
-  
-  /* Valgfrit: Hover-effekt */
-  .google-login-button:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-  
-  /* Valgfrit: Focus-outline for tilgængelighed */
-  .google-login-button:focus {
-    outline: 2px solid dodgerblue; /* Eller en anden passende farve */
-    outline-offset: 2px;
-  }
-  
-  .image-section {
-    position: absolute;
-    top: 0;
-    left: 50vw;
-    width: 50vw;
-    height: 100%;
-    background-color: #9ca3af; /* Dark gray */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2;
-    transition: transform 0.8s ease;
-    pointer-events: none;
-  }
+/* ========== Buttons ========== */
+.button {
+  width: 30%;
+  background-color: #882434;
+  color: white;
+  padding: 12px;
+  margin-top: 50px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s ease;
+}
 
-  .slogan {
-    font-style: italic;
-    color: #882434;
-    font-weight: bold;
-  }
-  
-  .ball {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%; /* Makes it a circle */
-    background-color: black;
-    vertical-align: middle;
-    margin: 0 5px;
-  }
+.button:hover {
+  background-color: #b82626;
+}
 
-  .link-text {
-    color: #882434;
-    cursor: pointer;
-    text-decoration: none;
-    text-decoration: underline;
-    font-weight: bold;
-  }
-  
-  .link-text:hover {
-    color: #b82626;
-  }
-  
-  .error-message {
-    text-align: center;
-    color: red;
-    margin-top: 0.5rem;
-  }
-  
-  .login-image {
-    max-width: 80%;
-    max-height: 80%;
-    object-fit: contain;
-  }
+/* ========== Text & Links ========== */
+.forgot-password {
+  color: #882434;
+  margin-top: 8px;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
 
-  .image-section {
-    width: 50%;
-    vertical-align: middle;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #c0bcbc;
-  }
-  
-  .no-account {
-    width: 100%;
-    text-align: center;
-  }
+.link-text {
+  color: #882434;
+  cursor: pointer;
+  text-decoration: none;
+  text-decoration: underline;
+  font-weight: bold;
+}
 
-  .move-right {
-    z-index: 2;
-    position: absolute;
-    left: 50%;
-    top: 0;
-    background-color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
+.link-text:hover {
+  color: #b82626;
+}
 
-  .outer-wrapper {
-  overflow: hidden;
-  width: 100vw;
+.no-account {
+  width: 100%;
+  text-align: center;
+}
+
+.slogan {
+  font-style: italic;
+  color: #882434;
+  font-weight: bold;
+}
+
+.ball {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: black;
+  vertical-align: middle;
+  margin: 0 5px;
+}
+
+/* ========== Image Section ========== */
+.image-section {
+  position: absolute;
+  top: 0;
+  left: 50vw;
+  width: 50vw;
+  height: 100%;
+  background-color: #9ca3af;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  transition: transform 0.8s ease;
+  pointer-events: none;
+}
+
+.image-section {
+  width: 50%;
+  vertical-align: middle;
   height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #c0bcbc;
+}
+
+.login-image {
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+}
+
+/* ========== Google Login Button ========== */
+.google-login-button {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  background-image: url('../images/GoogleLogo.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.google-login-button:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.google-login-button:focus {
+  outline: 2px solid dodgerblue;
+  outline-offset: 2px;
+}
+
+/* ========== Popup Modal ========== */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.popup-content {
   position: relative;
+  background-color: white;
+  padding: 20px 30px;
+  border-radius: 12px;
+  max-width: 400px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background-color: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #888;
+}
+
+.close-button:hover {
+  color: #000;
+}
+
+/* ========== Animation ========== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========== Misc ========== */
+.separator {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.separator div {
+  flex: 1;
+  height: 1px;
+  background-color: #d1d5db;
+}
+
+.separator p {
+  padding: 0 8px;
+  color: #6b7280;
+}
+
+.move-right {
+  z-index: 2;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

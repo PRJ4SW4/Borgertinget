@@ -12,11 +12,12 @@ using backend.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.RegularExpressions;
 
 namespace backend.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
         private readonly DataContext _context;
@@ -45,9 +46,6 @@ namespace backend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new { error = "Invalid input", details = ModelState });
-
             // 1. Check om brugernavn eller email allerede findes
             var existingUserName = await _context.Users.AnyAsync(u => u.UserName == dto.Username);
 
@@ -58,6 +56,7 @@ namespace backend.Controllers
             );
 
             if (existingEmailAndUserName)
+            
                 return BadRequest(new { error = "Brugernavn og email er allerede i brug." });
 
             if (existingUserName)
@@ -65,6 +64,12 @@ namespace backend.Controllers
 
             if (existingEmail)
                 return BadRequest(new { error = "Email er allerede i brug." });
+
+            if (string.IsNullOrEmpty(dto.Password))
+                return BadRequest(new { error = "Adgangskode er påkrævet." });
+            
+            if (!Regex.IsMatch(dto.Password, @"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$"))
+                return BadRequest(new { error = "Adgangskode skal have mindst 8 tegn, et stort og et lille bogstav, samt et tal." });
 
             // 2. Hash password med BCrypt
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
@@ -85,7 +90,7 @@ namespace backend.Controllers
             await _context.SaveChangesAsync();
 
             // 5. Send verifikations-email
-            var verificationLink = $"http://localhost:5173/verify?token={verificationToken}";
+            var verificationLink = $"http://localhost:5173/login?token={verificationToken}";
             _emailService.SendVerificationEmail(user.Email, verificationLink);
 
             // Returnér en DTO eller blot ID/brugernavn
@@ -103,29 +108,44 @@ namespace backend.Controllers
         [HttpGet("verify")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string token)
         {
-            Console.WriteLine("Inde i verify");
+            Console.WriteLine("Received token: " + token);
+
             var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.VerificationToken != null &&
                 u.VerificationToken.ToLower() == token.ToLower()
             );
 
             if (user == null)
-                return BadRequest("Ugyldigt eller udløbet verifikationslink.");
+            {
+                // Maybe the user is already verified?
+                var alreadyVerified = await _context.Users.FirstOrDefaultAsync(u => u.IsVerified && u.VerificationToken == null);
+                if (alreadyVerified != null)
+                {
+                    return Ok(new { message = "Email er allerede blevet verificeret." });
+                }
 
-            Console.WriteLine("Bruger fundet");
+                return BadRequest("Ugyldigt eller udløbet verifikationslink.");
+            }
+
+            Console.WriteLine("User found: " + user.Email);
+
             user.IsVerified = true;
-            Console.WriteLine("Vi er forbi IsVerified");
             user.VerificationToken = null;
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Email verificeret! Du kan nu logge ind." });
         }
 
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
+            
+            string loginInput = dto.EmailOrUsername.ToLower();
+
             // 1. Find bruger ud fra E-mail eller brugernavn
             var user = await _context.Users.FirstOrDefaultAsync(u =>
-                u.Email == dto.EmailOrUsername || u.UserName == dto.EmailOrUsername
+                u.Email.ToLower() == loginInput || u.UserName.ToLower() == loginInput
             );
 
             if (user == null)
@@ -319,7 +339,12 @@ namespace backend.Controllers
 
         private string GenerateJwtToken(User user)
         {
-            var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
+            var jwtKey = _config["Jwt:Key"];
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                throw new InvalidOperationException("JWT Key is not configured.");
+            }
+            var key = Encoding.UTF8.GetBytes(jwtKey);
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),

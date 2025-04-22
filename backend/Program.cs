@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using backend.Data;
 using backend.Services;
+using backend.Services.AutomationServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
@@ -78,7 +79,13 @@ builder
             OnTokenValidated = context =>
             {
                 Console.WriteLine("✅ TOKEN VALIDATED:");
-                Console.WriteLine("User: " + context.Principal.Identity?.Name);
+                if (context.Principal?.Identity != null)
+                {
+                    Console.WriteLine("User: " + context.Principal.Identity?.Name);
+                    return Task.CompletedTask;
+                } else {
+                    Console.WriteLine("User information not available.");
+                }
                 return Task.CompletedTask;
             },
         };
@@ -125,6 +132,10 @@ builder.Services.AddSwaggerGen(options =>
 // Tilføj EmailService
 builder.Services.AddScoped<EmailService>();
 
+//oda.ft crawler
+builder.Services.AddScoped<HttpService>();
+
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -140,6 +151,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient(); // til OAuth
 
 builder.Services.AddControllers();
+
+// For altinget scraping
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<AltingetScraperService>();
+builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 
 var app = builder.Build();
 
