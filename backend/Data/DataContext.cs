@@ -1,8 +1,8 @@
-using backend.Models;
-using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
 using System.Collections.Generic; // Required
-using System.Text.Json;          // Required
+using System.Text.Json; // Required
+using backend.Models;
+using BCrypt.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Data;
 
@@ -18,22 +18,17 @@ public class DataContext : DbContext
     public DbSet<AnswerOption> AnswerOptions { get; set; }
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<FlashcardCollection> FlashcardCollections { get; set; }
-    public DbSet<Aktor> Aktor {get; set;}
+    public DbSet<Aktor> Aktor { get; set; }
     public DbSet<CalendarEvent> CalendarEvents { get; set; }
-
 
     public DbSet<Tweet> Tweets { get; set; }
 
-    public DbSet<Subscription> Subscriptions { get; set; } 
-    public DbSet<PoliticianTwitterId> PoliticianTwitterIds { get; set; }  
+    public DbSet<Subscription> Subscriptions { get; set; }
+    public DbSet<PoliticianTwitterId> PoliticianTwitterIds { get; set; }
 
-    
     public DbSet<Poll> Polls { get; set; }
     public DbSet<PollOption> PollOptions { get; set; }
     public DbSet<UserVote> UserVotes { get; set; }
-
-
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,58 +66,79 @@ public class DataContext : DbContext
             .HasMany(c => c.Flashcards)
             .WithOne(f => f.FlashcardCollection)
             .HasForeignKey(f => f.CollectionId);
-         
+
         // Configure Constituencies
-            modelBuilder.Entity<Aktor>()
-                .Property(a => a.Constituencies) // Target the List<string> property
-                .HasConversion(
-                    // Convert List<string> to json string for DB
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    // Convert json string from DB back to List<string>
-                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Constituencies) // Target the List<string> property
+            .HasConversion(
+                // Convert List<string> to json string for DB
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                // Convert json string from DB back to List<string>
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
-            // Configure Nominations
-            modelBuilder.Entity<Aktor>()
-                .Property(a => a.Nominations)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                );
+        // Configure Nominations
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Nominations)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
-            // Add similar .HasConversion calls for Educations and Occupations
-            modelBuilder.Entity<Aktor>()
-                .Property(a => a.Educations)
-                .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
+        // Add similar .HasConversion calls for Educations and Occupations
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Educations)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
-            modelBuilder.Entity<Aktor>()
-                .Property(a => a.Occupations)
-                .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Occupations)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.PublicationTitles)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.Ministers)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.Spokesmen)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 ); 
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.PublicationTitles)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Ministers)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Spokesmen)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
         // --- SEED DATA ---
 
@@ -389,19 +405,20 @@ public class DataContext : DbContext
                 }
             );
 
-            
-          // === Konfiguration for PoliticianTwitterId ===
+        // === Konfiguration for PoliticianTwitterId ===
         modelBuilder.Entity<PoliticianTwitterId>(entity =>
         {
             // ... (din eksisterende konfiguration for index, relationer, required fields) ...
             entity.HasIndex(p => p.TwitterUserId).IsUnique();
-            entity.HasMany(p => p.Tweets)
-                  .WithOne(t => t.Politician)
-                  .HasForeignKey(t => t.PoliticianTwitterId)
-                  .OnDelete(DeleteBehavior.Cascade);
-            entity.HasMany(p => p.Subscriptions)
-                  .WithOne(s => s.Politician)
-                  .HasForeignKey(s => s.PoliticianTwitterId);
+            entity
+                .HasMany(p => p.Tweets)
+                .WithOne(t => t.Politician)
+                .HasForeignKey(t => t.PoliticianTwitterId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity
+                .HasMany(p => p.Subscriptions)
+                .WithOne(s => s.Politician)
+                .HasForeignKey(s => s.PoliticianTwitterId);
             entity.Property(p => p.TwitterUserId).IsRequired();
             entity.Property(p => p.Name).IsRequired();
             entity.Property(p => p.TwitterHandle).IsRequired();
@@ -410,73 +427,69 @@ public class DataContext : DbContext
             entity.HasData(
                 new PoliticianTwitterId
                 {
-                    Id = 1, 
+                    Id = 1,
                     TwitterUserId = "806068174567460864",
                     Name = "Statsministeriet",
-                    TwitterHandle = "Statsmin"
+                    TwitterHandle = "Statsmin",
                 },
                 new PoliticianTwitterId
                 {
-                    Id = 2, 
+                    Id = 2,
                     TwitterUserId = "123868861",
                     Name = "Venstre, Danmarks Liberale Parti",
-                    TwitterHandle = "venstredk"
+                    TwitterHandle = "venstredk",
                 },
                 new PoliticianTwitterId
                 {
                     Id = 3,
                     TwitterUserId = "2965907578",
                     Name = "Troels Lund Poulsen",
-                    TwitterHandle = "troelslundp"
+                    TwitterHandle = "troelslundp",
                 }
-                
             );
         });
 
-        
-            modelBuilder.Entity<Tweet>(entity =>
-            {
-                entity.HasIndex(t => new { t.PoliticianTwitterId, t.TwitterTweetId }).IsUnique();
-                entity.Property(t => t.TwitterTweetId).IsRequired();
-                entity.Property(t => t.Text).IsRequired();
-            });
-
-           
-            modelBuilder.Entity<User>(entity =>
-            {
-            
-                entity.HasMany(u => u.Subscriptions)        
-                    .WithOne(s => s.User)               
-                    .HasForeignKey(s => s.UserId);     
-                
-
-            
-             
-           
+        modelBuilder.Entity<Tweet>(entity =>
+        {
+            entity.HasIndex(t => new { t.PoliticianTwitterId, t.TwitterTweetId }).IsUnique();
+            entity.Property(t => t.TwitterTweetId).IsRequired();
+            entity.Property(t => t.Text).IsRequired();
         });
 
-        
-            
-            modelBuilder.Entity<Subscription>(entity =>
-            {
-                
-                
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasMany(u => u.Subscriptions).WithOne(s => s.User).HasForeignKey(s => s.UserId);
+        });
 
-                entity.HasIndex(s => s.UserId);
-                entity.HasIndex(s => s.PoliticianTwitterId);
+        modelBuilder.Entity<Subscription>(entity =>
+        {
+            entity.HasIndex(s => s.UserId);
+            entity.HasIndex(s => s.PoliticianTwitterId);
             entity.HasData(
-            
-             new Subscription { Id = 1, UserId = 1, PoliticianTwitterId = 1 },
-             
-             new Subscription { Id = 2, UserId = 1, PoliticianTwitterId = 2 },
-             
-             new Subscription { Id = 3, UserId = 1, PoliticianTwitterId = 3 }
-             );
+                new Subscription
+                {
+                    Id = 1,
+                    UserId = 1,
+                    PoliticianTwitterId = 1,
+                },
+                new Subscription
+                {
+                    Id = 2,
+                    UserId = 1,
+                    PoliticianTwitterId = 2,
+                },
+                new Subscription
+                {
+                    Id = 3,
+                    UserId = 1,
+                    PoliticianTwitterId = 3,
+                }
+            );
+        });
 
-            });
-
-              modelBuilder.Entity<UserVote>() // Vælg UserVote entiteten
+        modelBuilder
+            .Entity<UserVote>() // Vælg UserVote entiteten
             .HasIndex(uv => new { uv.UserId, uv.PollId }) // Definer et index på disse to kolonner
             .IsUnique(); // Specificer at dette index skal være unikt
-        }
+    }
 }
