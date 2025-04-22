@@ -74,6 +74,40 @@ namespace backend.Controllers
 
 #endregion
 
+#region generate any day
+
+[HttpPost("admin/generate-specific-date")] // Ny route
+public async Task<ActionResult> GenerateDailySelectionForDate([FromQuery] string? date = null) // Dato som yyyy-MM-dd string
+{
+    DateOnly targetDate;
+    // Prøv at parse den angivne dato, ellers brug i dag som fallback
+    // Brug InvariantCulture for at sikre at YYYY-MM-DD formatet genkendes korrekt
+    if (!string.IsNullOrEmpty(date) && DateOnly.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var parsedDate))
+    {
+        targetDate = parsedDate;
+        _logger.LogInformation("Manual trigger received for generating selections for specific date: {Date}", targetDate);
+    }
+    else
+    {
+        // Fallback til i dag (UTC) hvis dato mangler eller er ugyldig
+        targetDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        _logger.LogInformation("Manual trigger received for generating today's selections (date not specified or invalid format yyyy-MM-dd).");
+    }
+
+    try
+    {
+        await _selectionService.SelectAndSaveDailyPoliticiansAsync(targetDate);
+        return Ok($"Daily selections generated successfully for {targetDate:yyyy-MM-dd}.");
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error during manual daily selection generation for {Date}.", targetDate);
+        return StatusCode(StatusCodes.Status500InternalServerError, $"Error generating daily selections for {targetDate:yyyy-MM-dd}.");
+    }
+}
+
+#endregion
+
 #region Show todays quote
 
         // --- NYT: Endpoint til at hente dagens Citat ---
