@@ -11,7 +11,14 @@ namespace backend.Models
         public string? VerificationToken { get; set; }
         public List<string> Roles { get; set; } = new();
 
-        public List<Subscription> Subscriptions { get; set; } = new(); // Navigation property for subscriptions
+        public void OnTweetPosted(object? sender, Tweet tweet)
+        {
+            var politician = sender as PoliticianTwitterId;
+            Console.WriteLine(
+                $"[Notification for {UserName}]: {politician?.Name} tweeted: {tweet.Text}"
+            );
+        }
 
+        public List<Subscription> Subscriptions { get; set; } = new(); // Navigation property for subscriptions
     }
 }
