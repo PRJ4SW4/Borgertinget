@@ -90,7 +90,7 @@ namespace backend.Controllers
             await _context.SaveChangesAsync();
 
             // 5. Send verifikations-email
-            var verificationLink = $"http://localhost:5173/verify?token={verificationToken}";
+            var verificationLink = $"http://localhost:5173/login?token={verificationToken}";
             _emailService.SendVerificationEmail(user.Email, verificationLink);
 
             // Returnér en DTO eller blot ID/brugernavn
@@ -108,29 +108,44 @@ namespace backend.Controllers
         [HttpGet("verify")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string token)
         {
-            Console.WriteLine("Inde i verify");
+            Console.WriteLine("Received token: " + token);
+
             var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.VerificationToken != null &&
                 u.VerificationToken.ToLower() == token.ToLower()
             );
 
             if (user == null)
-                return BadRequest("Ugyldigt eller udløbet verifikationslink.");
+            {
+                // Maybe the user is already verified?
+                var alreadyVerified = await _context.Users.FirstOrDefaultAsync(u => u.IsVerified && u.VerificationToken == null);
+                if (alreadyVerified != null)
+                {
+                    return Ok(new { message = "Email er allerede blevet verificeret." });
+                }
 
-            Console.WriteLine("Bruger fundet");
+                return BadRequest("Ugyldigt eller udløbet verifikationslink.");
+            }
+
+            Console.WriteLine("User found: " + user.Email);
+
             user.IsVerified = true;
-            Console.WriteLine("Vi er forbi IsVerified");
             user.VerificationToken = null;
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Email verificeret! Du kan nu logge ind." });
         }
 
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
+            
+            string loginInput = dto.EmailOrUsername.ToLower();
+
             // 1. Find bruger ud fra E-mail eller brugernavn
             var user = await _context.Users.FirstOrDefaultAsync(u =>
-                u.Email == dto.EmailOrUsername || u.UserName == dto.EmailOrUsername
+                u.Email.ToLower() == loginInput || u.UserName.ToLower() == loginInput
             );
 
             if (user == null)
