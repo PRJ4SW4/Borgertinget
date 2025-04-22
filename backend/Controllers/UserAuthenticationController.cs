@@ -140,9 +140,12 @@ namespace backend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
+            
+            string loginInput = dto.EmailOrUsername.ToLower();
+
             // 1. Find bruger ud fra E-mail eller brugernavn
             var user = await _context.Users.FirstOrDefaultAsync(u =>
-                u.Email == dto.EmailOrUsername || u.UserName == dto.EmailOrUsername
+                u.Email.ToLower() == loginInput || u.UserName.ToLower() == loginInput
             );
 
             if (user == null)
