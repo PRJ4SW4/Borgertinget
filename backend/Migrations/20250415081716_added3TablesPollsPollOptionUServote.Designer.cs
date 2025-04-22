@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -12,9 +13,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250415081716_added3TablesPollsPollOptionUServote")]
+    partial class added3TablesPollsPollOptionUServote
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -147,42 +150,6 @@ namespace backend.Migrations
                             OptionText = "Traditionelle hierarkier",
                             QuestionId = 4
                         });
-                });
-
-            modelBuilder.Entity("CalendarEvent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("LastScrapedUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Location")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<string>("SourceUrl")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<DateTimeOffset>("StartDateTimeUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(350)
-                        .HasColumnType("character varying(350)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SourceUrl")
-                        .IsUnique();
-
-                    b.ToTable("CalendarEvents");
                 });
 
             modelBuilder.Entity("Flashcard", b =>
@@ -435,96 +402,6 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("backend.Models.Aktor", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Born")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Constituencies")
-                        .HasColumnType("text");
-
-                    b.Property<string>("EducationStatistic")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Educations")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FunctionFormattedTitle")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FunctionStartDate")
-                        .HasColumnType("text");
-
-                    b.Property<string>("MinisterTitel")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Ministers")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Nominations")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Occupations")
-                        .HasColumnType("text");
-
-                    b.PrimitiveCollection<List<string>>("ParliamentaryPositionsOfTrust")
-                        .HasColumnType("text[]");
-
-                    b.Property<string>("Party")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PartyShortname")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PictureMiRes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PositionsOfTrust")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PublicationTitles")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Sex")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Spokesmen")
-                        .HasColumnType("text");
-
-                    b.Property<string>("biografi")
-                        .HasColumnType("text");
-
-                    b.Property<string>("efternavn")
-                        .HasColumnType("text");
-
-                    b.Property<string>("fornavn")
-                        .HasColumnType("text");
-
-                    b.Property<string>("gruppeNavnKort")
-                        .HasColumnType("text");
-
-                    b.Property<string>("navn")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("opdateringsdato")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("periodeid")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("slutdato")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("startdato")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("typeid")
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
                     b.Property<int>("Id")
@@ -629,7 +506,6 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Aktor");
                     b.HasIndex("PollId");
 
                     b.ToTable("PollOptions");
@@ -778,8 +654,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PollId");
 
-                    b.HasIndex("UserId", "PollId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserVotes");
                 });

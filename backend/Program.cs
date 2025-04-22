@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using backend.Hubs;                // <--- TILFØJ DENNE LINJE
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,8 +85,12 @@ builder
     });
 
 // Swagger
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
+
+
+
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
 
@@ -122,6 +128,9 @@ builder.Services.AddSwaggerGen(options =>
 
 // Tilføj EmailService
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddHostedService<TweetFetchingService>(); // <--- TILFØJ DENNE LINJE
+builder.Services.AddHttpClient<TwitterService>();
+
 
 //oda.ft crawler
 builder.Services.AddScoped<HttpService>();
@@ -167,4 +176,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+app.MapHub<FeedHub>("/feedHub");
 app.Run();

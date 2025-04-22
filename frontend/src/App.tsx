@@ -20,6 +20,8 @@ import LoginSuccessPage from './pages/LoginSuccessPage';
 import PartyPage from "./pages/PartyPage";
 import PoliticianPage from "./pages/PoliticianPage";
 import PartiesPage from "./pages/PartiesPage";
+import FeedPage from './pages/FeedPage'; // Tilføj denne linje
+
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
@@ -39,6 +41,8 @@ function App() {
       <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
       <Route path="/verify" element={<Verify />} />
       <Route path="/kalender" element={<CalendarView />} />
+      <Route path="/feed" 
+        element={token ? <FeedPage /> : <Navigate to="/login" />} /> // Vis FeedPage hvis logget ind, ellers login
 
       <Route
           path="/learning"

@@ -1,0 +1,26 @@
+/* Også i f.eks. src/pages/FeedPage.css */
+
+.feed-page-container {
+  max-width: 1000px; /* <-- Ofte brugt bredde til bredt indhold */
+
+  margin: 15px auto; 
+  padding: 15px;
+}
+
+.feed-title {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+/* Evt. andre styles for FeedPage her */
+
+/* src/Sidebar.css (eller tilføj til FeedPage.css) */
+
+/* Generel layout for siden med sidebar */
+.page-layout {
+  display: flex;
+  min-height: calc(100vh - 50px); /* Juster evt. for header/footer højde */
+}
+
