@@ -2,6 +2,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using DotNetEnv;
 
 namespace backend.Data
 {
@@ -9,10 +10,14 @@ namespace backend.Data
     {
         public DataContext CreateDbContext(string[] args)
         {
+            var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+            DotNetEnv.Env.Load(envPath); // Prøv evt. bare Env.Load() hvis .env er i samme mappe som .csproj
+
             // Bygger konfigurationen ud fra appsettings.json
             IConfigurationRoot config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddEnvironmentVariables()
                 .Build();
 
             var connectionString = config.GetConnectionString("DefaultConnection");

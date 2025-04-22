@@ -15,7 +15,7 @@ services:
     container_name: my-pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: borgertinget@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
       - "5050:80"
