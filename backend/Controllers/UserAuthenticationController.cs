@@ -339,7 +339,12 @@ namespace backend.Controllers
 
         private string GenerateJwtToken(User user)
         {
-            var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
+            var jwtKey = _config["Jwt:Key"];
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                throw new InvalidOperationException("JWT Key is not configured.");
+            }
+            var key = Encoding.UTF8.GetBytes(jwtKey);
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
