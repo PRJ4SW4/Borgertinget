@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250422093749_MinorUpdate")]
-    partial class MinorUpdate
+    [Migration("20250422130331_AfterBaselineSync")]
+    partial class AfterBaselineSync
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
