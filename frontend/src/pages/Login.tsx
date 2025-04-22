@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Login.css";
 import loginImage from "../images/LoginImage.png";
+import useEmailVerification from "../utils/useEmailVerification";
 
 interface LoginProps {
   setToken: (token: string | null) => void;
@@ -112,6 +113,19 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     console.log("Redirecting to Google:", `${googleAuthUrl}?${queryString}`); // God til debugging
     window.location.href = `${googleAuthUrl}?${queryString}`;
   };
+
+  useEmailVerification(
+    (message) => {
+      setStatusMessage(message);
+      setStatusHeader("Verificeret");
+      setShowPopup(true);
+    },
+    (errMessage) => {
+      setStatusMessage(errMessage);
+      setStatusHeader("Fejl");
+      setShowPopup(true);
+    }
+  );
 
   return (
     <div className="outer-wrapper">

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
-import Verify from "./pages/Verify";
 import LearningLayout from './layouts/LearningLayout';
 import PageContent from './components/PageContent';
 import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
@@ -25,7 +24,6 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login setToken={setToken} />} />
       <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
-      <Route path="/verify" element={<Verify />} />
 
       <Route
           path="/learning"
