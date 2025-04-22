@@ -76,7 +76,13 @@ builder
             OnTokenValidated = context =>
             {
                 Console.WriteLine("✅ TOKEN VALIDATED:");
-                Console.WriteLine("User: " + context.Principal.Identity?.Name);
+                if (context.Principal?.Identity != null)
+                {
+                    Console.WriteLine("User: " + context.Principal.Identity?.Name);
+                    return Task.CompletedTask;
+                } else {
+                    Console.WriteLine("User information not available.");
+                }
                 return Task.CompletedTask;
             },
         };
