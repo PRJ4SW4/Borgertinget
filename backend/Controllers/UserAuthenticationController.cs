@@ -1,18 +1,18 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using BCrypt.Net;
-using System.Net.Http;
-using backend.Services;
+using System.Text.RegularExpressions;
+using backend.Data;
 using backend.DTOs;
 using backend.Models;
-using backend.Data;
+using backend.Services;
+using BCrypt.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text.RegularExpressions;
 
 namespace backend.Controllers
 {
@@ -23,15 +23,19 @@ namespace backend.Controllers
         private readonly DataContext _context;
         private readonly IConfiguration _config;
         private readonly EmailService _emailService;
-        private readonly IHttpClientFactory _httpClientFactory; 
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public UsersController(DataContext context, IConfiguration config, EmailService emailService, IHttpClientFactory httpClientFactory)
+        public UsersController(
+            DataContext context,
+            IConfiguration config,
+            EmailService emailService,
+            IHttpClientFactory httpClientFactory
+        )
         {
             _context = context;
             _config = config;
             _emailService = emailService;
-            _httpClientFactory = httpClientFactory; 
-
+            _httpClientFactory = httpClientFactory;
         }
 
         // GET: api/users
@@ -56,7 +60,6 @@ namespace backend.Controllers
             );
 
             if (existingEmailAndUserName)
-            
                 return BadRequest(new { error = "Brugernavn og email er allerede i brug." });
 
             if (existingUserName)
@@ -67,9 +70,14 @@ namespace backend.Controllers
 
             if (string.IsNullOrEmpty(dto.Password))
                 return BadRequest(new { error = "Adgangskode er påkrævet." });
-            
+
             if (!Regex.IsMatch(dto.Password, @"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$"))
-                return BadRequest(new { error = "Adgangskode skal have mindst 8 tegn, et stort og et lille bogstav, samt et tal." });
+                return BadRequest(
+                    new
+                    {
+                        error = "Adgangskode skal have mindst 8 tegn, et stort og et lille bogstav, samt et tal.",
+                    }
+                );
 
             // 2. Hash password med BCrypt
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
@@ -153,19 +161,24 @@ namespace backend.Controllers
         }
 
         [HttpGet("/auth/google/callback")] // Eller en anden route der matcher din sti
-        public async Task<IActionResult> GoogleCallback([FromQuery] string code, [FromQuery] string? state = null)
+        public async Task<IActionResult> GoogleCallback(
+            [FromQuery] string code,
+            [FromQuery] string? state = null
+        )
         {
             Console.WriteLine("Google Callback modtaget med kode."); // Til debugging
 
             // ----- Trin 3.1: Hent Google Credentials -----
             var clientId = _config["GoogleOAuth:ClientId"];
             var clientSecret = _config["GoogleOAuth:ClientSecret"];
-            var redirectUri = "http://localhost:5218/auth/google/callback"; 
+            var redirectUri = "http://localhost:5218/auth/google/callback";
 
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
             {
                 // Log en fejl - konfiguration mangler
-                Console.WriteLine("FEJL: Google ClientId eller ClientSecret mangler i konfigurationen.");
+                Console.WriteLine(
+                    "FEJL: Google ClientId eller ClientSecret mangler i konfigurationen."
+                );
                 return BadRequest("Server konfigurationsfejl."); // Undgå at afsløre for meget
             }
 
@@ -174,14 +187,16 @@ namespace backend.Controllers
 
             // ----- Trin 3.2: Byt 'code' til tokens hos Google -----
             var tokenEndpoint = "https://oauth2.googleapis.com/token";
-            var content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                {"code", code},
-                {"client_id", clientId},
-                {"client_secret", clientSecret},
-                {"redirect_uri", redirectUri},
-                {"grant_type", "authorization_code"}
-            });
+            var content = new FormUrlEncodedContent(
+                new Dictionary<string, string>
+                {
+                    { "code", code },
+                    { "client_id", clientId },
+                    { "client_secret", clientSecret },
+                    { "redirect_uri", redirectUri },
+                    { "grant_type", "authorization_code" },
+                }
+            );
 
             var httpClient = _httpClientFactory.CreateClient(); // Få en HttpClient
             HttpResponseMessage tokenResponse;
@@ -191,15 +206,18 @@ namespace backend.Controllers
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"FEJL ved kommunikation med Google Token Endpoint: {ex.Message}");
+                Console.WriteLine(
+                    $"FEJL ved kommunikation med Google Token Endpoint: {ex.Message}"
+                );
                 return StatusCode(502, "Fejl ved kommunikation med Google."); // Bad Gateway
             }
-
 
             if (!tokenResponse.IsSuccessStatusCode)
             {
                 var errorContent = await tokenResponse.Content.ReadAsStringAsync();
-                Console.WriteLine($"FEJL fra Google Token Endpoint: {tokenResponse.StatusCode} - {errorContent}");
+                Console.WriteLine(
+                    $"FEJL fra Google Token Endpoint: {tokenResponse.StatusCode} - {errorContent}"
+                );
                 return BadRequest("Kunne ikke få token fra Google.");
             }
 
@@ -211,7 +229,9 @@ namespace backend.Controllers
                 googleTokens = await tokenResponse.Content.ReadFromJsonAsync<GoogleTokenResponse>();
                 if (googleTokens == null || string.IsNullOrEmpty(googleTokens.id_token))
                 {
-                    Console.WriteLine("FEJL: Kunne ikke deserialisere token respons eller id_token mangler.");
+                    Console.WriteLine(
+                        "FEJL: Kunne ikke deserialisere token respons eller id_token mangler."
+                    );
                     return BadRequest("Ugyldigt svar fra Google (token).");
                 }
             }
@@ -220,7 +240,6 @@ namespace backend.Controllers
                 Console.WriteLine($"FEJL ved deserialisering af token respons: {jsonEx.Message}");
                 return BadRequest("Ugyldigt svarformat fra Google (token).");
             }
-
 
             Console.WriteLine("Tokens modtaget fra Google.");
 
@@ -239,7 +258,6 @@ namespace backend.Controllers
                 return BadRequest("Ugyldigt id_token format fra Google.");
             }
 
-
             var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "email");
             var nameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "name"); // Eller "given_name" / "family_name"
             // var googleUserIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub"); // Googles unikke bruger ID
@@ -250,7 +268,6 @@ namespace backend.Controllers
             }
             var userEmail = emailClaim.Value;
             var userName = nameClaim?.Value ?? userEmail.Split('@')[0]; // Brug navn hvis muligt, ellers del af email
-
 
             Console.WriteLine($"Brugerinfo fra id_token: Email={userEmail}, Name={userName}");
 
@@ -268,7 +285,7 @@ namespace backend.Controllers
                     UserName = userName, // Eller find en bedre strategi for brugernavn
                     PasswordHash = "", // Ingen adgangskode sat via Google
                     IsVerified = true, // Google har verificeret emailen
-                    VerificationToken = null // Ingen grund til vores egen verificering
+                    VerificationToken = null, // Ingen grund til vores egen verificering
                     // Overvej at tilføje en kolonne til GoogleId (fra 'sub' claim) i User modellen
                 };
                 _context.Users.Add(user);
@@ -279,10 +296,11 @@ namespace backend.Controllers
                 }
                 catch (DbUpdateException dbEx)
                 {
-                    Console.WriteLine($"FEJL ved oprettelse af bruger i DB: {dbEx.InnerException?.Message ?? dbEx.Message}");
+                    Console.WriteLine(
+                        $"FEJL ved oprettelse af bruger i DB: {dbEx.InnerException?.Message ?? dbEx.Message}"
+                    );
                     return StatusCode(500, "Fejl ved gemning af brugerdata.");
                 }
-
             }
             else
             {
@@ -299,10 +317,10 @@ namespace backend.Controllers
             var localJwtToken = GenerateJwtToken(user); // Genbruger din eksisterende metode
             Console.WriteLine("Lokal JWT genereret.");
 
-
             // ----- Trin 3.6: Redirect til Frontend med token -----
             // Send token som query parameter. Frontend skal håndtere dette.
-            var frontendLoginSuccessUrl = $"http://localhost:5173/login-success?token={localJwtToken}"; // Eller direkte til /home?
+            var frontendLoginSuccessUrl =
+                $"http://localhost:5173/login-success?token={localJwtToken}"; // Eller direkte til /home?
             // OBS: Overvej sikkerheden ved at sende token i URL. Fragment (#) er lidt bedre.
             // Bedste løsning: Sæt en httpOnly cookie server-side, eller redirect til en side
             // hvor frontend laver et efterfølgende kald for at hente token.

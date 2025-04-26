@@ -15,8 +15,10 @@ export default function AdminLaering() {
                         >Opret ny Flashcard serie
                 </button>
                 <br/>
-                <button className='Button'>
-                    Rediger eksisterende flashcard serie
+                <button 
+                    onClick={() => navigate("/admin/Laering/editflashcardcollection")}
+                    className='Button'>
+                    Rediger flashcard serie
                 </button>
             </div>
         </div>

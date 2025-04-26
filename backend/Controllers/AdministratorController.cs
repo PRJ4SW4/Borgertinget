@@ -90,6 +90,61 @@ public class AdministratorController : ControllerBase
         }
     }
 
+    [HttpGet("GetAllFlashcardCollectionTitles")]
+    public async Task<IActionResult> GetFlashCardCollectionTitles()
+    {
+        try
+        {
+            var Titles = await _service.GetAllFlashcardCollectionTitlesAsync();
+
+            return Ok(Titles);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error Fetching Flashcard Collection titles: {ex}");
+        }
+    }
+
+    [HttpGet("GetFlashcardCollectionByTitle")]
+    public async Task<IActionResult> GetFlashCardCollectionByTitle(string title)
+    {
+        try
+        {
+            var collection = await _service.GetFlashCardCollectionByTitle(title);
+
+            return Ok(collection);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error finding Flashcard Collection by title: {ex}");
+        }
+    }
+
+    [HttpPut("UpdateFlashcardCollection/{collectionId}")]
+    public async Task<IActionResult> UpdateFlashcardCollection(
+        int collectionId,
+        [FromBody] FlashcardCollectionDetailDto dto
+    )
+    {
+        if (dto == null)
+        {
+            return BadRequest("No collection data provided");
+        }
+
+        try
+        {
+            await _service.UpdateCollectionInfoAsync(collectionId, dto);
+            return Ok("Flashcard collection updated successfully");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(
+                500,
+                $"An error occurred while updating the collection: {ex.Message}"
+            );
+        }
+    }
+
     [HttpDelete("{collectionId}")]
     public async Task<IActionResult> DeleteFlashcardCollection(int collectionId)
     {

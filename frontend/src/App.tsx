@@ -15,6 +15,7 @@ import AdminBruger from "./components/AdminPages/AdminBruger";
 import AdminIndhold from "./components/AdminPages/AdminIndhold";
 import AdminLearing from "./components/AdminPages/AdminLearing";
 import AdminPolls from "./components/AdminPages/AdminPolls";
+import EditFlashcardCollection from './components/AdminPages/EditFlashcardCollection';
 
 import LoginSuccessPage from './pages/LoginSuccessPage'; 
 import PartyPage from "./pages/PartyPage";
@@ -81,6 +82,8 @@ function App() {
       <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to ="/home" />} />
       <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to ="/home" />} />
       <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to ="/home" />} />
+      <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to ="/home" />} />
+
     </Routes>
   );
 }

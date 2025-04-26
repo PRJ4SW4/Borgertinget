@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using backend.Data;
+using backend.Hubs; // <--- TILFØJ DENNE LINJE
 using backend.Services;
 using backend.Services.AutomationServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,8 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using backend.Hubs;                // <--- TILFØJ DENNE LINJE
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,9 +87,6 @@ builder
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
-
-
-
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
 
@@ -131,10 +127,8 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddHostedService<TweetFetchingService>(); // <--- TILFØJ DENNE LINJE
 builder.Services.AddHttpClient<TwitterService>();
 
-
 //oda.ft crawler
 builder.Services.AddScoped<HttpService>();
-
 
 // CORS
 builder.Services.AddCors(options =>
@@ -177,6 +171,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// For showing images in the frontend
+app.UseStaticFiles();
 
 app.MapHub<FeedHub>("/feedHub");
 app.Run();

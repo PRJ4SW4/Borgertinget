@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import {FlashcardDto, FlashcardCollectionDetailDto, FlashcardContentType} from "../../types/flashcardTypes";
-
+import './AddFlashcardCollection.css'
 
 export default function CreateFlashcardCollection() {
     const [title, setTitle] = useState<string>("");
@@ -87,7 +87,7 @@ export default function CreateFlashcardCollection() {
 
     return(
         <div>
-            <h2>Opret ny Flashcard serie</h2>
+            <h1>Opret ny Flashcard serie</h1>
             <input
                 type="text"
                 value={title}
@@ -168,12 +168,20 @@ export default function CreateFlashcardCollection() {
                         )}
                 </div>
             ))}
-            <button onClick={ () => handleAddFlashcard(false, false)}>Tilføj Flashcard</button>
-            <button onClick={ () => handleAddFlashcard(true, false)}>Tilføj Flashcard med billede spørgsmål</button>
-            <button onClick={ () => handleAddFlashcard(false, true)}>Tilføj Flashcard med billede svar</button>
+            <button
+             className="Button"
+             onClick={ () => handleAddFlashcard(false, false)}>Tilføj Flashcard</button>
+            <button
+                className="Button"
+                onClick={ () => handleAddFlashcard(true, false)}>Tilføj Flashcard med billede spørgsmål</button>
+            <button
+                className="Button" 
+                onClick={ () => handleAddFlashcard(false, true)}>Tilføj Flashcard med billede svar</button>
 
             <br/>
-            <button onClick={handleSubmit}>Opret!</button>
+            <button 
+                className="Button"
+                onClick={handleSubmit}>Opret!</button>
         </div>
     );
 }

@@ -101,6 +101,56 @@ namespace backend.Services
             await _context.SaveChangesAsync();
         }
 
+        // Get List of Flashcard Collection Titles
+        public async Task<List<string>> GetAllFlashcardCollectionTitlesAsync()
+        {
+            var titles = await _context.FlashcardCollections.Select(fc => fc.Title).ToListAsync();
+
+            if (titles == null)
+            {
+                throw new KeyNotFoundException($"No Flashcard Collection titles found");
+            }
+
+            return titles;
+        }
+
+        // Get Flashcard collection by Title
+        public async Task<FlashcardCollectionDetailDto> GetFlashCardCollectionByTitle(string title)
+        {
+            var collection = await _context
+                .FlashcardCollections.Include(fc => fc.Flashcards)
+                .FirstOrDefaultAsync(fc => fc.Title == title);
+
+            if (collection == null)
+            {
+                throw new KeyNotFoundException(
+                    $"Flashcard Collection with title: {title} not found"
+                );
+            }
+
+            // Map entity to DTO
+            var dto = new FlashcardCollectionDetailDto
+            {
+                CollectionId = collection.CollectionId,
+                Title = collection.Title,
+                Description = collection.Description,
+                Flashcards = collection
+                    .Flashcards.Select(fc => new FlashcardDto
+                    {
+                        FlashcardId = fc.FlashcardId,
+                        FrontContentType = fc.FrontContentType.ToString(),
+                        FrontText = fc.FrontText,
+                        FrontImagePath = fc.FrontImagePath,
+                        BackContentType = fc.BackContentType.ToString(),
+                        BackText = fc.BackText,
+                        BackImagePath = fc.BackImagePath,
+                    })
+                    .ToList(),
+            };
+
+            return dto;
+        }
+
         // DELETE Flashcard collection
         public async Task DeleteFlashcardCollectionAsync(int collectionId)
         {
