@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Routes, useParams } from 'react-router-dom';
+import { useState } from 'react';
 import axios from "axios";
+import BorgertingetIcon from "../../images/BorgertingetIcon.png"
 import './AdminBruger.css'
 
 export default function AdminBruger() {
@@ -39,31 +39,32 @@ export default function AdminBruger() {
     }
 
     return (
-        <div>
-            <h1>Ændre Brugernavn</h1>
+        <div className="admin-bruger-container">
 
-            <br/>
+          <div><img src={BorgertingetIcon} className='Borgertinget-Icon'></img></div>
+          <div className='top-red-line'></div>
 
-            
+          <h1>Ændre Brugernavn</h1>
+    
+          <div className="input-group">
             <input
-                type='text'
-                placeholder='Gammel brugernavn'
-                value={oldUsername}
-                onChange={(o) => setOldUsername(o.target.value)}
+              type="text"
+              placeholder="Gammel brugernavn"
+              value={oldUsername}
+              onChange={(e) => setOldUsername(e.target.value)}
             />
-
+    
             <input
-                type='text'
-                placeholder='Ny brugernavn'
-                value={newUsername}
-                onChange={(n) => setNewUsername(n.target.value)}
+              type="text"
+              placeholder="Ny brugernavn"
+              value={newUsername}
+              onChange={(e) => setNewUsername(e.target.value)}
             />
-
-            <br/>
-
-            <button className='Button'
-                onClick={handleChange}
-                >Ændrer brugernavn</button>
+          </div>
+    
+          <button className="Button" onClick={handleChange}>
+            Ændrer brugernavn
+          </button>
         </div>
-    )
+      );
 }

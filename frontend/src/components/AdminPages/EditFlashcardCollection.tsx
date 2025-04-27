@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {FlashcardDto, FlashcardCollectionDetailDto, FlashcardContentType} from "../../types/flashcardTypes";
+import './EditFlashcardCollection.css'
+import BorgertingetIcon from "../../images/BorgertingetIcon.png"
 
 
 export default function EditFlashcardCollection() {
@@ -33,6 +35,9 @@ export default function EditFlashcardCollection() {
         }
     };
 
+    // keyof for type safety
+    // update one specific property on
+    // one specific flashcard in the collection’s array, leaving everything else untouched.
     const handleFlashcardChange = (index: number, field: keyof FlashcardDto, value: string) => {
         if (!collection) return;
 
@@ -41,7 +46,7 @@ export default function EditFlashcardCollection() {
         setCollection(updatedCollection);
     };
 
-    // Save the updated flashcard collection to the database through af put request
+    // Save the updated flashcard collection to the database through a put request
     const handleSave = async () => {
         if (!collection) return;
 
@@ -56,7 +61,6 @@ export default function EditFlashcardCollection() {
         }
 
     };
-
 
     // Upload image function to handle file uploads
     const uploadImage = async (file: File): Promise<string | null> => {
@@ -75,14 +79,21 @@ export default function EditFlashcardCollection() {
         };
 
     return (
-        <div>
+        <div className="container">
+
+          <div><img src={BorgertingetIcon} className='Borgertinget-Icon'></img></div>
+          <div className='top-red-line'></div>
+
           <h1>Rediger Flashcard serie</h1>
       
           {/* List all Titles */}
-          <div>
+          <div className="flashcard-titles">
             <h2>Flashcard serier:</h2>
             {titles.map((title, idx) => (
-              <button key={idx} onClick={() => fetchCollection(title)}>
+              <button 
+              key={idx} 
+              onClick={() => fetchCollection(title)}
+              className="flashcard-title-button">
                 {title}
               </button>
             ))}
@@ -90,8 +101,8 @@ export default function EditFlashcardCollection() {
       
           {/* Show and edit selected collection */}
           {collection && (
-        <div>
-              <h3>Redigere: {selectedTitle}</h3>
+        <div className="edit-form">
+              <h3 className="flashcard-number">Redigere: {selectedTitle}</h3>
           
               <div>
                 <label>Serie Titel:</label>
@@ -119,7 +130,7 @@ export default function EditFlashcardCollection() {
               {/* Map through each flashcard in the collection */}
               {collection.flashcards.map((fc, index) => (
                 <div key={index}>
-                  <p>Flashcard #{index + 1}</p>
+                  <p className="flashcard-number">Flashcard #{index + 1}</p>
       
                   {/* Front side */}
                   {fc.frontContentType === "Text" ? (
@@ -199,7 +210,9 @@ export default function EditFlashcardCollection() {
                 </div>
               ))}
           
-              <button onClick={handleSave}>Save Changes</button>
+              <button
+              className="save-button" 
+              onClick={handleSave}>Save Changes</button>
             </div>
           )}
         </div>

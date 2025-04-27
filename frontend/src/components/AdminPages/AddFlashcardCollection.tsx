@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import {FlashcardDto, FlashcardCollectionDetailDto, FlashcardContentType} from "../../types/flashcardTypes";
 import './AddFlashcardCollection.css'
+import BorgertingetIcon from "../../images/BorgertingetIcon.png"
 
 export default function CreateFlashcardCollection() {
     const [title, setTitle] = useState<string>("");
@@ -86,7 +87,11 @@ export default function CreateFlashcardCollection() {
 
 
     return(
-        <div>
+        <div className="create-container">
+
+        <div><img src={BorgertingetIcon} className='Borgertinget-Icon'></img></div>
+
+        <div className='top-red-line'></div>
             <h1>Opret ny Flashcard serie</h1>
             <input
                 type="text"
@@ -107,7 +112,7 @@ export default function CreateFlashcardCollection() {
 
             {flashcards.map((fc, index) => (
                 <div key={index}>
-                    <p>Flashcard #{index + 1} - Spørgsmål: {fc.frontContentType}, Svar: {fc.backContentType}</p>
+                    <p className="flashcard-number">Flashcard #{index + 1} - Spørgsmål: {fc.frontContentType}, Svar: {fc.backContentType}</p>
 
                     {fc.frontContentType === "Text" ? (
                         <input
@@ -168,16 +173,17 @@ export default function CreateFlashcardCollection() {
                         )}
                 </div>
             ))}
-            <button
-             className="Button"
-             onClick={ () => handleAddFlashcard(false, false)}>Tilføj Flashcard</button>
-            <button
-                className="Button"
-                onClick={ () => handleAddFlashcard(true, false)}>Tilføj Flashcard med billede spørgsmål</button>
-            <button
-                className="Button" 
-                onClick={ () => handleAddFlashcard(false, true)}>Tilføj Flashcard med billede svar</button>
 
+                <button
+                    className="Button"
+                    onClick={ () => handleAddFlashcard(false, false)}>Tilføj Flashcard</button>
+                <button
+                    className="Button"
+                    onClick={ () => handleAddFlashcard(true, false)}>Tilføj Flashcard med billede spørgsmål</button>
+                <button
+                    className="Button" 
+                    onClick={ () => handleAddFlashcard(false, true)}>Tilføj Flashcard med billede svar</button>
+            
             <br/>
             <button 
                 className="Button"
