@@ -1,18 +1,20 @@
 /* src/components/PollCard.css */
 .poll-card {
+ 
+
     background-color: #fff;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     margin-bottom: 15px;
     padding: 15px;
-    max-width: 700px;
+    max-width: 1000px; /* Maksimal bredde for kortet */
     font-family: 'Arial', sans-serif;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     margin-left: auto;
     margin-right: auto;
+
   }
-  
-  /* Genbrug gerne styles fra TweetSide.css for header */
+
   .poll-header {
     display: flex;
     align-items: flex-start;

@@ -1,7 +1,6 @@
-/* Også i f.eks. src/pages/FeedPage.css */
 
 .feed-page-container {
-  max-width: 1000px; /* <-- Ofte brugt bredde til bredt indhold */
+  max-width: 1000px; 
 
   margin: 15px auto; 
   padding: 15px;
@@ -9,18 +8,35 @@
 
 .feed-title {
   text-align: center;
+
+ 
+  background-color: darkred;
+  color: white;
+  padding: 12px 25px;
+  border-radius: 8px;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.2); 
+
+  display: block;      
+  width: fit-content;  
+  
+  margin-left: auto;    
+  margin-right: auto;   
+ 
+
   margin-top: 20px;
   margin-bottom: 30px;
-  color: #333;
+
+  
+  font-size: 1.8em;
 }
 
-/* Evt. andre styles for FeedPage her */
 
-/* src/Sidebar.css (eller tilføj til FeedPage.css) */
-
-/* Generel layout for siden med sidebar */
 .page-layout {
   display: flex;
-  min-height: calc(100vh - 50px); /* Juster evt. for header/footer højde */
+  min-height: calc(100vh - 50px);
 }
 
+.section-title {
+  
+  text-align: center;
+}

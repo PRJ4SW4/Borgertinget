@@ -14,8 +14,10 @@ const PollCard: React.FC<PollCardProps> = ({ poll, onVoteSubmit }) => {
   const [isVoting, setIsVoting] = useState<boolean>(false);
 
   const handleVoteClick = async (optionId: number) => {
-    if (isVoting || !poll.isActive || poll.currentUserVoteOptionId !== null) {
-      // Gør intet hvis vi allerede stemmer, pollen er lukket, eller brugeren har stemt
+    if (isVoting || !poll.isActive /*| poll.currentUserVoteOptionId !== null*/) // fix, jeg har outcommenteret poll.currentUserVoteOptionId !== null, da det er den der tjekker om brugeren har stemt, så har brugeren ikke milgihed for 
+    // at ændre stemme, hvis han er træt af hvad han stemte :-)
+       { 
+      
       return;
     }
     setIsVoting(true); // Start loading state
@@ -63,15 +65,16 @@ const PollCard: React.FC<PollCardProps> = ({ poll, onVoteSubmit }) => {
               className={`poll-option ${isUsersVote ? 'voted-option' : ''}`}
             >
               {/* Vis stemmeknap hvis aktiv OG bruger IKKE har stemt */}
-              {poll.isActive && poll.currentUserVoteOptionId === null && (
+              {poll.isActive /*&& poll.currentUserVoteOptionId === null && */ &&
                   <button
                       className="vote-button"
                       onClick={() => handleVoteClick(option.id)}
-                      disabled={isVoting} // Disable mens der stemmes
+                     /* disabled={isVoting} */
+                     disabled={isVoting || poll.currentUserVoteOptionId === option.id}
                   >
                       Stem
                   </button>
-              )}
+              }
                {/* Vis flueben hvis bruger har stemt på denne */}
                {isUsersVote && <span className="vote-checkmark">✓</span>}
 

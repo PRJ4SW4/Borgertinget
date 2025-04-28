@@ -199,37 +199,32 @@ const FeedPage: React.FC = () => {
       console.log("FEEDPAGE RENDER - isLoading:", isLoading, "subscriptions:", JSON.stringify(subscriptions, null, 2));
 
       // --- Rendering ---
+
+      // --- Rendering (Uden ekstra kommentarer/debug-logs) ---
       return (
         <div className="page-layout">
+          {/* Sidebar */}
           <div className="sidebar">
             <h2 className="sidebar-title">Følger</h2>
             <ul className="sidebar-nav-list">
               <li className={`sidebar-nav-item ${selectedPoliticianId === null ? 'active-filter' : ''}`}>
                 <button onClick={() => handleFilterChange(null)} disabled={isLoading || selectedPoliticianId === null} className="sidebar-nav-button">Alle Tweets</button>
               </li>
-              {/* --- DEBUG LOG 6 (IIFE) --- */}
-              {(() => {
-                  console.log("FEEDPAGE SIDEBAR RENDER: Checking subscriptions. Length:", subscriptions?.length ?? 0, "IsLoading:", isLoading); // Added nullish coalescing
-                  // Tjekker BÅDE på om dataen er en array OG om den har elementer
-                  if (Array.isArray(subscriptions) && subscriptions.length > 0) {
-                      console.log("FEEDPAGE SIDEBAR RENDER: Mapping subscriptions...");
-                      return subscriptions.map((sub) => (
-                          <li key={sub.id} className={`sidebar-nav-item ${selectedPoliticianId === sub.id ? 'active-filter' : ''}`}>
-                              <button onClick={() => handleFilterChange(sub.id)} disabled={isLoading || selectedPoliticianId === sub.id} className="sidebar-nav-button">{sub.name}</button>
-                          </li>
-                      ));
-                  } else if (!isLoading) {
-                      console.log("FEEDPAGE SIDEBAR RENDER: Showing 'Du følger ingen'.");
-                      return <li className="sidebar-nav-item-info">Du følger ingen.</li>;
-                  } else {
-                      console.log("FEEDPAGE SIDEBAR RENDER: Not showing buttons or 'Du følger ingen' (isLoading or length=0).");
-                      return null;
-                  }
-              })()}
+              {/* Liste af abonnementer */}
+              {Array.isArray(subscriptions) && subscriptions.length > 0 ? (
+                  subscriptions.map((sub) => (
+                      <li key={sub.id} className={`sidebar-nav-item ${selectedPoliticianId === sub.id ? 'active-filter' : ''}`}>
+                          <button onClick={() => handleFilterChange(sub.id)} disabled={isLoading || selectedPoliticianId === sub.id} className="sidebar-nav-button">{sub.name}</button>
+                      </li>
+                  ))
+              ) : !isLoading ? (
+                  <li className="sidebar-nav-item-info">Du følger ingen.</li>
+              ) : null}
             </ul>
             <button onClick={handleBackClick} className="back-button sidebar-back-button">&larr; Tilbage til Home</button>
           </div>
 
+          {/* Main Feed Content */}
           <div className="feed-content">
             <h1 className="feed-title">Dit Feed</h1>
             {error && <div className="error-message global-error">Fejl: {error}</div>}
@@ -237,36 +232,49 @@ const FeedPage: React.FC = () => {
             {/* SEKTION FOR SENESTE POLLS */}
             {!selectedPoliticianId && latestPolls.length > 0 && (
                 <div className="latest-polls-section">
+                    <h2 className="section-title">Seneste Afstemninger</h2>
                     {latestPolls.map(poll => (
                         <div key={`poll-${poll.id}`}>
                             <PollCard poll={poll} onVoteSubmit={handleVoteSubmit} />
                         </div>
                     ))}
-                    <hr style={{margin: "20px 0"}} />
+                    <hr style={{margin: "25px 0 15px 0", border: 0, borderTop: "1px solid #eee"}} />
                 </div>
             )}
 
             {/* SEKTION FOR TWEETS */}
+        
+
+            {(tweets.length > 0 || (hasMore && !isLoading) || (isLoading && page===1)) && !error && (
+                
+                 <h2 className="section-title">Seneste Tweets</h2>
+                
+             )}
+
             {!isLoading && tweets.length === 0 && latestPolls.length === 0 && !error && (
                  <p className="empty-feed-message">Ingen tweets eller polls at vise.</p>
             )}
-             <div className="tweet-list-container">
-                 {tweets.map((tweet, index) => {
-                     const isLastItem = tweets.length === index + 1;
-                     return (
-                         <div ref={isLastItem ? lastElementRef : null} key={`tweet-${tweet.twitterTweetId}`}>
-                             <TweetSide tweet={tweet} />
-                         </div>
-                     );
-                 })}
-             </div>
+
+             {tweets.length > 0 && (
+                 <div className="tweet-list-container">
+                     {tweets.map((tweet, index) => {
+                         const isLastItem = tweets.length === index + 1;
+                         return (
+                             <div ref={isLastItem ? lastElementRef : null} key={`tweet-${tweet.twitterTweetId}`}>
+                                 <TweetSide tweet={tweet} />
+                             </div>
+                         );
+                     })}
+                 </div>
+             )}
 
              {/* Loading / End messages */}
-             {isLoading && <div className="loading-more-message">Henter...</div>}
+             {isLoading && (page > 1 || (latestPolls.length > 0 || tweets.length > 0)) && <div className="loading-more-message">Henter...</div>}
+             {isLoading && page === 1 && tweets.length === 0 && latestPolls.length === 0 && <div className="loading-more-message">Henter feed...</div>}
              {!isLoading && !hasMore && tweets.length > 0 && <p className="end-of-feed-message">Ikke flere tweets at vise.</p>}
 
-          </div>
-        </div>
+          </div> {/* Slut på feed-content */}
+        </div> // Slut på page-layout
       );
     };
 

@@ -79,7 +79,6 @@ namespace backend.Controllers
             }
         }
 
-        // --- Hent Enkelt Poll ---
         [HttpGet("{id}")]
         [Authorize]
         public async Task<ActionResult<PollDetailsDto>> GetPollById(int id)
@@ -105,7 +104,8 @@ namespace backend.Controllers
             return Ok(pollDto);
         }
 
-        // --- Afgiv Stemme ---
+        /*
+
         [HttpPost("{pollId}/vote")]
         [Authorize]
         public async Task<IActionResult> Vote(int pollId, VoteDto voteDto)
@@ -166,6 +166,90 @@ namespace backend.Controllers
             // Returner 200 OK til den klient, der stemte. Andre får opdatering via SignalR.
             return Ok();
         }
+
+        */
+
+
+        // Inde i backend.Controllers/PollsController.cs klassen:
+
+[HttpPost("{pollId}/vote")]
+[Authorize]
+public async Task<IActionResult> Vote(int pollId, VoteDto voteDto) // voteDto indeholder int OptionId
+{
+    var userIdString = User.FindFirstValue("userId");
+    if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))
+    { return Unauthorized("Kunne ikke identificere brugeren."); }
+
+    // Find poll MED options OG den eksisterende stemme (hvis den findes) i én query
+    var poll = await _context.Polls
+        .Include(p => p.Options) // Vigtigt for at have adgang til options
+        .FirstOrDefaultAsync(p => p.Id == pollId);
+
+    if (poll == null) { return NotFound("Afstemningen blev ikke fundet."); }
+    if (poll.EndedAt.HasValue && poll.EndedAt.Value < DateTime.UtcNow) { return BadRequest("Afstemningen er afsluttet."); }
+
+    var chosenOption = poll.Options.FirstOrDefault(o => o.Id == voteDto.OptionId);
+    if (chosenOption == null) { return BadRequest("Ugyldig svarmulighed valgt."); }
+
+    // Find brugerens EKSISTERENDE stemme på denne poll (hvis nogen)
+    var existingVote = await _context.UserVotes
+                           .FirstOrDefaultAsync(uv => uv.UserId == currentUserId && uv.PollId == pollId);
+
+    try
+    {
+        if (existingVote == null) // Bruger har IKKE stemt før = Opret ny stemme
+        {
+            var userVote = new UserVote { UserId = currentUserId, PollId = pollId, ChosenOptionId = voteDto.OptionId };
+            chosenOption.Votes++; // Tæl den nye stemme op
+            _context.UserVotes.Add(userVote);
+            _context.Entry(chosenOption).State = EntityState.Modified;
+        }
+        else // Bruger HAR stemt før = Ændr stemme
+        {
+            if (existingVote.ChosenOptionId == voteDto.OptionId)
+            {
+                // Brugeren klikkede på den samme option igen - gør intet
+                // (Alternativt kunne man her implementere "fjern stemme")
+                return Ok("Stemme ikke ændret.");
+            }
+
+            // Find den gamle option brugeren stemte på
+            var oldOption = poll.Options.FirstOrDefault(o => o.Id == existingVote.ChosenOptionId);
+
+            if (oldOption != null)
+            {
+                oldOption.Votes--; // Træk 1 fra den gamle
+                _context.Entry(oldOption).State = EntityState.Modified;
+            } else {
+                 // Burde ikke ske hvis data er konsistent, men håndter evt.
+                 Console.WriteLine($"Warning: Old option (ID: {existingVote.ChosenOptionId}) not found for vote change.");
+            }
+
+            chosenOption.Votes++; // Læg 1 til den nye
+            existingVote.ChosenOptionId = voteDto.OptionId; // Opdater UserVote record
+
+            _context.Entry(chosenOption).State = EntityState.Modified;
+            _context.Entry(existingVote).State = EntityState.Modified;
+        }
+
+        // Gem ændringerne (enten ny stemme eller ændret stemme)
+        await _context.SaveChangesAsync();
+
+        // --- TRIGGER SIGNALR BROADCAST (som før) ---
+        var updatedOptionsData = poll.Options
+                                    .OrderBy(o => o.Id)
+                                    .Select(o => new { OptionId = o.Id, Votes = o.Votes })
+                                    .ToList();
+        await _hubContext.Clients.All.SendAsync("PollVotesUpdated", pollId, updatedOptionsData);
+        // -------------------------------------------
+        Console.WriteLine($"User {currentUserId} processed vote/vote change for option {voteDto.OptionId} on poll {pollId}. SignalR broadcast sent.");
+
+    }
+    catch (DbUpdateException dbEx) { /* ... fejlhåndtering ... */ }
+    catch (Exception ex) { /* ... fejlhåndtering ... */ }
+
+    return Ok(); // Returner succes
+}
 
         // --- Privat Hjælpemetode til Mapping ---
         private PollDetailsDto MapPollToDetailsDto(Poll poll, PoliticianTwitterId politician, UserVote? userVote)

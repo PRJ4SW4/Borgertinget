@@ -1,21 +1,22 @@
-using backend.Data;       
-using backend.Services;   
+using backend.Data;       // Adgang til DataContext
+using backend.Services;   // Adgang til TwitterService
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging; /
+using Microsoft.Extensions.Logging; // Godt at have til logging
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore; // For ToListAsync etc.
 
-
-namespace backend.Services 
+// Sørg for at namespace er korrekt for dit projekt
+namespace backend.Services // Eller f.eks. backend.BackgroundServices
+{
     public class TweetFetchingService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<TweetFetchingService> _logger;
-        
+        // Interval sat til 1 gang i døgnet
         private readonly TimeSpan _period = TimeSpan.FromHours(24);
         //private readonly TimeSpan _period = TimeSpan.FromMinutes(1);
 
