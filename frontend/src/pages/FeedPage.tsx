@@ -2,13 +2,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as signalR from "@microsoft/signalr";
-import { LogLevel } from "@microsoft/signalr"; // <-- Importer LogLevel
+//import { LogLevel } from "@microsoft/signalr"; blev brugt til debugging
 import { getFeed, getSubscriptions, submitVote, API_BASE_URL } from '../services/tweetService';
 import {
     TweetDto,
     PoliticianInfoDto,
     PollDetailsDto,
-    PollOptionDto // Bruges af PollCard og SignalR opdatering
+    //PollOptionDto // Bruges af PollCard og SignalR opdatering
     // FeedItem, isTweet, isPoll er ikke længere nødvendige her
 } from '../types/tweetTypes';
 import TweetSide from '../components/TweetSide';

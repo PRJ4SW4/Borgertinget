@@ -68,14 +68,13 @@ export const getFeed = async (
 
     if (!response.ok) {
         let errorMsg = `Failed to fetch feed. Status: ${response.status}`;
-         try {
-             const errorData = await response.json();
-             errorMsg = errorData.message || errorData.title || JSON.stringify(errorData) || errorMsg;
-         } catch (e) {}
+        try {
+            const errorData = await response.json();
+            errorMsg = errorData.message || errorData.title || JSON.stringify(errorData) || errorMsg;
+        } catch (_e) { /* Ignore JSON parsing errors */ }
         if (response.status === 401) { errorMsg = 'Manglende eller ugyldig godkendelse.'; }
         throw new Error(errorMsg);
     }
-    // VIGTIGT: Sørg for at returtypen her matcher den valgte PaginatedFeedResponse interface øverst
     return await response.json() as PaginatedFeedResponse;
 
   } catch (error) {
@@ -85,24 +84,22 @@ export const getFeed = async (
 };
 
 
-// --- getSubscriptions (Som du har den nu) ---
 export const getSubscriptions = async (): Promise<PoliticianInfoDto[]> => {
     const headers = getAuthHeaders();
-    headers.delete('Content-Type'); // Fjern for GET
+    headers.delete('Content-Type'); 
     if (!headers.has('Authorization')) { return []; }
 
     try {
         const apiUrl = `${API_BASE_URL}/api/subscriptions`;
         const response = await fetch(apiUrl, { method: 'GET', headers: headers });
-        if (!response.ok) { /* ... Fejlhåndtering ... */ throw new Error(`Failed sub fetch ${response.status}`); }
+        if (!response.ok) /* ... Fejlhåndtering ... */ {  throw new Error(`Failed sub fetch ${response.status}`); }
         return await response.json() as PoliticianInfoDto[];
     } catch (error) { console.error('Error in getSubscriptions:', error); throw error; }
 };
 
 
-// --- NY submitVote funktion ---
 export const submitVote = async (pollId: number, optionId: number): Promise<void> => {
-    const headers = getAuthHeaders(); // Får headers MED Content-Type
+    const headers = getAuthHeaders();
     if (!headers.has('Authorization')) {
         throw new Error('Authentication required to vote.');
     }
@@ -115,7 +112,7 @@ export const submitVote = async (pollId: number, optionId: number): Promise<void
 
         const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: headers, // Sender headers MED Content-Type
+            headers: headers, 
             body: body
         });
 
@@ -125,7 +122,7 @@ export const submitVote = async (pollId: number, optionId: number): Promise<void
                  const errorData = await response.json();
                  if (response.status === 409) { errorMsg = errorData.title || errorData.message || "Du har allerede stemt."; }
                  else { errorMsg = errorData.title || errorData.message || JSON.stringify(errorData) || errorMsg; }
-            } catch (e) { /* Ignorer hvis body ikke er JSON */ }
+            } catch (_e) { /* Ignorer hvis body ikke er JSON */ }
 
             if (response.status === 401) { errorMsg = 'Manglende eller ugyldig godkendelse.'; }
             if (response.status === 404) { errorMsg = 'Afstemning ikke fundet.'; }
@@ -133,7 +130,6 @@ export const submitVote = async (pollId: number, optionId: number): Promise<void
 
             throw new Error(errorMsg);
         }
-        // Returner intet ved succes
         console.log("Vote submitted successfully.");
         return;
 
