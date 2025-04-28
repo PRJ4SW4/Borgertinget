@@ -1,5 +1,8 @@
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
+using System.Collections.Generic; // Required
+using System.Text.Json;          // Required
 using System; // Til DateTimeKind
 using System.Collections.Generic; // Til List<> i modeller
 using System.Linq; // Bruges ikke direkte her, men god at have
@@ -25,17 +28,74 @@ namespace backend.Data
         public DbSet<PollOption> PollOptions { get; set; } = null!; // Tilføjet '= null!'
         public DbSet<UserVote> UserVotes { get; set; } = null!; // Tilføjet '= null!'
         // '= null!' undertrykker en compile-warning om non-nullable properties uden constructor initialization
+    public DbSet<Aktor> Aktor {get; set;}
+    public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // KALD ALTID DENNE FØRST
             base.OnModelCreating(modelBuilder);
 
+        // Index for the CalendarEvents SourceUrl to make syncing events faster
+        modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
+
             // --- Dine Eksisterende Konfigurationer (Page, Question, AnswerOption, Flashcard) ---
             modelBuilder.Entity<Page>().HasOne(p => p.ParentPage).WithMany(p => p.ChildPages).HasForeignKey(p => p.ParentPageId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Page>().HasMany(p => p.AssociatedQuestions).WithOne(q => q.Page).HasForeignKey(q => q.PageId);
             modelBuilder.Entity<Question>().HasMany(q => q.AnswerOptions).WithOne(o => o.Question).HasForeignKey(o => o.QuestionId);
             modelBuilder.Entity<FlashcardCollection>().HasMany(c => c.Flashcards).WithOne(f => f.FlashcardCollection).HasForeignKey(f => f.CollectionId);
+         
+        // Configure Constituencies
+            modelBuilder.Entity<Aktor>()
+                .Property(a => a.Constituencies) // Target the List<string> property
+                .HasConversion(
+                    // Convert List<string> to json string for DB
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    // Convert json string from DB back to List<string>
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                );
+
+            // Configure Nominations
+            modelBuilder.Entity<Aktor>()
+                .Property(a => a.Nominations)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                );
+
+            // Add similar .HasConversion calls for Educations and Occupations
+            modelBuilder.Entity<Aktor>()
+                .Property(a => a.Educations)
+                .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 );
+
+            modelBuilder.Entity<Aktor>()
+                .Property(a => a.Occupations)
+                .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 );
+
+            modelBuilder.Entity<Aktor>()
+                 .Property(a => a.PublicationTitles)
+                 .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 );
+            modelBuilder.Entity<Aktor>()
+                 .Property(a => a.Ministers)
+                 .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 );
+            modelBuilder.Entity<Aktor>()
+                 .Property(a => a.Spokesmen)
+                 .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 ); 
 
             // --- Dine Eksisterende Seeding (Page, Question, AnswerOption, Flashcard) ---
             modelBuilder.Entity<Page>().HasData(/* ... din page seed data ... */);

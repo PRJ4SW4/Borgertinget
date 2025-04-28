@@ -27,7 +27,6 @@ public class AnswerOptionDto
 {
     public int Id { get; set; } // AnswerOptionId
     public string OptionText { get; set; } = string.Empty;
-   
 }
 
 public class QuestionDto
