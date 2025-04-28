@@ -16,13 +16,14 @@ namespace backend.Services
     public class TwitterService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _bearerToken;
+        private readonly string? _bearerToken;
         private readonly DataContext _dbContext;
 
         public TwitterService(HttpClient httpClient, IConfiguration config, DataContext dbContext)
         {
             _httpClient = httpClient;
-            _bearerToken = config["TwitterApi:BearerToken"];
+            _bearerToken = config["TwitterApi:BearerToken"] ?? 
+                throw new ArgumentNullException("TwitterApi:BearerToken not configured");
             _dbContext = dbContext;
         }
 
