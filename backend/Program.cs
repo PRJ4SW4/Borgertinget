@@ -9,10 +9,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using backend.Hubs;                
 
 // for .env secrets
 DotNetEnv.Env.Load();
-using backend.Hubs;                // <--- TILFØJ DENNE LINJE
+         
 
 
 var builder = WebApplication.CreateBuilder(args);

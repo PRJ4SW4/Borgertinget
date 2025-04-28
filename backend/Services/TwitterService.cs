@@ -29,7 +29,7 @@ namespace backend.Services
 
         // Denne metode henter tweets, tjekker for dubletter mod DB,
         // gemmer kun nye tweets, og returnerer DTO'er for de nye.
-        public async Task<int> GetStructuredTweets(string userId, int count = 10) // <-- ÆNDRET RETURTYPE
+        public async Task<int> GetStructuredTweets(string userId, int count = 10) 
 {
     // 1. Find politikerens interne DB ID ud fra Twitter User ID
     var politician = await _dbContext.PoliticianTwitterIds
@@ -39,7 +39,7 @@ namespace backend.Services
     if (politician == null)
     {
         Console.WriteLine($"Warning: Politician with Twitter User ID {userId} not found in database. Skipping tweet fetch.");
-        return 0; // <-- ÆNDRET RETURVÆRDI
+        return 0; 
     }
     int politicianRecordId = politician.Id;
 
