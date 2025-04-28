@@ -3,22 +3,24 @@ using System.Text.Json.Serialization;
 
 namespace backend.DTO.FT
 {
-    public class UpdateAktor{
-            public DateTime? slutdato {get; set;} //Kun for grupper, ministertitler- og -områder
-            public DateTime? startdato {get; set;}
-            public string? biografi {get; set;}
+    public class UpdateAktor
+    {
+        public DateTime? slutdato { get; set; } //Kun for grupper, ministertitler- og -områder
+        public DateTime? startdato { get; set; }
+        public string? biografi { get; set; }
     }
 
-    public class CreateAktor{
+    public class CreateAktor
+    {
         [JsonPropertyName("id")]
-        public int Id{get; set;}
-        public string? navn{get; set;}
-        
-        public string? fornavn{get; set;}
-        public string? efternavn {get; set;}
-        public string? biografi{get; set;}
-        public DateTime? startdato{get; set;}
-        public DateTime? slutdato{get; set;}
+        public int Id { get; set; }
+        public string? navn { get; set; }
+
+        public string? fornavn { get; set; }
+        public string? efternavn { get; set; }
+        public string? biografi { get; set; }
+        public DateTime? startdato { get; set; }
+        public DateTime? slutdato { get; set; }
     }
 
     // Generic wrapper for OData paged responses
@@ -30,6 +32,7 @@ namespace backend.DTO.FT
         [JsonPropertyName("odata.nextLink")]
         public string? NextLink { get; set; }
     }
+
     public class AktorDetailDto
     {
         // Include all fields from Aktor EXCEPT 'biografi'
@@ -90,7 +93,7 @@ namespace backend.DTO.FT
                 Nominations = aktor.Nominations,
                 Educations = aktor.Educations,
                 Occupations = aktor.Occupations,
-                PublicationTitles = aktor.PublicationTitles
+                PublicationTitles = aktor.PublicationTitles,
             };
         }
     }

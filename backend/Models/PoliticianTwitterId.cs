@@ -10,9 +10,10 @@ namespace backend.Models
         public string Name { get; set; }
         public string TwitterHandle { get; set; }
 
-        public void PostTweet(Tweet tweet) {
+        public void PostTweet(Tweet tweet)
+        {
             tweet.PoliticianTwitterId = this.Id;
-            tweet.CreatedAt = DateTime.Now; 
+            tweet.CreatedAt = DateTime.Now;
             Tweets.Add(tweet); //  in-memory tracking
 
             TweetPosted?.Invoke(this, tweet); // raise event to notify all subscribers

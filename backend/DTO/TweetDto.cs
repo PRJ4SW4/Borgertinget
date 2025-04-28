@@ -21,7 +21,7 @@ namespace backend.DTOs
         public DateTime CreatedAt { get; set; }
 
         // Afsender information (hentes fra din PoliticianTwitterIds tabel)
-        public required string AuthorName { get; set; }   // F.eks. "Statsministeriet"
+        public required string AuthorName { get; set; } // F.eks. "Statsministeriet"
         public required string AuthorHandle { get; set; } // F.eks. "Statsmin"
     }
 }

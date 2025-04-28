@@ -3,26 +3,28 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Verify from "./pages/Verify";
-import LearningLayout from './layouts/LearningLayout';
-import PageContent from './components/PageContent';
-import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
-import CalendarView from './components/CalendarView'
+import LearningLayout from "./layouts/LearningLayout";
+import PageContent from "./components/PageContent";
+import FlashcardLayout from "./layouts/FlashcardLayout"; // Import new layout
+import CalendarView from "./components/CalendarView";
 
 // Admin pages
-import CreateFlashcardCollection from './components/AdminPages/AddFlashcardCollection';
-import AdminPage from './components/AdminPages/AdminPage'; // Import new layout
+import CreateFlashcardCollection from "./components/AdminPages/AddFlashcardCollection";
+import AdminPage from "./components/AdminPages/AdminPage"; // Import new layout
 import AdminBruger from "./components/AdminPages/AdminBruger";
 import AdminIndhold from "./components/AdminPages/AdminIndhold";
 import AdminLearing from "./components/AdminPages/AdminLearing";
 import AdminPolls from "./components/AdminPages/AdminPolls";
-import EditFlashcardCollection from './components/AdminPages/EditFlashcardCollection';
+import EditFlashcardCollection from "./components/AdminPages/EditFlashcardCollection";
+import AddPoll from "./components/AdminPages/AddPolls";
+import EditPoll from "./components/AdminPages/EditPoll";
+import DeletePoll from "./components/AdminPages/DeletePoll";
 
-import LoginSuccessPage from './pages/LoginSuccessPage'; 
+import LoginSuccessPage from "./pages/LoginSuccessPage";
 import PartyPage from "./pages/PartyPage";
 import PoliticianPage from "./pages/PoliticianPage";
 import PartiesPage from "./pages/PartiesPage";
-import FeedPage from './pages/FeedPage'; // Tilføj denne linje
-
+import FeedPage from "./pages/FeedPage"; // Tilføj denne linje
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
@@ -42,48 +44,36 @@ function App() {
       <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
       <Route path="/verify" element={<Verify />} />
       <Route path="/kalender" element={<CalendarView />} />
-      <Route path="/feed" 
-        element={token ? <FeedPage /> : <Navigate to="/login" />} /> // Vis FeedPage hvis logget ind, ellers login
-
+      <Route path="/feed" element={token ? <FeedPage /> : <Navigate to="/login" />} /> // Vis FeedPage hvis logget ind, ellers login
       <Route
-          path="/learning"
-          // Apply the SAME protection logic as /home if needed
-          // If learning is public, just use: element={<LearningLayout />}
-          element={token ? <LearningLayout /> : <Navigate to="/login" />}
-        >
-          {/* Nested routes render inside LearningLayout's <Outlet /> */}
-          <Route index element={<p>Velkommen til læringsområdet!</p>} />
-          <Route path=":pageId" element={<PageContent />} />
+        path="/learning"
+        // Apply the SAME protection logic as /home if needed
+        // If learning is public, just use: element={<LearningLayout />}
+        element={token ? <LearningLayout /> : <Navigate to="/login" />}>
+        {/* Nested routes render inside LearningLayout's <Outlet /> */}
+        <Route index element={<p>Velkommen til læringsområdet!</p>} />
+        <Route path=":pageId" element={<PageContent />} />
       </Route>
+      <Route path="/parties" element={<PartiesPage />} />
+      <Route path="/party/:partyName" element={<PartyPage />} />
+      <Route path="/politician/:id" element={<PoliticianPage />} />
       <Route
-            path="/parties"
-            element={<PartiesPage />}
-          />
-      <Route
-            path="/party/:partyName"
-            element={<PartyPage />}
-          />
-      <Route
-            path="/politician/:id"
-            element={<PoliticianPage />}
-          />
-
-      <Route
-          path="/flashcards/*" // Match base path and potential nested paths
-          element={token ? <FlashcardLayout /> : <Navigate to="/login" />}
+        path="/flashcards/*" // Match base path and potential nested paths
+        element={token ? <FlashcardLayout /> : <Navigate to="/login" />}
       />
-
-      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />}/>
+      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />} />
       <Route path="*" element={<Navigate to={token ? "/home" : "/login"} />} />
       {/* Admin routes */}
       <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
-      <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to ="/home" />} />
-      <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to ="/home" />} />
-      <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to ="/home" />} />
-      <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to ="/home" />} />
-      <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to ="/home" />} />
-      <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to ="/home" />} />
-
+      <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to="/home" />} />
+      <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to="/home" />} />
+      <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to="/home" />} />
+      <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to="/home" />} />
+      <Route path="/admin/Polls/addPoll" element={token ? <AddPoll /> : <Navigate to="/home" />} />
+      <Route path="/admin/Polls/editPoll" element={token ? <EditPoll /> : <Navigate to="/home" />} />
+      <Route path="/admin/Polls/deletePoll" element={token ? <DeletePoll /> : <Navigate to="/home" />} />
+      <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
+      <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
     </Routes>
   );
 }
