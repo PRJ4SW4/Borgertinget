@@ -31,11 +31,21 @@ namespace backend.Controllers
             /// </summary>
         [HttpGet("politicians")]
         [ProducesResponseType(typeof(List<PoliticianSummaryDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<PoliticianSummaryDto>>> GetAllPoliticians()
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)] // Tilføj for fejl
+        public async Task<ActionResult<List<PoliticianSummaryDto>>> GetAllPoliticians([FromQuery] string? search = null) // Modtag search query param
         {
-            _logger.LogInformation("Request received for all politician summaries.");
-            var politicians = await _selectionService.GetAllPoliticiansForGuessingAsync();
-            return Ok(politicians);
+            _logger.LogInformation("Request received for politician summaries with search: '{SearchTerm}'.", search ?? "<null>");
+            try
+            {
+                // Send søgestrengen videre til service laget
+                var politicians = await _selectionService.GetAllPoliticiansForGuessingAsync(search);
+                return Ok(politicians);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching politicians with search term '{SearchTerm}'", search ?? "<null>");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Fejl ved hentning af politikere.");
+            }
         }
 #endregion
 

@@ -1,3 +1,5 @@
+/* I GuessItem.css eller tilsvarende */
+
 .guess-item {
   display: flex;
   border-bottom: 1px solid #ddd;
@@ -5,11 +7,13 @@
 
 .guess-data {
   flex: 1;
-  padding: 10px; /* Øget padding */
+  padding: 10px;
   text-align: center;
   font-size: 1em;
   border: 1px solid #ddd;
   position: relative;
+  /* Tilføj evt. color: black; her for at sikre tekstfarven */
+  color: black;
 }
 
 .correct {
@@ -17,14 +21,22 @@
 }
 
 .incorrect {
-  background-color: lightcoral;
+  background-color: lightcoral; /* Rød for helt forkert */
+}
+
+/* RET FARVEN HER: */
+.guess-data.higher,
+.guess-data.lower {
+  background-color: lightcoral; /* Gul/orange for retning */
 }
 
 .arrow {
   position: absolute;
-  font-size: 1.5em;
-  color: white;
+  font-size: 1.8em;
+  color: black; /* Korrekt: Sort pil */
   top: 50%;
   transform: translateY(-50%);
-  margin-left: 10px; /* Tilføjet margin */
+  margin-left: 5px; /* Lidt mindre margin måske? */
+  /* Overvej evt. at gøre pilen lidt mindre påtrængende */
+  /* font-size: 1.2em; */
 }

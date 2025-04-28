@@ -105,3 +105,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.citat {
+  font-size: 1.4em; /* Juster denne værdi for at ændre størrelsen (f.eks. 1.2em, 1.5em, 20px, large) */
+  font-style: italic; /* Gør teksten kursiv */
+  color: #333; /* Gør evt. teksten lidt mørkere grå */
+  max-width: 700px; /* Begræns bredden så det ikke bliver for langt */
+  margin: 25px auto; /* Tilføj lidt luft over/under og centrer blokken */
+  padding: 15px; /* Lidt indre margen */
+  border-left: 3px solid #e31836; /* Tilføj en lille rød streg til venstre for effekt */
+  background-color: #f9f9f9; /* Meget lys grå baggrund for at fremhæve lidt */
+  text-align: left; /* Venstrestil citat inde i boksen */
+}

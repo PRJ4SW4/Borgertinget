@@ -23,7 +23,7 @@ namespace backend.DTO
         public string Køn { get; set; } = string.Empty;
         public string Uddannelse { get; set; } = string.Empty;
         public string Region { get; set; } = string.Empty;
-        // public byte[]? Portræt { get; set; } // Send evt. portræt med? Overvej størrelse.
+        public byte[] Portraet { get; set; } = Array.Empty<byte>();
     }
 
     public class GuessResultDto

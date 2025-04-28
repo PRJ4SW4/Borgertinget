@@ -1,72 +1,83 @@
+// components/Polidle/GuessItem/GuessItem.tsx
 import React from "react";
-import "./GuessItem.css";
-
-interface Guess {
-  politikker: string;
-  køn: string;
-  parti: string;
-  alder: number;
-  region: string;
-  uddannelse: string;
-}
+import "./GuessItem.css"; // Behold eller opdater din CSS
+// Importer typerne
+import {
+  GuessResultDto,
+  FeedbackType,
+  GuessedPoliticianDetailsDto,
+} from "../../../pages/Polidle/ClassicMode"; // Juster sti
 
 interface GuessItemProps {
-  guess: Guess;
-  isCorrect: {
-    politikker: boolean;
-    køn: boolean;
-    parti: boolean;
-    alder: boolean;
-    region: boolean;
-    uddannelse: boolean;
-  };
-  ageDifference: number;
+  result: GuessResultDto; // Modtager nu ét resultat objekt
 }
 
-const GuessItem: React.FC<GuessItemProps> = ({
-  guess,
-  isCorrect,
-  ageDifference,
-}) => {
+// Helper funktion til at mappe FeedbackType til CSS klasse
+const getFeedbackClass = (feedbackType: FeedbackType | undefined): string => {
+  if (feedbackType === undefined) return "";
+  switch (feedbackType) {
+    case FeedbackType.Korrekt:
+      return "correct";
+    case FeedbackType.Forkert:
+      return "incorrect";
+    case FeedbackType.Højere:
+      return "higher";
+    case FeedbackType.Lavere:
+      return "lower";
+    default:
+      return "";
+  }
+};
+
+const GuessItem: React.FC<GuessItemProps> = ({ result }) => {
+  if (!result.guessedPolitician) {
+    return (
+      <div className="guess-item error">
+        Fejl: Manglende politiker data for dette gæt.
+      </div>
+    );
+  }
+
+  const guessed = result.guessedPolitician;
+  const feedback = result.feedback;
+
   return (
-    <div className="guess-item">
-      <div
-        className={`guess-data ${
-          isCorrect.politikker ? "correct" : "incorrect"
-        }`}
-      >
-        {guess.politikker}
+    <div
+      className={`guess-item ${
+        result.isCorrectGuess ? "guess-correct-overall" : ""
+      }`}
+    >
+      {/* Politiker Navn */}
+      <div className={`guess-data ${getFeedbackClass(feedback["Navn"])}`}>
+        {guessed.politikerNavn}
       </div>
-      <div className={`guess-data ${isCorrect.køn ? "correct" : "incorrect"}`}>
-        {guess.køn}
+      {/* Køn */}
+      <div className={`guess-data ${getFeedbackClass(feedback["Køn"])}`}>
+        {guessed.køn}
       </div>
-      <div
-        className={`guess-data ${isCorrect.parti ? "correct" : "incorrect"}`}
-      >
-        {guess.parti}
+      {/* Parti */}
+      <div className={`guess-data ${getFeedbackClass(feedback["Parti"])}`}>
+        {guessed.partiNavn}
       </div>
-      <div
-        className={`guess-data ${isCorrect.alder ? "correct" : "incorrect"}`}
-      >
-        {guess.alder}
-        {!isCorrect.alder && ageDifference > 0 && (
-          <span className="arrow">&#8595;</span>
+      {/* Alder */}
+      <div className={`guess-data ${getFeedbackClass(feedback["Alder"])}`}>
+        {/* VIS SELVE ALDEREN */}
+        {guessed.age}
+        {/* Vis pil baseret på Højere/Lavere feedback */}
+        {feedback["Alder"] === FeedbackType.Lavere && (
+          <span className="arrow"> &#8595;</span>
         )}
-        {!isCorrect.alder && ageDifference < 0 && (
-          <span className="arrow">&#8593;</span>
+        {feedback["Alder"] === FeedbackType.Højere && (
+          <span className="arrow"> &#8593;</span>
         )}
       </div>
-      <div
-        className={`guess-data ${isCorrect.region ? "correct" : "incorrect"}`}
-      >
-        {guess.region}
+      {/* Region */}
+      <div className={`guess-data ${getFeedbackClass(feedback["Region"])}`}>
+        {guessed.region}
       </div>
-      <div
-        className={`guess-data ${
-          isCorrect.uddannelse ? "correct" : "incorrect"
-        }`}
-      >
-        {guess.uddannelse}
+      {/* Uddannelse */}
+      <div className={`guess-data ${getFeedbackClass(feedback["Uddannelse"])}`}>
+        {guessed.uddannelse}
       </div>
     </div>
   );

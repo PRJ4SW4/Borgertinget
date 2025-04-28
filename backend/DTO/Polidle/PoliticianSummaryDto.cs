@@ -1,6 +1,9 @@
-namespace backend.DTO;
-public class PoliticianSummaryDto
+namespace backend.DTO
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public class PoliticianSummaryDto
+    {
+        public int Id { get; set; }
+        public string PolitikerNavn { get; set; } = string.Empty;
+        public byte[] Portraet { get; set; } = Array.Empty<byte>(); // Portræt som byte array
+    }
 }
