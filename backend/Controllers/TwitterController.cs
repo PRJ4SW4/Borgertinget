@@ -23,32 +23,23 @@ namespace backend.Controllers
             _context = context;
         }
 
-        // --- NYT ENDPOINT TIL AT HENTE ABONNEMENTER ---
+        // --- Endpoint til at hente abonnementer ---
         [Authorize]
-        [HttpGet("subscriptions")] // Lytter på GET /api/subscriptions
+        [HttpGet("subscriptions")]
         public async Task<ActionResult<List<PoliticianInfoDto>>> GetMySubscriptions()
         {
             var userIdString = User.FindFirstValue("userId");
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
-            }
+            { return Unauthorized("Kunne ikke identificere brugeren."); }
 
             try
             {
-                // Hent abonnementer, inkluder Politiker-data
                 var subscriptions = await _context.Subscriptions
                     .Where(s => s.UserId == currentUserId)
-                    .Include(s => s.Politician) // Inkluder relateret PoliticianTwitterId objekt
-                    .Select(s => new PoliticianInfoDto
-                    {
-                        // Brug Id og Name fra den inkluderede Politician (PoliticianTwitterId model)
-                        Id = s.Politician.Id,
-                        Name = s.Politician.Name
-                    })
-                    .OrderBy(p => p.Name) // Sorter alfabetisk
+                    .Include(s => s.Politician)
+                    .Select(s => new PoliticianInfoDto { Id = s.Politician.Id, Name = s.Politician.Name })
+                    .OrderBy(p => p.Name)
                     .ToListAsync();
-
                 return Ok(subscriptions);
             }
             catch (Exception ex)
@@ -58,112 +49,148 @@ namespace backend.Controllers
             }
         }
 
-
-        // --- OPDATERET GetMyFeed MED FILTER ---
+        // --- GetMyFeed (Henter paginerede tweets OG seneste 2 polls per politiker UDEN filter) ---
         [Authorize]
         [HttpGet("feed")]
+        // Returnerer den PaginatedFeedResult DTO, som nu har Tweets og LatestPolls
         public async Task<ActionResult<PaginatedFeedResult>> GetMyFeed(
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 5, // Husk at matche frontend page size hvis relevant
-            [FromQuery] int? politicianId = null) // Valgfri filter parameter (bruger politikerens DB ID)
+            [FromQuery] int pageSize = 5,
+            [FromQuery] int? politicianId = null)
         {
             var userIdString = User.FindFirstValue("userId");
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))
-            {
-                return Unauthorized("Kunne ikke identificere brugeren korrekt fra token.");
-            }
+            { return Unauthorized("Kunne ikke identificere brugeren korrekt fra token."); }
 
-            // Sørg for at page og pageSize har fornuftige værdier
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 5;
             if (pageSize > 50) pageSize = 50;
 
             try
             {
-                List<Tweet> tweetsToPaginate; // Liste vi vil paginere til sidst
+                // 1. Find relevante Politiker DB IDs
+                List<int> relevantPoliticianDbIds;
+                bool isFiltered = politicianId.HasValue; // Tjek om filter er sat
 
-                // ----- Logik for filtreret visning -----
-                if (politicianId.HasValue)
+                if (isFiltered) // Filter er sat
                 {
-                    // Tjek evt. først om brugeren følger denne politiker for ekstra sikkerhed
-                    // bool isSubscribed = await _context.Subscriptions.AnyAsync(s => s.UserId == currentUserId && s.PoliticianId == politicianId.Value); // Kræver PoliticianId i Subscription
-                    // if (!isSubscribed) return Forbid("Du følger ikke denne politiker.");
-
-                    // Hent tweets KUN fra den specifikke politiker (bruger FK: PoliticianTwitterId i Tweet modellen)
-                    tweetsToPaginate = await _context.Tweets
-                        .Where(t => t.PoliticianTwitterId == politicianId.Value) // Filter på politikerens DB ID
-                        .OrderByDescending(t => t.CreatedAt)
-                        .Include(t => t.Politician) // Stadig nødvendigt for AuthorName/Handle
-                        .ToListAsync();
-                    // Vi henter ALLE tweets for den ene politiker og paginerer i hukommelsen
+                    // Tjek om brugeren følger den filtrerede politiker
+                    bool isSubscribed = await _context.Subscriptions.AnyAsync(s => s.UserId == currentUserId && s.PoliticianTwitterId == politicianId.Value);
+                    if (!isSubscribed) return Ok(new PaginatedFeedResult()); // Tomt hvis ikke fulgt
+                    relevantPoliticianDbIds = new List<int> { politicianId.Value };
                 }
-                // ----- Logik for ufiltreret "Alle Tweets" visning (Oprindelig logik) -----
-                else
+                else // Intet filter ("Alle Tweets" view)
                 {
-                    // Find fulgte politikere (DB IDs)
-                    // *VIGTIGT:* Vi skal bruge politikerens DB ID her, ikke TwitterUserId, for at matche politicianId parameteren
-                    var subscribedPoliticianDbIds = await _context.Subscriptions
+                    relevantPoliticianDbIds = await _context.Subscriptions
                         .Where(s => s.UserId == currentUserId)
-                        .Select(s => s.PoliticianTwitterId) // Dette henter FK'en (politikerens DB ID)
+                        .Select(s => s.PoliticianTwitterId)
                         .ToListAsync();
+                }
 
-                    if (!subscribedPoliticianDbIds.Any())
-                    {
-                        return Ok(new PaginatedFeedResult { Tweets = new List<TweetDto>(), HasMore = false });
-                    }
+                if (!relevantPoliticianDbIds.Any())
+                {
+                    return Ok(new PaginatedFeedResult()); // Tom hvis ingen følges
+                }
 
-                    // Saml top 5 tweets fra HVER politiker (N+1 Loop)
+                // --- Del 1: Hent og Paginér Tweets ---
+                List<Tweet> tweetsToPaginate;
+                if (isFiltered) // Filtreret: Hent alle tweets for den ene politiker
+                {
+                    tweetsToPaginate = await _context.Tweets
+                        .Where(t => t.PoliticianTwitterId == politicianId.Value)
+                        .OrderByDescending(t => t.CreatedAt)
+                        .Include(t => t.Politician)
+                        .ToListAsync();
+                }
+                else // Ufiltreret: Hent top 5 tweets per politiker og aggreger
+                {
                     var allPotentialFeedTweets = new List<Tweet>();
-                    foreach (var polDbId in subscribedPoliticianDbIds)
+                    foreach (var polDbId in relevantPoliticianDbIds)
                     {
                         var politicianTop5Tweets = await _context.Tweets
-                            .Where(t => t.PoliticianTwitterId == polDbId) // Filter på politikerens DB ID
-                            .OrderByDescending(t => t.CreatedAt)
-                            .Take(5)
-                            .Include(t => t.Politician)
-                            .ToListAsync();
+                            .Where(t => t.PoliticianTwitterId == polDbId)
+                            .OrderByDescending(t => t.CreatedAt).Take(5)
+                            .Include(t => t.Politician).ToListAsync();
                         allPotentialFeedTweets.AddRange(politicianTop5Tweets);
                     }
-
-                    // Sortér den samlede liste globalt
                     tweetsToPaginate = allPotentialFeedTweets.OrderByDescending(t => t.CreatedAt).ToList();
                 }
 
-                // --- FÆLLES Pagination Logik (kører på 'tweetsToPaginate') ---
+                // Anvend paginering på den relevante tweet-liste
                 int totalTweets = tweetsToPaginate.Count;
-                int skipAmount = (page - 1) * pageSize;
-                var pagedTweets = tweetsToPaginate.Skip(skipAmount).Take(pageSize).ToList();
-                bool hasMore = skipAmount + pagedTweets.Count < totalTweets;
+                int skipAmountTweets = (page - 1) * pageSize;
+                var pagedTweets = tweetsToPaginate.Skip(skipAmountTweets).Take(pageSize).ToList();
+                bool hasMoreTweets = skipAmountTweets + pagedTweets.Count < totalTweets;
 
-                // --- Map og Returner ---
-                var feedDtos = pagedTweets
-                    .Select(t => new TweetDto
+                // Map de paginerede tweets til DTOs
+                var feedTweetDtos = pagedTweets.Select(t => new TweetDto {
+                    TwitterTweetId = t.TwitterTweetId, Text = t.Text, ImageUrl = t.ImageUrl, Likes = t.Likes,
+                    Retweets = t.Retweets, Replies = t.Replies, CreatedAt = t.CreatedAt,
+                    AuthorName = t.Politician?.Name ?? "Ukendt", AuthorHandle = t.Politician?.TwitterHandle ?? "ukendt"
+                }).ToList();
+
+
+                // --- Del 2: Hent de 2 seneste Polls PER POLITIKER (KUN hvis der IKKE er filter) ---
+                List<PollDetailsDto> latestPollDtos = new List<PollDetailsDto>(); // Start med tom liste
+
+                if (!isFiltered) // Kør kun denne logik, hvis vi ser "Alle Tweets"
+                {
+                    var allLatestPolls = new List<Poll>();
+                    // Loop gennem ALLE fulgte politikere
+                    foreach (var polDbId in relevantPoliticianDbIds)
                     {
-                        TwitterTweetId = t.TwitterTweetId,
-                        Text = t.Text,
-                        ImageUrl = t.ImageUrl,
-                        Likes = t.Likes,
-                        Retweets = t.Retweets,
-                        Replies = t.Replies,
-                        CreatedAt = t.CreatedAt,
-                        AuthorName = t.Politician?.Name ?? "Ukendt Afsender",
-                        AuthorHandle = t.Politician?.TwitterHandle ?? "ukendt"
-                    })
-                    .ToList();
+                        var politicianLatest2Polls = await _context.Polls
+                            .Where(p => p.PoliticianTwitterId == polDbId)
+                            .OrderByDescending(p => p.CreatedAt)
+                            .Take(2)
+                            .Include(p => p.Politician)
+                            .Include(p => p.Options)
+                            .ToListAsync();
+                        allLatestPolls.AddRange(politicianLatest2Polls);
+                    }
 
+                    // Hent brugerens stemmer for de indsamlede polls
+                    var pollIdsToCheck = allLatestPolls.Select(p => p.Id).Distinct().ToList();
+                    var userVotesForLatestPolls = await _context.UserVotes
+                       .Where(uv => uv.UserId == currentUserId && pollIdsToCheck.Contains(uv.PollId))
+                       .ToDictionaryAsync(uv => uv.PollId, uv => uv);
+
+                    // Map og sorter de indsamlede polls globalt
+                    latestPollDtos = allLatestPolls
+                        .OrderByDescending(p => p.CreatedAt)
+                        .Select(p => MapPollToDetailsDto(p, p.Politician, userVotesForLatestPolls.ContainsKey(p.Id) ? userVotesForLatestPolls[p.Id] : null))
+                        .ToList();
+                }
+                // Hvis isFiltered er true, forbliver latestPollDtos en tom liste.
+
+                // --- Del 3: Kombiner i Resultatet ---
                 var result = new PaginatedFeedResult
                 {
-                    Tweets = feedDtos,
-                    HasMore = hasMore
+                    Tweets = feedTweetDtos,          // Paginerede tweets
+                    HasMore = hasMoreTweets,         // Paginering baseret på tweets
+                    LatestPolls = latestPollDtos     // Seneste 2 polls per politiker (eller tom liste hvis filtreret)
                 };
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fejl under hentning af pagineret feed for bruger {currentUserId} (Filter: {politicianId}): {ex}");
+                Console.WriteLine($"Fejl under hentning af feed for bruger {currentUserId} (Filter: {politicianId}): {ex}");
                 return StatusCode(500, "Der opstod en intern fejl under hentning af dit feed.");
             }
         }
-    }
-}
+
+        // --- Privat Hjælpemetode til Poll Mapping (som før) ---
+        private PollDetailsDto MapPollToDetailsDto(Poll poll, PoliticianTwitterId politician, UserVote? userVote)
+        {
+             int totalVotes = poll.Options?.Sum(o => o.Votes) ?? 0;
+             return new PollDetailsDto {
+                 Id = poll.Id, Question = poll.Question, CreatedAt = poll.CreatedAt, EndedAt = poll.EndedAt,
+                 PoliticianId = politician.Id, PoliticianName = politician.Name, PoliticianHandle = politician.TwitterHandle,
+                 Options = poll.Options?.Select(o => new PollOptionDto { Id = o.Id, OptionText = o.OptionText, Votes = o.Votes })
+                                    .OrderBy(o => o.Id).ToList() ?? new List<PollOptionDto>(),
+                 CurrentUserVoteOptionId = userVote?.ChosenOptionId, TotalVotes = totalVotes
+             };
+        }
+    } // Slut på klasse
+} // Slut på namespace

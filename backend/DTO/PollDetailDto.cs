@@ -10,9 +10,9 @@ namespace backend.DTOs
         public string Question { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime? EndedAt { get; set; }
-        public bool IsActive => !EndedAt.HasValue || EndedAt.Value > DateTime.UtcNow; // Beregnet property
+        public bool IsActive => !EndedAt.HasValue || EndedAt.Value > DateTime.UtcNow; // hvis den er inden fro ended at, er den aktiv
 
-        // Info om ophavsmand
+        // Info om hvem pool er lavet af
         public int PoliticianId { get; set; } // Politikerens DB ID
         public string PoliticianName { get; set; } = string.Empty;
         public string PoliticianHandle { get; set; } = string.Empty;
@@ -20,8 +20,8 @@ namespace backend.DTOs
         // Svarmuligheder
         public List<PollOptionDto> Options { get; set; } = new List<PollOptionDto>();
 
-        // Info til den aktuelle bruger (kan tilføjes)
-        public int? CurrentUserVoteOptionId { get; set; } = null; // Hvilken option har brugeren stemt på? (null hvis ikke stemt)
-        public int TotalVotes { get; set; } // Samlet antal stemmer på pollen
+        
+        public int? CurrentUserVoteOptionId { get; set; } = null; // Hvilken option har brugeren stemt på? 
+        public int TotalVotes { get; set; } 
     }
 }

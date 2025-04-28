@@ -51,6 +51,7 @@ namespace backend.Models
         // Relation til Afgivne Stemmer (for denne option)
         public virtual List<UserVote> UserVotes { get; set; } = new List<UserVote>();
     }
+    
      public class UserVote
     {
         public int Id { get; set; } // Primærnøgle for UserVote

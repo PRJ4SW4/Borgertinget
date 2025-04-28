@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 namespace backend.Hubs
 {
    
-    public class FeedHub : Hub
+    public class FeedHub : Hub // FeedHub arver fra SignalR klasse, som Hub, som er en del af aspcore
+
     {
         
         public override async Task OnConnectedAsync()

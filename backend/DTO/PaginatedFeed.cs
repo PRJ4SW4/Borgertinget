@@ -7,5 +7,8 @@ namespace backend.DTOs
     {
         public List<TweetDto> Tweets { get; set; } = new List<TweetDto>();
         public bool HasMore { get; set; } 
+
+                public List<PollDetailsDto> LatestPolls { get; set; } = new List<PollDetailsDto>();
+
     }
 }

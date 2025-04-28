@@ -11,7 +11,7 @@ namespace backend.Models
         public string? VerificationToken { get; set; }
         public List<string> Roles { get; set; } = new();
 
-        public List<Subscription> Subscriptions { get; set; } = new(); // Navigation property for subscriptions
+        public List<Subscription> Subscriptions { get; set; } = new(); 
 
     }
 }

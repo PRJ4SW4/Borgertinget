@@ -6,12 +6,12 @@ namespace backend.Models
 public class Subscription
 {
     public int Id { get; set; }
-    public int UserId { get; set; } // The user who is subscribing
-    public int PoliticianTwitterId { get; set; } // The politician the user is subscribing to
+    public int UserId { get; set; } 
+    public int PoliticianTwitterId { get; set; } 
 
-    // Navigation properties
-    public User User { get; set; }
-    public PoliticianTwitterId Politician { get; set; }
+    
+    public User User { get; set; } = null!;
+    public PoliticianTwitterId Politician { get; set; } = null!;
 }
 
 }

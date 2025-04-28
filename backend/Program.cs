@@ -77,9 +77,24 @@ builder
             OnTokenValidated = context =>
             {
                 Console.WriteLine("✅ TOKEN VALIDATED:");
-                Console.WriteLine("User: " + context.Principal.Identity?.Name);
+               // Console.WriteLine("User: " + context.Principal.Identity?.Name);
                 return Task.CompletedTask;
             },
+             OnMessageReceived = context =>
+    {
+        // Tjek om tokenet findes i 'access_token' query parameteren
+        var accessToken = context.Request.Query["access_token"];
+
+        // Tjek om requesten er til din SignalR Hub sti
+        var path = context.HttpContext.Request.Path;
+        if (!string.IsNullOrEmpty(accessToken) &&
+            (path.StartsWithSegments("/feedHub"))) // <-- Match din Hub URL
+        {
+            Console.WriteLine("SIGNALR DEBUG: Setting token from query string."); // <-- ADD LOG
+            context.Token = accessToken;
+        }
+        return Task.CompletedTask;
+    }
         };
     });
 
@@ -127,7 +142,7 @@ builder.Services.AddSwaggerGen(options =>
 
 // Tilføj EmailService
 builder.Services.AddScoped<EmailService>();
-builder.Services.AddHostedService<TweetFetchingService>(); // <--- TILFØJ DENNE LINJE
+builder.Services.AddHostedService<TweetFetchingService>(); 
 builder.Services.AddHttpClient<TwitterService>();
 
 
@@ -138,7 +153,10 @@ builder.Services.AddCors(options =>
         "AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod();
+            policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()
+            .AllowAnyHeader()                   
+            .AllowAnyMethod()                  
+            .AllowCredentials();  
         }
     );
 });
