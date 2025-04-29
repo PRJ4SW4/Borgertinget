@@ -192,5 +192,8 @@ namespace backend.Controllers
                  CurrentUserVoteOptionId = userVote?.ChosenOptionId, TotalVotes = totalVotes
              };
         }
-    } // Slut på klasse
+     
+
+    }
+
 } // Slut på namespace

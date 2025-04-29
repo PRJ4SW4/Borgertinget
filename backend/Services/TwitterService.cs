@@ -29,7 +29,7 @@ namespace backend.Services
 
         // Denne metode henter tweets, tjekker for dubletter mod DB,
         // gemmer kun nye tweets, og returnerer DTO'er for de nye.
-        public async Task<int> GetStructuredTweets(string userId, int count = 10) 
+    public async Task<int> GetStructuredTweets(string userId, int count = 10) 
 {
     // 1. Find politikerens interne DB ID ud fra Twitter User ID
     var politician = await _dbContext.PoliticianTwitterIds
@@ -155,18 +155,7 @@ namespace backend.Services
             int replies = metrics?["reply_count"]?.ToObject<int>() ?? 0;
             DateTime createdAt = tweet["created_at"]?.ToObject<DateTime>() ?? DateTime.UtcNow;
 
-            // Opret DTO for det nye tweet - UDKOMMENTERET/SLETTET
-            /*
-            var tweetDto = new TweetDto
-            {
-                Text = text,
-                ImageUrl = mediaUrl,
-                Likes = likes,
-                Retweets = retweets,
-                Replies = replies
-            };
-            tweetDtos.Add(tweetDto);
-            */
+            
 
             // Opret DB Entity for det nye tweet
             var tweetEntity = new Tweet
@@ -204,11 +193,9 @@ namespace backend.Services
     }
     else
     {
-         return 0; // Returner 0 hvis der ingen nye tweets var at gemme
+         return 0; 
     }
 
-    // 8. Returner listen af DTO'er - UDKOMMENTERET/SLETTET
-    // return tweetDtos;
 }
 
         // Privat hjælpefunktion til at hente OpenGraph billede
@@ -239,8 +226,7 @@ namespace backend.Services
              }
         }
 
-        // Den oprindelige GetUserTweets metode (uden DB interaktion eller dublet-tjek)
-        // kan beholdes hvis den bruges andre steder, ellers kan den fjernes.
+       
         public async Task<List<string>> GetUserTweets(string userId, int count = 5)
         {
             string url = $"https://api.twitter.com/2/users/{userId}/tweets" +

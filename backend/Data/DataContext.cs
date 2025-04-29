@@ -105,6 +105,8 @@ namespace backend.Data
             modelBuilder.Entity<Flashcard>().HasData(/* ... din flashcard seed data ... */);
 
             // === Konfiguration for PoliticianTwitterId ===
+
+            /*
             modelBuilder.Entity<PoliticianTwitterId>(entity =>
             {
                 entity.HasIndex(p => p.TwitterUserId).IsUnique();
@@ -127,14 +129,50 @@ namespace backend.Data
                 entity.Property(p => p.Name).IsRequired();
                 entity.Property(p => p.TwitterHandle).IsRequired();
 
+
+
                 // --- SEED POLITICIAN DATA --- (Beholder din seed data)
                 entity.HasData(
                      new PoliticianTwitterId { Id = 1, TwitterUserId = "806068174567460864", Name = "Statsministeriet", TwitterHandle = "Statsmin" },
                      new PoliticianTwitterId { Id = 2, TwitterUserId = "123868861", Name = "Venstre, Danmarks Liberale Parti", TwitterHandle = "venstredk" },
                      new PoliticianTwitterId { Id = 3, TwitterUserId = "2965907578", Name = "Troels Lund Poulsen", TwitterHandle = "troelslundp" }
                 );
-                // FJERNET: Det ekstra base.OnModelCreating(modelBuilder); kald herfra
             });
+
+            */
+           modelBuilder.Entity<PoliticianTwitterId>(entity =>
+            {
+                entity.HasIndex(p => p.TwitterUserId).IsUnique();
+                entity.HasMany(p => p.Tweets)
+                      .WithOne(t => t.Politician)
+                      .HasForeignKey(t => t.PoliticianTwitterId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasMany(p => p.Subscriptions)
+                      .WithOne(s => s.Politician)
+                      .HasForeignKey(s => s.PoliticianTwitterId);
+                entity.HasMany(p => p.Polls)
+                      .WithOne(p => p.Politician)
+                      .HasForeignKey(p => p.PoliticianTwitterId);
+
+                entity.Property(p => p.TwitterUserId).IsRequired();
+                entity.Property(p => p.Name).IsRequired();
+                entity.Property(p => p.TwitterHandle).IsRequired();
+
+                // Eksplicit konfiguration for Aktor relation
+                entity.HasOne(politicianTwitter => politicianTwitter.Aktor) // Kræver 'virtual Aktor? Aktor' prop
+                      .WithOne() // Antager Aktor ikke har prop tilbage
+                      .HasForeignKey<PoliticianTwitterId>(politicianTwitter => politicianTwitter.AktorId) 
+                      .IsRequired(false) // Valgfri relation
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                 entity.HasData(
+                   new PoliticianTwitterId { Id = 1, TwitterUserId = "806068174567460864", Name = "Statsministeriet", TwitterHandle = "Statsmin", AktorId = 138 }, 
+                   new PoliticianTwitterId { Id = 2, TwitterUserId = "123868861", Name = "Venstre, Danmarks Liberale Parti", TwitterHandle = "venstredk", AktorId = null  }, 
+                   new PoliticianTwitterId { Id = 3, TwitterUserId = "2965907578", Name = "Troels Lund Poulsen", TwitterHandle = "troelslundp", AktorId = 206  } 
+                 );
+            });
+         
+
 
 
             // Configure Tweet (Index, Required)
@@ -199,4 +237,4 @@ namespace backend.Data
 
         } // Slut på OnModelCreating
     } // Slut på DataContext
-} // Slut på namespace
+} // Slut på namespacedo
