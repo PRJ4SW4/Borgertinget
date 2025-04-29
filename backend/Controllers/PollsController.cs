@@ -71,6 +71,7 @@ namespace backend.Controllers
             {
                 Question = createPollDto.Question,
                 PoliticianTwitterId = createPollDto.PoliticianTwitterId,
+                PoliticianId = politician.Id, // <-- assign this!
                 CreatedAt = DateTime.UtcNow,
                 EndedAt = createPollDto.EndedAt?.ToUniversalTime(),
             };

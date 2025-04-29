@@ -19,11 +19,17 @@ interface Question {
   options: PollOption[];
 }
 
+interface Politician {
+  id: string;
+  navn: string;
+}
+
 export default function DeletePoll() {
   const [polls, setPolls] = useState<PollSummary[]>([]);
   const [selectedPollId, setSelectedPollId] = useState<number | null>(null);
-  const [feedText, setFeedText] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [politicians, setPoliticians] = useState<Politician[]>([]);
+  const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -48,6 +54,26 @@ export default function DeletePoll() {
   }, []);
 
   useEffect(() => {
+    async function fetchPoliticians() {
+      const token = localStorage.getItem("jwt");
+      if (!token) {
+        alert("Du er ikke logget ind.");
+        return;
+      }
+
+      try {
+        const response = await axios.get("/api/aktor/all", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPoliticians(response.data);
+      } catch (error) {
+        console.error("Failed to fetch politicians", error);
+      }
+    }
+    fetchPoliticians();
+  }, []);
+
+  useEffect(() => {
     if (selectedPollId === null) return;
 
     async function fetchPollDetails() {
@@ -62,9 +88,18 @@ export default function DeletePoll() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const pollData = response.data;
-        setFeedText(pollData.feedText || "");
-        setQuestions(pollData.polls || []);
+        setQuestions([
+          {
+            id: pollData.id,
+            question: pollData.question,
+            options: pollData.options.map((o: any) => ({
+              id: o.id,
+              optionText: o.optionText,
+            })),
+          },
+        ]);
         setEndDate(pollData.endedAt ? pollData.endedAt.split("T")[0] : null);
+        setSelectedPoliticianId(pollData.politicianId ? String(pollData.politicianId) : null);
       } catch (error) {
         console.error("Failed to fetch poll details", error);
       }
@@ -116,8 +151,15 @@ export default function DeletePoll() {
       {selectedPollId && (
         <form onSubmit={handleDelete} className="add-poll-form">
           <div className="add-poll-section">
-            <label className="add-poll-label">Feed Tekst</label>
-            <input type="text" value={feedText} disabled className="add-poll-input" placeholder="Skriv en introduktion til spørgeskemaet..." />
+            <label className="add-poll-label">Vælg Politiker</label>
+            <select className="add-poll-input" value={selectedPoliticianId ?? ""} disabled>
+              <option value="">-- Vælg en politiker --</option>
+              {politicians.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.navn}
+                </option>
+              ))}
+            </select>
           </div>
 
           {questions.map((q, qIndex) => (
@@ -141,7 +183,6 @@ export default function DeletePoll() {
             </div>
           ))}
 
-          {/* End Date */}
           <div className="add-poll-section">
             <label className="add-poll-label">Slutdato</label>
             <input type="date" value={endDate ?? ""} disabled className="add-poll-input" />
