@@ -26,8 +26,16 @@ import PoliticianPage from "./pages/PoliticianPage";
 import PartiesPage from "./pages/PartiesPage";
 import FeedPage from "./pages/FeedPage"; // Tilføj denne linje
 
+import Polidle from "./pages/Polidle/Polidle";
+// Importet gamemodes
+import ClassicMode from "./pages/Polidle/ClassicMode";
+import CitatMode from "./pages/Polidle/CitatMode";
+import FotoBlurMode from "./pages/Polidle/FotoBlurMode";
+
 function App() {
-  const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("jwt")
+  );
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -41,7 +49,12 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login setToken={setToken} />} />
-      <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
+      <Route
+        path="/home"
+        element={
+          token ? <Home setToken={setToken} /> : <Navigate to="/login" />
+        }
+      />
       <Route path="/verify" element={<Verify />} />
       <Route path="/kalender" element={<CalendarView />} />
       <Route path="/feed" element={token ? <FeedPage /> : <Navigate to="/login" />} /> // Vis FeedPage hvis logget ind, ellers login
@@ -74,6 +87,27 @@ function App() {
       <Route path="/admin/Polls/deletePoll" element={token ? <DeletePoll /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
+      <Route path="/Polidle" element={<Polidle />} />
+      // gamemodes
+      <Route path="/ClassicMode" element={<ClassicMode />} />
+      <Route
+        path="/CitatMode"
+        element={
+          <CitatMode
+            citat="Sample Citat"
+            correctPolitiker="Sample Politician"
+          />
+        }
+      />
+      <Route
+        path="/FotoBlurMode"
+        element={
+          <FotoBlurMode
+            imageUrl="sample-image-url.jpg"
+            correctPolitiker="Sample Politician"
+          />
+        }
+      />
     </Routes>
   );
 }
