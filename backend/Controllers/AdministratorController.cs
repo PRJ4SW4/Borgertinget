@@ -69,27 +69,6 @@ public class AdministratorController : ControllerBase
         }
     }
 
-    // Put request for changing the username
-    [HttpPut("{userId}")]
-    public async Task<IActionResult> PutNewUserName(int userId, UpdateUserNameDto dto)
-    {
-        if (dto == null)
-        {
-            return BadRequest("No new username found");
-        }
-
-        try
-        {
-            await _service.UpdateUserNameAsync(userId, dto);
-
-            return Ok("Username updated");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"An error occurred while updating the username: {ex.Message}");
-        }
-    }
-
     [HttpGet("GetAllFlashcardCollectionTitles")]
     public async Task<IActionResult> GetFlashCardCollectionTitles()
     {
@@ -200,6 +179,27 @@ public class AdministratorController : ControllerBase
         catch
         {
             return StatusCode(500, $"An error occured while getting the user: {username}");
+        }
+    }
+
+    // Put request for changing the username
+    [HttpPut("{userId}")]
+    public async Task<IActionResult> PutNewUserName(int userId, UpdateUserNameDto dto)
+    {
+        if (dto == null)
+        {
+            return BadRequest("No new username found");
+        }
+
+        try
+        {
+            await _service.UpdateUserNameAsync(userId, dto);
+
+            return Ok("Username updated");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred while updating the username: {ex.Message}");
         }
     }
 }

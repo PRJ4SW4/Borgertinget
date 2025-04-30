@@ -41,12 +41,21 @@ export default function CreateFlashcardCollection() {
             flashcards,
         };
 
+
+        if (!formIsValid()) {
+            alert("Felt mangler at blive udfyldt!");
+            return;
+          }
+          
         try {
+
+           
             const res = await axios.post("/api/administrator/PostFlashcardCollection", dto, {
                 headers: {"Content-Type": "application/json" },
             });
 
-            alert(res.data);
+            alert("Flashcard serie er oprettet!!");
+            console.log(res.data);
             
             // Reset the form
             setTitle("");
@@ -85,6 +94,26 @@ export default function CreateFlashcardCollection() {
           }
     };
 
+    const formIsValid = () => {
+        if (!title.trim()) return false;
+        if (!description.trim()) return false;
+      
+        // at least one flashcard and every side filled
+        // every returns false if either frontOk or backOK is false
+        return flashcards.every(fc => {
+          const frontOk = // Check if front is empty
+            fc.frontContentType === "Text"
+              ? !!fc.frontText?.trim()
+              : !!fc.frontImagePath;
+          const backOk = // Check if back is empty
+            fc.backContentType === "Text"
+              ? !!fc.backText?.trim()
+              : !!fc.backImagePath;
+          return frontOk && backOk;
+        });
+      };
+      
+
 
     return(
         <div className="create-container">
@@ -96,6 +125,7 @@ export default function CreateFlashcardCollection() {
             <input
                 type="text"
                 value={title}
+                required
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Titel"
             />
@@ -104,6 +134,7 @@ export default function CreateFlashcardCollection() {
 
             <textarea
                 value={description}
+                required
                 onChange={(d) => setDescription(d.target.value)}
                 placeholder="Beskrivelse"
             />
@@ -117,6 +148,7 @@ export default function CreateFlashcardCollection() {
                     {fc.frontContentType === "Text" ? (
                         <input
                             type="text"
+                            required
                             placeholder="Spørgsmål"
                             value={fc.frontText ?? ""}
                             onChange={(e) => {
@@ -129,6 +161,8 @@ export default function CreateFlashcardCollection() {
                         <input
                             type="file"
                             accept="image/*"
+                            required
+                            
                             onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (!file) return;
@@ -148,6 +182,7 @@ export default function CreateFlashcardCollection() {
                             type="text"
                             placeholder="Svar"
                             value={fc.backText ?? ""}
+                            required
                             onChange={(e) => {
                             const updated = [...flashcards];
                             updated[index].backText = e.target.value;
@@ -158,6 +193,7 @@ export default function CreateFlashcardCollection() {
                             <input
                             type="file"
                             accept="image/*"
+                            required
                             onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (!file) return;

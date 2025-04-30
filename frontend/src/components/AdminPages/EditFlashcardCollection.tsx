@@ -54,10 +54,10 @@ export default function EditFlashcardCollection() {
             await axios.put(`/api/administrator/UpdateFlashcardCollection/${collection.collectionId}`, collection, {
                 headers: { "Content-Type": "application/json"},
             });
-            alert("Flashcard serie gemt!");
+            alert("Flashcard serien er redigeret!");
         } catch (err) {
             console.error(err);
-            console.log("Error saving collection");
+            console.log("Fejl med at gemme flashcard serien");
         }
 
     };
@@ -212,7 +212,7 @@ export default function EditFlashcardCollection() {
           
               <button
               className="save-button" 
-              onClick={handleSave}>Save Changes</button>
+              onClick={handleSave}>Rediger!</button>
             </div>
           )}
         </div>

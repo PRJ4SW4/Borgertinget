@@ -9,7 +9,14 @@ export default function AdminBruger() {
 
     const handleChange = async () => {
 
+        if (!oldUsername.trim() || !newUsername.trim()) {
+          alert("Udfyld både det gamle og det nye brugernavn.");
+          return;                          // stop right here
+        }
+
         try {
+
+            
             // Lookup  the user ID by the old username
             const getRes = await axios.get<number>(
                 `/api/administrator/username`,
@@ -31,7 +38,7 @@ export default function AdminBruger() {
         } catch (err: any) {
             console.error(err);
             if (err.response?.status === 404) {
-                alert("Bruger ikke fundet");
+                alert("Fejl: Bruger ikke fundet");
             } else {
                 alert("Fejl under opdatering af brugernavn")
             }
@@ -49,6 +56,7 @@ export default function AdminBruger() {
           <div className="input-group">
             <input
               type="text"
+              required
               placeholder="Gammel brugernavn"
               value={oldUsername}
               onChange={(e) => setOldUsername(e.target.value)}
@@ -56,6 +64,7 @@ export default function AdminBruger() {
     
             <input
               type="text"
+              required
               placeholder="Ny brugernavn"
               value={newUsername}
               onChange={(e) => setNewUsername(e.target.value)}
