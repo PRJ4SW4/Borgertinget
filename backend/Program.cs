@@ -178,7 +178,13 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHttpClient(); // til OAuth
 
-builder.Services.AddControllers();
+// note af Jakob, put option id virkede med det her der er uddokumenteret, men da jeg havde det til, så virkede feed og partier ikke, jeg har ikke den post til pools på min git, derfor håber jeg det virker uden dette,
+ 
+
+builder.Services.AddControllers();/* .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    });*/
 
 // For altinget scraping
 builder.Services.AddHttpClient();

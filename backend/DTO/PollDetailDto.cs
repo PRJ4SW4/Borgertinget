@@ -24,4 +24,12 @@ namespace backend.DTOs
         public int? CurrentUserVoteOptionId { get; set; } = null; // Hvilken option har brugeren stemt på? 
         public int TotalVotes { get; set; } 
     }
+
+
+
+    public class PollQuestionUpdate
+{
+    public string NewQuestion { get; set; }
+}
+
 }
