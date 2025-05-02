@@ -17,6 +17,7 @@ namespace backend.Services
             _context = context;
         }
 
+        #region Flashcard Collection
         // POST Flashcard collection
         public async Task<int> CreateCollectionAsync(FlashcardCollectionDetailDto dto)
         {
@@ -172,6 +173,10 @@ namespace backend.Services
             await _context.SaveChangesAsync();
         }
 
+        #endregion
+
+        #region User
+
         // GET user by username
         public async Task<User> GetUserByUsernameAsync(string username)
         {
@@ -186,7 +191,7 @@ namespace backend.Services
             return user;
         }
 
-        // Get all users
+        // GET all users
         public async Task<User[]> GetAllUsersAsync()
         {
             // Search user by username
@@ -217,5 +222,73 @@ namespace backend.Services
             // Save changes to the Db
             _context.SaveChanges();
         }
+
+        #endregion
+
+        #region Citat mode
+
+        // GET all quotes
+        public async Task<List<EditQuoteDTO>> GetAllQuotesAsync()
+        {
+            var quotes = await _context.PoliticianQuotes.ToListAsync(); // Get list of quotes
+
+            if (quotes == null)
+            {
+                throw new KeyNotFoundException($"Error finding Politician Quotes");
+            }
+
+            // Initialize DTO list
+            var quotesDTO = new List<EditQuoteDTO>();
+
+            // Append relevant info from quotes list into the DTO list
+            foreach (var quote in quotes)
+            {
+                var quoteDTO = new EditQuoteDTO();
+                quoteDTO.QuoteId = quote.QuoteId;
+                quoteDTO.QuoteText = quote.QuoteText;
+                quotesDTO.Add(quoteDTO);
+            }
+
+            return quotesDTO;
+        }
+
+        // GET one quote instance by id
+        public async Task<EditQuoteDTO> GetQuoteByIdAsync(int id)
+        {
+            var quote = await _context
+                .PoliticianQuotes.Where(pq => pq.QuoteId == id)
+                .FirstOrDefaultAsync();
+
+            if (quote == null)
+            {
+                throw new KeyNotFoundException("Error quote not found");
+            }
+
+            var quoteDTO = new EditQuoteDTO()
+            {
+                QuoteId = quote.QuoteId,
+                QuoteText = quote.QuoteText,
+            };
+
+            return quoteDTO;
+        }
+
+        // PUT a quoteText
+        public async Task EditQuoteAsync(int quoteId, string quoteText)
+        {
+            var quote = await _context.PoliticianQuotes.FirstOrDefaultAsync(pq =>
+                pq.QuoteId == quoteId
+            );
+
+            if (quote == null)
+            {
+                throw new KeyNotFoundException($"Error quote with quoteID: {quoteId} not found");
+            }
+
+            quote.QuoteText = quoteText;
+            await _context.SaveChangesAsync();
+        }
+
+        #endregion
     }
 }

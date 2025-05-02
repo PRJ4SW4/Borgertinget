@@ -16,6 +16,7 @@ import AdminIndhold from "./components/AdminPages/AdminIndhold";
 import AdminLearing from "./components/AdminPages/AdminLearing";
 import AdminPolls from "./components/AdminPages/AdminPolls";
 import EditFlashcardCollection from "./components/AdminPages/EditFlashcardCollection";
+import EditQuotes from "./components/AdminPages/EditCitatMode";
 import AddPoll from "./components/AdminPages/AddPolls";
 import EditPoll from "./components/AdminPages/EditPoll";
 import DeletePoll from "./components/AdminPages/DeletePoll";
@@ -31,6 +32,7 @@ import Polidle from "./pages/Polidle/Polidle";
 import ClassicMode from "./pages/Polidle/ClassicMode";
 import CitatMode from "./pages/Polidle/CitatMode";
 import FotoBlurMode from "./pages/Polidle/FotoBlurMode";
+import EditCitatMode from "./components/AdminPages/EditCitatMode";
 
 function App() {
   const [token, setToken] = useState<string | null>(
@@ -87,6 +89,7 @@ function App() {
       <Route path="/admin/Polls/deletePoll" element={token ? <DeletePoll /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
+      <Route path="/admin/Laering/editcitatmode" element={token ? <EditQuotes /> : <Navigate to="/home" />} />
       <Route path="/Polidle" element={<Polidle />} />
       // gamemodes
       <Route path="/ClassicMode" element={<ClassicMode />} />

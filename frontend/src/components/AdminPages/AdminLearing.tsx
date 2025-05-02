@@ -26,6 +26,13 @@ export default function AdminLaering() {
                     className='Button'>
                     Rediger flashcard serie
                 </button>
+                <br/>
+                <button
+                    onClick={() => navigate("/admin/Laering/editcitatmode")}
+                    className='Button'>
+                    Rediger Polidles Citat-Mode
+
+                </button>
 
             </div>
         </div>

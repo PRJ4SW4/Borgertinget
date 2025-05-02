@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -12,9 +13,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250430073352_OpdaterDatabasen")]
+    partial class OpdaterDatabasen
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,7 +51,7 @@ namespace backend.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("AnswerOptions", (string)null);
+                    b.ToTable("AnswerOptions");
                 });
 
             modelBuilder.Entity("CalendarEvent", b =>
@@ -84,7 +87,7 @@ namespace backend.Migrations
                     b.HasIndex("SourceUrl")
                         .IsUnique();
 
-                    b.ToTable("CalendarEvents", (string)null);
+                    b.ToTable("CalendarEvents");
                 });
 
             modelBuilder.Entity("Flashcard", b =>
@@ -125,7 +128,7 @@ namespace backend.Migrations
 
                     b.HasIndex("CollectionId");
 
-                    b.ToTable("Flashcards", (string)null);
+                    b.ToTable("Flashcards");
 
                     b.HasData(
                         new
@@ -201,7 +204,7 @@ namespace backend.Migrations
 
                     b.HasKey("CollectionId");
 
-                    b.ToTable("FlashcardCollections", (string)null);
+                    b.ToTable("FlashcardCollections");
                 });
 
             modelBuilder.Entity("Page", b =>
@@ -231,7 +234,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ParentPageId");
 
-                    b.ToTable("Pages", (string)null);
+                    b.ToTable("Pages");
                 });
 
             modelBuilder.Entity("Question", b =>
@@ -253,7 +256,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("Questions", (string)null);
+                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("backend.Models.Aktor", b =>
@@ -350,7 +353,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Aktor", (string)null);
+                    b.ToTable("Aktor");
                 });
 
             modelBuilder.Entity("backend.Models.DailySelection", b =>
@@ -376,7 +379,7 @@ namespace backend.Migrations
 
                     b.HasIndex("SelectedPolitikerID");
 
-                    b.ToTable("daily_selections", (string)null);
+                    b.ToTable("daily_selections");
                 });
 
             modelBuilder.Entity("backend.Models.FakeParti", b =>
@@ -394,7 +397,7 @@ namespace backend.Migrations
 
                     b.HasKey("PartiId");
 
-                    b.ToTable("FakePartier", (string)null);
+                    b.ToTable("FakePartier");
                 });
 
             modelBuilder.Entity("backend.Models.FakePolitiker", b =>
@@ -439,7 +442,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PartiId");
 
-                    b.ToTable("FakePolitikere", (string)null);
+                    b.ToTable("FakePolitikere");
                 });
 
             modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
@@ -463,7 +466,7 @@ namespace backend.Migrations
 
                     b.HasKey("PolitikerId", "GameMode");
 
-                    b.ToTable("GameTrackings", (string)null);
+                    b.ToTable("GameTrackings");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
@@ -485,7 +488,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PolitikerId");
 
-                    b.ToTable("PoliticianQuotes", (string)null);
+                    b.ToTable("PoliticianQuotes");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
@@ -513,7 +516,7 @@ namespace backend.Migrations
                     b.HasIndex("TwitterUserId")
                         .IsUnique();
 
-                    b.ToTable("PoliticianTwitterIds", (string)null);
+                    b.ToTable("PoliticianTwitterIds");
 
                     b.HasData(
                         new
@@ -569,7 +572,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PoliticianId");
 
-                    b.ToTable("Polls", (string)null);
+                    b.ToTable("Polls");
                 });
 
             modelBuilder.Entity("backend.Models.PollOption", b =>
@@ -595,7 +598,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PollId");
 
-                    b.ToTable("PollOptions", (string)null);
+                    b.ToTable("PollOptions");
                 });
 
             modelBuilder.Entity("backend.Models.Subscription", b =>
@@ -618,7 +621,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Subscriptions", (string)null);
+                    b.ToTable("Subscriptions");
 
                     b.HasData(
                         new
@@ -680,7 +683,7 @@ namespace backend.Migrations
                     b.HasIndex("PoliticianTwitterId", "TwitterTweetId")
                         .IsUnique();
 
-                    b.ToTable("Tweets", (string)null);
+                    b.ToTable("Tweets");
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
@@ -715,7 +718,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("backend.Models.UserVote", b =>
@@ -744,7 +747,7 @@ namespace backend.Migrations
                     b.HasIndex("UserId", "PollId")
                         .IsUnique();
 
-                    b.ToTable("UserVotes", (string)null);
+                    b.ToTable("UserVotes");
                 });
 
             modelBuilder.Entity("AnswerOption", b =>

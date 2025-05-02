@@ -18,6 +18,7 @@ public class AdministratorController : ControllerBase
         _service = service;
     }
 
+    // POST Flashcard collection
     [HttpPost("PostFlashcardCollection")]
     public async Task<IActionResult> PostFlashCardCollection(FlashcardCollectionDetailDto dto)
     {
@@ -69,6 +70,7 @@ public class AdministratorController : ControllerBase
         }
     }
 
+    // GET all flashcard collection titles
     [HttpGet("GetAllFlashcardCollectionTitles")]
     public async Task<IActionResult> GetFlashCardCollectionTitles()
     {
@@ -84,6 +86,7 @@ public class AdministratorController : ControllerBase
         }
     }
 
+    // GET flashcardCollection by title
     [HttpGet("GetFlashcardCollectionByTitle")]
     public async Task<IActionResult> GetFlashCardCollectionByTitle(string title)
     {
@@ -99,6 +102,7 @@ public class AdministratorController : ControllerBase
         }
     }
 
+    // PUT Flashcard collection
     [HttpPut("UpdateFlashcardCollection/{collectionId}")]
     public async Task<IActionResult> UpdateFlashcardCollection(
         int collectionId,
@@ -124,6 +128,7 @@ public class AdministratorController : ControllerBase
         }
     }
 
+    // DELETE FlashcardColletion
     [HttpDelete("{collectionId}")]
     public async Task<IActionResult> DeleteFlashcardCollection(int collectionId)
     {
@@ -147,6 +152,7 @@ public class AdministratorController : ControllerBase
         }
     }
 
+    // GET all users
     [HttpGet("GetAllUsers")]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -162,6 +168,7 @@ public class AdministratorController : ControllerBase
         }
     }
 
+    // GET Username ID
     [HttpGet("username")]
     public async Task<IActionResult> GetUsernameID(string username)
     {
@@ -182,7 +189,7 @@ public class AdministratorController : ControllerBase
         }
     }
 
-    // Put request for changing the username
+    // PUT request for changing the username
     [HttpPut("{userId}")]
     public async Task<IActionResult> PutNewUserName(int userId, UpdateUserNameDto dto)
     {
@@ -200,6 +207,54 @@ public class AdministratorController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, $"An error occurred while updating the username: {ex.Message}");
+        }
+    }
+
+    // GET all politician quotes
+    [HttpGet("GetAllQuotes")]
+    public async Task<IActionResult> GetAllQuotes()
+    {
+        try
+        {
+            var quotes = await _service.GetAllQuotesAsync();
+
+            return Ok(quotes);
+        }
+        catch
+        {
+            return StatusCode(500, "An error occured while getting all politician quotes ");
+        }
+    }
+
+    // GET one quote instance by id
+    [HttpGet("GetQuoteById")]
+    public async Task<IActionResult> GetQuoteById(int quoteId)
+    {
+        try
+        {
+            var quote = await _service.GetQuoteByIdAsync(quoteId);
+
+            return Ok(quote);
+        }
+        catch
+        {
+            return StatusCode(500, $"An error occured while getting quote with id: {quoteId} ");
+        }
+    }
+
+    // PUT a quoteText
+    [HttpPut("EditQuote")]
+    public async Task<IActionResult> EditQuote(int quoteId, string quoteText)
+    {
+        try
+        {
+            await _service.EditQuoteAsync(quoteId, quoteText);
+
+            return Ok("Quote edited");
+        }
+        catch
+        {
+            return StatusCode(500, $"An error occured while editing quote with id: {quoteId}");
         }
     }
 }

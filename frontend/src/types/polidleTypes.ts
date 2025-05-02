@@ -72,3 +72,9 @@ export enum GameMode {
   Citat = 1, // Eller "Citat"
   Foto = 2, // Eller "Foto"
 }
+
+// DTO for CitatMode PUT
+export interface EditQuoteDTO {
+  quoteId: number,
+  quoteText: string
+}
