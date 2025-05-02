@@ -10,6 +10,9 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+// for .env secrets
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Enable detailed error messages for JWT validation
@@ -76,7 +79,13 @@ builder
             OnTokenValidated = context =>
             {
                 Console.WriteLine("✅ TOKEN VALIDATED:");
-                Console.WriteLine("User: " + context.Principal.Identity?.Name);
+                if (context.Principal?.Identity != null)
+                {
+                    Console.WriteLine("User: " + context.Principal.Identity?.Name);
+                    return Task.CompletedTask;
+                } else {
+                    Console.WriteLine("User information not available.");
+                }
                 return Task.CompletedTask;
             },
         };
@@ -122,6 +131,10 @@ builder.Services.AddSwaggerGen(options =>
 
 // Tilføj EmailService
 builder.Services.AddScoped<EmailService>();
+
+//oda.ft crawler
+builder.Services.AddScoped<HttpService>();
+
 
 // CORS
 builder.Services.AddCors(options =>

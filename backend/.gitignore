@@ -102,7 +102,8 @@ yarn.lock # Optional: uncomment if you ONLY use package-lock.json
 pnpm-lock.yaml # Optional: uncomment if you don't use pnpm
 .env.local
 .env.*.local
-.env # Generic .env file, might contain secrets - use .env.example instead
+.env 
+.backend.env
 .eslintcache
 .stylelintcache
 .vite/ # Vite development cache

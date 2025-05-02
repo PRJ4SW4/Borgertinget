@@ -1,8 +1,11 @@
+using System.Collections.Generic; // Required
+using System.Text.Json; // Required
 using backend.DTO.Calendar;
 using backend.DTO.LearningEnvironment;
 using backend.Models;
 using backend.Models.Calendar;
 using backend.Models.LearningEnvironment;
+using BCrypt.Net;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +31,8 @@ public class DataContext : DbContext
     public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
     // --- /Calendar Setup ---
+
+    public DbSet<Aktor> Aktor { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +77,79 @@ public class DataContext : DbContext
             .HasForeignKey(f => f.CollectionId);
 
         // --- /Learning Environment Setup ---
+
+        // Configure Constituencies
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Constituencies) // Target the List<string> property
+            .HasConversion(
+                // Convert List<string> to json string for DB
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                // Convert json string from DB back to List<string>
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+
+        // Configure Nominations
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Nominations)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+
+        // Add similar .HasConversion calls for Educations and Occupations
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Educations)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Occupations)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.PublicationTitles)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Ministers)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Spokesmen)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
         // --- SEED DATA ---
 
