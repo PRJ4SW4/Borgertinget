@@ -1,9 +1,9 @@
 // src/components/FlashcardSideNav.tsx
 import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom'; // useLocation can be useful
-import { fetchFlashcardCollections } from '../../services/ApiService'; // Adjust path if needed
-import type { FlashcardCollectionSummaryDto } from '../../types/flashcardTypes'; // Adjust path if needed
-import './FlashcardSideNav.css'; // Create this CSS file
+import { NavLink } from 'react-router-dom';
+import { fetchFlashcardCollections } from '../../services/ApiService';
+import type { FlashcardCollectionSummaryDto } from '../../types/flashcardTypes';
+import './FlashcardSideNav.css';
 
 function FlashcardSideNav() {
   // State for storing the list of collections
@@ -20,8 +20,6 @@ function FlashcardSideNav() {
         setIsLoading(true); // Start loading
         setError(null);     // Clear previous errors
         const data = await fetchFlashcardCollections();
-        // Optional: Sort data if backend didn't guarantee order or if needed differently
-        // data.sort((a, b) => a.displayOrder - b.displayOrder);
         setCollections(data); // Store fetched data in state
       } catch (err) {
         // Handle errors during fetch
@@ -50,8 +48,6 @@ function FlashcardSideNav() {
   // Render the list if data is loaded successfully
   return (
     <nav className="flashcard-side-nav">
-      {/* Optional: Add a title */}
-      {/* <h2>Flashcard Samlinger</h2> */}
       <ul>
         {/* Map over the fetched collections */}
         {collections.map(collection => (

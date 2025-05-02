@@ -4,19 +4,16 @@
     /* Use Flexbox to arrange children side-by-side */
     display: flex;
   
-    /* Ensure the layout takes at least the full viewport height.
-       Adjust '60px' if you have a fixed header/navbar above this layout,
-       otherwise use '100vh'. */
+    /* Ensure the layout takes at least the full viewport height. */
     min-height: calc(100vh - 60px);
-    /* Example if no header: min-height: 100vh; */
   
-    /* Optional: Set a background for the entire layout area if needed */
+    /* Background for the entire layout area if i need to later */
     /* background-color: #f0f0f0; */
   }
   
   .learning-sidenav-container {
     /* Define the width of the sidebar */
-    width: 260px; /* Adjust this value as needed */
+    width: 260px;
   
     /* Prevent the sidebar from shrinking if the main content is very wide */
     flex-shrink: 0;
@@ -35,16 +32,16 @@
     flex-grow: 1;
   
     /* Add padding inside the main content area for readability */
-    padding: 1.5rem 2.5rem; /* Adjust padding (top/bottom, left/right) as needed */
+    padding: 1.5rem 2.5rem;
   
-    /* Optional: Set a background color for the content area if different from the layout */
+    /* Background color for the content area if needed later */
     /* background-color: #ffffff; */
   
     /* Allow vertical scrolling within the content area if the page content is long */
      overflow-y: auto;
   }
   
-  /* --- Basic Responsive Example --- */
+  /* --- Basic Responsive Design --- */
   /* On screens narrower than 768px, stack the elements */
   @media (max-width: 768px) {
     .learning-layout {
@@ -59,8 +56,8 @@
       /* Remove the side border and add a bottom border */
       border-right: none;
       border-bottom: 1px solid #dee2e6;
-      /* Optionally limit height and enable scrolling */
-      max-height: 50vh; /* Example: Limit to half the viewport height */
+      /* Limit height and enable scrolling */
+      max-height: 50vh; /* Limit to half the viewport height */
       overflow-y: auto; /* Ensure scrolling is enabled */
       /* Reset flex-shrink as it's not needed in column layout */
       flex-shrink: initial;

@@ -9,14 +9,14 @@ export interface CalendarEventDto {
     sourceUrl?: string | null;
 }
 
+// TODO: Delete as RBC didnt work
 // --- A specific type for the 'resource' property ---
 export interface RbcResource {
     location?: string | null;
     sourceUrl?: string | null;
-    // Add any other custom data you might attach to an event here
 }
-// ---
 
+// TODO: Delete as RBC didnt work 
 // Type expected by react-big-calendar components
 export interface RbcEvent {
     id: number;

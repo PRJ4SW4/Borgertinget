@@ -6,7 +6,7 @@
     align-items: center;
     padding: 1rem;
     width: 100%;
-    max-width: 700px; /* Adjust max width as needed */
+    max-width: 700px;
     margin: 1rem auto; /* Center the viewer */
     box-sizing: border-box;
   }

@@ -1,12 +1,12 @@
 /* src/components/PageContent.css */
 
-.page-content-article {
-    /* Styles for the main content article container if needed */
-    /* e.g., max-width: 800px; margin: auto; */
-  }
+/*.page-content-article {
+     Styles for the main content article container if i need it later
+     f.eks. for later, max-width: 800px; margin: auto; 
+  }*/
   
   .markdown-body {
-     /* Optional: Add styling for rendered Markdown output */
+     /* Add styling for rendered Markdown output */
      line-height: 1.6;
      margin-bottom: 2rem; /* Space between content and buttons */
   }
@@ -17,7 +17,6 @@
      margin-top: 1.5em;
      margin-bottom: 0.5em;
   }
-  /* Add more markdown styles as needed */
   
   
   /* Container for the prev/next buttons */
@@ -57,12 +56,6 @@
     border-color: #e9ecef;     /* Lighter border */
     cursor: not-allowed;       /* Indicate non-interactive */
   }
-  
-  /* Optional: specific styles for prev/next if needed */
-  /*
-  .page-nav-button.prev { }
-  .page-nav-button.next { }
-  */
 
   /* Style the optional overall container */
   .all-questions-container {
@@ -126,8 +119,8 @@
   
   .answer-option input[type="radio"] {
     margin-right: 0.6rem;
-    /* Optional: Style radio button appearance */
-     accent-color: #007bff; /* Example: change check color */
+    /* Style radio button appearance */
+     accent-color: #007bff; /* Change check color */
      vertical-align: middle;
   }
   
@@ -142,7 +135,7 @@
     display: inline-block;
     padding: 0.7em 1.5em;
     border: none;
-    background-color: #007bff; /* Example primary color */
+    background-color: #007bff; /* Primary color */
     color: white;
     font-size: 1rem;
     font-weight: 600;
@@ -187,7 +180,7 @@
       font-style: italic;
   }
   
-  /* Optional: Style disabled state */
+  /* Style disabled state */
   .question-form fieldset[disabled] .answer-option label {
       color: #6c757d; /* Muted color for label */
       cursor: not-allowed;

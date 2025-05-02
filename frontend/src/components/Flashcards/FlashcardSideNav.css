@@ -13,7 +13,7 @@
     margin: 0;
   }
   
-  /* Optional: Add slight margin between list items */
+  /* Add slight margin between list items */
   .flashcard-side-nav li {
     margin-bottom: 4px;
   }
@@ -34,7 +34,7 @@
   /* Style links on hover */
   .flashcard-side-nav a:hover {
     background-color: #e9ecef; /* Light background highlight on hover */
-    color: #0056b3; /* Optional: Darker text color on hover */
+    color: #0056b3; /* Darker text color on hover */
   }
   
   /* Style the active link (class is automatically added by NavLink) */

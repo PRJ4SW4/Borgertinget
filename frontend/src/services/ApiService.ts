@@ -1,9 +1,9 @@
 // src/services/apiService.ts
 import type { PageSummaryDto, PageDetailDto } from '../types/pageTypes'; // Import types
 import type { FlashcardCollectionSummaryDto, FlashcardCollectionDetailDto } from '../types/flashcardTypes';
-import type { CalendarEventDto } from '../types/calendarTypes'; // Assuming you create this type file
+import type { CalendarEventDto } from '../types/calendarTypes';
 
-const API_BASE_URL = '/api'; // Adjust if needed
+const API_BASE_URL = '/api';
 
 // --- Add Types for Answer Checking ---
 interface AnswerCheckRequest {
@@ -11,11 +11,9 @@ interface AnswerCheckRequest {
   selectedAnswerOptionId: number;
 }
 
-export interface AnswerCheckResponse { // Export if needed elsewhere
+export interface AnswerCheckResponse {
   isCorrect: boolean;
-  // correctAnswerOptionId?: number; // Optional based on backend DTO
 }
-// ---
 
 // --- Add Function to Call Backend ---
 export const checkAnswer = async (payload: AnswerCheckRequest): Promise<AnswerCheckResponse> => {
@@ -23,14 +21,12 @@ export const checkAnswer = async (payload: AnswerCheckRequest): Promise<AnswerCh
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      // Include Authorization header if your endpoint requires login
-      // 'Authorization': `Bearer ${localStorage.getItem('jwt')}`
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
-    // Handle API errors (like the BadRequest from backend)
+    // Handle API errors (like BadRequest from backend)
     const errorText = await response.text(); // Get error details if possible
     console.error("API Error:", response.status, errorText);
     throw new Error(`Failed to check answer (${response.status})`);
@@ -41,7 +37,6 @@ export const checkAnswer = async (payload: AnswerCheckRequest): Promise<AnswerCh
 export const fetchPagesStructure = async (): Promise<PageSummaryDto[]> => {
   const response = await fetch(`${API_BASE_URL}/pages`);
   if (!response.ok) {
-    // Consider more specific error handling based on status code
     throw new Error(`Failed to fetch page structure: ${response.statusText}`);
   }
   // Explicitly type the response parsing

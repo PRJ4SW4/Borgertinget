@@ -7,9 +7,7 @@ using backend.DTO.LearningEnvironment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-// Specifies the route for this controller, defining the base URL segment for its endpoints as "api/answers".
 [Route("api/[controller]")]
-// Indicates that this is an API controller, enabling features like automatic HTTP 400 responses for invalid models.
 [ApiController]
 public class AnswersController : ControllerBase
 {

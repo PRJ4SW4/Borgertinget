@@ -3,7 +3,7 @@
 /* Container for the entire list view */
 .calendar-list-container {
     padding: 1rem;
-    max-width: 900px; /* Adjust max width */
+    max-width: 900px;
     margin: 1rem auto; /* Center */
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
@@ -91,7 +91,7 @@
   
   .location-icon {
     margin-right: 0.3rem;
-    font-size: 0.8rem; /* Adjust icon size if needed */
+    font-size: 0.8rem; /* Icon size */
   }
   
   /* Loading/Error states */

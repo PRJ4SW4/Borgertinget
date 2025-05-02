@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-// Marks this class as an API controller, enabling features like attribute routing.
 [ApiController]
 // Defines the route for this controller, setting the base URL segment to "api/calendar".
 [Route("api/[controller]")]

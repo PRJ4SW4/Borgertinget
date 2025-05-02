@@ -2,7 +2,7 @@
 
 .side-nav {
     /* Container for the entire navigation */
-    font-family: sans-serif; /* Or your preferred font */
+    font-family: sans-serif;
   }
   
   /* Basic reset for the main list */
@@ -45,11 +45,10 @@
   /* Indentation for nested sub-menus */
   .sub-menu ul.sub-menu{
     /* Add padding to the left to create indentation */
-    padding-left: 1em; /* Adjust indentation level as needed */
-    /* Optional: Add some top margin for spacing */
+    padding-left: 1em; /* Adjust indentation level */
+    /* Add some top margin for spacing */
     margin-top: 4px;
     /* Optional: Style nested lists slightly differently if needed */
-    /* background-color: rgba(0, 0, 0, 0.02); */ /* Example subtle background */
   }
   
   /* Styling for Loading/Error/Empty states on the main nav element */

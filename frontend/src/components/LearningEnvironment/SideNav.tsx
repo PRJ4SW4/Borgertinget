@@ -5,9 +5,8 @@ import { fetchPagesStructure } from '../../services/ApiService';
 import type { PageSummaryDto, PageNode } from '../../types/pageTypes';
 import './SideNav.css';
 
-// --- Helper function buildTree (keep as is) ---
+// --- Helper function buildTree ---
 const buildTree = (list: PageSummaryDto[] | undefined | null): PageNode[] => {
-    // ... (previous buildTree function code remains unchanged) ...
     const map: { [key: number]: PageNode } = {};
     const roots: PageNode[] = [];
     if (!list) return roots;
@@ -32,7 +31,7 @@ const buildTree = (list: PageSummaryDto[] | undefined | null): PageNode[] => {
 };
 
 
-// --- NavItem Component (MODIFIED) ---
+// --- NavItem Component ---
 interface NavItemProps {
   item: PageNode;
 }
@@ -61,9 +60,6 @@ const NavItem: React.FC<NavItemProps> = ({ item }) => {
                className={({ isActive }): string =>
                    `nav-item-link ${isActive ? 'active-nav-link' : ''} ${hasChildren ? 'has-children' : ''}`
                 }
-               // Optional: Use 'end' prop for more precise active class matching on parent items
-               // end={!hasChildren} // Example: only exact match if it DOES NOT have children
-               // or end={true} // Example: always require exact match
             >
                 {/* Display the page title */}
                 {item.title}
@@ -98,7 +94,7 @@ const NavItem: React.FC<NavItemProps> = ({ item }) => {
 };
 
 
-// --- SideNav Component (keep as is) ---
+// --- SideNav Component ---
 function SideNav() {
   const [navTree, setNavTree] = useState<PageNode[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);

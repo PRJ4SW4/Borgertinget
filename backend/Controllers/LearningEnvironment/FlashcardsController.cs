@@ -12,9 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 // Specifies the route for this controller, defining the base URL segment for its endpoints.
 [Route("api/[controller]")]
-// Indicates that this is an API controller, providing features like automatic HTTP 400 responses for invalid models.
 [ApiController]
-// [Authorize] // Add later if needed
 public class FlashcardsController : ControllerBase
 {
     // A private readonly field to hold the DataContext instance, enabling database interactions.
@@ -27,7 +25,7 @@ public class FlashcardsController : ControllerBase
         _context = context;
     }
 
-    // Defines an HTTP GET endpoint to retrieve a summary list of flashcard collections, typically for a sidebar or navigation menu.
+    // Defines an HTTP GET endpoint to retrieve a summary list of flashcard collections, for the sidebar
     [HttpGet("collections")]
     public async Task<ActionResult<IEnumerable<FlashcardCollectionSummaryDTO>>> GetCollections()
     {
@@ -71,7 +69,7 @@ public class FlashcardsController : ControllerBase
         // Handles the case where the specified collection ID does not exist in the database.
         if (collection == null)
         {
-            // Returns an HTTP 404 Not Found response with a descriptive message.
+            // Returns an HTTP 404 Not Found response
             return NotFound($"Collection with ID {collectionId} not found.");
         }
 
@@ -110,6 +108,4 @@ public class FlashcardsController : ControllerBase
         // Returns an HTTP 200 OK response containing the detailed flashcard collection information.
         return Ok(collectionDetail);
     }
-
-    // TODO: --- POST/PUT/DELETE methods for CRUD operations will be added later ---
 }

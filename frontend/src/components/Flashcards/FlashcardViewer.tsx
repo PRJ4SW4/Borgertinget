@@ -1,9 +1,9 @@
 // src/components/FlashcardViewer.tsx
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchFlashcardCollectionDetails } from '../../services/ApiService'; // Adjust path if needed
-import type { FlashcardCollectionDetailDto, FlashcardDto } from '../../types/flashcardTypes'; // Adjust path
-import './FlashcardViewer.css'; // Create this CSS file
+import { fetchFlashcardCollectionDetails } from '../../services/ApiService';
+import type { FlashcardCollectionDetailDto, FlashcardDto } from '../../types/flashcardTypes';
+import './FlashcardViewer.css';
 
 function FlashcardViewer() {
     // Get collectionId from route parameter (defined in FlashcardLayout)

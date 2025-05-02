@@ -10,7 +10,6 @@ using backend.Models.LearningEnvironment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-// Specifies that this class is an API controller, handling requests related to pages.
 [Route("api/[controller]")]
 [ApiController]
 public class PagesController : ControllerBase
@@ -25,7 +24,7 @@ public class PagesController : ControllerBase
         _context = context;
     }
 
-    // Defines an HTTP GET endpoint to retrieve the structure of pages, typically for navigation purposes.
+    // Defines an HTTP GET endpoint to retrieve the structure of pages, for navigation purposes.
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PageSummaryDto>>> GetPagesStructure()
     {
@@ -229,7 +228,4 @@ public class PagesController : ControllerBase
         // Returns the ordered list of page IDs within the section.
         return orderedIds;
     }
-
-    // TODO: Add POST, PUT, DELETE endpoints later
-    // This should be done by Kevin and Olivia, as they are responsible for administration and it depends on their implementation
 }

@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { fetchPageDetails, checkAnswer } from '../../services/ApiService'; // Import checkAnswer
 import type { PageDetailDto } from '../../types/pageTypes';
-import './PageContent.css'; // Ensure CSS is imported
+import './PageContent.css';
 
 type PageParams = { pageId: string; };
 type SelectedAnswersState = Record<number, number | null>;
@@ -27,7 +27,7 @@ function PageContent() {
       setSelectedAnswers({});
       setFeedback({}); // Reset feedback on new page load
       try { 
-        console.log(`Workspaceing details for pageId: ${pageId}`); // Optional: for debugging
+        console.log(`Workspaceing details for pageId: ${pageId}`); // For debugging
         const details = await fetchPageDetails(pageId);
         setPageDetails(details);
       }

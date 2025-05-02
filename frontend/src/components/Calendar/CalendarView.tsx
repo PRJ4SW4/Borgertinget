@@ -1,18 +1,15 @@
 // src/components/CalendarView.tsx
 import { useState, useEffect, useMemo } from 'react';
-// Removed react-big-calendar imports
 
 // --- date-fns Imports ---
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-// ---
 
 // --- date-fns-tz Import ---
 import { toZonedTime } from 'date-fns-tz';
-// ---
 
-import { fetchCalendarEvents } from '../../services/ApiService'; // Adjust path if needed
-import type { CalendarEventDto } from '../../types/calendarTypes'; // Adjust path if needed
+import { fetchCalendarEvents } from '../../services/ApiService';
+import type { CalendarEventDto } from '../../types/calendarTypes';
 
 // Import CSS for this component
 import './CalendarView.css';
@@ -33,7 +30,7 @@ function CalendarView() {
     setIsLoading(true);
     setError(null);
 
-    // Fetch events - remove date range for now, fetch all or implement pagination later
+    // Fetch events
     fetchCalendarEvents()
       .then(data => {
         // Sort fetched data by date before grouping
@@ -60,7 +57,7 @@ function CalendarView() {
     events.forEach(event => {
         try {
             const utcDate = new Date(event.startDateTimeUtc);
-            // Convert to Copenhagen time *before* formatting the date key
+            // Convert to Copenhagen time before formatting the date key
             const zonedDate = toZonedTime(utcDate, displayTimeZone);
             // Format date using Danish locale for the key (e.g., "11. april 2025")
             const dateKey = format(zonedDate, 'd. MMMM yyyy', { locale: da });
@@ -71,7 +68,6 @@ function CalendarView() {
             groups[dateKey].push(event);
         } catch (e) {
             console.error("Error processing date for event:", event, e);
-            // Optionally handle events with invalid dates
         }
     });
     return groups;

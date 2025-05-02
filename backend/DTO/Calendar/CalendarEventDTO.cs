@@ -12,5 +12,5 @@ public class CalendarEventDTO
     // Frontend will handle timezone conversion and formatting for display
     public DateTimeOffset StartDateTimeUtc { get; set; }
     public string? Location { get; set; }
-    public string? SourceUrl { get; set; } // Include URL so frontend
+    public string? SourceUrl { get; set; } // Include URL so frontend can link directly to Altinget on click for more details
 }

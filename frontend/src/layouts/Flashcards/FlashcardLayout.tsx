@@ -1,7 +1,7 @@
 // src/layouts/FlashcardLayout.tsx
-import { Routes, Route } from 'react-router-dom'; // Use Outlet or nested Routes
+import { Routes, Route } from 'react-router-dom';
 import FlashcardSideNav from '../../components/Flashcards/FlashcardSideNav';
-import FlashcardViewer from '../../components/Flashcards/FlashcardViewer'; // Create this soon
+import FlashcardViewer from '../../components/Flashcards/FlashcardViewer';
 import './FlashcardLayout.css';
 
 function FlashcardLayout() {

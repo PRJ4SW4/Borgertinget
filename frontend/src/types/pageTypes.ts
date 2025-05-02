@@ -18,7 +18,7 @@ export interface PageSummaryDto {
     nextSiblingId: number | null;
     // --- /Next/Previous Requirement ---
     // --- Questions Requirement ---
-    associatedQuestions: QuestionDto[]; // Now an array
+    associatedQuestions: QuestionDto[];
     // --- /Questions Requirement ---
   }
 
