@@ -6,7 +6,6 @@ using backend.Models;
 using backend.Models.Calendar;
 using backend.Models.LearningEnvironment;
 using BCrypt.Net;
-using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Data;
