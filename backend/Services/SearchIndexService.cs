@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using backend.Data; // Your DbContext
 using backend.Models; // Your models including Aktor, Flashcard, SearchDocument
 using Microsoft.EntityFrameworkCore;
+using backend.Models.LearningEnvironment;
 using Microsoft.Extensions.Logging;
 using Npgsql; // Or your DB provider if not using Npgsql directly here
 using OpenSearch.Client;

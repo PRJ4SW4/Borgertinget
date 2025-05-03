@@ -1,4 +1,6 @@
 using System.Collections.Generic; // Required
+using System.Text.Json;          // Required
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Text.Json; // Required
 using backend.DTO.Calendar;
 using backend.DTO.LearningEnvironment;
@@ -7,7 +9,6 @@ using backend.Models.Calendar;
 using backend.Models.LearningEnvironment;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace backend.Data;
 
@@ -31,6 +32,9 @@ public class DataContext : DbContext
     public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
     public DbSet<Party> Party {get; set;}
+    // --- /Calendar Setup ---
+
+    public DbSet<Aktor> Aktor { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -121,33 +125,24 @@ public class DataContext : DbContext
                     ?? new List<string>()
             );
 
-        modelBuilder
-            .Entity<Aktor>()
-            .Property(a => a.PublicationTitles)
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                v =>
-                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                    ?? new List<string>()
-            );
-        modelBuilder
-            .Entity<Aktor>()
-            .Property(a => a.Ministers)
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                v =>
-                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                    ?? new List<string>()
-            );
-        modelBuilder
-            .Entity<Aktor>()
-            .Property(a => a.Spokesmen)
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                v =>
-                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                    ?? new List<string>()
-            );
+            modelBuilder.Entity<Aktor>()
+                 .Property(a => a.PublicationTitles)
+                 .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 );
+            modelBuilder.Entity<Aktor>()
+                 .Property(a => a.Ministers)
+                 .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 );
+            modelBuilder.Entity<Aktor>()
+                 .Property(a => a.Spokesmen)
+                 .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                 ); 
         
             
             modelBuilder.Entity<Party>(entity =>
