@@ -23,7 +23,140 @@ namespace backend.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("AnswerOption", b =>
+            modelBuilder.Entity("backend.Models.Aktor", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Born")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Constituencies")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EducationStatistic")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Educations")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FunctionFormattedTitle")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FunctionStartDate")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MinisterTitel")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Ministers")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nominations")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Occupations")
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<List<string>>("ParliamentaryPositionsOfTrust")
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("Party")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PartyShortname")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PictureMiRes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PositionsOfTrust")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PublicationTitles")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sex")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Spokesmen")
+                        .HasColumnType("text");
+
+                    b.Property<string>("biografi")
+                        .HasColumnType("text");
+
+                    b.Property<string>("efternavn")
+                        .HasColumnType("text");
+
+                    b.Property<string>("fornavn")
+                        .HasColumnType("text");
+
+                    b.Property<string>("gruppeNavnKort")
+                        .HasColumnType("text");
+
+                    b.Property<string>("navn")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("opdateringsdato")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("periodeid")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("slutdato")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("startdato")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("typeid")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Aktor");
+                });
+
+            modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("LastScrapedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("SourceUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<DateTimeOffset>("StartDateTimeUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(350)
+                        .HasColumnType("character varying(350)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceUrl")
+                        .IsUnique();
+
+                    b.ToTable("CalendarEvents");
+                });
+
+            modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
                 {
                     b.Property<int>("AnswerOptionId")
                         .ValueGeneratedOnAdd()
@@ -149,43 +282,7 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("CalendarEvent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("LastScrapedUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Location")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<string>("SourceUrl")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<DateTimeOffset>("StartDateTimeUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(350)
-                        .HasColumnType("character varying(350)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SourceUrl")
-                        .IsUnique();
-
-                    b.ToTable("CalendarEvents");
-                });
-
-            modelBuilder.Entity("Flashcard", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Flashcard", b =>
                 {
                     b.Property<int>("FlashcardId")
                         .ValueGeneratedOnAdd()
@@ -278,7 +375,7 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("FlashcardCollection", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.FlashcardCollection", b =>
                 {
                     b.Property<int>("CollectionId")
                         .ValueGeneratedOnAdd()
@@ -316,7 +413,7 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Page", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Page", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -387,7 +484,7 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Question", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Question", b =>
                 {
                     b.Property<int>("QuestionId")
                         .ValueGeneratedOnAdd()
@@ -621,9 +718,9 @@ namespace backend.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("AnswerOption", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
                 {
-                    b.HasOne("Question", "Question")
+                    b.HasOne("backend.Models.LearningEnvironment.Question", "Question")
                         .WithMany("AnswerOptions")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -632,9 +729,9 @@ namespace backend.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("Flashcard", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Flashcard", b =>
                 {
-                    b.HasOne("FlashcardCollection", "FlashcardCollection")
+                    b.HasOne("backend.Models.LearningEnvironment.FlashcardCollection", "FlashcardCollection")
                         .WithMany("Flashcards")
                         .HasForeignKey("CollectionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -643,19 +740,19 @@ namespace backend.Migrations
                     b.Navigation("FlashcardCollection");
                 });
 
-            modelBuilder.Entity("Page", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Page", b =>
                 {
-                    b.HasOne("Page", "ParentPage")
+                    b.HasOne("backend.Models.LearningEnvironment.Page", "ParentPage")
                         .WithMany("ChildPages")
                         .HasForeignKey("ParentPageId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("ParentPage");
                 });
 
-            modelBuilder.Entity("Question", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Question", b =>
                 {
-                    b.HasOne("Page", "Page")
+                    b.HasOne("backend.Models.LearningEnvironment.Page", "Page")
                         .WithMany("AssociatedQuestions")
                         .HasForeignKey("PageId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -697,14 +794,14 @@ namespace backend.Migrations
                     b.Navigation("Flashcards");
                 });
 
-            modelBuilder.Entity("Page", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Page", b =>
                 {
                     b.Navigation("AssociatedQuestions");
 
                     b.Navigation("ChildPages");
                 });
 
-            modelBuilder.Entity("Question", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Question", b =>
                 {
                     b.Navigation("AnswerOptions");
                 });

@@ -3,12 +3,11 @@ import { useState, useEffect, type ReactNode } from "react"; // Added ReactNode 
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
-import Verify from "./pages/Verify";
-import LearningLayout from './layouts/LearningLayout';
-import PageContent from './components/PageContent';
-import FlashcardLayout from './layouts/FlashcardLayout';
-import CalendarView from './components/CalendarView';
-import LoginSuccessPage from './pages/LoginSuccessPage';
+import LearningLayout from './layouts/LearningEnvironment/LearningLayout';
+import PageContent from './components/LearningEnvironment/PageContent';
+import FlashcardLayout from './layouts/Flashcards/FlashcardLayout';
+import CalendarView from './components/Calendar/CalendarView'
+import LoginSuccessPage from './pages/LoginSuccessPage'; 
 import PartyPage from "./pages/PartyPage";
 import PoliticianPage from "./pages/PoliticianPage";
 import PartiesPage from "./pages/PartiesPage";

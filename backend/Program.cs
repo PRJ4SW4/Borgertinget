@@ -12,6 +12,9 @@ using Microsoft.OpenApi.Models;
 using OpenSearch.Client;
 using OpenSearch.Net;
 
+// for .env secrets
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
@@ -109,7 +112,13 @@ builder
             OnTokenValidated = context =>
             {
                 Console.WriteLine("✅ TOKEN VALIDATED:");
-                Console.WriteLine("User: " + context.Principal.Identity?.Name);
+                if (context.Principal?.Identity != null)
+                {
+                    Console.WriteLine("User: " + context.Principal.Identity?.Name);
+                    return Task.CompletedTask;
+                } else {
+                    Console.WriteLine("User information not available.");
+                }
                 return Task.CompletedTask;
             },
         };

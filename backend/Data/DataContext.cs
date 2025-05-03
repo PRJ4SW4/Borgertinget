@@ -1,8 +1,12 @@
-using backend.Models;
-using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
 using System.Collections.Generic; // Required
-using System.Text.Json;          // Required
+using System.Text.Json; // Required
+using backend.DTO.Calendar;
+using backend.DTO.LearningEnvironment;
+using backend.Models;
+using backend.Models.Calendar;
+using backend.Models.LearningEnvironment;
+using BCrypt.Net;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace backend.Data;
@@ -14,12 +18,16 @@ public class DataContext : DbContext
 
     public DbSet<User> Users { get; set; } = null!;
 
+    // --- Learning Environment Setup ---
     public DbSet<Page> Pages { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<AnswerOption> AnswerOptions { get; set; }
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<FlashcardCollection> FlashcardCollections { get; set; }
-    public DbSet<Aktor> Aktor {get; set;}
+
+    // --- /Learning Environment Setup ---
+
+    // --- Calendar Setup ---
     public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
     public DbSet<Party> Party {get; set;}
@@ -28,8 +36,13 @@ public class DataContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // --- Calendar Setup ---
         // Index for the CalendarEvents SourceUrl to make syncing events faster
         modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
+
+        // --- /Calendar Setup ---
+
+        // --- Learning Environment Setup ---
 
         // Configure the self-referencing relationship
         modelBuilder
@@ -37,7 +50,7 @@ public class DataContext : DbContext
             .HasOne(p => p.ParentPage) // A page has one parent
             .WithMany(p => p.ChildPages) // A parent can have many children
             .HasForeignKey(p => p.ParentPageId) // The foreign key is ParentPageId
-            .OnDelete(DeleteBehavior.Restrict); // Or Cascade, SetNull, etc. depending on desired behavior when a parent is deleted
+            .OnDelete(DeleteBehavior.Cascade); // Cascade deletions. Can be changed
 
         // This configuration tells EF Core that one Page can have many Questions,
         // and each Question points back to one Page using the PageId foreign key.
@@ -60,58 +73,81 @@ public class DataContext : DbContext
             .HasMany(c => c.Flashcards)
             .WithOne(f => f.FlashcardCollection)
             .HasForeignKey(f => f.CollectionId);
-         
+
+        // --- /Learning Environment Setup ---
+
         // Configure Constituencies
-            modelBuilder.Entity<Aktor>()
-                .Property(a => a.Constituencies) // Target the List<string> property
-                .HasConversion(
-                    // Convert List<string> to json string for DB
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    // Convert json string from DB back to List<string>
-                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Constituencies) // Target the List<string> property
+            .HasConversion(
+                // Convert List<string> to json string for DB
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                // Convert json string from DB back to List<string>
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
-            // Configure Nominations
-            modelBuilder.Entity<Aktor>()
-                .Property(a => a.Nominations)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                );
+        // Configure Nominations
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Nominations)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
-            // Add similar .HasConversion calls for Educations and Occupations
-            modelBuilder.Entity<Aktor>()
-                .Property(a => a.Educations)
-                .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
+        // Add similar .HasConversion calls for Educations and Occupations
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Educations)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
-            modelBuilder.Entity<Aktor>()
-                .Property(a => a.Occupations)
-                .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Occupations)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.PublicationTitles)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.Ministers)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.Spokesmen)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 ); 
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.PublicationTitles)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Ministers)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Spokesmen)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
         
             
             modelBuilder.Entity<Party>(entity =>
@@ -146,6 +182,8 @@ public class DataContext : DbContext
                 // *** End Configuration for memberIds List ***
             });
         // --- SEED DATA ---
+
+        // --- Learning Environment Seeding ---
 
         // 1. Seed Pages
         modelBuilder
@@ -409,5 +447,11 @@ public class DataContext : DbContext
                     BackText = "Statens budget for det kommende år",
                 }
             );
+
+        // --- /FLASHCARDS ---
+
+        // --- /Learning Environment Seeding ---
+
+        // --- /SEED DATA ---
     }
 }
