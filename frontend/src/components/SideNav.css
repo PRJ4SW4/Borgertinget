@@ -1,90 +1,91 @@
-/* src/components/SideNav.css */
+/* src/components/Navbar.css - Modified for Horizontal Layout */
 
-.side-nav {
-    /* Container for the entire navigation */
-    font-family: sans-serif; /* Or your preferred font */
-  }
-  
-  /* Basic reset for the main list */
-  .side-nav ul {
-    list-style: none; /* Remove default bullets */
-    padding: 0;
-    margin: 0;
-  }
-  
-  .side-nav li {
-    /* Spacing between list items */
-    margin: 2px 0;
-  }
-  
-  /* Styling for each navigation link (NavLink) */
-  .nav-item-link {
-    display: block; /* Make the link fill the list item for easier clicking */
-    padding: 8px 12px; /* Adjust padding (top/bottom, left/right) */
-    text-decoration: none; /* Remove underline */
-    color: #333; /* Default text color */
-    border-radius: 4px; /* Slightly rounded corners */
-    transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transitions */
-    cursor: pointer; /* Indicate it's clickable */
-    position: relative; /* Needed if positioning the arrow absolutely */
-  }
-  
-  /* Hover effect for links */
-  .nav-item-link:hover {
-    background-color: #e9ecef; /* Light background on hover */
-    color: #0056b3; /* Optional: Change text color on hover */
-  }
-  
-  /* Styling for the currently active link */
-  .active-nav-link {
-    background-color: #ddeeff; /* A distinct background for active item */
-    color: #004085; /* Darker text color for active item */
-    font-weight: 600; /* Make active link bolder */
-  }
-  
-  /* Indentation for nested sub-menus */
-  .sub-menu ul.sub-menu{
-    /* Add padding to the left to create indentation */
-    padding-left: 1em; /* Adjust indentation level as needed */
-    /* Optional: Add some top margin for spacing */
-    margin-top: 4px;
-    /* Optional: Style nested lists slightly differently if needed */
-    /* background-color: rgba(0, 0, 0, 0.02); */ /* Example subtle background */
-  }
-  
-  /* Styling for Loading/Error/Empty states on the main nav element */
-  .side-nav.loading,
-  .side-nav.error,
-  .side-nav.empty {
-    padding: 1rem;
-    color: #6c757d; /* Muted text color */
-    font-style: italic;
-  }
-  
-  .side-nav.error {
-    color: #dc3545; /* Red color for errors */
-    font-weight: bold;
-  }
+/* Main container for the horizontal navbar */
+.horizontalNavbar {
+  /* --- Layout & Sizing --- */
+  width: 100%; /* Span full width */
+  height: 60px; /* Or your desired fixed height, or 'auto' */
+  display: flex; /* Arrange children horizontally */
+  align-items: center; /* Vertically center items within the bar */
+  /* Optional: If you want space between items, use justify-content: space-between;
+     but using margin-left: auto; on the logout section is common. */
 
-  .arrow {
-    font-size: 0.8em;              /* Kept from both */
-    display: inline-block;         /* Kept from both */
-    transition: transform 0.2s ease-in-out; /* Kept from both */
-    cursor: pointer;             /* Kept from second definition */
-    user-select: none;           /* Kept from second definition */
-    -webkit-user-select: none;   /* Kept from second definition */
-    -moz-user-select: none;      /* Kept from second definition */
-  
-    /* Padding & Margin for clickable area (from second definition) */
-    padding: 6px 8px;
-    margin-left: 5px;            /* Takes precedence over margin-left: 8px in first definition */
-    margin-top: -6px;
-    margin-bottom: -6px;
-    border-radius: 3px;          /* Kept from second definition */
-  }
-  
-  .arrow:hover {
-      background-color: rgba(0,0,0,0.1); /* Kept */
-  }
-  
-  
+  /* --- Appearance --- */
+  background-color: #f0f0f0; /* Example background */
+  padding: 0 20px; /* Padding left/right, no top/bottom needed if height is fixed */
+  border-bottom: 1px solid #ccc; /* Border at the bottom */
+
+  /* --- Positioning --- */
+  position: sticky; /* Stick to the top on scroll */
+  top: 0;
+  left: 0; /* Ensure it sticks flush to the left */
+  z-index: 1000; /* Ensure it stays above other content */
+}
+
+/* Logo section */
+.navbarLogo {
+  padding: 0; /* Remove vertical padding if parent handles alignment */
+  /* No text-align needed if it's just an image */
+  /* Keep flex order by placing it first in HTML/JSX */
+  margin-right: 20px; /* Add some space between logo and nav links */
+}
+
+.navbarLogo img {
+  max-height: 40px; /* Control logo size by height - adjust as needed */
+  /* max-width: 150px; */ /* You might want a max-width too */
+  width: auto; /* Maintain aspect ratio */
+  display: block; /* Removes extra space below image */
+}
+
+/* Navigation links container */
+.horizontalNavbar nav {
+  display: flex; /* Allow nav to be a flex item */
+  /* flex-grow: 1; */ /* Optional: uncomment if you want nav links to fill space */
+}
+
+.horizontalNavbar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex; /* Arrange list items horizontally */
+}
+
+.horizontalNavbar li {
+  /* No specific styling needed here usually */
+  margin: 0 5px; /* Add some space between nav items */
+}
+
+/* Individual navigation links */
+.horizontalNavbar li a { /* Style for NavLink/Link */
+  display: block; /* Good for padding */
+  padding: 10px 15px; /* Adjust padding for horizontal layout */
+  text-decoration: none;
+  color: #333;
+  border-radius: 4px; /* Optional: rounded corners for links */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.horizontalNavbar li a:hover {
+  background-color: #e0e0e0; /* Hover background */
+  color: #000;
+}
+
+/* Style for the active NavLink */
+.horizontalNavbar li a.active-link {
+  background-color: #d0d0d0; /* Active background */
+  font-weight: bold;
+  color: #000;
+}
+
+/* Logout section */
+.navbar-logout {
+  padding: 0; /* Remove padding if parent handles alignment/spacing */
+  margin-left: auto; /* Pushes logout button to the far right */
+}
+
+.navbar-logout button {
+  /* width: auto; */ /* Let button size naturally or set fixed width */
+  padding: 8px 15px; /* Adjust button padding */
+  cursor: pointer;
+  /* Add other button styles (background, border, etc.) */
+}

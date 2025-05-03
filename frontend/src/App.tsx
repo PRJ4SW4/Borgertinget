@@ -28,12 +28,9 @@ function App() {
         return () => window.removeEventListener("storage", handleStorageChange);
     }, []);
 
-    // Helper for protected routes using ReactNode
-    const ProtectedRoute = ({ children }: { children: ReactNode }) => { // Changed JSX.Element to ReactNode
+    // Helper for protected routes using ReactNode to redirect to login and send them to where they were trying to access
+    const ProtectedRoute = ({ children }: { children: ReactNode }) => {
         if (!token) {
-            // Redirect them to the /login page, but save the current location they were
-            // trying to go to. This allows us to send them along to that page after they login,
-            // which is a nicer user experience than dropping them off on the home page.
             return <Navigate to="/login" replace />;
         }
         // `children` is returned directly, React handles rendering ReactNode

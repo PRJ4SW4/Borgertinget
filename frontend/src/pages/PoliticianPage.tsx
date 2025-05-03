@@ -131,20 +131,21 @@ const PoliticianPage: React.FC = () => {
       </div> 
 {/* END: Info Box */}
 
+      
+
       {/* Other Details Outside the Box */}
       <article className="politician-details">
-        
 
         <section className="detail-section">
-            <h3>Grundlæggende Information</h3> {/* Danish */}
-            <p><strong>Født:</strong> {politician.born || 'Ikke tilgængelig'}</p> {/* Danish */}
-            <p><strong>Titel:</strong> {politician.functionFormattedTitle || 'Ikke tilgængelig'}</p> {/* Danish */}
+            <h3>Grundlæggende Information</h3> 
+            <p><strong>Født:</strong> {politician.born || 'Ikke tilgængelig'}</p> 
+            <p><strong>Titel:</strong> {politician.functionFormattedTitle || 'Ikke tilgængelig'}</p> 
         </section>
 
         {/* Display other lists NOT in the info-box */}
         {politician.publicationTitles && politician.publicationTitles.length > 0 && (
           <section className="detail-section">
-            <h3>Forfatterskab</h3> {/* Danish */}
+            <h3>Forfatterskab</h3>
             <ul>
               {politician.publicationTitles.map((title, index) => <li key={`pub-${index}`}>{title}</li>)}
             </ul>
@@ -152,7 +153,7 @@ const PoliticianPage: React.FC = () => {
         )}
         {politician.nominations && politician.nominations.length > 0 && (
            <section className="detail-section">
-               <h3>Kandidaturer</h3> {/* Danish */}
+               <h3>Kandidaturer</h3> 
                <ul>
                    {politician.nominations.map((nom, index) => <li key={`nom-${index}`}>{nom}</li>)}
                </ul>
@@ -160,7 +161,7 @@ const PoliticianPage: React.FC = () => {
          )}
         {politician.occupations && politician.occupations.length > 0 && (
           <section className="detail-section">
-            <h3>Beskæftigelse</h3> {/* Danish */}
+            <h3>Beskæftigelse</h3> 
             <ul>
               {politician.occupations.map((occ, index) => <li key={`occ-${index}`}>{occ}</li>)}
             </ul>

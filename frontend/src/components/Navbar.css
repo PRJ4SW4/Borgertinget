@@ -1,77 +1,97 @@
-/* src/components/Navbar.css */
-.verticalNavbar {
-    width: 200px; /* Or your desired width */
-    background-color: #f0f0f0; /* Example background */
-    padding: 20px 0; /* Padding top/bottom */
-    height: 100vh; /* Make it full viewport height */
-    display: flex;
-    flex-direction: column; /* Stack items vertically */
-    border-right: 1px solid #ccc; /* Optional border */
-    overflow-y: auto; /* Allow scrolling if content exceeds height */
-    position: sticky; /* Make it stick to the side on scroll */
-    top: 0;
-  }
-  
-  .navbarLogo {
-      padding: 0 20px 20px 20px; /* Padding around logo */
-      text-align: center;
-      font-weight: bold;
-      /* Add logo specific styles */
-  }
+
+.horizontalNavbar {
+  width: 100%;
+  height: 60px;
+  display: flex; /* Arrange children horizontally */
+  align-items: center;
+  font-family: '';
+  /* maybe todo, add space between items*/
+
+  /* --- Appearance --- */
+  background-color: #FFFFFFFF;
+  padding: 0 20px; 
+  border-bottom: 1px solid #ccc; /* Border at the bottom */
+
+  /* --- Positioning --- */
+  position: sticky; /* Stick to the top on scroll */
+  top: 0;
+  left: 0; /* Ensure it sticks flush to the left */
+  z-index: 1000; /* Ensure it stays above other content */
+}
+
+/* Logo section */
 .navbarLogo {
-    padding: 15px 20px; /* Adjust padding around the logo */
-    text-align: center; /* Center the logo if needed */
-    /* Remove font-weight if it was just for text */
+  padding: 0; /* Remove vertical padding if parent handles alignment */
+  /* No text-align needed if it's just an image */
+  /* Keep flex order by placing it first in HTML/JSX */
+  margin-right: 20px; /* Add some space between logo and nav links */
 }
 
 .navbarLogo img {
-    max-width: 80%; /* Control logo size - adjust as needed */
-    height: auto; /* Maintain aspect ratio */
-    display: block; /* Helps with spacing/centering */
-    margin: 0 auto; /* Center block element */
+  max-height: 40px; /* Control logo size by height - adjust as needed */
+  /* max-width: 150px; */ /* You might want a max-width too */
+  width: auto; /* Maintain aspect ratio */
+  display: block; /* Removes extra space below image */
+  border-radius: 20px;
 }
 
-  
-  .vertical-navbar nav {
-      flex-grow: 1; /* Allow nav to take available space */
-  }
-  
-  
-  .vertical-navbar ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .vertical-navbar li {
-    /* Remove default list item styling if any */
-  }
-  
-  .vertical-navbar li a { /* Style for NavLink/Link */
-    display: block; /* Make links take full width */
-    padding: 10px 20px; /* Padding inside links */
-    text-decoration: none;
-    color: #333;
-    transition: background-color 0.2s ease; /* Smooth hover effect */
-  }
-  
-  .vertical-navbar li a:hover {
-    background-color: #e0e0e0; /* Hover background */
-  }
-  
-  .vertical-navbar li a.active-link { /* Style for active NavLink */
-    background-color: #d0d0d0; /* Active background */
-    font-weight: bold;
-    color: #000;
-  }
-  
-  .navbar-logout {
-      padding: 20px; /* Padding around logout */
-      margin-top: auto; /* Pushes logout to the bottom */
-  }
-  
-  .navbar-logout button {
-      width: 100%;
-      padding: 10px;
-      /* Add button styles */
-  }
+/* Navigation links container */
+.horizontalNavbar nav {
+  display: flex; /* Allow nav to be a flex item */
+  /* flex-grow: 1; */ /* Optional: uncomment if you want nav links to fill space */
+}
+
+.horizontalNavbar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex; /* Arrange list items horizontally */
+}
+
+.horizontalNavbar li {
+  /* No specific styling needed here usually */
+  margin: 0 5px; /* Add some space between nav items */
+}
+
+/* Individual navigation links */
+.horizontalNavbar li a { /* Style for NavLink/Link */
+  display: block; /* Good for padding */
+  padding: 10px 15px; /* Adjust padding for horizontal layout */
+  text-decoration: none;
+  background-color: #8B0000FF;
+  color: #FFFFFFFF;
+  border-radius: 4px; /* Optional: rounded corners for links */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.horizontalNavbar li a:hover {
+  background-color: #c8102eE5; /* Hover background */
+  color: #2d2d2de5;
+}
+
+/* Style for the active NavLink */
+.horizontalNavbar li a.active-link {
+  background-color: #c8102eE5; /* Active background */
+  font-weight: bold;
+  color: #2d2d2de5;
+}
+
+/* Logout section */
+.navbar-logout {
+  margin-left: auto; /* Pushes logout button to the far right */
+}
+
+.navbar-logout button {
+  display: block;
+  width: auto; /* Let button size naturally or set fixed width */
+  padding: 10px 15px; /* Adjust button padding */
+  cursor: pointer;
+  color: #2d2d2de5;
+  background-color: #8B0000FF;
+  border-radius: 4px;
+  /* Add other button styles (background, border, etc.) */
+}
+.navbar-logout button:hover{
+  background-color: #c8102eE5; /* Hover background */
+  color: #2d2d2de5;
+}

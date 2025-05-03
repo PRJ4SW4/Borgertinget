@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
 using System.Collections.Generic; // Required
 using System.Text.Json;          // Required
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace backend.Data;
 
@@ -20,6 +21,8 @@ public class DataContext : DbContext
     public DbSet<FlashcardCollection> FlashcardCollections { get; set; }
     public DbSet<Aktor> Aktor {get; set;}
     public DbSet<CalendarEvent> CalendarEvents { get; set; }
+
+    public DbSet<Party> Party {get; set;}
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -109,7 +112,39 @@ public class DataContext : DbContext
                      v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                      v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
                  ); 
+        
+            
+            modelBuilder.Entity<Party>(entity =>
+            {
+                // Configure Role relationships (as shown previously)
+                 entity.HasOne(p => p.chairman)
+                      .WithMany()
+                      .HasForeignKey(p => p.chairmanId)
+                      .OnDelete(DeleteBehavior.SetNull);
+                 // ... configure other roles (ViceChairman, Secretary, Spokesman) ...
 
+                 // Configure Stats List conversion (if kept)
+                 entity.Property(p => p.stats) // Assuming PascalCase naming
+                       .HasConversion(
+                           v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                           v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                       );
+
+                // *** Add Configuration for memberIds List ***
+                entity.Property(p => p.memberIds) // Use PascalCase property name
+                      .HasConversion(
+                          // Convert List<int> to JSON string for DB
+                          v => JsonSerializer.Serialize(v ?? new List<int>(), (JsonSerializerOptions?)null),
+                          // Convert JSON string from DB back to List<int>
+                          v => JsonSerializer.Deserialize<List<int>>(v, (JsonSerializerOptions?)null) ?? new List<int>(),
+                          // Add a ValueComparer to help EF Core detect changes correctly
+                          new ValueComparer<List<int>?>(
+                              (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                              c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                              c => c == null ? null : c.ToList()))
+                      .HasColumnType("text"); // Use jsonb for efficient querying in PostgreSQL if needed, or "text"
+                // *** End Configuration for memberIds List ***
+            });
         // --- SEED DATA ---
 
         // 1. Seed Pages

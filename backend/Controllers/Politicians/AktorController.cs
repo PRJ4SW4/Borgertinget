@@ -136,7 +136,7 @@ public class AktorController : ControllerBase{
     //                                        //
     //                                        //
     //----------------------------------------//
-    
+
     [HttpGet("fetch")]
     public async Task<IActionResult> UpdateAktorsFromExternal()
     {
@@ -220,14 +220,18 @@ public class AktorController : ControllerBase{
         int totalAddedCount = 0;
         int totalUpdatedCount = 0;
         int totalDeletedCount = 0;
+        int totalPartiesAdded = 0;
+        int totalMembersAddedToParties = 0;
         string? nextPolitikerLink = initialPolitikerApiUrl + "&$format=json"; // Start withpoliticians URL
+
+        var processedParties = new Dictionary<string, Party>();
 
         while (!string.IsNullOrEmpty(nextPolitikerLink))
         {
             try
             {
                  _logger.LogDebug("Fetching politician page: {Url}", nextPolitikerLink);
-                // Use JsonElement approach to handle potential OData structure variations
+                // get out response as json
                 var responseJson = await _httpService.GetJsonAsync<JsonElement>(nextPolitikerLink);
 
                 if (responseJson.ValueKind == JsonValueKind.Object &&
@@ -242,49 +246,95 @@ public class AktorController : ControllerBase{
                         int addedCount = 0;
                         int updatedCount = 0;
                         int deletedCount = 0;
+                        int pagePartiesAdded = 0;
+                        int pageMembersAddedToparties = 0;
 
                         foreach (var aktorDto in externalAktors)
                         {
                             var bioDetails = BioParser.ParseBiografiXml(aktorDto.biografi);
                             string? apiStatus = bioDetails.GetValueOrDefault("Status") as string;
+                            string? partyNameFromBio = bioDetails.GetValueOrDefault("Party") as string;
+                            string? partyShortnameFromBio = bioDetails.GetValueOrDefault("PartyShortname") as string;
+
 
                             var existingAktor = await _context.Aktor
                                                         .FirstOrDefaultAsync(a => a.Id == aktorDto.Id);
-
+                            Aktor currentAktor;
+                            
                             if (apiStatus == "1") // Active Politician
                             {
                                 string? ministerTitle = null;
-                                // Look up minister title *after* confirming the politician is active
+                                // Look up minister title after confirming the politician is active
                                 if (ministerRelationshipsMap.TryGetValue(aktorDto.Id, out int titleId))
                                 {
                                     ministerTitlesMap.TryGetValue(titleId, out ministerTitle);
                                 }
 
-
                                 if (existingAktor == null) // ADD
                                 {
-                                    var newAktor = MapAktor(aktorDto, bioDetails, ministerTitle); // Use helper
-                                    _context.Aktor.Add(newAktor);
+                                    currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle); // Use helper
+                                    _context.Aktor.Add(currentAktor);
                                     addedCount++;
-                                     _logger.LogDebug("Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}", newAktor.Id, newAktor.navn, newAktor.MinisterTitel);
+                                     _logger.LogDebug("Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}", currentAktor.Id, currentAktor.navn, currentAktor.MinisterTitel);
                                 }
                                 else // UPDATE
                                 {
-                                    MapAktor(aktorDto, bioDetails, ministerTitle, existingAktor); // Use helper to update
+                                    currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle, existingAktor); // Use helper to update
                                     updatedCount++;
                                      _logger.LogDebug("Updating Aktor ID: {Id}, Name: {Name}, Title: {Title}", existingAktor.Id, existingAktor.navn, existingAktor.MinisterTitel);
+                                }
+                                if (!string.IsNullOrWhiteSpace(partyNameFromBio)){
+                                    Party? partyEnt;
+                                    if (!processedParties.TryGetValue(partyNameFromBio, out partyEnt)){
+                                        partyEnt = await _context.Party.FirstOrDefaultAsync(p => p.partyName == partyNameFromBio);
+
+                                        if (partyEnt == null){
+                                            partyEnt = new Party{
+                                                partyName = partyNameFromBio,
+                                                partyShortName = partyShortnameFromBio,
+                                                memberIds = new List<int>()
+                                            };
+                                            _context.Party.Add(partyEnt);
+                                            processedParties[partyNameFromBio] = partyEnt;
+                                            pagePartiesAdded++;
+                                        }
+                                        else {
+                                            partyEnt.memberIds ??= new List<int>();
+                                            processedParties[partyNameFromBio] = partyEnt;
+                                        }
+                                    }
+                                    if (partyEnt.memberIds == null){
+                                        partyEnt.memberIds = new List<int>();
+                                    }
+                                    if (!partyEnt.memberIds.Contains(currentAktor.Id)){
+                                        partyEnt.memberIds.Add(currentAktor.Id);
+                                        pageMembersAddedToparties++;
+                                        _logger.LogDebug("Adding Aktor ID: {AktorId} to MemberIds of Party: {partyName}", currentAktor.Id, partyEnt.partyName);
+                                        _context.Entry(partyEnt).State = EntityState.Modified;
+                                    } else {
+                                        _logger.LogWarning("Aktor ID: {Id} has no party name in biography.", currentAktor.Id);
+                                    }
                                 }
                             }
                             else // Inactive Politician
                             {
-                                if (existingAktor != null) // DELETE
-                                {
-                                    _context.Aktor.Remove(existingAktor);
-                                    deletedCount++;
-                                     _logger.LogDebug("Deleting inactive Aktor ID: {Id}, Name: {Name}", existingAktor.Id, existingAktor.navn);
-                                }
+                                if (existingAktor != null) // DELETE Aktor
+                                    {
+                                        // Also need to remove the AktorId from any Party.MemberIds lists
+                                        var partiesContainingAktor = await _context.Party
+                                            .Where(p => p.memberIds != null && p.memberIds.Contains(existingAktor.Id))
+                                            .ToListAsync();
+
+                                        foreach(var party in partiesContainingAktor)
+                                        {
+                                            party.memberIds?.Remove(existingAktor.Id);
+                                            _context.Entry(party).State = EntityState.Modified; // Mark as modified
+                                        }
+
+                                        _context.Aktor.Remove(existingAktor);
+                                    }
                             }
-                        } // End foreach
+                        } 
 
                         if (addedCount > 0 || updatedCount > 0 || deletedCount > 0)
                         {
@@ -295,7 +345,7 @@ public class AktorController : ControllerBase{
                         totalUpdatedCount += updatedCount;
                         totalDeletedCount += deletedCount;
 
-                    } // End if (externalAktors != null)
+                    } 
                     else {
                          _logger.LogWarning("Deserialization of 'value' array resulted in null for URL: {Url}", nextPolitikerLink);
                     }
@@ -353,8 +403,6 @@ public class AktorController : ControllerBase{
         aktor.typeid = 5; // Assuming this fetch is only for politicians (typeid=5)
 
         // Map parsed fields
-        aktor.Party = bioDetails.GetValueOrDefault("Party") as string;
-        aktor.PartyShortname = bioDetails.GetValueOrDefault("PartyShortname") as string;
         aktor.Sex = bioDetails.GetValueOrDefault("Sex") as string;
         aktor.Born = bioDetails.GetValueOrDefault("Born") as string;
         aktor.EducationStatistic = bioDetails.GetValueOrDefault("EducationStatistic") as string;

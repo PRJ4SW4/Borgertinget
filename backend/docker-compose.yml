@@ -19,3 +19,15 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin123
     ports:
       - "5050:80"
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.1
+    container_name: my-opensearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - OPENSEACH_JAVA_OPTS=-Xms512m -Xmx512m
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+    ports:
+      - "9200:9200"

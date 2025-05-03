@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -12,9 +13,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250429085323_AddPartyEnt")]
+    partial class AddPartyEnt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -555,9 +558,6 @@ namespace backend.Migrations
                     b.Property<string>("partyProgram")
                         .HasColumnType("text");
 
-                    b.Property<string>("partyShortName")
-                        .HasColumnType("text");
-
                     b.Property<string>("poilitics")
                         .HasColumnType("text");
 
@@ -673,15 +673,18 @@ namespace backend.Migrations
 
                     b.HasOne("backend.Models.Aktor", "secretary")
                         .WithMany()
-                        .HasForeignKey("secretaryId");
+                        .HasForeignKey("secretaryId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("backend.Models.Aktor", "spokesman")
                         .WithMany()
-                        .HasForeignKey("spokesmanId");
+                        .HasForeignKey("spokesmanId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("backend.Models.Aktor", "viceChairman")
                         .WithMany()
-                        .HasForeignKey("viceChairmanId");
+                        .HasForeignKey("viceChairmanId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("chairman");
 

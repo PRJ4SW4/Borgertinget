@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import './Navbar.css'; 
-import logo from "../images/Icon.png";
+import logo from "../images/Icon.png"; //Change to correct image (without text)
 
 interface NavbarProps {
     token: string | null;
@@ -16,8 +16,8 @@ const Navbar: React.FC<NavbarProps> = ({ token, setToken }) => {
     };
 
     return (
-        // Use <aside> for semantic meaning of a sidebar
-        <aside className="verticalNavbar">
+        //<header> for horizontal bar
+        <header className="horizontalNavbar">
              <div className="navbarLogo"> {/* logo area */}
                 <Link to="/home">
                     <img src={logo} alt="Borgertinget" /> {/* Use imported src and add alt text */}
@@ -25,7 +25,6 @@ const Navbar: React.FC<NavbarProps> = ({ token, setToken }) => {
              </div>
             <nav> {/* Wrap links in a nav element */}
                 <ul> {/* Keep the list for structure */}
-                    <li><NavLink to="/home" className={({ isActive }) => isActive ? 'active-link' : ''}>Home</NavLink></li>
                     <li><NavLink to="/learning" className={({ isActive }) => isActive ? 'active-link' : ''}>Learning</NavLink></li>
                     <li><NavLink to="/flashcards" className={({ isActive }) => isActive ? 'active-link' : ''}>Flashcards</NavLink></li>
                     <li><NavLink to="/parties" className={({ isActive }) => isActive ? 'active-link' : ''}>Parties</NavLink></li>
@@ -38,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({ token, setToken }) => {
                      <button onClick={handleLogout}>Logout</button>
                  </div>
             )}
-        </aside>
+        </header>
     );
 };
 
