@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
-import LearningLayout from './layouts/LearningLayout';
-import PageContent from './components/PageContent';
-import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
-import CalendarView from './components/CalendarView'
+import LearningLayout from './layouts/LearningEnvironment/LearningLayout';
+import PageContent from './components/LearningEnvironment/PageContent';
+import FlashcardLayout from './layouts/Flashcards/FlashcardLayout';
+import CalendarView from './components/Calendar/CalendarView'
 import LoginSuccessPage from './pages/LoginSuccessPage'; 
 import PartyPage from "./pages/PartyPage";
 import PoliticianPage from "./pages/PoliticianPage";
@@ -31,11 +31,9 @@ function App() {
 
       <Route
           path="/learning"
-          // Apply the SAME protection logic as /home if needed
-          // If learning is public, just use: element={<LearningLayout />}
+          // Apply the SAME protection logic as /home
           element={token ? <LearningLayout /> : <Navigate to="/login" />}
         >
-          {/* Nested routes render inside LearningLayout's <Outlet /> */}
           <Route index element={<p>Velkommen til læringsområdet!</p>} />
           <Route path=":pageId" element={<PageContent />} />
       </Route>
