@@ -4,6 +4,7 @@ using backend.DTO.Calendar;
 using backend.DTO.LearningEnvironment;
 using backend.Models;
 using backend.Models.Calendar;
+using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
