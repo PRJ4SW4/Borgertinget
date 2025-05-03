@@ -42,14 +42,26 @@
     font-weight: 600; /* Make active link bolder */
   }
   
-  /* Indentation for nested sub-menus */
-  .sub-menu ul.sub-menu{
-    /* Add padding to the left to create indentation */
-    padding-left: 1em; /* Adjust indentation level */
-    /* Add some top margin for spacing */
-    margin-top: 4px;
-    /* Optional: Style nested lists slightly differently if needed */
-  }
+/* Basic reset for ALL lists in the side-nav */
+.side-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Indentation specifically for ANY sub-menu */
+ul.sub-menu {
+  /* Reset default padding/margin just in case */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  
+  /* Indentation */
+  padding-left: 1.2em; /* Indent size */
+
+  /* Spacing from the parent item */
+  margin-top: 4px; 
+}
   
   /* Styling for Loading/Error/Empty states on the main nav element */
   .side-nav.loading,
