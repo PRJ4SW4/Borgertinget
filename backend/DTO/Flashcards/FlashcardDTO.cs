@@ -1,5 +1,5 @@
-// /backend/DTO/LearningEnvironment/FlashcardDTO.cs
-namespace backend.DTO.LearningEnvironment;
+// /backend/DTO/Flashcards/FlashcardDTO.cs
+namespace backend.DTO.Flashcards;
 
 public class FlashcardDTO
 {
