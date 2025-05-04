@@ -21,6 +21,7 @@ export default function AdminLaering() {
           Opret ny Flashcard serie
         </button>
         <br />
+
         <button
           onClick={() => navigate("/admin/Laering/editflashcardcollection")}
           className="Button"
@@ -43,6 +44,8 @@ export default function AdminLaering() {
         >
           Rediger Polidles Citat-Mode
         </button>
+
+        <br />
 
         <button
           onClick={() => navigate("/admin/Laering/addLearningPage")}
