@@ -12,6 +12,9 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+// for .env secrets
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Enable detailed error messages for JWT validation (godt for udvikling)
@@ -79,13 +82,14 @@ builder
             },
             OnTokenValidated = context =>
             {
-                 // Brug ILogger
-                Console.WriteLine($"✅ TOKEN VALIDATED: User: {context.Principal?.Identity?.Name}, Roles: {string.Join(", ", context.Principal?.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value) ?? Enumerable.Empty<string>())}");
-                return Task.CompletedTask;
-            },
-             OnChallenge = context => {
-                // Log når en udfordring sendes (f.eks. 401 Unauthorized)
-                Console.WriteLine($"챌 CHALLENGE: {context.Error} - {context.ErrorDescription}");
+                Console.WriteLine("✅ TOKEN VALIDATED:");
+                if (context.Principal?.Identity != null)
+                {
+                    Console.WriteLine("User: " + context.Principal.Identity?.Name);
+                    return Task.CompletedTask;
+                } else {
+                    Console.WriteLine("User information not available.");
+                }
                 return Task.CompletedTask;
             },
             OnForbidden = context => {

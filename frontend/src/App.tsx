@@ -2,11 +2,10 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
-import Verify from "./pages/Verify";
-import LearningLayout from "./layouts/LearningLayout";
-import PageContent from "./components/PageContent";
-import FlashcardLayout from "./layouts/FlashcardLayout"; // Import new layout
-import CalendarView from "./components/CalendarView";
+import LearningLayout from "./layouts/LearningEnvironment/LearningLayout";
+import PageContent from "./components/LearningEnvironment/PageContent";
+import FlashcardLayout from "./layouts/Flashcards/FlashcardLayout";
+import CalendarView from "./components/Calendar/CalendarView";
 
 // Admin pages
 import CreateFlashcardCollection from "./components/AdminPages/AddFlashcardCollection";
@@ -53,17 +52,15 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login setToken={setToken} />} />
       <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
-      <Route path="/verify" element={<Verify />} />
       <Route path="/kalender" element={<CalendarView />} />
       <Route path="/feed" element={token ? <FeedPage /> : <Navigate to="/login" />} /> // Vis FeedPage hvis logget ind, ellers login
       <Route
-        path="/learning"
-        // Apply the SAME protection logic as /home if needed
-        // If learning is public, just use: element={<LearningLayout />}
-        element={token ? <LearningLayout /> : <Navigate to="/login" />}>
-        {/* Nested routes render inside LearningLayout's <Outlet /> */}
-        <Route index element={<p>Velkommen til læringsområdet!</p>} />
-        <Route path=":pageId" element={<PageContent />} />
+          path="/learning"
+          // Apply the SAME protection logic as /home
+          element={token ? <LearningLayout /> : <Navigate to="/login" />}
+        >
+          <Route index element={<p>Velkommen til læringsområdet!</p>} />
+          <Route path=":pageId" element={<PageContent />} />
       </Route>
       <Route path="/parties" element={<PartiesPage />} />
       <Route path="/party/:partyName" element={<PartyPage />} />

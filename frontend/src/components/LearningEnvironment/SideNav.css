@@ -1,0 +1,101 @@
+/* src/components/SideNav.css */
+
+.side-nav {
+    /* Container for the entire navigation */
+    font-family: sans-serif;
+  }
+  
+  /* Basic reset for the main list */
+  .side-nav ul {
+    list-style: none; /* Remove default bullets */
+    padding: 0;
+    margin: 0;
+  }
+  
+  .side-nav li {
+    /* Spacing between list items */
+    margin: 2px 0;
+  }
+  
+  /* Styling for each navigation link (NavLink) */
+  .nav-item-link {
+    display: block; /* Make the link fill the list item for easier clicking */
+    padding: 8px 12px; /* Adjust padding (top/bottom, left/right) */
+    text-decoration: none; /* Remove underline */
+    color: #333; /* Default text color */
+    border-radius: 4px; /* Slightly rounded corners */
+    transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transitions */
+    cursor: pointer; /* Indicate it's clickable */
+    position: relative; /* Needed if positioning the arrow absolutely */
+  }
+  
+  /* Hover effect for links */
+  .nav-item-link:hover {
+    background-color: #e9ecef; /* Light background on hover */
+    color: #0056b3; /* Optional: Change text color on hover */
+  }
+  
+  /* Styling for the currently active link */
+  .active-nav-link {
+    background-color: #ddeeff; /* A distinct background for active item */
+    color: #004085; /* Darker text color for active item */
+    font-weight: 600; /* Make active link bolder */
+  }
+  
+/* Basic reset for ALL lists in the side-nav */
+.side-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Indentation specifically for ANY sub-menu */
+ul.sub-menu {
+  /* Reset default padding/margin just in case */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  
+  /* Indentation */
+  padding-left: 1.2em; /* Indent size */
+
+  /* Spacing from the parent item */
+  margin-top: 4px; 
+}
+  
+  /* Styling for Loading/Error/Empty states on the main nav element */
+  .side-nav.loading,
+  .side-nav.error,
+  .side-nav.empty {
+    padding: 1rem;
+    color: #6c757d; /* Muted text color */
+    font-style: italic;
+  }
+  
+  .side-nav.error {
+    color: #dc3545; /* Red color for errors */
+    font-weight: bold;
+  }
+
+  .arrow {
+    font-size: 0.8em;              /* Kept from both */
+    display: inline-block;         /* Kept from both */
+    transition: transform 0.2s ease-in-out; /* Kept from both */
+    cursor: pointer;             /* Kept from second definition */
+    user-select: none;           /* Kept from second definition */
+    -webkit-user-select: none;   /* Kept from second definition */
+    -moz-user-select: none;      /* Kept from second definition */
+  
+    /* Padding & Margin for clickable area (from second definition) */
+    padding: 6px 8px;
+    margin-left: 5px;            /* Takes precedence over margin-left: 8px in first definition */
+    margin-top: -6px;
+    margin-bottom: -6px;
+    border-radius: 3px;          /* Kept from second definition */
+  }
+  
+  .arrow:hover {
+      background-color: rgba(0,0,0,0.1); /* Kept */
+  }
+  
+  

@@ -1,11 +1,16 @@
 using System.Collections.Generic; // Required
 using System.Text.Json; // Required
+using backend.DTO.Calendar;
+using backend.DTO.LearningEnvironment;
+using System.Collections.Generic; // Required
+using System.Text.Json; // Required
 using backend.Models;
+using backend.Models.Calendar;
+using backend.Models.Flashcards;
+using backend.Models.LearningEnvironment;
+using BCrypt.Net;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
-
-// Tilføj using for de nye modeller, hvis de er i et andet namespace
-// using YourProject.Models; // Eksempel
 
 namespace backend.Data;
 
@@ -16,13 +21,21 @@ public class DataContext : DbContext
 
     // Eksisterende DbSets
     public DbSet<User> Users { get; set; } = null!;
+
+    // --- Learning Environment Setup ---
     public DbSet<Page> Pages { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<AnswerOption> AnswerOptions { get; set; }
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<FlashcardCollection> FlashcardCollections { get; set; }
+
+    // --- /Learning Environment Setup ---
+
+    // --- Calendar Setup ---
     public DbSet<Aktor> Aktor { get; set; }
     public DbSet<CalendarEvent> CalendarEvents { get; set; }
+
+    // --- /Calendar Setup ---
 
     public DbSet<Tweet> Tweets { get; set; }
 
@@ -46,8 +59,13 @@ public class DataContext : DbContext
     {
         base.OnModelCreating(modelBuilder); // Vigtigt at kalde base metoden
 
+        // --- Calendar Setup ---
         // Index for the CalendarEvents SourceUrl to make syncing events faster
         modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
+
+        // --- /Calendar Setup ---
+
+        // --- Learning Environment Setup ---
 
         // Configure the self-referencing relationship
         modelBuilder
@@ -55,7 +73,7 @@ public class DataContext : DbContext
             .HasOne(p => p.ParentPage) // A page has one parent
             .WithMany(p => p.ChildPages) // A parent can have many children
             .HasForeignKey(p => p.ParentPageId) // The foreign key is ParentPageId
-            .OnDelete(DeleteBehavior.Restrict); // Or Cascade, SetNull, etc.
+            .OnDelete(DeleteBehavior.Cascade); // Cascade deletions. Can be changed
 
         // Configure Page <-> Question relationship
         modelBuilder
@@ -77,7 +95,8 @@ public class DataContext : DbContext
             .HasMany(c => c.Flashcards)
             .WithOne(f => f.FlashcardCollection)
             .HasForeignKey(f => f.CollectionId);
-        // ---------------------------------
+
+        // --- /Learning Environment Setup ---
 
         // Configure Constituencies
         modelBuilder
@@ -153,6 +172,8 @@ public class DataContext : DbContext
             );
 
         // --- SEED DATA ---
+
+        // --- Learning Environment Seeding ---
 #region Polidle
         // --- NY KONFIGURATION for Polidle ---
 
@@ -240,6 +261,12 @@ public class DataContext : DbContext
                     BackText = "Statens budget for det kommende år",
                 }
             );
+
+        // --- /FLASHCARDS ---
+
+        // --- /Learning Environment Seeding ---
+
+        // --- /SEED DATA ---
 
         // === Konfiguration for PoliticianTwitterId ===
         modelBuilder.Entity<PoliticianTwitterId>(entity =>
