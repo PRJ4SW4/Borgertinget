@@ -48,7 +48,7 @@ export default function AddLearningPage() {
 
       if (response.ok) {
         alert("Læringsside oprettet!");
-        navigate("/admin");
+        navigate("/admin/Laering");
       } else {
         const errorText = await response.text();
         console.error("Serverfejl:", errorText);
@@ -64,7 +64,7 @@ export default function AddLearningPage() {
     <div className="container">
       <h1>Opret Læringsside</h1>
 
-      <input type="text" placeholder="Titel" value={title} onChange={(e) => setTitle(e.target.value)} className="add-poll-title" />
+      <input type="text" placeholder="Titel" value={title} onChange={(e) => setTitle(e.target.value)} className="page-input" />
 
       <textarea
         className="add-poll-form"

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using backend.DTO.Flashcards;
 using backend.DTOs;
 using backend.Models;
 using backend.Services;
@@ -20,7 +21,7 @@ public class AdministratorController : ControllerBase
 
     // POST Flashcard collection
     [HttpPost("PostFlashcardCollection")]
-    public async Task<IActionResult> PostFlashCardCollection(FlashcardCollectionDetailDto dto)
+    public async Task<IActionResult> PostFlashCardCollection(FlashcardCollectionDetailDTO dto)
     {
         if (dto == null)
         {
@@ -106,7 +107,7 @@ public class AdministratorController : ControllerBase
     [HttpPut("UpdateFlashcardCollection/{collectionId}")]
     public async Task<IActionResult> UpdateFlashcardCollection(
         int collectionId,
-        [FromBody] FlashcardCollectionDetailDto dto
+        [FromBody] FlashcardCollectionDetailDTO dto
     )
     {
         if (dto == null)

@@ -1,27 +1,49 @@
-.container,
-.add-poll-container {
+/* Container and Title */
+.container {
   padding: 2rem;
   max-width: 50rem;
   margin: 0 auto;
 }
 
-h1,
-.add-poll-title {
+h1 {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
-.add-poll-subtitle {
+/* Subtitle (optional use) */
+.subtitle {
   font-size: 1.2rem;
   color: #666;
   margin-bottom: 2rem;
 }
 
+/* Form structure */
+.page-form {
+  background-color: #c99b9b; /* Light pink */
+  padding: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Sections within form */
+.page-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Labels and Inputs */
+.page-label {
+  font-weight: 600;
+}
+
 input,
 textarea,
 select,
-.add-poll-input {
+.page-input {
   width: 100%;
   padding: 0.75rem;
   border: none;
@@ -34,41 +56,10 @@ textarea {
   resize: vertical;
 }
 
-.add-poll-form {
-  background-color: #c99b9b; /* Light pink background */
-  padding: 2rem;
-  border-radius: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.add-poll-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.add-poll-label {
-  font-weight: 600;
-}
-
-.add-poll-option-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.add-poll-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.add-poll-add-btn,
-.add-poll-remove-btn,
-.add-poll-submit-btn {
-  background-color: #991b1b; /* Dark red */
+/* Buttons */
+button,
+.page-btn {
+  background-color: #991b1b;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -78,19 +69,18 @@ textarea {
   width: fit-content;
 }
 
-.add-poll-add-btn:hover,
-.add-poll-submit-btn:hover {
+button:hover,
+.page-btn:hover {
   background-color: #7f1d1d;
 }
 
-.add-poll-add-btn:disabled,
-.add-poll-remove-btn:disabled,
-button:disabled {
+button:disabled,
+.page-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
 
-.add-poll-buttons {
+.page-buttons {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;

@@ -44,7 +44,12 @@ builder.Services.AddAuthorization(options =>
 
 // EF Core Database Context
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' not found."
+            )
+    )
 );
 
 // Authentication med JWT Bearer
@@ -87,21 +92,26 @@ builder
                 {
                     Console.WriteLine("User: " + context.Principal.Identity?.Name);
                     return Task.CompletedTask;
-                } else {
+                }
+                else
+                {
                     Console.WriteLine("User information not available.");
                 }
                 return Task.CompletedTask;
             },
-            OnForbidden = context => {
-                 // Log når adgang nægtes (f.eks. 403 Forbidden)
-                 Console.WriteLine($"🚫 FORBIDDEN: User {context.Principal?.Identity?.Name} does not have required permissions.");
-                 return Task.CompletedTask;
-            }
+            OnForbidden = context =>
+            {
+                // Log når adgang nægtes (f.eks. 403 Forbidden)
+                Console.WriteLine(
+                    $"🚫 FORBIDDEN: User {context.Principal?.Identity?.Name} does not have required permissions."
+                );
+                return Task.CompletedTask;
+            },
         };
     });
 
-
 builder.Services.AddSignalR();
+
 // Swagger/OpenAPI konfiguration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -156,9 +166,10 @@ builder.Services.AddCors(options =>
         "AllowReactApp", // Navnet på din policy
         policy =>
         {
-            policy.WithOrigins(builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
+            policy
+                .WithOrigins(builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
         }
     );
 });
@@ -176,7 +187,6 @@ builder.Services.AddScoped<AltingetScraperService>();
 builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 
 builder.Services.AddScoped<AdministratorService>();
-
 
 // -----------------------------------------
 // Byg WebApplication objektet
@@ -197,11 +207,9 @@ using (var scope = app.Services.CreateScope())
         await context.Database.MigrateAsync();
         logger.LogInformation("Database migrations applied successfully.");
 
-
         logger.LogInformation("Attempting to seed data if necessary...");
         await PolidleSeed.SeedDataAsync(context, 75); // Kald til din seeder
         logger.LogInformation("Data seeding completed (data added only if tables were empty).");
-
     }
     catch (Exception ex)
     {
@@ -209,6 +217,7 @@ using (var scope = app.Services.CreateScope())
         // throw; // Overvej at genkaste fejlen for at stoppe opstart
     }
 }
+
 // --- DATABASE MIGRATION OG SEEDING SLUT ---
 
 
@@ -253,6 +262,7 @@ app.MapControllers();
 app.UseStaticFiles();
 
 app.MapHub<FeedHub>("/feedHub");
+
 // Hent logger til den sidste besked før Run()
 var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
 startupLogger.LogInformation("Starting application...");

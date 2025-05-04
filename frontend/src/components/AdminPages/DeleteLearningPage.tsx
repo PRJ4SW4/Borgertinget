@@ -61,7 +61,7 @@ export default function DeleteLearningPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert("Siden er slettet.");
-      navigate("/admin");
+      navigate("/admin/Laering");
     } catch (error) {
       console.error("Failed to delete page", error);
       alert("Sletning fejlede.");
@@ -69,13 +69,13 @@ export default function DeleteLearningPage() {
   };
 
   return (
-    <div className="add-poll-container">
-      <h1 className="add-poll-title">Slet Læringsside</h1>
-      <p className="add-poll-subtitle">Vælg en læringsside for at se og slette den</p>
+    <div className="container">
+      <h1>Slet Læringsside</h1>
+      <p className="subtitle">Vælg en læringsside for at se og slette den</p>
 
-      <div className="add-poll-section">
-        <label className="add-poll-label">Vælg Side</label>
-        <select className="add-poll-input" value={selectedPageId ?? ""} onChange={(e) => setSelectedPageId(Number(e.target.value))}>
+      <div className="page-section">
+        <label className="page-label">Vælg Side</label>
+        <select className="page-input" value={selectedPageId ?? ""} onChange={(e) => setSelectedPageId(Number(e.target.value))}>
           <option value="">-- Vælg en side --</option>
           {pages.map((page) => (
             <option key={page.id} value={page.id}>
@@ -86,19 +86,19 @@ export default function DeleteLearningPage() {
       </div>
 
       {pageDetails && (
-        <form onSubmit={handleDelete} className="add-poll-form">
-          <div className="add-poll-section">
-            <label className="add-poll-label">Titel</label>
-            <input type="text" value={pageDetails.title} disabled className="add-poll-input" />
+        <form onSubmit={handleDelete} className="page-form">
+          <div className="page-section">
+            <label className="page-label">Titel</label>
+            <input type="text" value={pageDetails.title} disabled className="page-input" />
           </div>
 
-          <div className="add-poll-section">
-            <label className="add-poll-label">Indhold</label>
-            <textarea value={pageDetails.content} disabled rows={6} className="add-poll-input" />
+          <div className="page-section">
+            <label className="page-label">Indhold</label>
+            <textarea value={pageDetails.content} disabled rows={6} className="page-input" />
           </div>
 
-          <div className="add-poll-buttons">
-            <button type="submit" className="add-poll-submit-btn" style={{ backgroundColor: "#991b1b" }}>
+          <div className="page-buttons">
+            <button type="submit" className="page-btn" style={{ backgroundColor: "#991b1b" }}>
               Slet Side
             </button>
           </div>

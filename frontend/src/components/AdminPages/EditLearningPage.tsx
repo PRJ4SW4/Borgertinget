@@ -72,7 +72,7 @@ export default function EditLearningPage() {
         }
       );
       alert("Siden er opdateret!");
-      navigate("/admin");
+      navigate("/admin/Laering");
     } catch (error) {
       console.error("Failed to update page", error);
       alert("Opdatering fejlede.");

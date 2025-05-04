@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using backend.Data;
+using backend.DTO.Flashcards;
 using backend.DTOs;
 using backend.Models;
+using backend.Models.Flashcards;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +21,7 @@ namespace backend.Services
 
         #region Flashcard Collection
         // POST Flashcard collection
-        public async Task<int> CreateCollectionAsync(FlashcardCollectionDetailDto dto)
+        public async Task<int> CreateCollectionAsync(FlashcardCollectionDetailDTO dto)
         {
             var collection = new FlashcardCollection
             {
@@ -58,7 +60,7 @@ namespace backend.Services
         // PUT Flashcard Collection
         public async Task UpdateCollectionInfoAsync(
             int collectionId,
-            FlashcardCollectionDetailDto dto
+            FlashcardCollectionDetailDTO dto
         )
         {
             // Get the specific Flashcard Collection with the flashcards too
@@ -116,7 +118,7 @@ namespace backend.Services
         }
 
         // Get Flashcard collection by Title
-        public async Task<FlashcardCollectionDetailDto> GetFlashCardCollectionByTitle(string title)
+        public async Task<FlashcardCollectionDetailDTO> GetFlashCardCollectionByTitle(string title)
         {
             var collection = await _context
                 .FlashcardCollections.Include(fc => fc.Flashcards)
@@ -130,13 +132,13 @@ namespace backend.Services
             }
 
             // Map entity to DTO
-            var dto = new FlashcardCollectionDetailDto
+            var dto = new FlashcardCollectionDetailDTO
             {
                 CollectionId = collection.CollectionId,
                 Title = collection.Title,
                 Description = collection.Description,
                 Flashcards = collection
-                    .Flashcards.Select(fc => new FlashcardDto
+                    .Flashcards.Select(fc => new FlashcardDTO
                     {
                         FlashcardId = fc.FlashcardId,
                         FrontContentType = fc.FrontContentType.ToString(),
