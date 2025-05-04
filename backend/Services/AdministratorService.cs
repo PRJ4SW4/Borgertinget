@@ -163,7 +163,9 @@ namespace backend.Services
 
             if (collection == null)
             {
-                throw new KeyNotFoundException($"Flashcard collection with ID {collectionId} not found");
+                throw new KeyNotFoundException(
+                    $"Flashcard collection with ID {collectionId} not found"
+                );
             }
 
             // Remove flashcards in Flashcardcollection

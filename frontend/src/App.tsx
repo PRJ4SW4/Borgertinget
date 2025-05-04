@@ -1,43 +1,29 @@
 import { useState, useEffect, JSX } from "react";
-// Imports components from react-router-dom for routing.
 import { Routes, Route, Navigate } from "react-router-dom";
 
-// Layout Components: Provide consistent page structure.
-import LearningLayout from './layouts/LearningEnvironment/LearningLayout';
-import FlashcardLayout from './layouts/Flashcards/FlashcardLayout';
-import MainLayout from './layouts/MainLayout'; // Standard layout with Navbar/Footer.
-
-// Page Components: Represent different views/pages in the application.
-import Login from "./pages/Login";
-// Represents the main view for authenticated users.
-import Home from "./pages/Home";
-// HomePage after user signs in.
-import HomePage from "./pages/HomePage/HomePage";
-import PageContent from './components/LearningEnvironment/PageContent'; // Renders content within LearningLayout.
-import CalendarView from './components/Calendar/CalendarView';
-import LoginSuccessPage from './pages/LoginSuccessPage';
-import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
-import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
-import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
-// Navbar and Footer are rendered via MainLayout.
-
-// The main application component.
-import Login from "./pages/Login";
-import Home from "./pages/Home";
 import LearningLayout from "./layouts/LearningEnvironment/LearningLayout";
-import PageContent from "./components/LearningEnvironment/PageContent";
 import FlashcardLayout from "./layouts/Flashcards/FlashcardLayout";
-import CalendarView from "./components/Calendar/CalendarView";
+import MainLayout from "./layouts/MainLayout";
 
-// Admin pages
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import HomePage from "./pages/HomePage/HomePage";
+import PageContent from "./components/LearningEnvironment/PageContent";
+import CalendarView from "./components/Calendar/CalendarView";
+import LoginSuccessPage from "./pages/LoginSuccessPage";
+import PartyPage from "./pages/PartyPage";
+import PoliticianPage from "./pages/PoliticianPage";
+import PartiesPage from "./pages/PartiesPage";
+
+// Admin Pages
 import CreateFlashcardCollection from "./components/AdminPages/AddFlashcardCollection";
-import AdminPage from "./components/AdminPages/AdminPage"; // Import new layout
+import AdminPage from "./components/AdminPages/AdminPage";
 import AdminBruger from "./components/AdminPages/AdminBruger";
 import AdminIndhold from "./components/AdminPages/AdminIndhold";
 import AdminLearing from "./components/AdminPages/AdminLearing";
 import AdminPolls from "./components/AdminPages/AdminPolls";
 import EditFlashcardCollection from "./components/AdminPages/EditFlashcardCollection";
-import EditQuotes from "./components/AdminPages/EditCitatMode";
+import EditQuotes from "./components/AdminPages/EditCitatMode"; // Removed duplicate
 import AddPoll from "./components/AdminPages/AddPolls";
 import EditPoll from "./components/AdminPages/EditPoll";
 import DeletePoll from "./components/AdminPages/DeletePoll";
@@ -46,18 +32,10 @@ import AddLearningPage from "./components/AdminPages/AddLearningPage";
 import EditLearningPage from "./components/AdminPages/EditLearningPage";
 import DeleteLearningPage from "./components/AdminPages/DeleteLearningPage";
 
-import LoginSuccessPage from "./pages/LoginSuccessPage";
-import PartyPage from "./pages/PartyPage";
-import PoliticianPage from "./pages/PoliticianPage";
-import PartiesPage from "./pages/PartiesPage";
-import FeedPage from "./pages/FeedPage"; // Tilføj denne linje
-
 import Polidle from "./pages/Polidle/Polidle";
-// Importet gamemodes
 import ClassicMode from "./pages/Polidle/ClassicMode";
 import CitatMode from "./pages/Polidle/CitatMode";
 import FotoBlurMode from "./pages/Polidle/FotoBlurMode";
-import EditCitatMode from "./components/AdminPages/EditCitatMode";
 
 function App() {
   // State hook for the JWT authentication token.
@@ -84,7 +62,6 @@ function App() {
     return token ? children : <Navigate to="/login" />;
   };
 
-
   // --- Routing Setup ---
   // Defines the application's routes using the Routes component.
   return (
@@ -93,46 +70,33 @@ function App() {
       {/* Login page route. */}
       <Route path="/login" element={<Login setToken={setToken} />} />
       {/* Post-login success/callback route. */}
-      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />}/>
-
-
+      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />} />
       {/* --- Protected Routes using MainLayout --- */}
       {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}
       {/* All nested routes inherit the layout and protection. */}
-      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }>
         {/* Root path ("/") route, shows HomePage for logged-in users. */}
         <Route path="/" element={<HomePage />} />
-
         {/* Home is an old route for a previous homepage, should be removed for production environment */}
         <Route
-            path="/home"
-            element={<Home setToken={setToken} />} // Pass setToken for logout functionality within Home.
+          path="/home"
+          element={<Home setToken={setToken} />} // Pass setToken for logout functionality within Home.
         />
-
         {/* Calendar route (requires login). */}
-        <Route
-            path="/kalender"
-            element={<CalendarView />}
-        />
-
+        <Route path="/kalender" element={<CalendarView />} />
         {/* Other routes requiring login and using MainLayout. */}
         <Route path="/parties" element={<PartiesPage />} />
         <Route path="/party/:partyName" element={<PartyPage />} /> {/* ':partyName' is a dynamic URL parameter. */}
         <Route path="/politician/:id" element={<PoliticianPage />} /> {/* ':id' is a dynamic URL parameter. */}
-
         {/* --- Learning Environment Routes (Nested and Protected) --- */}
         {/* This route group uses LearningLayout and is protected by the parent ProtectedRoute. */}
         <Route
           path="/learning"
-          // Apply the SAME protection logic as /home
-          element={token ? <LearningLayout /> : <Navigate to="/login" />}
-        >
-          <Route index element={<p>Velkommen til læringsområdet!</p>} />
-          <Route path=":pageId" element={<PageContent />} />
-      </Route>
-      <Route path="/parties" element={<PartiesPage />} />
-      <Route path="/party/:partyName" element={<PartyPage />} />
-      <Route path="/politician/:id" element={<PoliticianPage />} />
           element={<LearningLayout />} // Uses its own layout in addition to MainLayout, protection inherited.
         >
           {/* Default content shown at "/learning". */}
@@ -140,29 +104,19 @@ function App() {
           {/* Route for specific learning pages, e.g., "/learning/topic-1". */}
           <Route path=":pageId" element={<PageContent />} /> {/* ':pageId' is a dynamic URL parameter. */}
         </Route>
-
         {/* --- Flashcards Routes (Nested and Protected) --- */}
         {/* Uses FlashcardLayout, protection inherited. "/*" enables nested routing within FlashcardLayout. */}
-        <Route
-            path="/flashcards/*"
-            element={<FlashcardLayout />}
-        />
-
+        <Route path="/flashcards/*" element={<FlashcardLayout />} />
         {/* If others need to define other protected routes using MainLayout do it here. */}
-
-      </Route> {/* End of Protected MainLayout routes */}
-
+      </Route>{" "}
+      {/* End of Protected MainLayout routes */}
       {/* --- Catch-all Route --- */}
       {/* Matches any URL not previously defined. */}
       {/* Redirects based on authentication status: "/" if logged in, "/login" if not. */}
       <Route
         path="*"
         element={<Navigate to={token ? "/" : "/login"} replace />} // 'replace' avoids adding the redirect to browser history.
-        path="/flashcards/*" // Match base path and potential nested paths
-        element={token ? <FlashcardLayout /> : <Navigate to="/login" />}
       />
-      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />} />
-      <Route path="*" element={<Navigate to={token ? "/home" : "/login"} />} />
       {/* Admin routes */}
       <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
       <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to="/home" />} />
