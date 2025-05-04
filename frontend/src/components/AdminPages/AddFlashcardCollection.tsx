@@ -74,7 +74,7 @@ export default function CreateFlashcardCollection() {
 
         } catch(err) {
             console.error(err);
-            alert("Error: Flashcard collection could not be created")
+            alert("Error: Flashcard serie kunne ikke oprettes")
         };
     }
 
