@@ -129,8 +129,8 @@ public class AdministratorController : ControllerBase
     }
 
     // DELETE FlashcardColletion
-    [HttpDelete("{collectionId}")]
-    public async Task<IActionResult> DeleteFlashcardCollection(int collectionId)
+    [HttpDelete("DeleteFlashcardCollection")]
+    public async Task<IActionResult> DeleteFlashcardCollection([FromQuery] int collectionId)
     {
         if (collectionId <= 0)
         {

@@ -68,6 +68,10 @@ export default function EditCitatMode() {
 
   return (
     <div className="container">
+
+    <div><img src={BorgertingetIcon} className='Borgertinget-Icon'></img></div>
+    <div className='top-red-line'></div>
+
       <h1>Rediger Citat‑mode</h1>
 
       <ul className="quote-list">

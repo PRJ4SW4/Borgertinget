@@ -26,6 +26,15 @@ export default function AdminLaering() {
                     className='Button'>
                     Rediger flashcard serie
                 </button>
+
+                <br/>
+                <button 
+                    onClick={() => navigate("/admin/Laering/deleteFlashcardCollection")}
+                    className='Button'>
+                    Slet flashcard serie
+                </button>
+
+                
                 <br/>
                 <button
                     onClick={() => navigate("/admin/Laering/editcitatmode")}

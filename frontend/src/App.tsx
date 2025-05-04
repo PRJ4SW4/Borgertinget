@@ -20,6 +20,7 @@ import EditQuotes from "./components/AdminPages/EditCitatMode";
 import AddPoll from "./components/AdminPages/AddPolls";
 import EditPoll from "./components/AdminPages/EditPoll";
 import DeletePoll from "./components/AdminPages/DeletePoll";
+import DeleteFlashcardCollection from "./components/AdminPages/DeleteFlashcardCollection";
 
 import LoginSuccessPage from "./pages/LoginSuccessPage";
 import PartyPage from "./pages/PartyPage";
@@ -90,6 +91,7 @@ function App() {
       <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/editcitatmode" element={token ? <EditQuotes /> : <Navigate to="/home" />} />
+      <Route path="/admin/Laering/deleteFlashcardCollection" element={token ? <DeleteFlashcardCollection /> : <Navigate to="/home" />} />
       <Route path="/Polidle" element={<Polidle />} />
       // gamemodes
       <Route path="/ClassicMode" element={<ClassicMode />} />
