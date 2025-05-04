@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -192,6 +193,60 @@ public class PagesController : ControllerBase
 
         return orderedIds;
     }
-    // --- Add POST, PUT, DELETE endpoints later ---
+
     // Add [Authorize(Roles = "Admin")] attribute later
+    // POST: api/pages
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<Page>> CreatePage(Page newPage)
+    {
+        _context.Pages.Add(newPage);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetPage), new { id = newPage.Id }, newPage);
+    }
+
+    // PUT: api/pages/{id}
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdatePage(int id, Page updatedPage)
+    {
+        if (id != updatedPage.Id)
+        {
+            return BadRequest("Page ID mismatch.");
+        }
+
+        var existingPage = await _context.Pages.FindAsync(id);
+        if (existingPage == null)
+        {
+            return NotFound();
+        }
+
+        // Update the fields
+        existingPage.Title = updatedPage.Title;
+        existingPage.Content = updatedPage.Content;
+        existingPage.ParentPageId = updatedPage.ParentPageId;
+        existingPage.DisplayOrder = updatedPage.DisplayOrder;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    // DELETE: api/pages/{id}
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeletePage(int id)
+    {
+        var page = await _context.Pages.FindAsync(id);
+        if (page == null)
+        {
+            return NotFound();
+        }
+
+        _context.Pages.Remove(page);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }

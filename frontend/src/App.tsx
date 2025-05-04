@@ -21,6 +21,9 @@ import AddPoll from "./components/AdminPages/AddPolls";
 import EditPoll from "./components/AdminPages/EditPoll";
 import DeletePoll from "./components/AdminPages/DeletePoll";
 import DeleteFlashcardCollection from "./components/AdminPages/DeleteFlashcardCollection";
+import AddLearningPage from "./components/AdminPages/AddLearningPage";
+import EditLearningPage from "./components/AdminPages/EditLearningPage";
+import DeleteLearningPage from "./components/AdminPages/DeleteLearningPage";
 
 import LoginSuccessPage from "./pages/LoginSuccessPage";
 import PartyPage from "./pages/PartyPage";
@@ -36,9 +39,7 @@ import FotoBlurMode from "./pages/Polidle/FotoBlurMode";
 import EditCitatMode from "./components/AdminPages/EditCitatMode";
 
 function App() {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("jwt")
-  );
+  const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -52,12 +53,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login setToken={setToken} />} />
-      <Route
-        path="/home"
-        element={
-          token ? <Home setToken={setToken} /> : <Navigate to="/login" />
-        }
-      />
+      <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
       <Route path="/verify" element={<Verify />} />
       <Route path="/kalender" element={<CalendarView />} />
       <Route path="/feed" element={token ? <FeedPage /> : <Navigate to="/login" />} /> // Vis FeedPage hvis logget ind, ellers login
@@ -92,27 +88,14 @@ function App() {
       <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/editcitatmode" element={token ? <EditQuotes /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/deleteFlashcardCollection" element={token ? <DeleteFlashcardCollection /> : <Navigate to="/home" />} />
+      <Route path="/admin/Laering/addLearningPage" element={token ? <AddLearningPage /> : <Navigate to="/home" />} />
+      <Route path="/admin/Laering/editLearningPage" element={token ? <EditLearningPage /> : <Navigate to="/home" />} />
+      <Route path="/admin/Laering/deleteLearningPage" element={token ? <DeleteLearningPage /> : <Navigate to="/home" />} />
+      {/* Game Modes */}
       <Route path="/Polidle" element={<Polidle />} />
-      // gamemodes
       <Route path="/ClassicMode" element={<ClassicMode />} />
-      <Route
-        path="/CitatMode"
-        element={
-          <CitatMode
-            citat="Sample Citat"
-            correctPolitiker="Sample Politician"
-          />
-        }
-      />
-      <Route
-        path="/FotoBlurMode"
-        element={
-          <FotoBlurMode
-            imageUrl="sample-image-url.jpg"
-            correctPolitiker="Sample Politician"
-          />
-        }
-      />
+      <Route path="/CitatMode" element={<CitatMode citat="Sample Citat" correctPolitiker="Sample Politician" />} />
+      <Route path="/FotoBlurMode" element={<FotoBlurMode imageUrl="sample-image-url.jpg" correctPolitiker="Sample Politician" />} />
     </Routes>
   );
 }
