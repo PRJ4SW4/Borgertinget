@@ -19,6 +19,7 @@ import EditQuotes from "./components/AdminPages/EditCitatMode";
 import AddPoll from "./components/AdminPages/AddPolls";
 import EditPoll from "./components/AdminPages/EditPoll";
 import DeletePoll from "./components/AdminPages/DeletePoll";
+import DeleteFlashcardCollection from "./components/AdminPages/DeleteFlashcardCollection";
 import AddLearningPage from "./components/AdminPages/AddLearningPage";
 import EditLearningPage from "./components/AdminPages/EditLearningPage";
 import DeleteLearningPage from "./components/AdminPages/DeleteLearningPage";
@@ -83,6 +84,7 @@ function App() {
       <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/editcitatmode" element={token ? <EditQuotes /> : <Navigate to="/home" />} />
+      <Route path="/admin/Laering/deleteFlashcardCollection" element={token ? <DeleteFlashcardCollection /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/addLearningPage" element={token ? <AddLearningPage /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/editLearningPage" element={token ? <EditLearningPage /> : <Navigate to="/home" />} />
       <Route path="/admin/Laering/deleteLearningPage" element={token ? <DeleteLearningPage /> : <Navigate to="/home" />} />

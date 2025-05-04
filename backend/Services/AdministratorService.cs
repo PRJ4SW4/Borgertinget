@@ -159,11 +159,11 @@ namespace backend.Services
         {
             var collection = await _context
                 .FlashcardCollections.Include(c => c.Flashcards)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(c => c.CollectionId == collectionId);
 
             if (collection == null)
             {
-                throw new KeyNotFoundException($"User with ID {collectionId} not found");
+                throw new KeyNotFoundException($"Flashcard collection with ID {collectionId} not found");
             }
 
             // Remove flashcards in Flashcardcollection
