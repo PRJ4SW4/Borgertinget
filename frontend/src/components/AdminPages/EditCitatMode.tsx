@@ -11,7 +11,7 @@ export default function EditCitatMode() {
 
   // Load all Quotes
   useEffect(() => {
-    const fetchQuotes = async () => {
+    const fetchAllQuotes = async () => {
       try {
         const res = await axios.get<EditQuoteDTO[]>(
           "/api/administrator/GetAllQuotes"
@@ -22,7 +22,7 @@ export default function EditCitatMode() {
       }
     };
 
-    fetchQuotes();
+    fetchAllQuotes();
   }, []);
 
   // Fetch Quote when a Quote is clicked
@@ -53,7 +53,7 @@ export default function EditCitatMode() {
       }
     );
 
-    alert("Citat opdateret!");
+    alert("Citatet er opdateret!");
 
     // Update local list of Quotes without using the GET
     setQuotes((qs) =>

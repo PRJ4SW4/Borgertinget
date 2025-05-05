@@ -7,7 +7,7 @@ export default function AdminBruger() {
     const [oldUsername, setOldUsername] = useState<string>("");
     const [newUsername, setNewUsername] = useState<string>("");
 
-    const handleChange = async () => {
+    const editUsername = async () => {
 
         if (!oldUsername.trim() || !newUsername.trim()) {
           alert("Udfyld både det gamle og det nye brugernavn.");
@@ -71,7 +71,7 @@ export default function AdminBruger() {
             />
           </div>
     
-          <button className="Button" onClick={handleChange}>
+          <button className="Button" onClick={editUsername}>
             Ændrer brugernavn
           </button>
         </div>
