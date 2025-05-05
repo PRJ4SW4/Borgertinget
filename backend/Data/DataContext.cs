@@ -172,17 +172,23 @@ namespace backend.Data
            
             const int SeedPoliticianId = 1; 
             const int SeedPollId = 1;      
+            const int NewPollId = 2;
 
             modelBuilder.Entity<Poll>().HasData(
-                new Poll { Id = SeedPollId, Question = "Hvad synes du om den nye bro?", PoliticianTwitterId = SeedPoliticianId, CreatedAt = new DateTime(2025, 4, 15, 10, 0, 0, DateTimeKind.Utc), EndedAt = null }
+                new Poll { Id = SeedPollId, Question = "Hvad synes du om den nye bro?", PoliticianTwitterId = SeedPoliticianId, CreatedAt = new DateTime(2025, 4, 15, 10, 0, 0, DateTimeKind.Utc), EndedAt = null },
+                new Poll { Id = NewPollId, Question = "Skal Danmark øge investeringer i vedvarende energi?", PoliticianTwitterId = SeedPoliticianId, CreatedAt = new DateTime(2025, 4, 28, 14, 30, 0, DateTimeKind.Utc), EndedAt = null }
             );
             modelBuilder.Entity<PollOption>().HasData(
                 new PollOption { Id = 1, PollId = SeedPollId, OptionText = "Den er fantastisk!", Votes = 5 },
                 new PollOption { Id = 2, PollId = SeedPollId, OptionText = "Den er ok, men dyr.", Votes = 12 },
-                new PollOption { Id = 3, PollId = SeedPollId, OptionText = "Den er unødvendig.", Votes = 3 }
+                new PollOption { Id = 3, PollId = SeedPollId, OptionText = "Den er unødvendig.", Votes = 3 },
+                new PollOption { Id = 4, PollId = NewPollId, OptionText = "Ja, meget mere end nu", Votes = 42 },
+                new PollOption { Id = 5, PollId = NewPollId, OptionText = "Ja, lidt mere", Votes = 28 },
+                new PollOption { Id = 6, PollId = NewPollId, OptionText = "Nej, det nuværende niveau er passende", Votes = 15 },
+                new PollOption { Id = 7, PollId = NewPollId, OptionText = "Nej, vi bør investere mindre", Votes = 8 }
             );
              
 
         } 
     } 
-} 
+}

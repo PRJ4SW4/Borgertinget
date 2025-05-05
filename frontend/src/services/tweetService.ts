@@ -138,3 +138,33 @@ export const submitVote = async (pollId: number, optionId: number): Promise<void
         throw error; // Kast videre til UI
     }
 };
+
+export const subscribe = async (politicianId: number): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/api/subscription`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+    },
+    body: JSON.stringify({ politicianId })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Kunne ikke abonnere: ${errorText}`);
+  }
+};
+
+export const unsubscribe = async (politicianId: number): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/api/subscription/${politicianId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+    }
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Kunne ikke afmelde abonnement: ${errorText}`);
+  }
+};

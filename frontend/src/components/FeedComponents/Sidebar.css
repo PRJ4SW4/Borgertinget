@@ -1,0 +1,107 @@
+/* Styling af Sidebar */
+.sidebar {
+    background-color: red; /* Lysere baggrund for at fremhæve de røde knapper */
+    width: 220px;
+    padding: 20px 15px;
+    border-right: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    height: 100vh;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+  
+.sidebar-title {
+    background-color: darkred;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    font-weight: 600;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+}
+  
+.sidebar-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0; /* Lidt luft i bunden før tilbage-knap */
+    flex-grow: 1; /* Fylder plads */
+    overflow-y: auto; /* Scroll hvis mange abonnementer */
+}
+  
+.sidebar-nav-item {
+    margin-bottom: 5px;
+}
+  
+.sidebar-nav-button {
+    background-color: darkred;
+    color: white;
+    padding: 8px 15px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+  
+.sidebar-nav-button:hover:not(:disabled) {
+    background-color: #a81c1c; /* Lidt lysere rød ved hover */
+    transform: translateY(-2px);
+}
+  
+.sidebar-nav-button:disabled {
+    background-color: #6a2e2e; /* Mørkere, mindre mættet rød for disabled */
+    color: #e0e0e0;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+  
+/* Styling for det aktivt valgte filter */
+.sidebar-nav-item.active-filter .sidebar-nav-button {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: 500;
+}
+.sidebar-nav-item.active-filter .sidebar-nav-button:disabled {
+    background-color: #0a58ca;
+    color: #e0e0e0;
+}
+  
+.sidebar-nav-item-info {
+    font-style: italic;
+    color: #6c757d;
+    padding: 10px 12px;
+    font-size: 0.9em;
+}
+  
+/* Tilbage knap specifikt i sidebar */
+.sidebar-back-button {
+    margin-top: auto; /* Skubber knappen til bunden */
+    background-color: #882434;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+  
+.sidebar-back-button:hover {
+    background-color: #5a6268;
+}
+  
+  
+/* Loading/End beskeder */

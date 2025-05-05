@@ -6,11 +6,19 @@ import "./PoliticianPage.css";
 // Consider adding a default image import if you need one for onError
 // import DefaultPic from "../images/defaultPic.jpg";
 
+//Af Jakob, dette er til subscribe knappen
+import SubscribeButton from '../components/FeedComponents/SubscribeButton';
+import { getSubscriptions } from '../services/tweetService';
+
 const PoliticianPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [politician, setPolitician] = useState<IAktor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  //Af Jakob, dette er til subscribe knappen
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [twitterId, setTwitterId] = useState<number | null>(null);
   // const defaultImageUrl = DefaultPic; // Uncomment if using default image
 
   useEffect(() => {
@@ -71,6 +79,41 @@ const PoliticianPage: React.FC = () => {
     fetchPolitician();
   }, [id]); // Dependency array is correct, only depends on id
 
+
+  // Af Jakob, dette er til subscribe knappen
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      if (politician && politician.id) { // KORREKT: aktørId → id
+        try {
+          // Hent brugerens eksisterende abonnementer
+          const subscriptions = await getSubscriptions();
+          
+          // Find Twitter ID via lookup-API'et (behold aktorId som parameter i URL)
+          const lookupResponse = await fetch(`http://localhost:5218/api/subscription/lookup/politicianTwitterId?aktorId=${politician.id}`, { // KORREKT: aktørId → id
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+            }
+          });
+
+          if (lookupResponse.ok) {
+            const lookupData = await lookupResponse.json();
+            setTwitterId(lookupData.politicianTwitterId);
+            
+            // Tjek om politikeren allerede følges
+            setIsSubscribed(subscriptions.some(sub => sub.id === lookupData.politicianTwitterId));
+          } else {
+            console.error('Kunne ikke finde Twitter ID for denne politiker');
+          }
+        } catch (error) {
+          console.error('Fejl ved tjek af abonnementsstatus:', error);
+        }
+      }
+    };
+    
+    checkSubscriptionStatus();
+  }, [politician]);
+
+
   // --- Render logic (update link texts to Danish) ---
   if (loading) return <div className="loading-message">Henter politiker detaljer...</div>;
   if (error) return <div className="error-message">Fejl: {error} <Link to="/">Tilbage til forsiden</Link></div>;
@@ -98,22 +141,29 @@ const PoliticianPage: React.FC = () => {
             onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                 const imgElement = e.target as HTMLImageElement;
                 console.error(`Kunne ikke loade billede: ${politician.pictureMiRes}`); // Danish
-                // Optionally set to a default image if available
-                // if (imgElement.src !== defaultImageUrl) { // Check to prevent loops
-                //    imgElement.src = defaultImageUrl;
-                // } else {
-                //    imgElement.style.display = 'none'; // Hide if default also fails
-                // }
                 imgElement.style.display = 'none'; // Simple hide on error
             }}
           />
         ) : (
-           // Optional: Render a placeholder if no image URL is provided
            <div className="info-box-photo-placeholder">Intet billede</div> // Danish
         )}
         <h4>Navn</h4>
         {/* Use politician's name or fallback */}
         <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : (politician.navn || 'Ukendt')}</p>
+
+
+
+        {/* NYT: Subscribe knap tilføjet her */}
+        {twitterId !== null && (
+          <div className="subscription-container">
+            <SubscribeButton
+              politicianTwitterId={twitterId}
+              initialIsSubscribed={isSubscribed}
+              onSubscriptionChange={(newStatus) => setIsSubscribed(newStatus)}
+            />
+          </div>
+        )}
+
         <h4>Parti</h4>
         <p>
           {politician.party ? (
@@ -151,7 +201,6 @@ const PoliticianPage: React.FC = () => {
       {/* Other Details Outside the Box */}
       <article className="politician-details">
         
-
         <section className="detail-section">
             <h3>Grundlæggende Information</h3> {/* Danish */}
             <p><strong>Født:</strong> {politician.born || 'Ikke tilgængelig'}</p> {/* Danish */}

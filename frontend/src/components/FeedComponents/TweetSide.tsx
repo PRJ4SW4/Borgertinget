@@ -1,6 +1,6 @@
 // src/components/TweetSide.tsx
 import React from 'react';
-import { TweetDto } from '../types/tweetTypes'; // Ret sti om nødvendigt
+import { TweetDto } from '../../types/tweetTypes'; // Ret sti om nødvendigt
 
 // Importer CSS filen direkte - dette gør stylingen global
 import './TweetSide.css'; // <-- ÆNDRET IMPORT
