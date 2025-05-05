@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 // Poll repræsenterer en afstemning, PollOption repræsenterer de forskellige svarmuligheder
 // til afstemningen, og UserVote repræsenterer en brugers stemme på en bestemt mulighed.
 // Grunden til at jeg har valgt at opdele dem i separate klasser er for at holde koden ren og overskuelig.
-// på nuværende tidspunkt er de herinde i en models fil.
+// på nuværende tidspunkt er de herinde i en models fil, da det ellers vil blive bloated, med models
 namespace backend.Models
 {
     public class Poll

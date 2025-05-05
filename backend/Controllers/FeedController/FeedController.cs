@@ -1,4 +1,3 @@
-// backend.Controllers/FeedController.cs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
@@ -23,7 +22,11 @@ namespace backend.Controllers
             _context = context;
         }
 
-        // --- Endpoint til at hente abonnementer ---
+
+        // GetMySubscriptions: Henter brugerens abonnementer på politikere
+
+        // først findes brugeren user id fra jwt fra token
+        // Returnerer en liste af politikere som brugeren følger
         [Authorize]
         [HttpGet("subscriptions")]
         public async Task<ActionResult<List<PoliticianInfoDto>>> GetMySubscriptions()
@@ -33,7 +36,7 @@ namespace backend.Controllers
             { return Unauthorized("Kunne ikke identificere brugeren."); }
 
             try
-            {
+            { // så laves der et db query til subscriptions, som henter alle subscriptions for den bruger, og henter derefter politikernes data vhj. dto.
                 var subscriptions = await _context.Subscriptions
                     .Where(s => s.UserId == currentUserId)
                     .Include(s => s.Politician)
@@ -48,16 +51,20 @@ namespace backend.Controllers
                 return StatusCode(500, "Intern fejl ved hentning af abonnementer.");
             }
         }
+        
 
-        // --- GetMyFeed (Henter paginerede tweets OG seneste 2 polls per politiker UDEN filter) ---
+        //  GetMyFeed dette er så selve "cobtroller" til at hente tweets og polls 
         [Authorize]
         [HttpGet("feed")]
         // Returnerer den PaginatedFeedResult DTO, som nu har Tweets og LatestPolls
         public async Task<ActionResult<PaginatedFeedResult>> GetMyFeed(
+
+            // Paginering: page og pageSize standardværdier, vi starter på page 1 og 5 tweets pr. side
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 5,
             [FromQuery] int? politicianId = null)
         {
+            // først findes brugeren user id fra jwt fra token, samme stil, som før i "GetMySubscriptions" endpointet
             var userIdString = User.FindFirstValue("userId");
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))
             { return Unauthorized("Kunne ikke identificere brugeren korrekt fra token."); }
@@ -68,15 +75,20 @@ namespace backend.Controllers
 
             try
             {
-                // 1. Find relevante Politiker DB IDs
-                List<int> relevantPoliticianDbIds;
-                bool isFiltered = politicianId.HasValue; // Tjek om filter er sat
+                // Filter-logik for feed:
+                // 1. Hvis filter er sat, tjekkes der om brugeren følger den valgte politiker 
+                // 2. Hvis ikke filter: Henter ID'er på alle politikere brugeren følger
+                // 3. Resultatet bruges til at filtrere tweets i den efterfølgende kode
+                // 4. Returnerer tom liste hvis brugeren ikke følger nogen eller den valgte politiker
+
+                List<int> relevantPoliticianDbIds; 
+                bool isFiltered = politicianId.HasValue; 
 
                 if (isFiltered) // Filter er sat
                 {
                     // Tjek om brugeren følger den filtrerede politiker
                     bool isSubscribed = await _context.Subscriptions.AnyAsync(s => s.UserId == currentUserId && s.PoliticianTwitterId == politicianId.Value);
-                    if (!isSubscribed) return Ok(new PaginatedFeedResult()); // Tomt hvis ikke fulgt
+                    if (!isSubscribed) return Ok(new PaginatedFeedResult()); // Tomt hvis der ikke følges nogen :-(
                     relevantPoliticianDbIds = new List<int> { politicianId.Value };
                 }
                 else // Intet filter ("Alle Tweets" view)
@@ -89,10 +101,12 @@ namespace backend.Controllers
 
                 if (!relevantPoliticianDbIds.Any())
                 {
-                    return Ok(new PaginatedFeedResult()); // Tom hvis ingen følges
+                    return Ok(new PaginatedFeedResult()); // Tom hvis ingen følges, :-(
                 }
 
-                // --- Del 1: Hent og Paginér Tweets ---
+
+
+                // her er det så selve logikken til at hente først ##tweets## og derefter  kommer ##polls## længere nede.
                 List<Tweet> tweetsToPaginate;
                 if (isFiltered) // Filtreret: Hent alle tweets for den ene politiker
                 {
@@ -116,13 +130,20 @@ namespace backend.Controllers
                     tweetsToPaginate = allPotentialFeedTweets.OrderByDescending(t => t.CreatedAt).ToList();
                 }
 
-                // Anvend paginering på den relevante tweet-liste
+                // logik af paginering af Tweets pr side
+                // Her opdeles tweets i "sider" baseret på page og pageSize parametre:
+                // 1. For side 1: Skip (1-1)*5 = 0 tweets (viser tweets 1-5)
+                // 2. For side 2: Skip (2-1)*5 = 5 tweets (viser tweets 6-10)
+                // 3. For side 3: Skip (2-1)*5 = 10 tweets (viser tweets 11-15)
+                // Beregner også om der er flere tweets at hente (hasMoreTweets)
+
+                
                 int totalTweets = tweetsToPaginate.Count;
                 int skipAmountTweets = (page - 1) * pageSize;
                 var pagedTweets = tweetsToPaginate.Skip(skipAmountTweets).Take(pageSize).ToList();
                 bool hasMoreTweets = skipAmountTweets + pagedTweets.Count < totalTweets;
 
-                // Map de paginerede tweets til DTOs
+                // Map de paginerede tweets til, da det  TweetDTOs, som er hvad vi gerne vil returnere til frontend
                 var feedTweetDtos = pagedTweets.Select(t => new TweetDto {
                     TwitterTweetId = t.TwitterTweetId, Text = t.Text, ImageUrl = t.ImageUrl, Likes = t.Likes,
                     Retweets = t.Retweets, Replies = t.Replies, CreatedAt = t.CreatedAt,
@@ -130,7 +151,8 @@ namespace backend.Controllers
                 }).ToList();
 
 
-                // --- Del 2: Hent de 2 seneste Polls PER POLITIKER (KUN hvis der IKKE er filter) ---
+                // Her er logikken til at hente ##polls##, jeg har valgt at, der skal hentes 2 polls pr politiker, og så vil den returnere dem i en liste.
+                // Hvis der er filtreret, vil den ikke hente polls, og derfor vil latestPollDtos være en tom liste.
                 List<PollDetailsDto> latestPollDtos = new List<PollDetailsDto>(); // Start med tom liste
 
                 if (!isFiltered) // Kør kun denne logik, hvis vi ser "Alle Tweets"
@@ -163,7 +185,7 @@ namespace backend.Controllers
                 }
                 // Hvis isFiltered er true, forbliver latestPollDtos en tom liste.
 
-                // --- Del 3: Kombiner i Resultatet ---
+                // i et fælles feed, men stadig 2 lister, så vi kan vise dem i et fælles feed.
                 var result = new PaginatedFeedResult
                 {
                     Tweets = feedTweetDtos,          // Paginerede tweets
@@ -180,7 +202,8 @@ namespace backend.Controllers
             }
         }
 
-        // --- Privat Hjælpemetode til Poll Mapping (som før) ---
+        //  Privat Hjælpemetode til Poll Mapping med dto
+        // Mapper en Poll til en PollDetailsDto, som indeholder alle relevante oplysninger om poll'en
         private PollDetailsDto MapPollToDetailsDto(Poll poll, PoliticianTwitterId politician, UserVote? userVote)
         {
              int totalVotes = poll.Options?.Sum(o => o.Votes) ?? 0;
@@ -196,4 +219,4 @@ namespace backend.Controllers
 
     }
 
-} // Slut på namespace
+}

@@ -10,8 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR; // Using for SignalR
-using backend.Hubs;                // Using for FeedHub
+using Microsoft.AspNetCore.SignalR; 
+using backend.Hubs;                
 
 namespace backend.Controllers
 {
@@ -20,18 +20,18 @@ namespace backend.Controllers
     public class PollsController : ControllerBase
     {
         private readonly DataContext _context;
-        private readonly IHubContext<FeedHub> _hubContext; // Inject Hub Context
-
+        private readonly IHubContext<FeedHub> _hubContext; // HubContext til SignalR til polls bruger vi realtid, derfor er det i denne klasse blevet
+        // injected fedhub ind i controlleren
         public PollsController(DataContext context, IHubContext<FeedHub> hubContext)
         {
             _context = context;
-            _hubContext = hubContext; // Assign injected context
+            _hubContext = hubContext;
         }
 
-        // --- Opret Poll ---
-        [HttpPost]
+
+        // Første endpoint er til at poste en ny poll, og der skal admin autorization til.
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<PollDetailsDto>> CreatePoll(CreatePollDto createPollDto)
+        public async Task<ActionResult<PollDetailsDto>> CreatePoll(CreatePollDto createPollDto) // modtager dto til oprettelse af pool
         {
             var politician = await _context.PoliticianTwitterIds
                                            .AsNoTracking()
@@ -39,23 +39,25 @@ namespace backend.Controllers
             if (politician == null)
             {
                 ModelState.AddModelError(nameof(createPollDto.PoliticianTwitterId), "Den angivne politiker findes ikke.");
-                return ValidationProblem(ModelState);
+                return ValidationProblem(ModelState); // hvis den modtagne twitter id ikke er i i db, sendes en Validation problem
             }
 
             if (createPollDto.Options.Any(string.IsNullOrWhiteSpace))
             {
-                ModelState.AddModelError(nameof(createPollDto.Options), "Svarmuligheder må ikke være tomme.");
+                ModelState.AddModelError(nameof(createPollDto.Options), "Svarmuligheder må ikke være tomme."); // kontrolere om nogler af "data" felterne er tomme
                 return ValidationProblem(ModelState);
             }
 
             var distinctOptions = createPollDto.Options.Select(o => o.Trim().ToLowerInvariant()).Distinct().Count();
-            if (distinctOptions != createPollDto.Options.Count)
+            if (distinctOptions != createPollDto.Options.Count) // disse 2 linjer sikrer, at svarmulighederne ikke er de samme.
+
             {
                 ModelState.AddModelError(nameof(createPollDto.Options), "Svarmuligheder må ikke være ens.");
                 return ValidationProblem(ModelState);
             }
 
-            var newPoll = new Poll
+            var newPoll = new Poll // her oprettes poolen, tid sættes til UTC og endtime sættes til den tid der er i dtoen
+            // pollotion objekter bliver tilføjet som valgmuligheder til pollen
             {
                 Question = createPollDto.Question,
                 PoliticianTwitterId = createPollDto.PoliticianTwitterId,
@@ -70,14 +72,14 @@ namespace backend.Controllers
 
             try
             {
-                _context.Polls.Add(newPoll);
+                _context.Polls.Add(newPoll); // gemmer pollen i databasen
                 await _context.SaveChangesAsync();
                 var createdPollDto = MapPollToDetailsDto(newPoll, politician, null);
                 return CreatedAtAction(nameof(GetPollById), new { id = newPoll.Id }, createdPollDto);
             }
             catch (DbUpdateException ex)
             {
-                Console.WriteLine($"Fejl ved gemning af ny poll: {ex}"); // TODO: Brug ILogger
+                Console.WriteLine($"Fejl ved gemning af ny poll: {ex}"); 
                 return StatusCode(500, "Intern fejl ved oprettelse af poll.");
             }
         }
@@ -87,27 +89,32 @@ namespace backend.Controllers
         public async Task<ActionResult<PollDetailsDto>> GetPollById(int id)
         {
             var userIdString = User.FindFirstValue("userId");
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId)) 
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))  // her tjekker vi om brugeren er logget ind og om den har et gyldigt id
             {
-                // Overvej at returnere data uden CurrentUserVoteOptionId hvis bruger ikke er logget ind
-                // eller hvis det er okay at se polls anonymt. For nu kræver vi login.
+                
                 return Unauthorized("Kunne ikke identificere brugeren.");
             }
 
+            // simpelt, så henter den bare pool med det id der er givet i igt. endpointer
+
             var poll = await _context.Polls
-                .Include(p => p.Options.OrderBy(o => o.Id)) // Sorter options her
+                .Include(p => p.Options.OrderBy(o => o.Id)) 
                 .Include(p => p.Politician)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (poll == null) { return NotFound(); }
 
-            var userVote = await _context.UserVotes
+            var userVote = await _context.UserVotes // her tjekkes om brugeren har stemt på poll, og hvis den har, så hentes den stemme
                 .AsNoTracking()
                 .FirstOrDefaultAsync(uv => uv.PollId == id && uv.UserId == currentUserId);
 
-            var pollDto = MapPollToDetailsDto(poll, poll.Politician, userVote);
+            var pollDto = MapPollToDetailsDto(poll, poll.Politician, userVote); // mapper poll til PollDetailsDto, så den kan sendes til frontend
             return Ok(pollDto);
         }
+
+
+
+
 
         // denne endpoint opdaterer spørgsmålet på en poll så det vil sige (spørgsmål option option option option) 
         // endpoint ændrer derfor kun spørgsmål kun
@@ -126,7 +133,6 @@ namespace backend.Controllers
                 return NotFound($"Poll med ID {id} blev ikke fundet.");
             }
 
-            // Check if poll has ended
             if (poll.EndedAt.HasValue && poll.EndedAt.Value < DateTime.UtcNow)
             {
                 return BadRequest("Kan ikke redigere en afsluttet poll.");
@@ -149,27 +155,27 @@ namespace backend.Controllers
 
 
          // denne endpoint opdaterer option på en poll så det vil sige (spørgsmål option option option option) 
-        // endpoint ændrer derfor kun option kun, likes, forbliver det samme
+        // endpoint ændrer derfor kun den option der vælges, likes, forbliver det samme
 
         [HttpPut("{pollId}/options/{optionId}")]
         [Authorize]
         public async Task<ActionResult> UpdatePollOption(int pollId, int optionId, [FromBody] PollOptionUpdate update)
         {
+            // først findes pollId og derfor option 1d i databasen.
             if (string.IsNullOrWhiteSpace(update.NewOptionText))
             {
                 return BadRequest("Option text must not be empty.");
             }
 
-            // Find the poll by its ID and include its options to check relationships
+
             var poll = await _context.Polls
-                                    .Include(p => p.Options) // Ensure we load options as well
+                                    .Include(p => p.Options) 
                                     .FirstOrDefaultAsync(p => p.Id == pollId);
             if (poll == null)
             {
                 return NotFound($"Poll with ID {pollId} not found.");
             }
 
-            // Find the option by its ID within the poll
             var pollOption = await _context.PollOptions
                                         .FirstOrDefaultAsync(o => o.Id == optionId && o.PollId == pollId);
             if (pollOption == null)
@@ -181,7 +187,7 @@ namespace backend.Controllers
 
             try
             {
-                await _context.SaveChangesAsync(); // Commit the changes to the database
+                await _context.SaveChangesAsync(); // gemmer ændringerne i databasen
                 return Ok(new { message = "Poll option updated", option = pollOption });
             }
             catch (Exception ex)
@@ -195,46 +201,49 @@ namespace backend.Controllers
         [Authorize]
         public async Task<IActionResult> Vote(int pollId, VoteDto voteDto) // voteDto indeholder int OptionId
         {
+            // Tjek om brugeren er logget ind og har et gyldigt userId
             var userIdString = User.FindFirstValue("userId");
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))
             { 
                 return Unauthorized("Kunne ikke identificere brugeren."); 
             }
 
-            // Find poll MED options OG den eksisterende stemme (hvis den findes) i én query
+            // henter polls og options fra databasen
             var poll = await _context.Polls
-                .Include(p => p.Options) // Vigtigt for at have adgang til options
-                .FirstOrDefaultAsync(p => p.Id == pollId);
+                .Include(p => p.Options)
+                .FirstOrDefaultAsync(p => p.Id == pollId); // note til mig selv, så betyder det at den henter pollId fra databasen og derefter optionsne til den pollId eller null hvis de ikke findes
 
+
+            // Logik til til hvis poll er null eller hvis poll er afsluttet.
             if (poll == null) { return NotFound("Afstemningen blev ikke fundet."); }
             if (poll.EndedAt.HasValue && poll.EndedAt.Value < DateTime.UtcNow) { return BadRequest("Afstemningen er afsluttet."); }
 
+            // Tjek om den valgte option findes i optionsne til den pollId i db
             var chosenOption = poll.Options.FirstOrDefault(o => o.Id == voteDto.OptionId);
             if (chosenOption == null) { return BadRequest("Ugyldig svarmulighed valgt."); }
 
-            // Find brugerens EKSISTERENDE stemme på denne poll (hvis nogen)
             var existingVote = await _context.UserVotes
                                 .FirstOrDefaultAsync(uv => uv.UserId == currentUserId && uv.PollId == pollId);
 
             try
-            {
-                if (existingVote == null) // Bruger har IKKE stemt før = Opret ny stemme
+            { // logik for stemning, der tjekkes om brugeren har stemt før og om den stemme der vælges er den samme som før
+                if (existingVote == null) 
                 {
                     var userVote = new UserVote { UserId = currentUserId, PollId = pollId, ChosenOptionId = voteDto.OptionId };
                     chosenOption.Votes++; // Tæl den nye stemme op
                     _context.UserVotes.Add(userVote);
                     _context.Entry(chosenOption).State = EntityState.Modified;
                 }
-                else // Bruger HAR stemt før = Ændr stemme
+                else // Bruger har stemt før, så skal vi opdatere stemme istedet.
                 {
                     if (existingVote.ChosenOptionId == voteDto.OptionId)
                     {
-                        // Brugeren klikkede på den samme option igen - gør intet
-                        // (Alternativt kunne man her implementere "fjern stemme")
+                        // hvis brugeren trykker på den samme option i frontend, så skal den ikke ændres
+                        // og der skal ikke ske noget i databasen, så returneres bare en besked
                         return Ok("Stemme ikke ændret.");
                     }
 
-                    // Find den gamle option brugeren stemte på
+                    // brugeren stemmer på en anden 
                     var oldOption = poll.Options.FirstOrDefault(o => o.Id == existingVote.ChosenOptionId);
 
                     if (oldOption != null)
@@ -244,36 +253,39 @@ namespace backend.Controllers
                     } 
                     else 
                     {
-                        // Burde ikke ske hvis data er konsistent, men håndter evt.
+                        // warning hvis den gamle option ikke findes i databasen
                         Console.WriteLine($"Warning: Old option (ID: {existingVote.ChosenOptionId}) not found for vote change.");
                     }
 
                     chosenOption.Votes++; // Læg 1 til den nye
-                    existingVote.ChosenOptionId = voteDto.OptionId; // Opdater UserVote record
-
+                    existingVote.ChosenOptionId = voteDto.OptionId;  // Opdater den valgte option i UserVote
                     _context.Entry(chosenOption).State = EntityState.Modified;
                     _context.Entry(existingVote).State = EntityState.Modified;
                 }
 
-                // Gem ændringerne (enten ny stemme eller ændret stemme)
+                // Gem ændringerne i dben 
                 await _context.SaveChangesAsync();
 
-                // --- TRIGGER SIGNALR BROADCAST (som før) ---
+              //SIGNALR BROADCAST 
                 var updatedOptionsData = poll.Options
                                         .OrderBy(o => o.Id)
                                         .Select(o => new { OptionId = o.Id, Votes = o.Votes })
                                         .ToList();
-                await _hubContext.Clients.All.SendAsync("PollVotesUpdated", pollId, updatedOptionsData);
+                await _hubContext.Clients.All.SendAsync("PollVotesUpdated", pollId, updatedOptionsData); // Send SignalR-besked til alle klienter i front enden om, at afstemningen er opdateret
                 // -------------------------------------------
                 Console.WriteLine($"User {currentUserId} processed vote/vote change for option {voteDto.OptionId} on poll {pollId}. SignalR broadcast sent.");
             }
-            catch (DbUpdateException dbEx) { /* ... fejlhåndtering ... */ }
-            catch (Exception ex) { /* ... fejlhåndtering ... */ }
+            catch (DbUpdateException dbEx) {}
+            catch (Exception ex) {}
 
             return Ok(); 
         }
 
-        // endpoint her sletter poll og dens options og votes
+        // Denne endpoint sletter en poll og dens tilhørende options og stemmer
+        // Den tjekker først om pollId findes i databasen og derefter om den har stemmer, hvis den har, så slettes de også.
+        // Til sidst slettes pollId og dens options fra databasen.
+        // Hvis pollId ikke findes, returneres en 404 fejl.
+
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<IActionResult> DeletePoll(int id)
@@ -289,7 +301,6 @@ namespace backend.Controllers
 
             try
             {
-                // Remove related votes first
                 var votes = await _context.UserVotes
                     .Where(uv => uv.PollId == id)
                     .ToListAsync();
@@ -299,10 +310,10 @@ namespace backend.Controllers
                     _context.UserVotes.RemoveRange(votes);
                 }
                 
-                // Remove poll options
+                // slette alle poll options
                 _context.PollOptions.RemoveRange(poll.Options);
                 
-                // Remove the poll itself
+                // slette poll itself
                 _context.Polls.Remove(poll);
                 
                 await _context.SaveChangesAsync();
@@ -314,16 +325,16 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fejl ved sletning af poll: {ex}"); // TODO: Brug ILogger
+                Console.WriteLine($"Fejl ved sletning af poll: {ex}"); 
                 return StatusCode(500, "Intern fejl ved sletning af poll.");
             }
         }
 
-        // --- Privat Hjælpemetode til Mapping ---
+        //Hjælpemetode til Mapping
+
         private PollDetailsDto MapPollToDetailsDto(Poll poll, PoliticianTwitterId politician, UserVote? userVote)
         {
-            // Sørg for at poll.Options er loadet (hvilket den er pga. .Include i GetPollById)
-            int totalVotes = poll.Options?.Sum(o => o.Votes) ?? 0; // Brug null-conditional operator
+            int totalVotes = poll.Options?.Sum(o => o.Votes) ?? 0; 
             return new PollDetailsDto
             {
                 Id = poll.Id,
@@ -340,9 +351,8 @@ namespace backend.Controllers
                         Id = o.Id,
                         OptionText = o.OptionText,
                         Votes = o.Votes
-                        // Her kunne man udregne VotePercentage hvis ønsket
-                        // VotePercentage = totalVotes == 0 ? 0 : Math.Round((double)o.Votes / totalVotes * 100, 1)
-                    }).OrderBy(o => o.Id).ToList() ?? new List<PollOptionDto>(), // Returner tom liste hvis options er null
+                       
+                    }).OrderBy(o => o.Id).ToList() ?? new List<PollOptionDto>(), 
                 CurrentUserVoteOptionId = userVote?.ChosenOptionId,
                 TotalVotes = totalVotes
             };
