@@ -15,8 +15,16 @@ import PartiesPage from "./pages/PartiesPage";
 // Import the new layout
 import MainLayout from './layouts/MainLayout';
 
+import Polidle from "./pages/Polidle/Polidle";
+// Importet gamemodes
+import ClassicMode from "./pages/Polidle/ClassicMode";
+import CitatMode from "./pages/Polidle/CitatMode";
+import FotoBlurMode from "./pages/Polidle/FotoBlurMode";
+
 function App() {
-    const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
+    const [token, setToken] = useState<string | null>(
+    localStorage.getItem("jwt")
+  );
 
     useEffect(() => {
         const handleStorageChange = () => {
@@ -82,6 +90,27 @@ function App() {
             {/* Catch-all Route: Redirects based on token status */}
             {/* Place it last */}
             <Route path="*" element={<Navigate to={token ? "/home" : "/login"} replace />} />
+      <Route path="/Polidle" element={<Polidle />} />
+      // gamemodes
+      <Route path="/ClassicMode" element={<ClassicMode />} />
+      <Route
+        path="/CitatMode"
+        element={
+          <CitatMode
+            citat="Sample Citat"
+            correctPolitiker="Sample Politician"
+          />
+        }
+      />
+      <Route
+        path="/FotoBlurMode"
+        element={
+          <FotoBlurMode
+            imageUrl="sample-image-url.jpg"
+            correctPolitiker="Sample Politician"
+          />
+        }
+      />
 
         </Routes>
     );

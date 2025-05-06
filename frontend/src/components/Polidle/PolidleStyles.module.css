@@ -1,0 +1,73 @@
+/* I f.eks. PolidleStyles.module.css */
+
+.citatGuessHistory {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centrer boksene */
+  gap: 10px; /* Lidt luft mellem gæt-boksene */
+}
+
+.citatGuessItem {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: 8px;
+  width: 80%; /* Eller en fast bredde */
+  max-width: 400px; /* Juster efter behov */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: black; /* Sæt grundlæggende tekstfarve */
+}
+
+/* Styling for KORREKT gæt */
+.citatGuessItem.correct {
+  background-color: lightgreen;
+  border: 1px solid darkgreen;
+}
+
+/* Styling for FORKERT gæt */
+.citatGuessItem.incorrect {
+  background-color: lightcoral;
+  border: 1px solid darkred;
+}
+
+.historyImage {
+  width: 40px; /* Juster størrelse */
+  height: 40px;
+  border-radius: 50%; /* Cirkulært billede */
+  margin-right: 15px;
+  object-fit: cover;
+  flex-shrink: 0; /* Undgå at billedet klemmes */
+  background-color: #eee; /* Baggrund hvis billedet ikke loader */
+}
+
+.historyName {
+  font-weight: bold;
+  flex-grow: 1; /* Tillad navnet at tage plads */
+  text-align: left;
+}
+
+/* Valgfrit: Styling for ✓/✕ indikatoren hvis du beholder den */
+.historyIndicator {
+  font-size: 1.5em;
+  margin-left: 15px;
+  font-weight: bold;
+}
+.citatGuessItem.correct .historyIndicator {
+  color: darkgreen;
+}
+.citatGuessItem.incorrect .historyIndicator {
+  color: darkred;
+}
+
+/* I f.eks. PolidleStyles.module.css */
+
+.guessListContainer,
+.citatGuessHistory,
+.fotoGuessHistory {
+  display: flex; /* Gør containeren til en flex container */
+  flex-direction: column; /* Arranger elementerne lodret */
+  align-items: center; /* Centrer elementerne horisontalt */
+  gap: 10px; /* Lidt afstand mellem gæt-rækkerne */
+  margin-top: 30px;
+}

@@ -19,6 +19,10 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+<<<<<<< HEAD
 		SolutionGuid = {32141AC2-1C6D-48AE-A3CF-DE429105C1D4}
+=======
+		SolutionGuid = {4447A77E-6DE9-477C-ABC0-AC205809DCF2}
+>>>>>>> origin/feat/polidle
 	EndGlobalSection
 EndGlobal
