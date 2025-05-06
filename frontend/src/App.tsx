@@ -10,8 +10,6 @@ import NavbarLandingPageLayout from './layouts/LandingPage/NavbarLandingPageLayo
 
 // Page Components: Represent different views/pages in the application.
 import Login from "./pages/Login";
-// Represents the main view for authenticated users.
-import Home from "./pages/Home";
 // HomePage after user signs in.
 import HomePage from "./pages/HomePage/HomePage";
 import PageContent from './components/LearningEnvironment/PageContent'; // Renders content within LearningLayout.
