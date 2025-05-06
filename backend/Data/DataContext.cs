@@ -117,15 +117,20 @@ namespace backend.Data
                 entity.HasOne(politicianTwitter => politicianTwitter.Aktor) 
                       .WithOne() 
                       .HasForeignKey<PoliticianTwitterId>(politicianTwitter => politicianTwitter.AktorId) 
-                      .IsRequired(false) // Valgfri relation
-                      .OnDelete(DeleteBehavior.SetNull);
+                      .IsRequired(false) 
+                     .OnDelete(DeleteBehavior.SetNull);
 
-                 entity.HasData(
+                     //ved merge skal nedestående være commented, da der ellers vi blive problemer med constraints i databasen
+            /*              entity.HasData(
                    new PoliticianTwitterId { Id = 1, TwitterUserId = "806068174567460864", Name = "Statsministeriet", TwitterHandle = "Statsmin", AktorId = 138 }, 
                    new PoliticianTwitterId { Id = 2, TwitterUserId = "123868861", Name = "Venstre, Danmarks Liberale Parti", TwitterHandle = "venstredk", AktorId = null  }, 
                    new PoliticianTwitterId { Id = 3, TwitterUserId = "2965907578", Name = "Troels Lund Poulsen", TwitterHandle = "troelslundp", AktorId = 206  } 
                  );
             });
+
+            */
+
+            
          
 
 
@@ -148,11 +153,7 @@ namespace backend.Data
             {
                 entity.HasIndex(s => s.UserId);
                 entity.HasIndex(s => s.PoliticianTwitterId);
-                entity.HasData(
-                 new Subscription { Id = 1, UserId = 1, PoliticianTwitterId = 1 },
-                 new Subscription { Id = 2, UserId = 1, PoliticianTwitterId = 2 },
-                 new Subscription { Id = 3, UserId = 1, PoliticianTwitterId = 3 }
-                );
+                
             });
 
 
@@ -168,8 +169,9 @@ namespace backend.Data
                 .HasIndex(uv => new { uv.UserId, uv.PollId })
                 .IsUnique();
 
-
-           
+            }
+           /*
+        
             const int SeedPoliticianId = 1; 
             const int SeedPollId = 1;      
             const int NewPollId = 2;
@@ -186,6 +188,7 @@ namespace backend.Data
                 new PollOption { Id = 5, PollId = NewPollId, OptionText = "Ja, lidt mere", Votes = 28 },
                 new PollOption { Id = 6, PollId = NewPollId, OptionText = "Nej, det nuværende niveau er passende", Votes = 15 },
                 new PollOption { Id = 7, PollId = NewPollId, OptionText = "Nej, vi bør investere mindre", Votes = 8 }
+                */
             );
              
 

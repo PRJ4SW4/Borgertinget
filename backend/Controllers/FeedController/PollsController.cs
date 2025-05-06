@@ -28,9 +28,10 @@ namespace backend.Controllers
             _hubContext = hubContext;
         }
 
-
+        
         // Første endpoint er til at poste en ny poll, og der skal admin autorization til.
         [Authorize(Roles = "Admin")]
+        [HttpPost]
         public async Task<ActionResult<PollDetailsDto>> CreatePoll(CreatePollDto createPollDto) // modtager dto til oprettelse af pool
         {
             var politician = await _context.PoliticianTwitterIds
