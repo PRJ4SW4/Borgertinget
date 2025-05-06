@@ -29,7 +29,7 @@ namespace backend.DTOs
 
     public class PollQuestionUpdate
 {
-    public string NewQuestion { get; set; }
+    public string NewQuestion { get; set; } = string.Empty;
 }
 
 }

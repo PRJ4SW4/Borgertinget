@@ -87,9 +87,9 @@ namespace backend.Controllers
                 if (isFiltered) // Filter er sat
                 {
                     // Tjek om brugeren følger den filtrerede politiker
-                    bool isSubscribed = await _context.Subscriptions.AnyAsync(s => s.UserId == currentUserId && s.PoliticianTwitterId == politicianId.Value);
+                    bool isSubscribed = await _context.Subscriptions.AnyAsync(s => s.UserId == currentUserId && s.PoliticianTwitterId == politicianId!.Value);
                     if (!isSubscribed) return Ok(new PaginatedFeedResult()); // Tomt hvis der ikke følges nogen :-(
-                    relevantPoliticianDbIds = new List<int> { politicianId.Value };
+                    relevantPoliticianDbIds = new List<int> { politicianId!.Value } ; // måske slet !her
                 }
                 else // Intet filter ("Alle Tweets" view)
                 {
@@ -111,7 +111,7 @@ namespace backend.Controllers
                 if (isFiltered) // Filtreret: Hent alle tweets for den ene politiker
                 {
                     tweetsToPaginate = await _context.Tweets
-                        .Where(t => t.PoliticianTwitterId == politicianId.Value)
+                        .Where(t => t.PoliticianTwitterId == politicianId!.Value)
                         .OrderByDescending(t => t.CreatedAt)
                         .Include(t => t.Politician)
                         .ToListAsync();

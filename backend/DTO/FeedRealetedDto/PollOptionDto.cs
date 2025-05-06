@@ -13,7 +13,7 @@ namespace backend.DTOs
 
    public class PollOptionUpdate
 {
-    public string NewOptionText { get; set; }
+    public string NewOptionText { get; set; } = string.Empty;
 }
 
    

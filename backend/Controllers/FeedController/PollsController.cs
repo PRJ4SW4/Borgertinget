@@ -276,8 +276,17 @@ namespace backend.Controllers
                 // -------------------------------------------
                 Console.WriteLine($"User {currentUserId} processed vote/vote change for option {voteDto.OptionId} on poll {pollId}. SignalR broadcast sent.");
             }
-            catch (DbUpdateException dbEx) {}
-            catch (Exception ex) {}
+            catch (DbUpdateException dbEx) 
+            {
+
+                Console.WriteLine($"Fejl ved opdatering af stemme: {dbEx}"); 
+                return StatusCode(500, "Intern fejl ved opdatering af stemme.");
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine($"Fejl ved opdatering af stemme: {ex}"); 
+                return StatusCode(500, "Intern fejl ved opdatering af stemme.");
+            }
 
             return Ok(); 
         }

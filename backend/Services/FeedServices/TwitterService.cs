@@ -247,67 +247,15 @@ namespace backend.Services
                 // Find specifikt 'og:image' meta tag
                 var metaTag = doc.DocumentNode.SelectSingleNode("//meta[@property='og:image']");
                 // Returner 'content' attributten hvis tag'et findes
-                return metaTag?.GetAttributeValue("content", null);
+                return metaTag?.GetAttributeValue("content", null!); 
             }
             catch (Exception ex) 
             {
-                // Fejl under scraping
+                Console.WriteLine($"Error: Failed to scrape OpenGraph image from {url}: {ex.Message}");
                 return null;
             }
         }
 
-        /*
-        public async Task<List<string>> GetUserTweets(string userId, int count = 5)
-        {
-            string url = $"https://api.twitter.com/2/users/{userId}/tweets" +
-                        $"?max_results={count}" +
-                        $"&expansions=attachments.media_keys" +
-                        $"&media.fields=preview_image_url,url,type" +
-                        $"&tweet.fields=entities";
-
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _bearerToken);
-
-            var response = await _httpClient.GetAsync(url);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return new List<string> { $"Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}" };
-            }
-
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            var json = JObject.Parse(jsonResponse);
-
-            var tweets = json["data"];
-            var media = json["includes"]?["media"];
-            List<string> tweetTexts = new();
-
-            if (tweets != null)
-            {
-                foreach (var tweet in tweets)
-                {
-                    string text = tweet["text"]?.ToString() ?? "";
-                    string mediaUrl = "";
-                    var mediaKeys = tweet["attachments"]?["media_keys"];
-                    if (mediaKeys != null && media != null)
-                    {
-                        foreach (var key in mediaKeys)
-                        {
-                            var matchedMedia = media.FirstOrDefault(m => m["media_key"]?.ToString() == key?.ToString());
-                            if (matchedMedia != null)
-                            {
-                                mediaUrl = matchedMedia["url"]?.ToString() ?? matchedMedia["preview_image_url"]?.ToString() ?? "";
-                                break;
-                            }
-                        }
-                    }
-                    if (!string.IsNullOrEmpty(mediaUrl))
-                        tweetTexts.Add($"{text}\n[Billede] {mediaUrl}");
-                    else
-                        tweetTexts.Add(text);
-                }
-            }
-            return tweetTexts;
-        }*/
+        
     }
 }
