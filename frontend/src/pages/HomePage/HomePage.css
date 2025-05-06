@@ -1,0 +1,222 @@
+/* Styles specifically for the HomePage component */
+
+/* --- Hero Section --- */
+/* Styles for the large introductory area at the top */
+.hero-section {
+    background-color: #8B0000; /* Borgertinget dark red background */
+    color: #ffffff; /* White text for contrast */
+    min-height: 90vh; /* Ensures the section fills most of the viewport height */
+    display: flex; /* Enables flexbox for centering */
+    flex-direction: column; /* Stacks content vertically */
+    align-items: center; /* Centers content horizontally */
+    justify-content: center; /* Centers content vertically */
+    text-align: center; /* Center text within the content */
+    padding: 2rem; /* Padding around the content */
+    position: relative; /* Establishes positioning context for child elements (scroll arrow) */
+  }
+
+  /* Container for hero content, controlling max width */
+  .hero-content {
+    max-width: 800px; /* Limits content width for readability */
+  }
+
+  /* Styling for the large logo */
+  .hero-logo {
+    max-width: 180px; /* Control logo size */
+  }
+
+  /* Main title styling */
+  .hero-title {
+    font-size: 3rem; /* Large font size */
+    font-weight: bold; /* Make it stand out */
+    margin-bottom: 0.5rem; /* Space below the title */
+  }
+
+  /* Subtitle styling */
+  .hero-subtitle {
+    font-size: 1.3rem; /* Readable subtitle size */
+    margin-bottom: 2.5rem; /* More space below the subtitle */
+    opacity: 0.9; /* Makes subtitle slightly transparent */
+  }
+
+  /* Container for the search bar */
+  .hero-search-container {
+    margin-bottom: 2rem; /* Space below the search bar */
+    max-width: 500px; /* Limit search bar width */
+    width: 100%; /* Take full width up to max-width */
+    margin-left: auto; /* Centers the container */
+    margin-right: auto; /* Centers the container */
+  }
+
+  /* Search input field styling */
+  .hero-search-input {
+    width: 100%; /* Fill the container */
+    padding: 0.8rem 2.5rem 0.8rem 1rem; /* Basic padding */
+    border: none; /* No border */
+    border-radius: 25px; /* Creates pill shape */
+    font-size: 1rem; /* Standard input font size */
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
+    color: #ffffff; /* White text color */
+    outline: none; /* Removes default browser focus outline */
+  }
+
+  /* Placeholder text styling */
+  .hero-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7); /* Lighter white for placeholder */
+  }
+
+  /* Text prompt below search bar */
+  .hero-prompt {
+    margin-bottom: 3rem; /* Space below the prompt */
+    font-size: 0.95rem; /* Slightly smaller font */
+  }
+
+  /* Link within the prompt text */
+  .hero-prompt-link {
+    color: #ffffff; /* White color */
+    text-decoration: underline; /* Standard link indicator */
+    font-weight: bold; /* Make it stand out */
+  }
+
+  /* Hover state for the prompt link */
+  .hero-prompt-link:hover {
+    text-decoration: none; /* Removes underline on hover */
+  }
+
+  /* Animated scroll-down arrow */
+  .hero-scroll-down {
+    position: absolute; /* Positions relative to hero-section */
+    bottom: 2rem; /* Positions near the bottom */
+    left: 50%; /* Aligns left edge to horizontal center */
+    transform: translateX(-50%); /* Adjusts position for true horizontal centering */
+    color: #ffffff; /* White color */
+    font-size: 2rem; /* Size of the arrow */
+    text-decoration: none; /* Removes underline */
+    animation: bounce 2s infinite; /* Applies the defined bounce animation */
+  }
+
+  /* Keyframes for the basic bounce animation */
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } /* Defines positions at different animation stages */
+    40% { transform: translateX(-50%) translateY(-10px); }
+    60% { transform: translateX(-50%) translateY(-5px); }
+  }
+
+
+  /* --- Feature Sections --- */
+  /* Styles for content sections below the hero */
+
+  /* Container wrapping all feature sections */
+  .features-container {
+    padding: 4rem 2rem; /* Padding around the whole features area */
+    background-color: #f8f9fa; /* Light background provides a little contrast */
+  }
+
+  /* Styling for individual feature section blocks (cards) */
+  .feature-section {
+    display: flex; /* Enables flexbox for text/image layout */
+    flex-wrap: wrap; /* Allows stacking on smaller screens */
+    align-items: center; /* Vertically aligns content */
+    justify-content: space-between; /* Distributes space between text and image */
+    max-width: 1100px; /* Limit width */
+    margin: 0 auto 4rem auto; /* Center section and add space below */
+    gap: 3rem; /* Defines space between text and image blocks */
+    padding: 2rem; /* Padding inside the section card */
+    background-color: #ffffff; /* White background for the card effect */
+    border-radius: 8px; /* Rounded corners for card appearance */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Adds depth with a subtle shadow */
+  }
+
+  /* Text block within a feature section */
+  .feature-text {
+    flex: 1; /* Allows block to grow and fill available space */
+    min-width: 300px; /* Minimum width before wrapping */
+  }
+
+  /* Feature section heading */
+  .feature-text h2 {
+    font-size: 1.8rem; /* Heading size */
+    color: #333; /* Dark text color */
+    margin-bottom: 0.8rem; /* Space below heading */
+  }
+
+  /* Feature section paragraph text */
+  .feature-text p {
+    font-size: 1rem; /* Standard paragraph size */
+    color: #555; /* Grey text color */
+    margin-bottom: 1.5rem; /* Space below paragraph */
+    line-height: 1.6; /* Increases line spacing for readability */
+  }
+
+  /* Container for buttons within a feature section */
+  .feature-buttons {
+    display: flex; /* Arranges buttons horizontally */
+    flex-wrap: wrap; /* Allows buttons to wrap */
+    gap: 0.8rem; /* Defines space between buttons */
+  }
+
+  /* Styling for individual feature buttons */
+  .feature-button {
+    background-color: #8B0000; /* Borgertinget dark red */
+    color: #ffffff; /* White text */
+    border: none; /* No border */
+    padding: 0.7rem 1.5rem; /* Padding inside button */
+    border-radius: 25px; /* Creates pill shape */
+    font-size: 0.9rem; /* Button text size */
+    font-weight: bold; /* Bold text */
+    cursor: pointer; /* Indicates interactivity */
+    transition: background-color 0.2s ease, transform 0.1s ease; /* Smooths hover effects */
+  }
+
+  /* Hover state for feature buttons */
+  .feature-button:hover {
+    background-color: #a52a2a; /* Slightly lighter red on hover */
+    transform: translateY(-2px); /* Creates a subtle lift effect */
+  }
+
+  /* Image block within a feature section */
+  .feature-image {
+    flex: 1; /* Allows block to grow and fill available space */
+    min-width: 300px; /* Minimum width before wrapping */
+    text-align: center; /* Centers the image if block is wider */
+  }
+
+  /* Styling for the image itself */
+  .feature-image img {
+    max-width: 100%; /* Prevents image overflow */
+    height: auto; /* Maintains aspect ratio */
+    border-radius: 6px; /* Rounded corners for images */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* Adds subtle shadow to image */
+  }
+
+  /* Alternate layout modifier: Reverses text/image order */
+  .feature-section.alt-layout {
+    flex-direction: row-reverse; /* Reverses the horizontal order of flex items */
+  } /* Makes it look alot better on phone */
+
+
+  /* --- Responsive adjustments for Feature Sections --- */
+  /* Styles applied for viewports 768px wide or smaller (phones) */
+  @media (max-width: 768px) {
+    /* Stacks text and image vertically */
+    .feature-section,
+    .feature-section.alt-layout {
+      flex-direction: column; /* Overrides default flex direction */
+      text-align: center; /* Centers text content */
+    }
+    /* Centers the button container */
+    .feature-buttons {
+      justify-content: center;
+    }
+    /* Adds space above the image when stacked */
+    .feature-image {
+        margin-top: 2rem;
+    }
+    /* Adjusts hero text sizes for smaller screens */
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+  }

@@ -35,7 +35,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
       const token = response.data.token;
       localStorage.setItem("jwt", token);
       setToken(token);
-      navigate("/home");
+      navigate("/");
     }
     
     catch (error) {
