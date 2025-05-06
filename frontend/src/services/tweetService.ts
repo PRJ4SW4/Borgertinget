@@ -60,7 +60,7 @@ export const getFeed = async (
         try {
             const errorData = await response.json();
             errorMsg = errorData.message || errorData.title || JSON.stringify(errorData) || errorMsg;
-        } catch (_e) { /* Ignore JSON parsing errors */ }
+        } catch  { /* Ignore JSON parsing errors */ }
         if (response.status === 401) { errorMsg = 'Manglende eller ugyldig godkendelse.'; }
         throw new Error(errorMsg);
     }
@@ -111,7 +111,7 @@ export const submitVote = async (pollId: number, optionId: number): Promise<void
                  const errorData = await response.json();
                  if (response.status === 409) { errorMsg = errorData.title || errorData.message || "Du har allerede stemt."; }
                  else { errorMsg = errorData.title || errorData.message || JSON.stringify(errorData) || errorMsg; }
-            } catch (_e) {  }
+            } catch  { console.debug('Kunne ikke parse error response som JSON'); }
 
             if (response.status === 401) { errorMsg = 'Manglende eller ugyldig godkendelse.'; }
             if (response.status === 404) { errorMsg = 'Afstemning ikke fundet.'; }
