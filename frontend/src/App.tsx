@@ -41,7 +41,7 @@ function App() {
         <Routes>
             {/* Routes WITHOUT the main navbar */}
             <Route path="/login" element={<Login setToken={setToken} />} />
-            <Route path="/verify" element={<Verify />} />
+            {/*<Route path="/verify" element={<Verify />} />*/}
             <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />} />
 
 
