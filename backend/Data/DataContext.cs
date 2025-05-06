@@ -7,7 +7,12 @@ using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
 using BCrypt.Net;
+<<<<<<< HEAD
 using Microsoft.EntityFrameworkCore;     
+=======
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic; 
+>>>>>>> 341b7a4cf65ed304e36d8c687ff5aa5fdfd878b5
 using System; 
 using System.Linq;
 
@@ -21,11 +26,24 @@ namespace backend.Data
         // --- Dine DbSets ---
         public DbSet<User> Users { get; set; } = null!;
         // --- Learning Environment Setup ---
+<<<<<<< HEAD
     public DbSet<Page> Pages { get; set; } = null!;
+=======
+        public DbSet<Page> Pages { get; set; } = null!;
+>>>>>>> 341b7a4cf65ed304e36d8c687ff5aa5fdfd878b5
         public DbSet<Question> Questions { get; set; } = null!; 
         public DbSet<AnswerOption> AnswerOptions { get; set; } = null!; 
         public DbSet<Flashcard> Flashcards { get; set; } = null!; 
         public DbSet<FlashcardCollection> FlashcardCollections { get; set; } = null!; 
+<<<<<<< HEAD
+=======
+        public DbSet<Tweet> Tweets { get; set; } = null!;
+        public DbSet<Subscription> Subscriptions { get; set; } = null!; 
+        public DbSet<PoliticianTwitterId> PoliticianTwitterIds { get; set; } = null!; 
+        public DbSet<Poll> Polls { get; set; } = null!; 
+        public DbSet<PollOption> PollOptions { get; set; } = null!; 
+        public DbSet<UserVote> UserVotes { get; set; } = null!; 
+>>>>>>> 341b7a4cf65ed304e36d8c687ff5aa5fdfd878b5
 
     // --- /Learning Environment Setup ---
 
@@ -52,7 +70,6 @@ namespace backend.Data
             base.OnModelCreating(modelBuilder);
 
         // --- Calendar Setup ---
-        // Index for the CalendarEvents SourceUrl to make syncing events faster
         modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
 
         // --- /Calendar Setup ---
@@ -164,12 +181,9 @@ namespace backend.Data
                     ?? new List<string>()
             );
 
-            modelBuilder.Entity<Page>().HasData(/* ... din page seed data ... */);
-            modelBuilder.Entity<Question>().HasData(/* ... din question seed data ... */);
-            modelBuilder.Entity<AnswerOption>().HasData(/* ... din answer option seed data ... */);
-            modelBuilder.Entity<FlashcardCollection>().HasData(/* ... din collection seed data ... */);
-            modelBuilder.Entity<Flashcard>().HasData(/* ... din flashcard seed data ... */);
+        // --- SEED DATA ---
 
+<<<<<<< HEAD
           
            modelBuilder.Entity<PoliticianTwitterId>(entity =>
             {
@@ -248,6 +262,8 @@ namespace backend.Data
           
         // --- SEED DATA ---
 
+=======
+>>>>>>> 341b7a4cf65ed304e36d8c687ff5aa5fdfd878b5
         // --- Learning Environment Seeding ---
 
         // 1. Seed Pages
@@ -295,6 +311,7 @@ namespace backend.Data
                     DisplayOrder = 2,
                 }
             );
+<<<<<<< HEAD
 
         // 2. Seed Questions (Linked to Pages)
         modelBuilder
@@ -331,6 +348,44 @@ namespace backend.Data
                 }
             );
 
+=======
+
+        // 2. Seed Questions (Linked to Pages)
+        modelBuilder
+            .Entity<Question>()
+            .HasData(
+                // -- Questions for Page 1 --
+                new Question
+                {
+                    QuestionId = 1, // Unique ID for this question
+                    PageId = 1, // Links to "Politik 101"
+                    QuestionText = "Hvad beskæftiger politologi sig primært med?",
+                },
+                new Question
+                {
+                    QuestionId = 2, // Unique ID for this question
+                    PageId = 1, // Also links to "Politik 101"
+                    QuestionText =
+                        "Hvilket begreb dækker over fordelingen af autoritet i et samfund?",
+                },
+                // -- Question for Page 4 --
+                new Question
+                {
+                    QuestionId = 3, // Unique ID for this question
+                    PageId = 4, // Links to "Højre"
+                    QuestionText =
+                        "Hvilket økonomisk princip forbindes ofte med højreorienteret politik?",
+                },
+                // -- Question for Page 5 --
+                new Question
+                {
+                    QuestionId = 4, // Unique ID for this question
+                    PageId = 5, // Links to "Venstre"
+                    QuestionText = "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?",
+                }
+            );
+
+>>>>>>> 341b7a4cf65ed304e36d8c687ff5aa5fdfd878b5
         // 3. Seed Answer Options (Linked to Questions)
         modelBuilder
             .Entity<AnswerOption>()
@@ -478,6 +533,14 @@ namespace backend.Data
         */
              
 
+<<<<<<< HEAD
         } 
     } 
+=======
+        // --- /Learning Environment Seeding ---
+
+        // --- /SEED DATA ---
+    }
+}
+>>>>>>> 341b7a4cf65ed304e36d8c687ff5aa5fdfd878b5
 }
