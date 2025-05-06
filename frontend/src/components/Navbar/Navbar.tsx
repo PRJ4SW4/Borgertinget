@@ -59,16 +59,14 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
         <NavLink to="/" className="navbar-logo">
           <img src={logoSmall} alt="Borgertinget Logo" />
         </NavLink>
+        {/* Conditionally render Admin link */}
+        {isAdmin && (
+          <NavLink to="/admin" className={({ isActive }) => (isActive ? "nav-link active admin-link" : "nav-link admin-link")}>
+            Admin
+          </NavLink>
+        )}
         {/* Navigation Links */}
         <ul className="navbar-links">
-          {/* Conditionally render Admin link */}
-          {isAdmin && (
-            <li>
-              <NavLink to="/admin" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-                Admin
-              </NavLink>
-            </li>
-          )}
           {/* Standard navigation links using NavLink */}
           {/* The className function applies 'active' class based on route match */}
           <li>

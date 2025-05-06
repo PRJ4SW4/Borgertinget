@@ -24,7 +24,9 @@ if (string.IsNullOrEmpty(openSearchUrl))
 {
     // Handle missing configuration - throw an error or default
     openSearchUrl = "http://localhost:9200"; // Default if not configured
-    Console.WriteLine("Warning: OpenSearch URL not configured in appsettings.json. Using default: http://localhost:9200");
+    Console.WriteLine(
+        "Warning: OpenSearch URL not configured in appsettings.json. Using default: http://localhost:9200"
+    );
 }
 
 // Add credentials if needed (example using Basic Auth - get from config)
@@ -190,11 +192,7 @@ builder.Services.AddHttpClient<TwitterService>();
 builder.Services.AddScoped<HttpService>();
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 
-<<<<<<<<< Temporary merge branch 1
 // CORS (Cross-Origin Resource Sharing) konfiguration
-=========
-// CORS
->>>>>>>>> Temporary merge branch 2
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
@@ -225,14 +223,12 @@ builder.Services.AddScoped<AltingetScraperService>();
 builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 builder.Services.AddHostedService<TestScheduledIndexService>();
 
-
 builder.Services.AddScoped<AdministratorService>();
 
 // -----------------------------------------
 // Byg WebApplication objektet
 // -----------------------------------------
 var app = builder.Build();
-
 
 using (var scope = app.Services.CreateScope())
 {
@@ -250,11 +246,13 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Triggering initial background indexing task...");
         var indexingService = services.GetRequiredService<SearchIndexingService>();
         // --- End trigger initial indexing ---
-
     }
     catch (Exception ex)
     {
-        logger.LogCritical(ex, "An error occurred during application startup while setting up OpenSearch.");
+        logger.LogCritical(
+            ex,
+            "An error occurred during application startup while setting up OpenSearch."
+        );
         // Optionally prevent the application from starting if setup fails
         // throw;
     }

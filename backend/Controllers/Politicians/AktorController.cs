@@ -1,19 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO.FT;
 using backend.Models;
 using backend.Services;
-using backend.Models; 
-using backend.Data;
-using backend.DTO.FT;
-using System.Text.Json;
-using Microsoft.Extensions.Configuration;
-namespace backend.Controllers;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
@@ -278,7 +269,7 @@ public class AktorController : ControllerBase
         {
             try
             {
-                 _logger.LogDebug("Fetching politician page: {Url}", nextPolitikerLink);
+                _logger.LogDebug("Fetching politician page: {Url}", nextPolitikerLink);
                 // get out response as json
                 var responseJson = await _httpService.GetJsonAsync<JsonElement>(nextPolitikerLink);
 
@@ -306,19 +297,26 @@ public class AktorController : ControllerBase
                         {
                             var bioDetails = BioParser.ParseBiografiXml(aktorDto.biografi);
                             string? apiStatus = bioDetails.GetValueOrDefault("Status") as string;
-                            string? partyNameFromBio = bioDetails.GetValueOrDefault("Party") as string;
-                            string? partyShortnameFromBio = bioDetails.GetValueOrDefault("PartyShortname") as string;
+                            string? partyNameFromBio =
+                                bioDetails.GetValueOrDefault("Party") as string;
+                            string? partyShortnameFromBio =
+                                bioDetails.GetValueOrDefault("PartyShortname") as string;
 
-
-                            var existingAktor = await _context.Aktor
-                                                        .FirstOrDefaultAsync(a => a.Id == aktorDto.Id);
+                            var existingAktor = await _context.Aktor.FirstOrDefaultAsync(a =>
+                                a.Id == aktorDto.Id
+                            );
                             Aktor currentAktor;
-                            
+
                             if (apiStatus == "1") // Active Politician
                             {
                                 string? ministerTitle = null;
                                 // Look up minister title after confirming the politician is active
-                                if (ministerRelationshipsMap.TryGetValue(aktorDto.Id, out int titleId))
+                                if (
+                                    ministerRelationshipsMap.TryGetValue(
+                                        aktorDto.Id,
+                                        out int titleId
+                                    )
+                                )
                                 {
                                     ministerTitlesMap.TryGetValue(titleId, out ministerTitle);
                                 }
@@ -328,11 +326,21 @@ public class AktorController : ControllerBase
                                     currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle); // Use helper
                                     _context.Aktor.Add(currentAktor);
                                     addedCount++;
-                                     _logger.LogDebug("Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}", currentAktor.Id, currentAktor.navn, currentAktor.MinisterTitel);
+                                    _logger.LogDebug(
+                                        "Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}",
+                                        currentAktor.Id,
+                                        currentAktor.navn,
+                                        currentAktor.MinisterTitel
+                                    );
                                 }
                                 else // UPDATE
                                 {
-                                    currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle, existingAktor); // Use helper to update
+                                    currentAktor = MapAktor(
+                                        aktorDto,
+                                        bioDetails,
+                                        ministerTitle,
+                                        existingAktor
+                                    ); // Use helper to update
                                     updatedCount++;
                                     _logger.LogDebug(
                                         "Updating Aktor ID: {Id}, Name: {Name}, Title: {Title}",
@@ -399,22 +407,25 @@ public class AktorController : ControllerBase
                             else // Inactive Politician
                             {
                                 if (existingAktor != null) // DELETE Aktor
+                                {
+                                    // Also need to remove the AktorId from any Party.MemberIds lists
+                                    var partiesContainingAktor = await _context
+                                        .Party.Where(p =>
+                                            p.memberIds != null
+                                            && p.memberIds.Contains(existingAktor.Id)
+                                        )
+                                        .ToListAsync();
+
+                                    foreach (var party in partiesContainingAktor)
                                     {
-                                        // Also need to remove the AktorId from any Party.MemberIds lists
-                                        var partiesContainingAktor = await _context.Party
-                                            .Where(p => p.memberIds != null && p.memberIds.Contains(existingAktor.Id))
-                                            .ToListAsync();
-
-                                        foreach(var party in partiesContainingAktor)
-                                        {
-                                            party.memberIds?.Remove(existingAktor.Id);
-                                            _context.Entry(party).State = EntityState.Modified; // Mark as modified
-                                        }
-
-                                        _context.Aktor.Remove(existingAktor);
+                                        party.memberIds?.Remove(existingAktor.Id);
+                                        _context.Entry(party).State = EntityState.Modified; // Mark as modified
                                     }
+
+                                    _context.Aktor.Remove(existingAktor);
+                                }
                             }
-                        } 
+                        }
 
                         if (addedCount > 0 || updatedCount > 0 || deletedCount > 0)
                         {
@@ -429,10 +440,13 @@ public class AktorController : ControllerBase
                         totalAddedCount += addedCount;
                         totalUpdatedCount += updatedCount;
                         totalDeletedCount += deletedCount;
-
-                    } 
-                    else {
-                         _logger.LogWarning("Deserialization of 'value' array resulted in null for URL: {Url}", nextPolitikerLink);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Deserialization of 'value' array resulted in null for URL: {Url}",
+                            nextPolitikerLink
+                        );
                     }
                 }
                 else
@@ -538,14 +552,23 @@ public class AktorController : ControllerBase
         aktor.PositionsOfTrust = bioDetails.GetValueOrDefault("PositionsOfTrust") as string;
 
         // Map Lists (handle potential nulls from GetValueOrDefault)
-        aktor.ParliamentaryPositionsOfTrust = bioDetails.GetValueOrDefault("ParliamentaryPositionsOfTrust") as List<string> ?? new List<string>();
-        aktor.Constituencies = bioDetails.GetValueOrDefault("Constituencies") as List<string> ?? new List<string>();
-        aktor.Nominations = bioDetails.GetValueOrDefault("Nominations") as List<string> ?? new List<string>();
-        aktor.Educations = bioDetails.GetValueOrDefault("Educations") as List<string> ?? new List<string>();
-        aktor.Occupations = bioDetails.GetValueOrDefault("Occupations") as List<string> ?? new List<string>();
-        aktor.PublicationTitles = bioDetails.GetValueOrDefault("PublicationTitles") as List<string> ?? new List<string>();
-        aktor.Ministers = bioDetails.GetValueOrDefault("Ministers") as List<string> ?? new List<string>();
-        aktor.Spokesmen = bioDetails.GetValueOrDefault("Spokesmen") as List<string> ?? new List<string>();
+        aktor.ParliamentaryPositionsOfTrust =
+            bioDetails.GetValueOrDefault("ParliamentaryPositionsOfTrust") as List<string>
+            ?? new List<string>();
+        aktor.Constituencies =
+            bioDetails.GetValueOrDefault("Constituencies") as List<string> ?? new List<string>();
+        aktor.Nominations =
+            bioDetails.GetValueOrDefault("Nominations") as List<string> ?? new List<string>();
+        aktor.Educations =
+            bioDetails.GetValueOrDefault("Educations") as List<string> ?? new List<string>();
+        aktor.Occupations =
+            bioDetails.GetValueOrDefault("Occupations") as List<string> ?? new List<string>();
+        aktor.PublicationTitles =
+            bioDetails.GetValueOrDefault("PublicationTitles") as List<string> ?? new List<string>();
+        aktor.Ministers =
+            bioDetails.GetValueOrDefault("Ministers") as List<string> ?? new List<string>();
+        aktor.Spokesmen =
+            bioDetails.GetValueOrDefault("Spokesmen") as List<string> ?? new List<string>();
         aktor.MinisterTitel = ministerTitle;
 
         return aktor;

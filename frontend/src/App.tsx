@@ -108,6 +108,22 @@ function App() {
         {/* Uses FlashcardLayout, protection inherited. "/*" enables nested routing within FlashcardLayout. */}
         <Route path="/flashcards/*" element={<FlashcardLayout />} />
         {/* If others need to define other protected routes using MainLayout do it here. */}
+        {/* Admin routes */}
+        <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
+        <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls/addPoll" element={token ? <AddPoll /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls/editPoll" element={token ? <EditPoll /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls/deletePoll" element={token ? <DeletePoll /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/editcitatmode" element={token ? <EditQuotes /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/deleteFlashcardCollection" element={token ? <DeleteFlashcardCollection /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/addLearningPage" element={token ? <AddLearningPage /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/editLearningPage" element={token ? <EditLearningPage /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/deleteLearningPage" element={token ? <DeleteLearningPage /> : <Navigate to="/home" />} />{" "}
       </Route>{" "}
       {/* End of Protected MainLayout routes */}
       {/* --- Catch-all Route --- */}
@@ -117,22 +133,6 @@ function App() {
         path="*"
         element={<Navigate to={token ? "/" : "/login"} replace />} // 'replace' avoids adding the redirect to browser history.
       />
-      {/* Admin routes */}
-      <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
-      <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to="/home" />} />
-      <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to="/home" />} />
-      <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to="/home" />} />
-      <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to="/home" />} />
-      <Route path="/admin/Polls/addPoll" element={token ? <AddPoll /> : <Navigate to="/home" />} />
-      <Route path="/admin/Polls/editPoll" element={token ? <EditPoll /> : <Navigate to="/home" />} />
-      <Route path="/admin/Polls/deletePoll" element={token ? <DeletePoll /> : <Navigate to="/home" />} />
-      <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
-      <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
-      <Route path="/admin/Laering/editcitatmode" element={token ? <EditQuotes /> : <Navigate to="/home" />} />
-      <Route path="/admin/Laering/deleteFlashcardCollection" element={token ? <DeleteFlashcardCollection /> : <Navigate to="/home" />} />
-      <Route path="/admin/Laering/addLearningPage" element={token ? <AddLearningPage /> : <Navigate to="/home" />} />
-      <Route path="/admin/Laering/editLearningPage" element={token ? <EditLearningPage /> : <Navigate to="/home" />} />
-      <Route path="/admin/Laering/deleteLearningPage" element={token ? <DeleteLearningPage /> : <Navigate to="/home" />} />
       {/* Game Modes */}
       <Route path="/Polidle" element={<Polidle />} />
       <Route path="/ClassicMode" element={<ClassicMode />} />

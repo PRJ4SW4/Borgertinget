@@ -46,11 +46,15 @@
   flex-grow: 1; /* Allows the link container to occupy remaining horizontal space */
 }
 
+.admin-link {
+  margin-left: 1rem;
+}
+
 /* Styling for individual navigation links */
 .nav-link {
   text-decoration: none; /* Remove underline */
   background-color: #950018; /* Borgertinget primary red */
-  color: #FFFFFF; /* White text */
+  color: #ffffff; /* White text */
   padding: 0.5rem 1rem; /* Padding inside the link */
   border-radius: 20px; /* Creates pill-shaped corners */
   transition: background-color 0.2s ease, color 0.2s ease; /* Smooths color changes on hover */
@@ -62,12 +66,12 @@
 /* Hover effect for navigation links */
 .nav-link:hover {
   background-color: #f0f0f0; /* Light grey background on hover */
-  color: #8B0000; /* Dark red text on hover */
+  color: #8b0000; /* Dark red text on hover */
 }
 
 /* Styling for the currently active navigation link */
 .nav-link.active {
-  background-color: #8B0000; /* Darker red for active link */
+  background-color: #8b0000; /* Darker red for active link */
   color: #ffffff; /* Keep text white when active */
 }
 
@@ -101,22 +105,22 @@
     gap: 0.5rem; /* Reduces space between logo and links when wrapped */
   }
   .navbar-links {
-     gap: 0.4rem; /* Reduces space between individual links */
-     justify-content: center; /* Centers links when they wrap below the logo */
-     margin-top: 0.5rem; /* Adds space above wrapped links */
+    gap: 0.4rem; /* Reduces space between individual links */
+    justify-content: center; /* Centers links when they wrap below the logo */
+    margin-top: 0.5rem; /* Adds space above wrapped links */
   }
   /* Adjusts link padding and font size for smaller screens */
   .nav-link {
-     padding: 0.4rem 0.8rem;
-     font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
   }
   /* Adjusts logout button padding and font size */
   .navbar-logout-button {
-     padding: 0.3rem 0.7rem;
-     font-size: 0.85rem;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.85rem;
   }
   /* Reduces overall navbar padding */
   .navbar {
-      padding: 0.6rem 0.8rem;
+    padding: 0.6rem 0.8rem;
   }
 }

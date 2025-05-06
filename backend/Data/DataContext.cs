@@ -1,14 +1,8 @@
-using System.Collections.Generic; // Required
-using System.Text.Json;          // Required
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Text.Json; // Required
-using backend.DTO.Calendar;
-using backend.DTO.LearningEnvironment;
 using backend.Models; // Sørg for at FakePolitiker, FakeParti og PolidleGamemodeTracker er i dette namespace
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
-using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -146,60 +140,86 @@ public class DataContext : DbContext
                     ?? new List<string>()
             );
 
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.PublicationTitles)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.Ministers)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.Spokesmen)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 ); 
-        
-            
-            modelBuilder.Entity<Party>(entity =>
-            {
-                // Configure Role relationships (as shown previously)
-                 entity.HasOne(p => p.chairman)
-                      .WithMany()
-                      .HasForeignKey(p => p.chairmanId)
-                      .OnDelete(DeleteBehavior.SetNull);
-                 // ... configure other roles (ViceChairman, Secretary, Spokesman) ...
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.PublicationTitles)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Ministers)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
+        modelBuilder
+            .Entity<Aktor>()
+            .Property(a => a.Spokesmen)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v =>
+                    JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                    ?? new List<string>()
+            );
 
-                 // Configure Stats List conversion (if kept)
-                 entity.Property(p => p.stats) // Assuming PascalCase naming
-                       .HasConversion(
-                           v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                           v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                       );
+        modelBuilder.Entity<Party>(entity =>
+        {
+            // Configure Role relationships (as shown previously)
+            entity
+                .HasOne(p => p.chairman)
+                .WithMany()
+                .HasForeignKey(p => p.chairmanId)
+                .OnDelete(DeleteBehavior.SetNull);
+            // ... configure other roles (ViceChairman, Secretary, Spokesman) ...
 
-                // *** Add Configuration for memberIds List ***
-                entity.Property(p => p.memberIds) // Use PascalCase property name
-                      .HasConversion(
-                          // Convert List<int> to JSON string for DB
-                          v => JsonSerializer.Serialize(v ?? new List<int>(), (JsonSerializerOptions?)null),
-                          // Convert JSON string from DB back to List<int>
-                          v => JsonSerializer.Deserialize<List<int>>(v, (JsonSerializerOptions?)null) ?? new List<int>(),
-                          // Add a ValueComparer to help EF Core detect changes correctly
-                          new ValueComparer<List<int>?>(
-                              (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                              c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                              c => c == null ? null : c.ToList()))
-                      .HasColumnType("text"); // Use jsonb for efficient querying in PostgreSQL if needed, or "text"
-                // *** End Configuration for memberIds List ***
-            });
-                    // ---------------------------------
+            // Configure Stats List conversion (if kept)
+            entity
+                .Property(p => p.stats) // Assuming PascalCase naming
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v =>
+                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                        ?? new List<string>()
+                );
 
-#region Polidle
+            // *** Add Configuration for memberIds List ***
+            entity
+                .Property(p => p.memberIds) // Use PascalCase property name
+                .HasConversion(
+                    // Convert List<int> to JSON string for DB
+                    v =>
+                        JsonSerializer.Serialize(
+                            v ?? new List<int>(),
+                            (JsonSerializerOptions?)null
+                        ),
+                    // Convert JSON string from DB back to List<int>
+                    v =>
+                        JsonSerializer.Deserialize<List<int>>(v, (JsonSerializerOptions?)null)
+                        ?? new List<int>(),
+                    // Add a ValueComparer to help EF Core detect changes correctly
+                    new ValueComparer<List<int>?>(
+                        (c1, c2) =>
+                            (c1 == null && c2 == null)
+                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                        c =>
+                            c == null
+                                ? 0
+                                : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c == null ? null : c.ToList()
+                    )
+                )
+                .HasColumnType("text"); // Use jsonb for efficient querying in PostgreSQL if needed, or "text"
+            // *** End Configuration for memberIds List ***
+        });
+        // ---------------------------------
+
+        #region Polidle
         // --- NY KONFIGURATION for Polidle ---
 
         // --- Learning Environment Seeding ---
@@ -207,7 +227,8 @@ public class DataContext : DbContext
         // --- NY KONFIGURATION for Polidle ---
 
         // 1. Konfigurer sammensat primærnøgle for PolidleGamemodeTracker
-        modelBuilder.Entity<PolidleGamemodeTracker>()
+        modelBuilder
+            .Entity<PolidleGamemodeTracker>()
             .HasKey(pgt => new { pgt.PolitikerId, pgt.GameMode }); // Definerer PK som (PolitikerId, GameMode)
 
         // 2. Konfigurer En-til-mange relation mellem FakePolitiker og PolidleGamemodeTracker
@@ -237,7 +258,8 @@ public class DataContext : DbContext
             .OnDelete(DeleteBehavior.Restrict); // Undgå at slette en politiker hvis de er et dagligt valg?
 
         // Konfigurer evt. Enum-til-String for GameMode her også, hvis den ikke er globalt konfigureret
-        modelBuilder.Entity<DailySelection>()
+        modelBuilder
+            .Entity<DailySelection>()
             .Property(ds => ds.GameMode)
             .HasConversion<string>()
             .HasMaxLength(50);
@@ -249,29 +271,45 @@ public class DataContext : DbContext
         // 2. Din `FakePolitiker` model har en `FakeParti FakeParti` navigation property.
         // Juster `.HasForeignKey()` og `.WithOne()` hvis dine properties hedder noget andet.
 
-        modelBuilder.Entity<FakeParti>()
+        modelBuilder
+            .Entity<FakeParti>()
             .HasMany(p => p.FakePolitikers)
             .WithOne(fp => fp.FakeParti) // Matcher navigation property i FakePolitiker
             .HasForeignKey(fp => fp.PartiId) // Matcher foreign key property i FakePolitiker
             .OnDelete(DeleteBehavior.Restrict);
 
-
         // === NYT: Konfiguration for FakePolitiker <-> PoliticianQuote relation ===
-            modelBuilder.Entity<PoliticianQuote>()
-                .HasOne(q => q.FakePolitiker)    // Et citat har én politiker
-                .WithMany(p => p.Quotes)        // En politiker har mange citater (via 'Quotes' collection i FakePolitiker)
-                .HasForeignKey(q => q.PolitikerId) // Fremmednøglen i PoliticianQuote tabellen
-                .OnDelete(DeleteBehavior.Cascade); // Slet citater hvis politikeren slettes
+        modelBuilder
+            .Entity<PoliticianQuote>()
+            .HasOne(q => q.FakePolitiker) // Et citat har én politiker
+            .WithMany(p => p.Quotes) // En politiker har mange citater (via 'Quotes' collection i FakePolitiker)
+            .HasForeignKey(q => q.PolitikerId) // Fremmednøglen i PoliticianQuote tabellen
+            .OnDelete(DeleteBehavior.Cascade); // Slet citater hvis politikeren slettes
         // -------------------------------------------------------------------
-#endregion
+        #endregion
 
         // --- EKSISTERENDE SEED DATA ---
         // Behold al din eksisterende .HasData(...) konfiguration for Pages, Questions, etc.
-        modelBuilder.Entity<Page>().HasData( /* ... dine Page data ... */ );
-        modelBuilder.Entity<Question>().HasData( /* ... dine Question data ... */ );
-        modelBuilder.Entity<AnswerOption>().HasData( /* ... dine AnswerOption data ... */ );
-        modelBuilder.Entity<FlashcardCollection>().HasData( /* ... dine FlashcardCollection data ... */ );
-        modelBuilder.Entity<Flashcard>().HasData( /* ... dine Flashcard data ... */ );
+        modelBuilder
+            .Entity<Page>()
+            .HasData( /* ... dine Page data ... */
+            );
+        modelBuilder
+            .Entity<Question>()
+            .HasData( /* ... dine Question data ... */
+            );
+        modelBuilder
+            .Entity<AnswerOption>()
+            .HasData( /* ... dine AnswerOption data ... */
+            );
+        modelBuilder
+            .Entity<FlashcardCollection>()
+            .HasData( /* ... dine FlashcardCollection data ... */
+            );
+        modelBuilder
+            .Entity<Flashcard>()
+            .HasData( /* ... dine Flashcard data ... */
+            );
         // Tilføj evt. seed data for FakeParti og FakePolitiker her, hvis nødvendigt
         // modelBuilder.Entity<FakeParti>().HasData( /* ... dine FakeParti data ... */ );
         // modelBuilder.Entity<FakePolitiker>().HasData( /* ... dine FakePolitiker data ... */ );
