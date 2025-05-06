@@ -1,12 +1,11 @@
-// src/App.tsx
-import { useState, useEffect, JSX, type ReactNode } from "react"; // Added ReactNode import
+import { useState, useEffect, JSX } from "react";
 // Imports components from react-router-dom for routing.
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Layout Components: Provide consistent page structure.
-import LearningLayout from './layouts/LearningEnvironment/LearningLayout';
-import FlashcardLayout from './layouts/Flashcards/FlashcardLayout';
-import MainLayout from './layouts/MainLayout'; // Standard layout with Navbar/Footer.
+import LearningLayout from "./layouts/LearningEnvironment/LearningLayout";
+import FlashcardLayout from "./layouts/Flashcards/FlashcardLayout";
+import MainLayout from "./layouts/MainLayout"; // Standard layout with Navbar/Footer.
 
 // Page Components: Represent different views/pages in the application.
 import Login from "./pages/Login";
@@ -14,19 +13,19 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 // HomePage after user signs in.
 import HomePage from "./pages/HomePage/HomePage";
-import PageContent from './components/LearningEnvironment/PageContent'; // Renders content within LearningLayout.
-import CalendarView from './components/Calendar/CalendarView';
-import LoginSuccessPage from './pages/LoginSuccessPage';
+import PageContent from "./components/LearningEnvironment/PageContent"; // Renders content within LearningLayout.
+import CalendarView from "./components/Calendar/CalendarView";
+import LoginSuccessPage from "./pages/LoginSuccessPage";
 import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
 import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
 import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
 // Navbar and Footer are rendered via MainLayout.
-
 import Polidle from "./pages/Polidle/Polidle";
 // Importet gamemodes
 import ClassicMode from "./pages/Polidle/ClassicMode";
 import CitatMode from "./pages/Polidle/CitatMode";
 import FotoBlurMode from "./pages/Polidle/FotoBlurMode";
+
 // The main application component.
 function App() {
   // State hook for the JWT authentication token.
@@ -53,7 +52,6 @@ function App() {
     return token ? children : <Navigate to="/login" />;
   };
 
-
   // --- Routing Setup ---
   // Defines the application's routes using the Routes component.
   return (
@@ -62,54 +60,29 @@ function App() {
       {/* Login page route. */}
       <Route path="/login" element={<Login setToken={setToken} />} />
       {/* Post-login success/callback route. */}
-      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />}/>
-
-
+      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />} />
       {/* --- Protected Routes using MainLayout --- */}
       {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}
       {/* All nested routes inherit the layout and protection. */}
-      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }>
         {/* Root path ("/") route, shows HomePage for logged-in users. */}
         <Route path="/" element={<HomePage />} />
-
         {/* Home is an old route for a previous homepage, should be removed for production environment */}
         <Route
-            path="/home"
-            element={<Home setToken={setToken} />} // Pass setToken for logout functionality within Home.
+          path="/home"
+          element={<Home setToken={setToken} />} // Pass setToken for logout functionality within Home.
         />
-
         {/* Calendar route (requires login). */}
-        <Route
-            path="/kalender"
-            element={<CalendarView />}
-        />
-        window.addEventListener("storage", handleStorageChange);
-        return () => window.removeEventListener("storage", handleStorageChange);
-    }, []);
-
-    // Helper for protected routes using ReactNode to redirect to login and send them to where they were trying to access
-    const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-        if (!token) {
-            return <Navigate to="/login" replace />;
-        }
-        // `children` is returned directly, React handles rendering ReactNode
-        return children; 
-    };
-
-
-    return (
-        <Routes>
-            {/* Routes WITHOUT the main navbar */}
-            <Route path="/login" element={<Login setToken={setToken} />} />
-            {/*<Route path="/verify" element={<Verify />} />*/}
-            <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />} />
-
-
+        <Route path="/kalender" element={<CalendarView />} />
         {/* Other routes requiring login and using MainLayout. */}
         <Route path="/parties" element={<PartiesPage />} />
         <Route path="/party/:partyName" element={<PartyPage />} /> {/* ':partyName' is a dynamic URL parameter. */}
         <Route path="/politician/:id" element={<PoliticianPage />} /> {/* ':id' is a dynamic URL parameter. */}
-
         {/* --- Learning Environment Routes (Nested and Protected) --- */}
         {/* This route group uses LearningLayout and is protected by the parent ProtectedRoute. */}
         <Route
@@ -121,18 +94,35 @@ function App() {
           {/* Route for specific learning pages, e.g., "/learning/topic-1". */}
           <Route path=":pageId" element={<PageContent />} /> {/* ':pageId' is a dynamic URL parameter. */}
         </Route>
-
         {/* --- Flashcards Routes (Nested and Protected) --- */}
         {/* Uses FlashcardLayout, protection inherited. "/*" enables nested routing within FlashcardLayout. */}
+        <Route path="/flashcards/*" element={<FlashcardLayout />} />
+        {/* --- Polidle Game Routes (Assumed Public or self-contained auth) --- */}
+        {/* These routes are placed outside the main protected layout. If they require login and MainLayout, move them into the ProtectedRoute group below. */}
+        <Route path="/Polidle" element={<Polidle />} />
+        {/* gamemodes */}
+        <Route path="/ClassicMode" element={<ClassicMode />} />
         <Route
-            path="/flashcards/*"
-            element={<FlashcardLayout />}
+          path="/CitatMode"
+          element={
+            <CitatMode
+              citat="Sample Citat" // These props might need to be dynamic or removed if handled by the component
+              correctPolitiker="Sample Politician"
+            />
+          }
         />
-
+        <Route
+          path="/FotoBlurMode"
+          element={
+            <FotoBlurMode
+              imageUrl="sample-image-url.jpg" // These props might need to be dynamic or removed
+              correctPolitiker="Sample Politician"
+            />
+          }
+        />
         {/* If others need to define other protected routes using MainLayout do it here. */}
-
-      </Route> {/* End of Protected MainLayout routes */}
-
+      </Route>{" "}
+      {/* End of Protected MainLayout routes */}
       {/* --- Catch-all Route --- */}
       {/* Matches any URL not previously defined. */}
       {/* Redirects based on authentication status: "/" if logged in, "/login" if not. */}
@@ -142,67 +132,6 @@ function App() {
       />
     </Routes>
   );
-            {/* Routes WITH the main navbar */}
-            {/* Use MainLayout as the element for this parent route */}
-            {/* All nested routes will render inside MainLayout's <Outlet> */}
-            <Route
-                element={
-                    <ProtectedRoute>
-                        <MainLayout token={token} setToken={setToken} />
-                    </ProtectedRoute>
-                }
-            >
-                {/* These routes are now children of MainLayout */}
-                {/* They require the user to be logged in because the parent route is protected */}
-                <Route path="/home" element={<Home setToken={setToken} />} /> {/* Pass setToken if Home needs it */}
-                <Route path="/kalender" element={<CalendarView />} />
-                <Route path="/parties" element={<PartiesPage />} />
-                <Route path="/party/:partyName" element={<PartyPage />} />
-                <Route path="/politician/:id" element={<PoliticianPage />} />
-
-
-                {/* Nested Layouts like LearningLayout still work! */}
-                {/* LearningLayout will render inside MainLayout's <Outlet> */}
-                <Route path="/learning" element={<LearningLayout />}>
-                    <Route index element={<p>Velkommen til læringsområdet!</p>} />
-                    <Route path=":pageId" element={<PageContent />} />
-                </Route>
-
-                 {/* FlashcardLayout will render inside MainLayout's <Outlet> */}
-                <Route path="/flashcards/*" element={<FlashcardLayout />} />
-
-                 {/* Add any other routes that should have the main navbar here */}
-
-            </Route> {/* End of routes wrapped by MainLayout */}
-
-
-            {/* Catch-all Route: Redirects based on token status */}
-            {/* Place it last */}
-            <Route path="*" element={<Navigate to={token ? "/home" : "/login"} replace />} />
-      <Route path="/Polidle" element={<Polidle />} />
-      // gamemodes
-      <Route path="/ClassicMode" element={<ClassicMode />} />
-      <Route
-        path="/CitatMode"
-        element={
-          <CitatMode
-            citat="Sample Citat"
-            correctPolitiker="Sample Politician"
-          />
-        }
-      />
-      <Route
-        path="/FotoBlurMode"
-        element={
-          <FotoBlurMode
-            imageUrl="sample-image-url.jpg"
-            correctPolitiker="Sample Politician"
-          />
-        }
-      />
-
-        </Routes>
-    );
 }
 
 // Exports the App component for rendering in main.tsx.
