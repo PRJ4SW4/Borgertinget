@@ -23,7 +23,7 @@ namespace backend.Data
         // --- Dine DbSets ---
         public DbSet<User> Users { get; set; } = null!;
         // --- Learning Environment Setup ---
-    public DbSet<Page> Pages { get; set; } = null!;
+        public DbSet<Page> Pages { get; set; } = null!;
         public DbSet<Question> Questions { get; set; } = null!; 
         public DbSet<AnswerOption> AnswerOptions { get; set; } = null!; 
         public DbSet<Flashcard> Flashcards { get; set; } = null!; 
