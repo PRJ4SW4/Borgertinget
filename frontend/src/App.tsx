@@ -1,70 +1,103 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, JSX } from "react";
+// Imports components from react-router-dom for routing.
 import { Routes, Route, Navigate } from "react-router-dom";
+
+// Layout Components: Provide consistent page structure.
+import LearningLayout from './layouts/LearningEnvironment/LearningLayout';
+import FlashcardLayout from './layouts/Flashcards/FlashcardLayout';
+import MainLayout from './layouts/MainLayout'; // Standard layout with Navbar/Footer.
+
+// Page Components: Represent different views/pages in the application.
 import Login from "./pages/Login";
+// Represents the main view for authenticated users.
 import Home from "./pages/Home";
-import LearningLayout from './layouts/LearningLayout';
-import PageContent from './components/PageContent';
-import FlashcardLayout from './layouts/FlashcardLayout'; // Import new layout
-import CalendarView from './components/CalendarView'
-import LoginSuccessPage from './pages/LoginSuccessPage'; 
-import PartyPage from "./pages/PartyPage";
-import PoliticianPage from "./pages/PoliticianPage";
-import PartiesPage from "./pages/PartiesPage";
+// HomePage after user signs in.
+import HomePage from "./pages/HomePage/HomePage";
+import PageContent from './components/LearningEnvironment/PageContent'; // Renders content within LearningLayout.
+import CalendarView from './components/Calendar/CalendarView';
+import LoginSuccessPage from './pages/LoginSuccessPage';
+import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
+import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
+import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
 import FeedPage from './pages/FeedPage'; // Tilføj denne linje
 
+// Navbar and Footer are rendered via MainLayout.
 
+// The main application component.
 function App() {
+  // State hook for the JWT authentication token.
+  // Initializes state from localStorage to persist login status.
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
 
+  // Effect hook to synchronize token state with localStorage changes across tabs/windows.
   useEffect(() => {
     const handleStorageChange = () => {
+      // Updates the component's token state when localStorage changes.
       setToken(localStorage.getItem("jwt"));
     };
 
+    // Adds the event listener on component mount.
     window.addEventListener("storage", handleStorageChange);
+    // Removes the event listener on component unmount to prevent memory leaks.
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  }, []); // Empty dependency array ensures the effect runs only on mount and unmount.
 
+  // --- Protected Route Component ---
+  // Wraps routes that require user authentication.
+  // Renders the child component if a token exists, otherwise redirects to /login.
+  const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
+    return token ? children : <Navigate to="/login" />;
+  };
+
+
+  // --- Routing Setup ---
+  // Defines the application's routes using the Routes component.
   return (
     <Routes>
+      {/* --- Public Routes (No MainLayout, No login required) --- */}
+      {/* Login page route. */}
       <Route path="/login" element={<Login setToken={setToken} />} />
       <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
       <Route path="/kalender" element={<CalendarView />} />
-      <Route path="/feed" 
-        element={token ? <FeedPage /> : <Navigate to="/login" />} /> // Vis FeedPage hvis logget ind, ellers login
 
-      <Route
+        {/* Other routes requiring login and using MainLayout. */}
+        <Route path="/parties" element={<PartiesPage />} />
+        <Route path="/party/:partyName" element={<PartyPage />} /> {/* ':partyName' is a dynamic URL parameter. */}
+        <Route path="/politician/:id" element={<PoliticianPage />} /> {/* ':id' is a dynamic URL parameter. */}
+
+        {/* --- Learning Environment Routes (Nested and Protected) --- */}
+        {/* This route group uses LearningLayout and is protected by the parent ProtectedRoute. */}
+        <Route
           path="/learning"
-          // Apply the SAME protection logic as /home if needed
-          // If learning is public, just use: element={<LearningLayout />}
-          element={token ? <LearningLayout /> : <Navigate to="/login" />}
+          element={<LearningLayout />} // Uses its own layout in addition to MainLayout, protection inherited.
         >
-          {/* Nested routes render inside LearningLayout's <Outlet /> */}
-          <Route index element={<p>Velkommen til læringsområdet!</p>} />
-          <Route path=":pageId" element={<PageContent />} />
-      </Route>
-      <Route
-            path="/parties"
-            element={<PartiesPage />}
-          />
-      <Route
-            path="/party/:partyName"
-            element={<PartyPage />}
-          />
-      <Route
-            path="/politician/:id"
-            element={<PoliticianPage />}
-          />
+          {/* Default content shown at "/learning". */}
+          <Route index element={<p>Velkommen til læringsområdet! Vælg et emne i menuen.</p>} />
+          {/* Route for specific learning pages, e.g., "/learning/topic-1". */}
+          <Route path=":pageId" element={<PageContent />} /> {/* ':pageId' is a dynamic URL parameter. */}
+        </Route>
 
+        {/* --- Flashcards Routes (Nested and Protected) --- */}
+        {/* Uses FlashcardLayout, protection inherited. "/*" enables nested routing within FlashcardLayout. */}
+        <Route
+            path="/flashcards/*"
+            element={<FlashcardLayout />}
+        />
+
+        {/* If others need to define other protected routes using MainLayout do it here. */}
+
+      </Route> {/* End of Protected MainLayout routes */}
+
+      {/* --- Catch-all Route --- */}
+      {/* Matches any URL not previously defined. */}
+      {/* Redirects based on authentication status: "/" if logged in, "/login" if not. */}
       <Route
-          path="/flashcards/*" // Match base path and potential nested paths
-          element={token ? <FlashcardLayout /> : <Navigate to="/login" />}
+        path="*"
+        element={<Navigate to={token ? "/" : "/login"} replace />} // 'replace' avoids adding the redirect to browser history.
       />
-
-      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />}/>
-      <Route path="*" element={<Navigate to={token ? "/home" : "/login"} />} />
     </Routes>
   );
 }
 
+// Exports the App component for rendering in main.tsx.
 export default App;

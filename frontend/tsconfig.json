@@ -1,4 +1,7 @@
 {
+  "compilerOptions": {
+    "jsx": "react-jsx", // <--- Necessary for App.tsx helper
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
