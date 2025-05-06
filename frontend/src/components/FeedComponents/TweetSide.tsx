@@ -1,15 +1,12 @@
 // src/components/TweetSide.tsx
 import React from 'react';
-import { TweetDto } from '../../types/tweetTypes'; // Ret sti om nødvendigt
-
-// Importer CSS filen direkte - dette gør stylingen global
-import './TweetSide.css'; // <-- ÆNDRET IMPORT
+import { TweetDto } from '../../types/tweetTypes'; 
+import './TweetSide.css'; 
 
 interface Props {
   tweet: TweetDto;
 }
 
-// Omdøbt komponentnavn så det passer til filnavnet
 const TweetSide: React.FC<Props> = ({ tweet }) => {
   const formatDateTime = (dateString: string) => {
       try {
@@ -26,29 +23,28 @@ const TweetSide: React.FC<Props> = ({ tweet }) => {
   };
 
   return (
-    // Brug klassenavne som strenge direkte fra CSS-filen
-    <div className="tweet-card"> {/* <-- ÆNDRET className */}
-      <div className="tweet-header"> {/* <-- ÆNDRET className */}
-        {/* Placeholder for profile picture */}
-        <div className="author-info"> {/* <-- ÆNDRET className */}
-          <strong className="author-name">{tweet.authorName}</strong> {/* <-- ÆNDRET className */}
-          <span className="author-handle">@{tweet.authorHandle}</span> {/* <-- ÆNDRET className */}
+    <div className="tweet-card"> {}
+      <div className="tweet-header"> {}
+        {}
+        <div className="author-info"> {}
+          <strong className="author-name">{tweet.authorName}</strong> {}
+          <span className="author-handle">@{tweet.authorHandle}</span> {}
         </div>
         <small className="timestamp">{formatDateTime(tweet.createdAt)}</small>
       </div>
 
-      <p className="tweet-text">{tweet.text}</p> {/* <-- ÆNDRET className */}
+      <p className="tweet-text">{tweet.text}</p> {}
 
       {tweet.imageUrl && (
         <img
           src={tweet.imageUrl}
           alt="Tweet billede"
-          className="tweet-image" // <-- ÆNDRET className
+          className="tweet-image" 
           onError={handleImageError}
         />
       )}
 
-      <div className="tweet-stats"> {/* <-- ÆNDRET className */}
+      <div className="tweet-stats"> {}
         <span>Likes: {tweet.likes}</span>
         <span>Retweets: {tweet.retweets}</span>
         <span>Replies: {tweet.replies}</span>
@@ -57,5 +53,4 @@ const TweetSide: React.FC<Props> = ({ tweet }) => {
   );
 };
 
-// Omdøbt export så det passer til filnavnet
 export default TweetSide;

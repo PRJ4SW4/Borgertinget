@@ -14,7 +14,6 @@ import Sidebar from '../components/FeedComponents/Sidebar';
 import './FeedPage.css';
 
 const FeedPage: React.FC = () => {
-    // --- State (Opdelt) ---
     const [tweets, setTweets] = useState<TweetDto[]>([]);
     const [latestPolls, setLatestPolls] = useState<PollDetailsDto[]>([]);
     const [page, setPage] = useState<number>(1);
@@ -27,7 +26,6 @@ const FeedPage: React.FC = () => {
     const connectionRef = useRef<signalR.HubConnection | null>(null);
     const navigate = useNavigate();
 
-    // --- Intersection Observer (til tweets) ---
     const observer = useRef<IntersectionObserver | null>(null);
     const lastElementRef = useCallback((node: HTMLDivElement | null) => {
         if (isLoading) return;
@@ -41,7 +39,6 @@ const FeedPage: React.FC = () => {
         if (node) observer.current.observe(node);
     }, [isLoading, hasMore]);
 
-    // --- Effekt til Subscriptions (med ekstra logging) ---
     useEffect(() => {
         const fetchSubs = async () => {
             try {
@@ -58,7 +55,6 @@ const FeedPage: React.FC = () => {
         fetchSubs();
     }, []);
 
-    // --- Effekt til Feed Data (Opdateret til at håndtere Tweets OG LatestPolls) ---
     useEffect(() => {
         if (page > 1 && !hasMore) return;
         setIsLoading(true);
@@ -70,14 +66,12 @@ const FeedPage: React.FC = () => {
                 const responseData = await getFeed(page, 5, selectedPoliticianId);
                 console.log("FEEDPAGE: Modtog feed data:", responseData);
 
-                // Opdater tweets state
                 if (page === 1) {
                     setTweets(responseData.tweets || []);
                 } else {
                     setTweets(prevTweets => [...prevTweets, ...(responseData.tweets || [])]);
                 }
 
-                // Opdater latestPolls state KUN ved side 1
                 if (page === 1) {
                     setLatestPolls(responseData.latestPolls || []);
                 }
@@ -95,7 +89,6 @@ const FeedPage: React.FC = () => {
         fetchFeedData();
     }, [page, selectedPoliticianId]);
 
-    // --- Effekt til SignalR (Opdaterer nu latestPolls state) ---
     useEffect(() => {
         const hubUrl = `${API_BASE_URL}/feedHub`;
         console.log("Setting up SignalR connection to:", hubUrl);
@@ -144,7 +137,6 @@ const FeedPage: React.FC = () => {
         };
     }, []);
 
-    // --- Filter Handler ---
     const handleFilterChange = (id: number | null) => {
         if (id === selectedPoliticianId || isLoading) return;
         setTweets([]);
@@ -155,10 +147,8 @@ const FeedPage: React.FC = () => {
         window.scrollTo(0, 0);
     };
 
-    // --- Tilbage knap handler ---
     const handleBackClick = () => { navigate('/home'); };
 
-    // --- Stemme Handler ---
     const handleVoteSubmit = async (pollId: number, optionId: number) => {
         setError(null);
         try {
@@ -183,7 +173,6 @@ const FeedPage: React.FC = () => {
         }
     };
 
-    // --- Rendering ---
     return (
         <div className="page-layout">
             <Sidebar
@@ -212,7 +201,7 @@ const FeedPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* SEKTION FOR TWEETS - uden overskriften "Seneste Tweets" */}
+                    {/* SEKTION FOR TWEETS */}
                     {tweets.length > 0 && (
             <>
                 <h2 className="section-title">Seneste Tweets</h2>

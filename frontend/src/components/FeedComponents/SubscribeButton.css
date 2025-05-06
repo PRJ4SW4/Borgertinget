@@ -1,12 +1,12 @@
 /* src/components/SubscribeButton.css */
 .subscribe-button-wrapper {
-    display: inline-block; /* Gør at wrapperen passer til knappen */
+    display: inline-block; 
     text-align: center;
   }
   
   .subscribe-toggle-button {
     padding: 8px 16px;
-    border: 1px solid; /* Kant defineres yderligere nedenfor */
+    border: 1px solid; 
     border-radius: 5px;
     cursor: pointer;
     font-weight: 500;
@@ -25,12 +25,12 @@
   }
   
   .subscribe-toggle-button.subscribed {
-    background-color: #f8f9fa; /* Lys "Unsubscribe" */
-    border-color: #6c757d; /* Grå kant */
-    color: #6c757d; /* Grå tekst */
+    background-color: #f8f9fa; 
+    border-color: #6c757d; 
+    color: #6c757d; 
   }
   .subscribe-toggle-button.subscribed:hover:not(:disabled) {
-    background-color: #dc3545; /* Rød ved hover for at fjerne */
+    background-color: #dc3545; 
     border-color: #dc3545;
     color: white;
   }
@@ -41,7 +41,7 @@
   }
   
   .subscribe-error {
-    color: #dc3545; /* Rød fejltekst */
+    color: #dc3545; 
     font-size: 0.85em;
     margin-top: 5px;
   }

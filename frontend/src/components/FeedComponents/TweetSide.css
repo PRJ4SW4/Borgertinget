@@ -1,69 +1,67 @@
-/* src/components/TweetSide.css */
-/* Brug almindelige CSS klassenavne */
 
-.tweet-card { /* Omdøbt fra .card */
+.tweet-card { 
   background-color: #fff;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   margin-bottom: 15px;
   padding: 15px;
-  max-width: 1000px; /* Maksimal bredde for kortet */
+  max-width: 1000px;
   font-family: 'Arial', sans-serif;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   margin-left: auto;
   margin-right: auto;
-.tweet-card a { /* Links inde i kortet */
+.tweet-card a { 
   color: #882434; text-decoration: none; }
 .tweet-card a:hover {
   color: #b82626; text-decoration: underline; }
 
-.tweet-header { /* Omdøbt fra .header */
+.tweet-header { 
   display: flex;
-  align-items: flex-start; /* Justeret fra center for pænere multiline timestamp */
+  align-items: flex-start; 
   margin-bottom: 10px;
-  gap: 5px;          /* Tilføjet: Lidt luft mellem elementer */
-  flex-wrap: wrap;     /* Tilføjet: Tillad ombrydning ved smal bredde */
+  gap: 5px;         
+  flex-wrap: wrap;    
 }
 
-.author-info { /* Omdøbt */
-  min-width: 0;      /* Tilføjet: Vigtig for at tillade shrinking i flexbox */
-  flex-grow: 1;      /* Tilføjet: Lader denne del tage ledig plads */
+.author-info { 
+  min-width: 0;      
+  flex-grow: 1;      
 }
 
-.author-name { /* Omdøbt */
+.author-name { 
   margin-right: 5px;
   font-weight: bold;
   color: #111827;
-  /* overflow-wrap: break-word; */ /* Kan tilføjes hvis navne kan blive ekstremt lange */
+  
 }
 
-.author-handle { /* Omdøbt */
+.author-handle { 
   color: #6b7280;
   font-size: 0.9em;
-  word-break: break-all; /* Kan bryde lange handles midt i ordet om nødvendigt */
+  word-break: break-all; 
 }
 
 .timestamp {
-  margin-left: auto; /* Forsøger at skubbe til højre */
+  margin-left: auto;
   color: #6b7280;
   font-size: 0.85em;
-  /* white-space: nowrap; */ /* <-- FJERNET/UDKOMMENTERET (Vigtigste ændring) */
-  flex-shrink: 0; /* Undgår at den bliver klemt helt sammen */
-  text-align: right; /* Pænere hvis datoen wrapper */
+ 
+  flex-shrink: 0; 
+  text-align: right; 
 }
 
-.tweet-text { /* Omdøbt fra .text */
-  white-space: pre-wrap;   /* Bevarer linjeskift fra tweet */
-  word-wrap: break-word; /* Bryder lange ord (ældre standard) */
-  overflow-wrap: break-word; /* Bryder lange ord (nyere standard - ekstra sikkerhed) */
+.tweet-text { 
+  white-space: pre-wrap;  
+  word-wrap: break-word; 
+  overflow-wrap: break-word; 
   margin-top: 0;
   margin-bottom: 10px;
   line-height: 1.5;
   color: #1f2937;
-  min-height: 100px; /* Giver lidt plads hvis der ikke er tekst */
+  min-height: 100px; 
 }
 
-.tweet-image { /* Omdøbt */
+.tweet-image { 
   width: 100%;
   max-height: 700px;
   object-fit: cover;
@@ -74,7 +72,7 @@
   border: 1px solid #f3f4f6;
 }
 
-.tweet-stats { /* Omdøbt fra .stats */
+.tweet-stats {
   margin-top: 15px;
   color: #6b7280;
   font-size: 0.9em;
@@ -83,7 +81,4 @@
   border-top: 1px solid #d1d5db;
   padding-top: 10px;
 }
-
-.tweet-stats span {
-  /* Evt. specifik styling for stats */
-}}
+}

@@ -33,7 +33,6 @@ const PollCard: React.FC<PollCardProps> = ({ poll, onVoteSubmit }) => {
     }
   };
 
-  // Formater dato (samme som i TweetSide evt.)
   const formatDateTime = (dateString?: string | null) => {
     if (!dateString) return '';
     try {
@@ -43,7 +42,7 @@ const PollCard: React.FC<PollCardProps> = ({ poll, onVoteSubmit }) => {
 
   return (
     <div className={`poll-card ${!poll.isActive ? 'poll-inactive' : ''}`}>
-      {/* Ligesom Tweet Header - kan genbruges/styles ens */}
+      {/* Tweet Header*/}
       <div className="poll-header">
         <div className="author-info">
           <strong className="author-name">{poll.politicianName}</strong>
@@ -85,7 +84,7 @@ const PollCard: React.FC<PollCardProps> = ({ poll, onVoteSubmit }) => {
                     <div className="vote-bar-container">
                        <div
                            className="vote-bar"
-                           style={{ width: `${percentage}%` }} // Dynamisk bredde
+                           style={{ width: `${percentage}%` }} 
                        ></div>
                     </div>
                     <div className="vote-percentage">{percentage}%</div>

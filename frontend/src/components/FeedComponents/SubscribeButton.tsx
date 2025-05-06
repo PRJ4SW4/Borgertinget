@@ -24,55 +24,50 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
     setIsSubscribed(initialIsSubscribed);
   }, [initialIsSubscribed]);
 
-  // Funktion der kaldes, når der klikkes på knappen
   const handleToggleSubscription = async () => {
-    // Gør intet hvis ID mangler, eller hvis vi allerede er i gang
     if (politicianTwitterId === null || isSubmitting) {
         console.warn("Subscribe/Unsubscribe attempt ignored: missing ID or already submitting.");
         return;
     }
 
-    setIsSubmitting(true); // Start loading
-    setError(null);      // Nulstil fejl
+    setIsSubmitting(true); 
+    setError(null);    
 
     try {
       if (isSubscribed) {
-        // --- Forsøg Unsubscribe ---
         console.log(`Attempting to unsubscribe from ${politicianTwitterId}`);
         await unsubscribe(politicianTwitterId);
         console.log(`Successfully unsubscribed (API call)`);
-        setIsSubscribed(false); // Opdater knappen lokalt med det samme
-        onSubscriptionChange?.(false); // Kald callback for at notificere forælder
+        setIsSubscribed(false); 
+        onSubscriptionChange?.(false); 
       } else {
         // --- Forsøg Subscribe ---
         console.log(`Attempting to subscribe to ${politicianTwitterId}`);
         await subscribe(politicianTwitterId);
         console.log(`Successfully subscribed (API call)`);
-        setIsSubscribed(true); // Opdater knappen lokalt med det samme
-        onSubscriptionChange?.(true); // Kald callback for at notificere forælder
+        setIsSubscribed(true); 
+        onSubscriptionChange?.(true); 
       }
     } catch (err: unknown) {
       console.error("Subscription toggle failed:", err);
-      // Sæt fejlbesked og NULSTIL lokal state til den oprindelige status,
-      // da API-kaldet fejlede
+      
       setError(err instanceof Error ? err.message : "Ukendt fejl");
-      setIsSubscribed(initialIsSubscribed); // Gå tilbage til den status, vi fik fra forælderen
+      setIsSubscribed(initialIsSubscribed); 
     } finally {
-      setIsSubmitting(false); // Stop altid loading
+      setIsSubmitting(false); 
     }
   };
 
-  // Hvis vi ikke har et ID at arbejde med (f.eks. fordi opslag fejer), vises intet
+  
   if (politicianTwitterId === null) {
-    return null; // Eller en disabled knap med en besked
+    return null; 
   }
 
-  // Render selve knappen
   return (
     <div className="subscribe-button-wrapper">
       <button
         onClick={handleToggleSubscription}
-        disabled={isSubmitting} // Deaktiver mens API-kald kører
+        disabled={isSubmitting} 
         className={`subscribe-toggle-button ${isSubscribed ? 'subscribed' : 'not-subscribed'}`}
       >
         {isSubmitting ? 'Arbejder...' : (isSubscribed ? 'Abonnerer (Fjern)' : 'Abonner')}

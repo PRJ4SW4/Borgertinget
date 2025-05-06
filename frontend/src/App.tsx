@@ -19,12 +19,7 @@ import LoginSuccessPage from './pages/LoginSuccessPage';
 import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
 import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
 import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
-<<<<<<< HEAD
 import FeedPage from './pages/FeedPage';
-=======
-import FeedPage from './pages/FeedPage'; // Tilføj denne linje
-
->>>>>>> 341b7a4cf65ed304e36d8c687ff5aa5fdfd878b5
 // Navbar and Footer are rendered via MainLayout.
 
 // The main application component.

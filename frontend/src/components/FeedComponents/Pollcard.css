@@ -48,13 +48,12 @@
     display: flex;
     align-items: center;
     gap: 10px; /* Afstand mellem elementer i option */
-    position: relative; /* Til vote-bar */
-    overflow: hidden; /* Til vote-bar */
+    position: relative; 
+    overflow: hidden;
   }
   
   .poll-option.voted-option {
-    border-color: #3b82f6; /* Fremhæv valgt option */
-    /* background-color: #eff6ff; */ /* Let blå baggrund? */
+    border-color: #3b82f6; 
   }
   
   .vote-button {
@@ -66,7 +65,7 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
-    flex-shrink: 0; /* Undgå at knappen skrumper */
+    flex-shrink: 0; 
   }
   
   .vote-button:hover:not(:disabled) {
@@ -79,39 +78,37 @@
   }
   
   .vote-checkmark {
-      color: #16a34a; /* Grøn farve for flueben */
+      color: #16a34a; 
       font-weight: bold;
       font-size: 1.2em;
       flex-shrink: 0;
-      margin-right: 5px; /* Lidt luft til tekst */
+      margin-right: 5px; 
   }
   
   
   .option-text {
-    flex-grow: 1; /* Tager ledig plads */
+    flex-grow: 1; 
     word-break: break-word;
   }
   
-  /* Styling for resultat-visning */
   .vote-bar-container {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: #e0f2fe; /* Lys blå baggrund for bar */
-      z-index: 1; /* Læg bagved tekst/knapper */
-      border-radius: 5px; /* Match ydre border-radius minus 1px */
+      background-color: #e0f2fe; 
+      z-index: 1;
+      border-radius: 5px; 
   }
   
   .vote-bar {
       height: 100%;
-      background-color: #7dd3fc; /* Lidt mørkere blå */
-      border-radius: 5px 0 0 5px; /* Afrund kun start */
-      transition: width 0.5s ease-in-out; /* Animation */
+      background-color: #7dd3fc; 
+      border-radius: 5px 0 0 5px; 
+      transition: width 0.5s ease-in-out; 
   }
   
-  /* Sørg for at indholdet ligger ovenpå baren */
   .vote-button, .vote-checkmark, .option-text, .vote-percentage, .vote-count {
       position: relative;
       z-index: 2;
@@ -123,14 +120,14 @@
     font-size: 0.9em;
     color: #4b5563;
     flex-shrink: 0;
-    margin-left: auto; /* Skub til højre før antal */
+    margin-left: auto; 
   }
   
   .vote-count {
     font-size: 0.85em;
     color: #6b7280;
     flex-shrink: 0;
-    min-width: 35px; /* Lidt plads til tal */
+    min-width: 35px; 
     text-align: right;
   }
   
@@ -146,9 +143,9 @@
   }
   
   .poll-inactive {
-    opacity: 0.8; /* Gør lukkede polls lidt nedtonede */
+    opacity: 0.8; 
   }
   
   .poll-inactive .vote-button {
-      display: none; /* Skjul knap hvis inaktiv */
+      display: none; 
   }

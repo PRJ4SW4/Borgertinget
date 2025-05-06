@@ -153,7 +153,7 @@ const PoliticianPage: React.FC = () => {
 
 
 
-        {/* NYT: Subscribe knap tilføjet her */}
+        {/*Subscribe*/}
         {twitterId !== null && (
           <div className="subscription-container">
             <SubscribeButton
