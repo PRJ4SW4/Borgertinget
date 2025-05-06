@@ -1,0 +1,118 @@
+/* src/components/LandingPage/Team/TeamSection.module.css */
+.teamSection {
+  padding: 4rem 2rem;
+  background-color: #fff;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Ny wrapper til at styre flex layout */
+.contentWrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 3rem;
+  /* Ændret fra flex-start til center for lodret centrering */
+  align-items: center;
+}
+
+/* Container for teksten */
+.textContainer {
+  flex: 2;
+  text-align: left;
+  font-size: 1.6rem;
+  /* Vi behøver ikke yderligere flex her, da align-items: center på forælderen klarer det */
+}
+
+.textContainer h1 {
+  margin-top: 0;
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.description {
+  color: #555;
+  line-height: 1.7; /* Lidt højere linjehøjde kan være godt med større tekst */
+  white-space: pre-line;
+  margin-bottom: 0;
+  /* Øg skriftstørrelsen - juster værdien efter behov */
+  font-size: 1.1rem; /* Prøv f.eks. 1.1rem eller 1.2rem */
+}
+
+/* Justeret gitter for teammedlemmer */
+.membersGrid {
+  flex: 2;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.memberCard {
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.memberImage {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 0 auto 0.75rem auto;
+  object-fit: cover;
+  display: block;
+}
+
+.memberName {
+  font-size: 0.9rem;
+  color: #333;
+  margin-top: 0;
+}
+
+/* Responsivt design */
+@media (max-width: 992px) {
+  .contentWrapper {
+    flex-direction: column;
+    align-items: center; /* Centrering forbliver relevant her */
+    gap: 2.5rem;
+  }
+
+  .textContainer {
+    flex: none;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+  }
+
+  .textContainer h1 {
+    text-align: center;
+  }
+
+  .membersGrid {
+    flex: none;
+    width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    max-width: 700px;
+  }
+}
+
+@media (max-width: 576px) {
+  .membersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+  }
+  .memberImage {
+    width: 80px;
+    height: 80px;
+  }
+  .memberName {
+    font-size: 0.85rem;
+  }
+  /* Du kan evt. også justere .description font-size her, hvis den bliver for stor */
+  .description {
+    font-size: 1rem; /* Gå evt. tilbage til 1rem på meget små skærme */
+  }
+}

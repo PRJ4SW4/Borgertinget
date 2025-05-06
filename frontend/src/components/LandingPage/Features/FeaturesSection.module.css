@@ -1,0 +1,71 @@
+/* src/components/LandingPage/Features/FeaturesSection.module.css */
+.featuresSection {
+  padding: 4rem 2rem;
+  background-color: #f0f0f0; /* En lys baggrundsfarve */
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.container h1 {
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  color: #333;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(300px, 1fr)
+  ); /* Responsivt grid */
+  gap: 2rem;
+}
+
+.featureItem {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.featureItem button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  color: #fff;
+  background-color: #007bff; /* En primær farve til knapper */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.featureItem button:hover {
+  background-color: #0056b3;
+}
+
+.imageContainer {
+  max-height: 200px; /* Begræns billedhøjden */
+  overflow: hidden; /* Skjul overskydende del af billedet */
+  border-radius: 5px;
+  margin-bottom: 1rem;
+}
+
+.featureImage {
+  width: 100%;
+  height: auto;
+  display: block; /* Fjern ekstra plads under inline billeder */
+  object-fit: cover; /* Sikrer at billedet dækker containeren */
+}
+
+/* Responsivt design (juster breakpoints efter behov) */
+@media (max-width: 768px) {
+  .featuresGrid {
+    grid-template-columns: 1fr; /* Vis dem i en enkelt kolonne på små skærme */
+  }
+}
