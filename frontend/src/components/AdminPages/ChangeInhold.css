@@ -1,0 +1,84 @@
+.edit-inhold-container {
+  padding: 2rem;
+  max-width: 50rem;
+  margin: 0 auto;
+}
+
+.edit-inhold-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.edit-inhold-subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.edit-inhold-form {
+  background-color: #c99b9b;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.edit-inhold-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.edit-inhold-label {
+  font-weight: 600;
+}
+
+.edit-inhold-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: white;
+}
+
+.edit-inhold-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.edit-inhold-submit-btn {
+  background-color: #991b1b;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.edit-inhold-submit-btn:hover {
+  background-color: #7f1d1d;
+}
+
+.edit-inhold-submit-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.edit-inhold-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.edit-inhold-selected {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 1rem;
+}

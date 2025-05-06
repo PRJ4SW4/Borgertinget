@@ -150,7 +150,7 @@ public class AktorController : ControllerBase
     //                                        //
     //----------------------------------------//
 
-    [HttpGet("fetch")]
+    [HttpPost("fetch")]
     public async Task<IActionResult> UpdateAktorsFromExternal()
     {
         _logger.LogInformation("Starting Aktor update process..."); // Use logger

@@ -20,10 +20,11 @@ import CreateFlashcardCollection from "./components/AdminPages/AddFlashcardColle
 import AdminPage from "./components/AdminPages/AdminPage";
 import AdminBruger from "./components/AdminPages/AdminBruger";
 import AdminIndhold from "./components/AdminPages/AdminIndhold";
+import RedigerIndhold from "./components/AdminPages/RedigerIndhold";
 import AdminLearing from "./components/AdminPages/AdminLearing";
 import AdminPolls from "./components/AdminPages/AdminPolls";
 import EditFlashcardCollection from "./components/AdminPages/EditFlashcardCollection";
-import EditQuotes from "./components/AdminPages/EditCitatMode"; // Removed duplicate
+import EditQuotes from "./components/AdminPages/EditCitatMode";
 import AddPoll from "./components/AdminPages/AddPolls";
 import EditPoll from "./components/AdminPages/EditPoll";
 import DeletePoll from "./components/AdminPages/DeletePoll";
@@ -112,6 +113,7 @@ function App() {
         <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
         <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to="/home" />} />
         <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/redigerIndhold" element={token ? <RedigerIndhold /> : <Navigate to="/home" />} />
         <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to="/home" />} />
         <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to="/home" />} />
         <Route path="/admin/Polls/addPoll" element={token ? <AddPoll /> : <Navigate to="/home" />} />

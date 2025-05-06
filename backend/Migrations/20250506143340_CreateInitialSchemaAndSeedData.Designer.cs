@@ -13,146 +13,242 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250416083426_UserVoteUnique")]
-    partial class UserVoteUnique
+    [Migration("20250506143340_CreateInitialSchemaAndSeedData")]
+    partial class CreateInitialSchemaAndSeedData
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("AnswerOption", b =>
+            modelBuilder.Entity("backend.Models.Aktor", b =>
                 {
-                    b.Property<int>("AnswerOptionId")
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Born")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Constituencies")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EducationStatistic")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Educations")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FunctionFormattedTitle")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FunctionStartDate")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MinisterTitel")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Ministers")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nominations")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Occupations")
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<List<string>>("ParliamentaryPositionsOfTrust")
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("Party")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PartyShortname")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PictureMiRes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PositionsOfTrust")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PublicationTitles")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sex")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Spokesmen")
+                        .HasColumnType("text");
+
+                    b.Property<string>("biografi")
+                        .HasColumnType("text");
+
+                    b.Property<string>("efternavn")
+                        .HasColumnType("text");
+
+                    b.Property<string>("fornavn")
+                        .HasColumnType("text");
+
+                    b.Property<string>("gruppeNavnKort")
+                        .HasColumnType("text");
+
+                    b.Property<string>("navn")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("opdateringsdato")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("periodeid")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("slutdato")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("startdato")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("typeid")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Aktor");
+                });
+
+            modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
+                {
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AnswerOptionId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DisplayOrder")
+                    b.Property<DateTimeOffset>("LastScrapedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("SourceUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<DateTimeOffset>("StartDateTimeUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(350)
+                        .HasColumnType("character varying(350)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceUrl")
+                        .IsUnique();
+
+                    b.ToTable("CalendarEvents");
+                });
+
+            modelBuilder.Entity("backend.Models.DailySelection", b =>
+                {
+                    b.Property<DateOnly>("SelectionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("selection_date");
+
+                    b.Property<string>("GameMode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("gamemode");
+
+                    b.Property<int>("SelectedPolitikerID")
+                        .HasColumnType("integer")
+                        .HasColumnName("selected_politiker_id");
+
+                    b.Property<string>("SelectedQuoteText")
+                        .HasColumnType("text")
+                        .HasColumnName("selected_quote_text");
+
+                    b.HasKey("SelectionDate", "GameMode");
+
+                    b.HasIndex("SelectedPolitikerID");
+
+                    b.ToTable("daily_selections");
+                });
+
+            modelBuilder.Entity("backend.Models.FakeParti", b =>
+                {
+                    b.Property<int>("PartiId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("boolean");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PartiId"));
 
-                    b.Property<string>("OptionText")
+                    b.Property<string>("PartiNavn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("PartiId");
+
+                    b.ToTable("FakePartier");
+                });
+
+            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date_of_birth");
+
+                    b.Property<string>("Køn")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("QuestionId")
+                    b.Property<int>("PartiId")
                         .HasColumnType("integer");
 
-                    b.HasKey("AnswerOptionId");
+                    b.Property<string>("PolitikerNavn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.HasIndex("QuestionId");
+                    b.Property<byte[]>("Portræt")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
-                    b.ToTable("AnswerOptions");
+                    b.Property<string>("Region")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
-                    b.HasData(
-                        new
-                        {
-                            AnswerOptionId = 1,
-                            DisplayOrder = 1,
-                            IsCorrect = true,
-                            OptionText = "Studiet af magtstrukturer og beslutningsprocesser",
-                            QuestionId = 1
-                        },
-                        new
-                        {
-                            AnswerOptionId = 2,
-                            DisplayOrder = 2,
-                            IsCorrect = false,
-                            OptionText = "Analyse af internationale handelsaftaler",
-                            QuestionId = 1
-                        },
-                        new
-                        {
-                            AnswerOptionId = 3,
-                            DisplayOrder = 3,
-                            IsCorrect = false,
-                            OptionText = "Udforskning af historiske monarkier",
-                            QuestionId = 1
-                        },
-                        new
-                        {
-                            AnswerOptionId = 4,
-                            DisplayOrder = 1,
-                            IsCorrect = false,
-                            OptionText = "Social mobilitet",
-                            QuestionId = 2
-                        },
-                        new
-                        {
-                            AnswerOptionId = 5,
-                            DisplayOrder = 2,
-                            IsCorrect = true,
-                            OptionText = "Magtdeling",
-                            QuestionId = 2
-                        },
-                        new
-                        {
-                            AnswerOptionId = 6,
-                            DisplayOrder = 3,
-                            IsCorrect = false,
-                            OptionText = "Kulturel assimilation",
-                            QuestionId = 2
-                        },
-                        new
-                        {
-                            AnswerOptionId = 7,
-                            DisplayOrder = 1,
-                            IsCorrect = false,
-                            OptionText = "Planøkonomi",
-                            QuestionId = 3
-                        },
-                        new
-                        {
-                            AnswerOptionId = 8,
-                            DisplayOrder = 2,
-                            IsCorrect = false,
-                            OptionText = "Høj grad af omfordeling",
-                            QuestionId = 3
-                        },
-                        new
-                        {
-                            AnswerOptionId = 9,
-                            DisplayOrder = 3,
-                            IsCorrect = true,
-                            OptionText = "Frit marked og privat ejendomsret",
-                            QuestionId = 3
-                        },
-                        new
-                        {
-                            AnswerOptionId = 10,
-                            DisplayOrder = 1,
-                            IsCorrect = false,
-                            OptionText = "Individuel konkurrence",
-                            QuestionId = 4
-                        },
-                        new
-                        {
-                            AnswerOptionId = 11,
-                            DisplayOrder = 2,
-                            IsCorrect = true,
-                            OptionText = "Social lighed og fællesskabets velfærd",
-                            QuestionId = 4
-                        },
-                        new
-                        {
-                            AnswerOptionId = 12,
-                            DisplayOrder = 3,
-                            IsCorrect = false,
-                            OptionText = "Traditionelle hierarkier",
-                            QuestionId = 4
-                        });
+                    b.Property<string>("Uddannelse")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartiId");
+
+                    b.ToTable("FakePolitikere");
                 });
 
-            modelBuilder.Entity("Flashcard", b =>
+            modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
                 {
                     b.Property<int>("FlashcardId")
                         .ValueGeneratedOnAdd()
@@ -245,7 +341,7 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("FlashcardCollection", b =>
+            modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>
                 {
                     b.Property<int>("CollectionId")
                         .ValueGeneratedOnAdd()
@@ -272,18 +368,48 @@ namespace backend.Migrations
                         new
                         {
                             CollectionId = 1,
+                            Description = "Kendte danske politikere",
                             DisplayOrder = 1,
-                            Title = "Politikerne og deres navne"
+                            Title = "Politikere"
                         },
                         new
                         {
                             CollectionId = 2,
+                            Description = "Grundlæggende politiske termer",
                             DisplayOrder = 2,
-                            Title = "Politiske begreber"
+                            Title = "Politiske Begreber"
                         });
                 });
 
-            modelBuilder.Entity("Page", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
+                {
+                    b.Property<int>("AnswerOptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AnswerOptionId"));
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("OptionText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("AnswerOptionId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("AnswerOptions");
+                });
+
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Page", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -311,50 +437,9 @@ namespace backend.Migrations
                     b.HasIndex("ParentPageId");
 
                     b.ToTable("Pages");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Content = "Indhold for Politik 101...",
-                            DisplayOrder = 1,
-                            Title = "Politik 101"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Content = "Indhold for Den Politiske Akse...",
-                            DisplayOrder = 1,
-                            ParentPageId = 1,
-                            Title = "Den Politiske Akse"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Content = "Indhold for Venstre vs Højre...",
-                            DisplayOrder = 1,
-                            ParentPageId = 2,
-                            Title = "Venstre vs Højre"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Content = "Højre er at være højre...",
-                            DisplayOrder = 1,
-                            ParentPageId = 3,
-                            Title = "Højre"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Content = "Venstre er at være venstre...",
-                            DisplayOrder = 2,
-                            ParentPageId = 3,
-                            Title = "Venstre"
-                        });
                 });
 
-            modelBuilder.Entity("Question", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Question", b =>
                 {
                     b.Property<int>("QuestionId")
                         .ValueGeneratedOnAdd()
@@ -374,32 +459,106 @@ namespace backend.Migrations
                     b.HasIndex("PageId");
 
                     b.ToTable("Questions");
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            QuestionId = 1,
-                            PageId = 1,
-                            QuestionText = "Hvad beskæftiger politologi sig primært med?"
-                        },
-                        new
-                        {
-                            QuestionId = 2,
-                            PageId = 1,
-                            QuestionText = "Hvilket begreb dækker over fordelingen af autoritet i et samfund?"
-                        },
-                        new
-                        {
-                            QuestionId = 3,
-                            PageId = 4,
-                            QuestionText = "Hvilket økonomisk princip forbindes ofte med højreorienteret politik?"
-                        },
-                        new
-                        {
-                            QuestionId = 4,
-                            PageId = 5,
-                            QuestionText = "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?"
-                        });
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.Property<int>("partyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
+
+                    b.Property<int?>("chairmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("history")
+                        .HasColumnType("text");
+
+                    b.Property<string>("memberIds")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyProgram")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyShortName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("politics")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("secretaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("spokesmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("stats")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("viceChairmanId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("partyId");
+
+                    b.HasIndex("chairmanId");
+
+                    b.HasIndex("secretaryId");
+
+                    b.HasIndex("spokesmanId");
+
+                    b.HasIndex("viceChairmanId");
+
+                    b.ToTable("Party");
+                });
+
+            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
+                {
+                    b.Property<int>("PolitikerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("politiker_id");
+
+                    b.Property<string>("GameMode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("gamemode");
+
+                    b.Property<int?>("AlgoWeight")
+                        .HasColumnType("integer")
+                        .HasColumnName("algovægt");
+
+                    b.Property<DateOnly?>("LastSelectedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("lastselecteddate");
+
+                    b.HasKey("PolitikerId", "GameMode");
+
+                    b.ToTable("GameTrackings");
+                });
+
+            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
+                {
+                    b.Property<int>("QuoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuoteId"));
+
+                    b.Property<int>("PolitikerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("QuoteText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("QuoteId");
+
+                    b.HasIndex("PolitikerId");
+
+                    b.ToTable("PoliticianQuotes");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
@@ -470,8 +629,9 @@ namespace backend.Migrations
                     b.Property<int>("PoliticianId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("PoliticianTwitterId")
-                        .HasColumnType("integer");
+                    b.Property<string>("PoliticianTwitterId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Question")
                         .IsRequired()
@@ -615,9 +775,9 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.PrimitiveCollection<List<string>>("Roles")
+                    b.Property<string>("Roles")
                         .IsRequired()
-                        .HasColumnType("text[]");
+                        .HasColumnType("text");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -629,6 +789,17 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "testuser@example.com",
+                            IsVerified = true,
+                            PasswordHash = "hashed_password_placeholder",
+                            Roles = "[\"User\"]",
+                            UserName = "TestUser"
+                        });
                 });
 
             modelBuilder.Entity("backend.Models.UserVote", b =>
@@ -660,20 +831,31 @@ namespace backend.Migrations
                     b.ToTable("UserVotes");
                 });
 
-            modelBuilder.Entity("AnswerOption", b =>
+            modelBuilder.Entity("backend.Models.DailySelection", b =>
                 {
-                    b.HasOne("Question", "Question")
-                        .WithMany("AnswerOptions")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("backend.Models.FakePolitiker", "SelectedPolitiker")
+                        .WithMany()
+                        .HasForeignKey("SelectedPolitikerID")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Question");
+                    b.Navigation("SelectedPolitiker");
                 });
 
-            modelBuilder.Entity("Flashcard", b =>
+            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
                 {
-                    b.HasOne("FlashcardCollection", "FlashcardCollection")
+                    b.HasOne("backend.Models.FakeParti", "FakeParti")
+                        .WithMany("FakePolitikers")
+                        .HasForeignKey("PartiId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FakeParti");
+                });
+
+            modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
+                {
+                    b.HasOne("backend.Models.Flashcards.FlashcardCollection", "FlashcardCollection")
                         .WithMany("Flashcards")
                         .HasForeignKey("CollectionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -682,25 +864,86 @@ namespace backend.Migrations
                     b.Navigation("FlashcardCollection");
                 });
 
-            modelBuilder.Entity("Page", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
                 {
-                    b.HasOne("Page", "ParentPage")
+                    b.HasOne("backend.Models.LearningEnvironment.Question", "Question")
+                        .WithMany("AnswerOptions")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Page", b =>
+                {
+                    b.HasOne("backend.Models.LearningEnvironment.Page", "ParentPage")
                         .WithMany("ChildPages")
                         .HasForeignKey("ParentPageId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("ParentPage");
                 });
 
-            modelBuilder.Entity("Question", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Question", b =>
                 {
-                    b.HasOne("Page", "Page")
+                    b.HasOne("backend.Models.LearningEnvironment.Page", "Page")
                         .WithMany("AssociatedQuestions")
                         .HasForeignKey("PageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "chairman")
+                        .WithMany()
+                        .HasForeignKey("chairmanId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("backend.Models.Aktor", "secretary")
+                        .WithMany()
+                        .HasForeignKey("secretaryId");
+
+                    b.HasOne("backend.Models.Aktor", "spokesman")
+                        .WithMany()
+                        .HasForeignKey("spokesmanId");
+
+                    b.HasOne("backend.Models.Aktor", "viceChairman")
+                        .WithMany()
+                        .HasForeignKey("viceChairmanId");
+
+                    b.Navigation("chairman");
+
+                    b.Navigation("secretary");
+
+                    b.Navigation("spokesman");
+
+                    b.Navigation("viceChairman");
+                });
+
+            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
+                {
+                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
+                        .WithMany("GameTrackings")
+                        .HasForeignKey("PolitikerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FakePolitiker");
+                });
+
+            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
+                {
+                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
+                        .WithMany("Quotes")
+                        .HasForeignKey("PolitikerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FakePolitiker");
                 });
 
             modelBuilder.Entity("backend.Models.Poll", b =>
@@ -782,19 +1025,31 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FlashcardCollection", b =>
+            modelBuilder.Entity("backend.Models.FakeParti", b =>
+                {
+                    b.Navigation("FakePolitikers");
+                });
+
+            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
+                {
+                    b.Navigation("GameTrackings");
+
+                    b.Navigation("Quotes");
+                });
+
+            modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>
                 {
                     b.Navigation("Flashcards");
                 });
 
-            modelBuilder.Entity("Page", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Page", b =>
                 {
                     b.Navigation("AssociatedQuestions");
 
                     b.Navigation("ChildPages");
                 });
 
-            modelBuilder.Entity("Question", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Question", b =>
                 {
                     b.Navigation("AnswerOptions");
                 });
