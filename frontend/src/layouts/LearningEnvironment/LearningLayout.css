@@ -1,0 +1,72 @@
+/* src/layouts/LearningLayout.css */
+
+.learning-layout {
+    /* Use Flexbox to arrange children side-by-side */
+    display: flex;
+  
+    /* Ensure the layout takes at least the full viewport height. */
+    min-height: calc(100vh - 60px);
+  
+    /* Background for the entire layout area if i need to later */
+    /* background-color: #f0f0f0; */
+  }
+  
+  .learning-sidenav-container {
+    /* Define the width of the sidebar */
+    width: 260px;
+  
+    /* Prevent the sidebar from shrinking if the main content is very wide */
+    flex-shrink: 0;
+  
+    /* Visual styling for the sidebar */
+    background-color: #f8f9fa; /* Light grey background */
+    border-right: 1px solid #dee2e6; /* Subtle border separating sidebar and content */
+    padding: 1rem; /* Inner spacing for the sidebar */
+  
+    /* Allow vertical scrolling within the sidebar if the navigation list gets too long */
+    overflow-y: auto;
+  }
+  
+  .learning-content-area {
+    /* Allow the main content area to grow and fill the remaining horizontal space */
+    flex-grow: 1;
+  
+    /* Add padding inside the main content area for readability */
+    padding: 1.5rem 2.5rem;
+  
+    /* Background color for the content area if needed later */
+    /* background-color: #ffffff; */
+  
+    /* Allow vertical scrolling within the content area if the page content is long */
+     overflow-y: auto;
+  }
+  
+  /* --- Basic Responsive Design --- */
+  /* On screens narrower than 768px, stack the elements */
+  @media (max-width: 768px) {
+    .learning-layout {
+      /* Change flex direction to stack vertically */
+      flex-direction: column;
+      min-height: 100vh; /* Ensure it still takes full height */
+    }
+  
+    .learning-sidenav-container {
+      /* Make sidebar take full width when stacked */
+      width: 100%;
+      /* Remove the side border and add a bottom border */
+      border-right: none;
+      border-bottom: 1px solid #dee2e6;
+      /* Limit height and enable scrolling */
+      max-height: 50vh; /* Limit to half the viewport height */
+      overflow-y: auto; /* Ensure scrolling is enabled */
+      /* Reset flex-shrink as it's not needed in column layout */
+      flex-shrink: initial;
+    }
+  
+    .learning-content-area {
+      /* Adjust padding for stacked layout */
+      padding: 1rem 1.5rem;
+      /* Ensure it can grow vertically */
+      flex-grow: 1;
+    }
+  }
