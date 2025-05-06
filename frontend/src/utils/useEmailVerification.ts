@@ -35,7 +35,7 @@ const useEmailVerification = (
                 window.history.replaceState({}, document.title, window.location.pathname);
               });
       }
-    }, []);
+    }, [onSuccess, onError]);
   };
   
   export default useEmailVerification;
