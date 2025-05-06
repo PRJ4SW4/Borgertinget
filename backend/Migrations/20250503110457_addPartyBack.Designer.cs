@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -12,9 +13,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250503110457_addPartyBack")]
+    partial class addPartyBack
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -664,50 +667,6 @@ namespace backend.Migrations
                     b.Navigation("Page");
                 });
 
-            modelBuilder.Entity("backend.Models.DailySelection", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "SelectedPolitiker")
-                        .WithMany()
-                        .HasForeignKey("SelectedPolitikerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("SelectedPolitiker");
-                });
-
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.HasOne("backend.Models.FakeParti", "FakeParti")
-                        .WithMany("FakePolitikers")
-                        .HasForeignKey("PartiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FakeParti");
-                });
-
-            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
-                        .WithMany("GameTrackings")
-                        .HasForeignKey("PolitikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FakePolitiker");
-                });
-
-            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
-                        .WithMany("Quotes")
-                        .HasForeignKey("PolitikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FakePolitiker");
-                });
-
             modelBuilder.Entity("backend.Models.Party", b =>
                 {
                     b.HasOne("backend.Models.Aktor", "chairman")
@@ -751,18 +710,6 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.LearningEnvironment.Question", b =>
                 {
                     b.Navigation("AnswerOptions");
-                });
-
-            modelBuilder.Entity("backend.Models.FakeParti", b =>
-                {
-                    b.Navigation("FakePolitikers");
-                });
-
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.Navigation("GameTrackings");
-
-                    b.Navigation("Quotes");
                 });
 #pragma warning restore 612, 618
         }

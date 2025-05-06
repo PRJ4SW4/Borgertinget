@@ -1,69 +1,176 @@
-/* Styles for the main page container (optional) */
-.partyPage {
-    padding: 1rem; /* Add some overall padding */
-  }
+/* src/pages/PartyPage.css */
 
-/* Grid container */
+/* Overall page container */
+.party-page {
+  padding: 15px;
+  max-width: 1200px; /* Max width for the entire page content */
+  margin: 0 auto; /* Center the page content */
+  font-family: Arial, sans-serif;
+}
+
+/* Navigation link styling */
+.party-page-nav {
+  margin-bottom: 20px;
+}
+
+.party-page-nav a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.party-page-nav a:hover {
+  text-decoration: underline;
+}
+
+/* --- TWO-COLUMN LAYOUT --- */
+
+/* Flex container for the main content (details + infobox) */
+.party-main-content {
+  display: flex;
+  flex-wrap: wrap; /* Allow columns to stack on smaller screens */
+  gap: 30px; /* Increased space between columns */
+  margin-bottom: 30px; /* Space before the members list */
+}
+
+/* Left column for details (Program, Politics, History) */
+.party-details-column {
+  flex: 3; /* Takes up more space (e.g., 3/4) */
+  min-width: 300px; /* Minimum width before wrapping */
+  order: 1; /* Appears first visually */
+}
+
+/* Right column for the info card and potentially other info blocks */
+.party-infobox-column {
+  flex: 1; /* Takes up less space (e.g., 1/4) */
+  min-width: 280px; /* Minimum width */
+  order: 2; /* Appears second visually */
+}
+
+/* Make the info card take full width within its column */
+.party-infobox-column .party-info-card {
+  margin-top: 0; /* Align card to the top of the column */
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+  max-width: none; /* Override max-width from PartyInfoCard.css */
+}
+
+/* --- Styling for Detail Sections (Program, Politics, History) --- */
+.party-details-section {
+  background-color: #ffffff;
+  padding: 20px 25px; /* Slightly more padding */
+  margin-bottom: 25px; /* More space between sections */
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8e8e8;
+}
+
+.party-details-section h3 {
+  color: #800000; /* Maroon color */
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 1.4em; /* Slightly larger heading */
+}
+
+.party-details-content {
+  color: #333; /* Darker text */
+  line-height: 1.65; /* More line spacing */
+  white-space: pre-wrap; /* Respect line breaks */
+  font-size: 1em;
+}
+
+/* --- Member List Section --- */
+.party-members-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd; /* Separator line above members */
+}
+
+.party-members-section h3 {
+   color: #800000;
+   margin-bottom: 20px;
+   font-size: 1.4em;
+   text-align: center;
+}
+
+/* Grid layout for members */
 .party-member-list {
-    list-style: none; /* Remove default bullet points */
-    padding: 0;
-    margin: 20px 0; /* Add some margin around the grid */
-  
-    /* --- CSS Grid properties --- */
-    display: grid;
-    /* Create columns: as many as fit, min 120px wide, max 1fr */
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 1rem; /* Spacing between grid items */
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Responsive grid */
+  gap: 20px;
+}
+
+.party-member-list li {
+  text-align: center;
+}
+
+.party-member-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #333;
+  padding: 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.party-member-link:hover {
+  background-color: #f0f0f0;
+}
+
+.party-member-photo {
+  width: 80px;
+  height: 100px; /* Adjust aspect ratio if needed */
+  object-fit: cover; /* Crop image nicely */
+  border-radius: 4px;
+  margin-bottom: 8px;
+  border: 1px solid #ddd;
+}
+
+.party-member-name {
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+/* --- Loading/Error/Info Messages --- */
+.loading-message,
+.error-message,
+.info-message {
+  text-align: center;
+  padding: 20px;
+  margin-top: 20px;
+  font-size: 1.1em;
+}
+
+.error-message {
+  color: #d9534f; /* Red color for errors */
+  background-color: #f2dede;
+  border: 1px solid #ebccd1;
+  border-radius: 4px;
+}
+
+.info-message {
+  color: #888;
+}
+
+/* --- Responsive Stacking --- */
+@media (max-width: 850px) { /* Adjust breakpoint as needed */
+  .party-main-content {
+    flex-direction: column;
   }
-  
-  /* Individual grid item (the <li>) - remove specific styles if not needed */
-  .party-member-list li {
-     /* No specific grid styles needed here usually */
-     /* border: 1px solid #eee; */ /* Optional: border around each item */
-     /* text-align: center; */ /* Center content if needed */
+  .party-details-column,
+  .party-infobox-column {
+    order: 0; /* Reset order for stacking */
+    flex: 1 1 100%; /* Make each take full width */
   }
-  
-  /* The link within the grid item - style for content stacking */
-  .party-member-link {
-    display: flex;            /* Use flexbox for content within the item */
-    flex-direction: column; /* Stack items vertically (image above name) */
-    align-items: center;      /* Center items horizontally */
-    text-decoration: none;    /* Remove underline */
-    color: inherit;           /* Use default text color */
-    padding: 10px;
-    border-radius: 6px;
-    transition: background-color 0.2s ease;
-    height: 100%; /* Make link fill the list item if needed */
-    box-sizing: border-box;
+  .party-infobox-column .party-info-card {
+     margin: 0 auto 20px auto; /* Center the card when stacked, add bottom margin */
+     max-width: 350px; /* Restore a reasonable max-width */
   }
-  
-  .party-member-link:hover {
-    background-color: #f0f0f0; /* Optional hover background */
-  }
-  
-  /* Style for the photo within the grid item */
-  .party-member-photo {
-    width: 60px;          /* Adjust photo size for grid */
-    height: 60px;         /* Adjust photo size for grid */
-    border-radius: 50%;   /* Keep it circular */
-    object-fit: cover;
-    margin-bottom: 8px;   /* Space between photo and name */
-    /* Remove margin-right from previous list style */
-    /* margin-right: 10px; */
-  }
-  
-  /* Style for the name within the grid item */
-  .party-member-name {
-    font-size: 0.9rem;    /* Adjust font size if needed */
-    text-align: center;   /* Center the name text */
-    /* Break long names if necessary */
-    word-break: break-word;
-  }
-  
-  /* Hide broken images */
-  .party-member-photo[style*="display: none"] {
-      display: none !important;
-      /* Optional: Add placeholder styles */
-      /* width: 60px; height: 60px; background: #eee; border-radius: 50%; margin-bottom: 8px; */
-  }
-  
+}

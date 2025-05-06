@@ -11,17 +11,48 @@ using Microsoft.Extensions.Logging; // Inkluderer ILogger
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OpenSearch.Client;
+using OpenSearch.Net;
 
 // for .env secrets
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Enable detailed error messages for JWT validation (godt for udvikling)
-IdentityModelEventSource.ShowPII = builder.Environment.IsDevelopment(); // Kun vis PII i udvikling
-IdentityModelEventSource.LogCompleteSecurityArtifact = builder.Environment.IsDevelopment(); // Kun log fuld artifact i udvikling
+var openSearchUrl = builder.Configuration["OpenSearch:Url"];
+if (string.IsNullOrEmpty(openSearchUrl))
+{
+    // Handle missing configuration - throw an error or default
+    openSearchUrl = "http://localhost:9200"; // Default if not configured
+    Console.WriteLine("Warning: OpenSearch URL not configured in appsettings.json. Using default: http://localhost:9200");
+}
 
-// --- Konfiguration af Services ---
+// Add credentials if needed (example using Basic Auth - get from config)
+// var openSearchUser = builder.Configuration["OpenSearch:Username"];
+// var openSearchPassword = builder.Configuration["OpenSearch:Password"];
+
+// Configure the connection settings
+var settings = new ConnectionSettings(new Uri(openSearchUrl))
+    // Optional: Set a default index if most operations target one index
+    // .DefaultIndex("your-default-index-name")
+    // Optional: Add authentication if required
+    // .BasicAuthentication(openSearchUser, openSearchPassword)
+    // Optional: Disable SSL verification for local dev (NOT recommended for production)
+    .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // Use ONLY for dev/testing
+    .PrettyJson(); // Makes debugging easier by formatting JSON requests/responses
+
+// Register IOpenSearchClient as a singleton (recommended by the library)
+builder.Services.AddSingleton<IOpenSearchClient>(new OpenSearchClient(settings));
+
+// --- ADD OPENSEARCH CONFIGURATION AND REGISTRATION END ---
+
+
+// Enable detailed error messages for JWT validation
+IdentityModelEventSource.ShowPII = true;
+
+// Enable detailed error messages for JWT validation
+IdentityModelEventSource.ShowPII = true;
+IdentityModelEventSource.LogCompleteSecurityArtifact = true;
 
 // JWT-konfiguration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -159,7 +190,11 @@ builder.Services.AddHttpClient<TwitterService>();
 builder.Services.AddScoped<HttpService>();
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 
+<<<<<<<<< Temporary merge branch 1
 // CORS (Cross-Origin Resource Sharing) konfiguration
+=========
+// CORS
+>>>>>>>>> Temporary merge branch 2
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
@@ -181,10 +216,15 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 builder.Services.AddHostedService<DailySelectionJob>(); //* Bruges til udvælgelse af "dagens politiker"
 
+//Search indexing service
+builder.Services.AddScoped<SearchIndexingService>();
+
 // For altinget scraping
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<AltingetScraperService>();
 builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
+builder.Services.AddHostedService<TestScheduledIndexService>();
+
 
 builder.Services.AddScoped<AdministratorService>();
 
@@ -192,6 +232,33 @@ builder.Services.AddScoped<AdministratorService>();
 // Byg WebApplication objektet
 // -----------------------------------------
 var app = builder.Build();
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>(); // Or specific category
+
+    try
+    {
+        logger.LogInformation("Ensuring OpenSearch index exists before starting...");
+        // Ensure SearchIndexSetup class exists or move this logic inline
+        await SearchIndexSetup.EnsureIndexExistsWithMapping(services);
+        logger.LogInformation("Index check/creation complete.");
+
+        // --- Trigger initial indexing ---
+        logger.LogInformation("Triggering initial background indexing task...");
+        var indexingService = services.GetRequiredService<SearchIndexingService>();
+        // --- End trigger initial indexing ---
+
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "An error occurred during application startup while setting up OpenSearch.");
+        // Optionally prevent the application from starting if setup fails
+        // throw;
+    }
+}
 
 // --- DATABASE MIGRATION OG SEEDING START ---
 // Dette afsnit køres én gang ved applikationens opstart
@@ -227,6 +294,7 @@ using (var scope = app.Services.CreateScope())
 // -----------------------------------------
 
 // Konfigurer kun detaljeret fejlvisning og Swagger i udviklingsmiljøet
+
 if (app.Environment.IsDevelopment())
 {
     // Hent logger specifikt til denne blok
