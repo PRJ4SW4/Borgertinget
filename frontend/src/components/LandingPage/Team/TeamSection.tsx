@@ -7,7 +7,7 @@ import jakobLund from "../../../assets/team/jakob_lund.png";
 import kevinNguyen from "../../../assets/team/kevin_nguyen.png";
 import lasseFink from "../../../assets/team/lasse_fink.png";
 import magnusHvidsten from "../../../assets/team/magnus_hvidsten.png";
-import lucasStillborg from "../../../assets/team/lucas_stillborg.png";
+import lucasStillborg from "../../../assets/team/lucas_stilborg.png";
 import simonNowack from "../../../assets/team/simon_nowack.png";
 import reneSchumacher from "../../../assets/team/rene_schumacher.png";
 import oliviaHee from "../../../assets/team/olivia_hee.png";

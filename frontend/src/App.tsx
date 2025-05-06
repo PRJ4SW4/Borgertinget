@@ -6,6 +6,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LearningLayout from './layouts/LearningEnvironment/LearningLayout';
 import FlashcardLayout from './layouts/Flashcards/FlashcardLayout';
 import MainLayout from './layouts/MainLayout'; // Standard layout with Navbar/Footer.
+import NavbarLandingPageLayout from './layouts/LandingPage/NavbarLandingPageLayout';
 
 // Page Components: Represent different views/pages in the application.
 import Login from "./pages/Login";
@@ -19,11 +20,6 @@ import LoginSuccessPage from './pages/LoginSuccessPage';
 import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
 import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
 import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
-import Polidle from "./pages/Polidle/Polidle";
-// Importet gamemodes
-import ClassicMode from "./pages/Polidle/ClassicMode";
-import CitatMode from "./pages/Polidle/CitatMode";
-import FotoBlurMode from "./pages/Polidle/FotoBlurMode";
 import LandingPage from "./pages/LandingPage/LandingPage";
 // Navbar and Footer are rendered via MainLayout.
 
@@ -53,15 +49,17 @@ function App() {
     return token ? children : <Navigate to="/login" />;
   };
 
-  const placeholderImage = "";
-
 
   // --- Routing Setup ---
   // Defines the application's routes using the Routes component.
   return (
     <Routes>
+      {/* --- Public Navbar Route --- */}
+      <Route element={<NavbarLandingPageLayout></NavbarLandingPageLayout>}>
+        <Route path="/LandingPage" element={<LandingPage />} />
+      </Route>
+
       {/* --- Public Routes (No MainLayout, No login required) --- */}
-      <Route path="/LandingPage" element={<LandingPage />} />
       {/* Login page route. */}
       <Route path="/login" element={<Login setToken={setToken} />} />
       {/* Post-login success/callback route. */}
@@ -73,13 +71,6 @@ function App() {
       {/* All nested routes inherit the layout and protection. */}
       <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
         {/* Root path ("/") route, shows HomePage for logged-in users. */}
-        <Route path="/" element={<HomePage />} />
-
-        {/* Home is an old route for a previous homepage, should be removed for production environment */}
-        <Route
-            path="/home"
-            element={<Home setToken={setToken} />} // Pass setToken for logout functionality within Home.
-        />
 
         {/* Calendar route (requires login). */}
         <Route
@@ -110,7 +101,7 @@ function App() {
             path="/flashcards/*"
             element={<FlashcardLayout />}
         />
-
+        <Route path="/homepage" element={<HomePage/>} />
         {/* If others need to define other protected routes using MainLayout do it here. */}
 
       </Route> {/* End of Protected MainLayout routes */}
@@ -120,10 +111,13 @@ function App() {
       {/* Redirects based on authentication status: "/" if logged in, "/login" if not. */}
       <Route
         path="*"
-        element={<Navigate to={token ? "/" : "/login"} replace />} // 'replace' avoids adding the redirect to browser history.
+        element={<Navigate to={token ? "/" : "/landingpage"} replace />} // 'replace' avoids adding the redirect to browser history.
       />
 
-      <Route path="*" element={<Navigate to={token ? "/home" : "/login"} />} />
+      <Route
+        path="/"
+        element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />} // 'replace' avoids adding the redirect to browser history.
+      />
     </Routes>
   );
 }

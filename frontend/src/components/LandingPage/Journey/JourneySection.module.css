@@ -26,15 +26,10 @@
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   color: #fff;
-  background-color: #d9534f; /* En farve til knapperne (rødlig) */
   border: none;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-}
-
-.buttons button:hover {
-  background-color: #c9302c;
 }
 
 /* Responsivt design (juster breakpoints efter behov) */

@@ -1,7 +1,7 @@
 /* src/components/LandingPage/Hero/HeroSection.module.css */
 .hero {
   /* Får sektionen til at fylde præcis hele skærmens højde */
-  height: 100vh;
+  height: 84vh;
   /* Fjerner flexbox, da billedet selv skal styre udfyldningen */
   /* display: flex; */
   /* justify-content: center; */
@@ -16,11 +16,31 @@
 .heroImage {
   /* Får billedet til at fylde hele containerens bredde og højde */
   width: 100%;
-  height: 100%;
+  height: calc(84vh - 4rem); /* Leaves 4rem at the bottom of the 100vh hero section */
   /* Skalerer billedet til at dække hele området, bevarer proportioner, beskærer om nødvendigt */
-  object-fit: cover;
   /* Fjerner max-width begrænsningen */
   /* max-width: 80%; */
   /* height: auto; er ikke nødvendig når height er 100% */
   display: block; /* Fjerner potentiel lille ekstra plads under billedet */
+}
+
+/* Animated scroll-down arrow. Scroll-Down is taken from Shaaux's Homepage */
+.scrolldown {
+  position: absolute;
+  top: calc(83vh - 4rem); /* Positions the top of the arrow container at the bottom of the image */
+  margin-top: 1rem; /* Provides 1rem buffer below the image, inside the 4rem space */
+  margin-bottom: 1rem; /* Ensures 1rem buffer below the arrow content if it had a background/border */
+  left: 50%; /* Aligns left edge to horizontal center */
+  transform: translateX(-50%); /* Adjusts position for true horizontal centering */
+  color: #333333; /* Changed to a dark color for visibility */
+  font-size: 2rem; /* Size of the arrow */
+  text-decoration: none; /* Removes underline */
+  animation: bounce 2s infinite; /* Applies the defined bounce animation */
+}
+
+ /* Keyframes for the basic bounce animation */
+ @keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } /* Defines positions at different animation stages */
+  40% { transform: translateX(-50%) translateY(-10px); }
+  60% { transform: translateX(-50%) translateY(-5px); }
 }

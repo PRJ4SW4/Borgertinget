@@ -46,6 +46,7 @@
   /* Centrering vandret */
   left: 50%;
   transform: translateX(-50%);
+  background-color: #802730;
 
   /* Større knap styling */
   padding: 1rem 2.5rem; /* Øget padding for større knap */

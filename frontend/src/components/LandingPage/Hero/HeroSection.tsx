@@ -15,6 +15,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ id }) => {
         alt="Borgertinget Logo"
         className={styles.heroImage}
       />
+      <a className={styles.scrolldown} aria-label="Scroll down"> {/* Consider adding a href for accessibility/functionality */}
+        ↓
+      </a>
     </section>
   );
 };
