@@ -8,9 +8,7 @@ using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
 using System.Collections.Generic; 
-using System.Text.Json;         
 using System; 
 using System.Collections.Generic; 
 using System.Linq;
@@ -435,4 +433,5 @@ namespace backend.Data
 
         // --- /SEED DATA ---
     }
+}
 }

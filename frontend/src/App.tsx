@@ -57,8 +57,28 @@ function App() {
       {/* --- Public Routes (No MainLayout, No login required) --- */}
       {/* Login page route. */}
       <Route path="/login" element={<Login setToken={setToken} />} />
-      <Route path="/home" element={token ? <Home setToken={setToken} /> : <Navigate to="/login" />} />
-      <Route path="/kalender" element={<CalendarView />} />
+      {/* Post-login success/callback route. */}
+      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />}/>
+
+
+      {/* --- Protected Routes using MainLayout --- */}
+      {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}
+      {/* All nested routes inherit the layout and protection. */}
+      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+        {/* Root path ("/") route, shows HomePage for logged-in users. */}
+        <Route path="/" element={<HomePage />} />
+
+        {/* Home is an old route for a previous homepage, should be removed for production environment */}
+        <Route
+            path="/home"
+            element={<Home setToken={setToken} />} // Pass setToken for logout functionality within Home.
+        />
+
+        {/* Calendar route (requires login). */}
+        <Route
+            path="/kalender"
+            element={<CalendarView />}
+        />
 
         {/* Other routes requiring login and using MainLayout. */}
         <Route path="/parties" element={<PartiesPage />} />
@@ -85,6 +105,10 @@ function App() {
         />
 
         {/* If others need to define other protected routes using MainLayout do it here. */}
+        <Route 
+        path="/feed" element={<FeedPage />}
+
+        />
 
       </Route> {/* End of Protected MainLayout routes */}
 
@@ -94,6 +118,7 @@ function App() {
       <Route
         path="*"
         element={<Navigate to={token ? "/" : "/login"} replace />} // 'replace' avoids adding the redirect to browser history.
+      
       />
     </Routes>
   );
