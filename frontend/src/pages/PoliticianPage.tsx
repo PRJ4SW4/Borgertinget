@@ -19,7 +19,7 @@ const PoliticianPage: React.FC = () => {
   //Af Jakob, dette er til subscribe knappen
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [twitterId, setTwitterId] = useState<number | null>(null);
-  // const defaultImageUrl = DefaultPic; // Uncomment if using default image
+ 
 
   useEffect(() => {
     const fetchPolitician = async () => {
