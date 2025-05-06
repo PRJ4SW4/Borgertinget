@@ -7,4 +7,9 @@ namespace backend.DTOs
         public string OptionText { get; set; } = string.Empty;
         public int Votes { get; set; }
     }
+
+    public class PollOptionUpdate
+    {
+        public string NewOptionText { get; set; }
+    }
 }

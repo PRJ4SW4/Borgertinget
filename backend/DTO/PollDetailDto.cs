@@ -24,4 +24,17 @@ namespace backend.DTOs
         public int? CurrentUserVoteOptionId { get; set; } = null; // Hvilken option har brugeren stemt på? (null hvis ikke stemt)
         public int TotalVotes { get; set; } // Samlet antal stemmer på pollen
     }
+
+    public class PollQuestionUpdate
+    {
+        public string NewQuestion { get; set; }
+    }
+
+    public class UpdatePollDto
+    {
+        public string Question { get; set; } = string.Empty;
+        public List<string> Options { get; set; } = new();
+        public string PoliticianTwitterId { get; set; } = string.Empty;
+        public DateTime? EndedAt { get; set; }
+    }
 }
