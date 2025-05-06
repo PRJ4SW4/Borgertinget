@@ -1,7 +1,7 @@
 // src/components/PollCard.tsx
 import React, { useState } from 'react';
 import { PollDetailsDto, /*PollOptionDto*/ } from '../../types/tweetTypes'; // Ret sti om nødvendigt
-import './PollCard.css'; // Importer CSS
+import './Pollcard.css'; // Importer CSS
 
 interface PollCardProps {
   poll: PollDetailsDto;
