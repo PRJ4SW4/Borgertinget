@@ -11,7 +11,7 @@ namespace backend.Models{
 
         public string? partyProgram {get; set;} = string.Empty;
 
-        public string? poilitics {get; set;} = string.Empty ;
+        public string? politics {get; set;} = string.Empty ;
 
         public string? history {get; set;} = string.Empty;
 

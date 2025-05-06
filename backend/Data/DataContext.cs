@@ -176,6 +176,7 @@ public class DataContext : DbContext
                       .HasColumnType("text"); // Use jsonb for efficient querying in PostgreSQL if needed, or "text"
                 // *** End Configuration for memberIds List ***
             });
+            
         // --- SEED DATA ---
 
         // --- Learning Environment Seeding ---

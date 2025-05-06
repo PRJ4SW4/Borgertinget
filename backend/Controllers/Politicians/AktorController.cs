@@ -310,7 +310,6 @@ public class AktorController : ControllerBase{
                                         partyEnt.memberIds.Add(currentAktor.Id);
                                         pageMembersAddedToparties++;
                                         _logger.LogDebug("Adding Aktor ID: {AktorId} to MemberIds of Party: {partyName}", currentAktor.Id, partyEnt.partyName);
-                                        _context.Entry(partyEnt).State = EntityState.Modified;
                                     } else {
                                         _logger.LogWarning("Aktor ID: {Id} has no party name in biography.", currentAktor.Id);
                                     }
