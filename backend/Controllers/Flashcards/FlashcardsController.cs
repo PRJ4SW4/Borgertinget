@@ -1,4 +1,4 @@
-// /backend/Controllers/LearningEnvironment/FlashcardsController.cs
+// /backend/Controllers/Flashcards/FlashcardsController.cs
 namespace backend.Controllers;
 
 using System;
@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Data;
-using backend.DTO.LearningEnvironment;
+using backend.DTO.Flashcards;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

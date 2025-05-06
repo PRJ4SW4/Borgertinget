@@ -6,6 +6,7 @@ using backend.DTO.Calendar;
 using backend.DTO.LearningEnvironment;
 using backend.Models; // Sørg for at FakePolitiker, FakeParti og PolidleGamemodeTracker er i dette namespace
 using backend.Models.Calendar;
+using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
