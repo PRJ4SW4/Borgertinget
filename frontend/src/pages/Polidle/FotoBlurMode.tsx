@@ -23,6 +23,11 @@ interface FotoGuessHistoryItem {
   isCorrect: boolean;
 }
 
+interface FotoBlurModeProps {
+  imageUrl: string;
+  correctPolitiker: string;
+}
+
 // --- Helper Funktion (Genbrugt - Flyt evt. til utils.ts) ---
 function convertByteArrayToDataUrl(
   byteArray: number[],
@@ -44,7 +49,7 @@ function convertByteArrayToDataUrl(
 }
 
 // --- Komponenten ---
-const FotoBlurMode: React.FC = () => {
+const FotoBlurMode: React.FC<FotoBlurModeProps> = ({ imageUrl }) => {
   // State for Foto
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [isLoadingPhoto, setIsLoadingPhoto] = useState<boolean>(true);
@@ -75,6 +80,12 @@ const FotoBlurMode: React.FC = () => {
 
   // --- Effekt til at hente dagens foto ---
   useEffect(() => {
+    if (imageUrl) {
+      setPhotoBase64(imageUrl);
+      setIsLoadingPhoto(false);
+      return;
+    }
+
     const fetchPhoto = async () => {
       setIsLoadingPhoto(true);
       setPhotoError(null);

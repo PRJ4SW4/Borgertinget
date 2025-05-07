@@ -22,6 +22,11 @@ interface CitatGuessHistoryItem {
   isCorrect: boolean;
 }
 
+interface CitatModeProps {
+  citat: string;
+  correctPolitiker: string;
+}
+
 // --- Helper Funktion (Flyt evt. til en utils.ts fil) ---
 function convertByteArrayToDataUrl(
   byteArray: number[],
@@ -43,7 +48,7 @@ function convertByteArrayToDataUrl(
 }
 
 // --- Komponenten ---
-const CitatMode: React.FC = () => {
+const CitatMode: React.FC<CitatModeProps> = ({ citat, correctPolitiker }) => {
   // State for Citat
   const [quote, setQuote] = useState<string | null>(null);
   const [isLoadingQuote, setIsLoadingQuote] = useState<boolean>(true);
@@ -73,6 +78,12 @@ const CitatMode: React.FC = () => {
 
   // --- Effekt til at hente dagens citat ---
   useEffect(() => {
+    if (citat) {
+      setQuote(citat);
+      setIsLoadingQuote(false);
+      return;
+    }
+
     const fetchQuote = async () => {
       setIsLoadingQuote(true);
       setQuoteError(null);
