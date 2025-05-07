@@ -19,6 +19,8 @@ public class AdministratorController : ControllerBase
         _service = service;
     }
 
+    #region Flashcard Collection
+
     // POST Flashcard collection
     [HttpPost("PostFlashcardCollection")]
     public async Task<IActionResult> PostFlashCardCollection(FlashcardCollectionDetailDTO dto)
@@ -153,6 +155,10 @@ public class AdministratorController : ControllerBase
         }
     }
 
+    #endregion
+
+    #region Brugernavn
+
     // GET all users
     [HttpGet("GetAllUsers")]
     public async Task<IActionResult> GetAllUsers()
@@ -211,6 +217,10 @@ public class AdministratorController : ControllerBase
         }
     }
 
+    #endregion
+
+    #region Polidles Citat-mode
+
     // GET all politician quotes
     [HttpGet("GetAllQuotes")]
     public async Task<IActionResult> GetAllQuotes()
@@ -258,4 +268,6 @@ public class AdministratorController : ControllerBase
             return StatusCode(500, $"An error occured while editing quote with id: {quoteId}");
         }
     }
+
+    #endregion
 }
