@@ -1,5 +1,5 @@
 // /backend/Models/LearningEnvironment/Flashcard.cs
-namespace backend.Models.LearningEnvironment;
+namespace backend.Models.Flashcards;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;

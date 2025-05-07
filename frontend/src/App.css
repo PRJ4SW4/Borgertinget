@@ -1,42 +1,62 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Global styles for the entire application */
+
+/* --- IMPORT POPPINS FONT --- */
+/* Imports the Poppins font family from Google Fonts. */
+/* Specifies weights 400 (regular), 500 (medium), and 700 (bold). */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+
+
+/* --- Apply Poppins Font Globally --- */
+/* Styles applied to 'body' are inherited by most elements. */
+body {
+  margin: 0; /* Resets default browser margin. */
+  font-family: 'Poppins', sans-serif; /* Sets Poppins as the default font. */
+  font-weight: 400; /* Sets default font weight to regular. */
+  line-height: 1.5; /* Sets standard line spacing. */
+  /* Default text and background colors. */
+   color: #213547; /* Dark greyish-blue text */
+   background-color: #ffffff; /* White background */
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+/* --- Default Element Styles --- */
+/* Provides base styling for common HTML elements. */
+
+/* Default link styling */
+a {
+  font-weight: 500; /* Sets medium weight for links (Poppins 500). */
+  color: #646cff; /* Default link color (Vite purple) - Consider changing to project color */
+  text-decoration: inherit; /* Inherits text decoration (usually none). */
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+a:hover {
+  color: #535bf2; /* Slightly darker color on hover */
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Default heading 1 styling */
+h1 {
+  font-size: 3.2em; /* Large font size */
+  line-height: 1.1; /* Tighter line spacing for large headings */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Default button styling */
+button {
+  border-radius: 8px; /* Slightly rounded corners */
+  border: 1px solid transparent; /* Start with no visible border */
+  padding: 0.6em 1.2em; /* Padding inside the button */
+  font-size: 1em; /* Base font size */
+  font-weight: 500; /* Medium weight (Poppins 500) */
+  font-family: inherit; /* Inherits font from parent (body -> Poppins). */
+  cursor: pointer; /* Indicates interactivity. */
+  transition: border-color 0.25s; /* Smooths border color change on hover/focus. */
+  /* Default button appearance */
+  background-color: #f9f9f9; /* Light grey background */
+  color: #213547; /* Use the default text color */
 }
-
-.card {
-  padding: 2em;
+/* Button hover state */
+button:hover {
+  border-color: #646cff; /* Show border on hover (Vite purple) - Consider changing */
 }
-
-.read-the-docs {
-  color: #888;
+/* Button focus state for accessibility */
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color; /* Standard browser focus outline. */
 }

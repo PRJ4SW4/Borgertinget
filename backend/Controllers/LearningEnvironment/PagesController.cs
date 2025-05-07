@@ -26,7 +26,7 @@ public class PagesController : ControllerBase
 
     // Defines an HTTP GET endpoint to retrieve the structure of pages, for navigation purposes.
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PageSummaryDto>>> GetPagesStructure()
+    public async Task<ActionResult<IEnumerable<PageSummaryDTO>>> GetPagesStructure()
     {
         // Asynchronously retrieves all Page entities from the database, applying ordering for consistent structure.
         var pages = await _context
@@ -40,7 +40,7 @@ public class PagesController : ControllerBase
 
         // Projects the retrieved Page entities into PageSummaryDto objects, shaping the data for the response.
         var pageSummaries = pages
-            .Select(p => new PageSummaryDto
+            .Select(p => new PageSummaryDTO
             {
                 // Maps the Id property from the Page entity to the DTO.
                 Id = p.Id,
@@ -62,7 +62,7 @@ public class PagesController : ControllerBase
 
     // Defines an HTTP GET endpoint to retrieve detailed information for a specific page, identified by its ID.
     [HttpGet("{id}")]
-    public async Task<ActionResult<PageDetailDto>> GetPage(int id)
+    public async Task<ActionResult<PageDetailDTO>> GetPage(int id)
     {
         // Asynchronously attempts to find a Page entity with the specified ID in the database.
         var page = await _context.Pages.FindAsync(id);
@@ -86,7 +86,7 @@ public class PagesController : ControllerBase
 
         // Projects the retrieved Question entities into QuestionDto objects, shaping the data for the response.
         var questionDtos = questions
-            .Select(question => new QuestionDto
+            .Select(question => new QuestionDTO
             {
                 // Maps the QuestionId property from the Question entity to the DTO.
                 Id = question.QuestionId,
@@ -94,7 +94,7 @@ public class PagesController : ControllerBase
                 QuestionText = question.QuestionText,
                 // Projects the associated AnswerOptions into AnswerOptionDto objects.
                 Options = question
-                    .AnswerOptions.Select(opt => new AnswerOptionDto
+                    .AnswerOptions.Select(opt => new AnswerOptionDTO
                     {
                         // Maps the AnswerOptionId property from the AnswerOption entity to the DTO.
                         Id = opt.AnswerOptionId,
@@ -133,7 +133,7 @@ public class PagesController : ControllerBase
         }
 
         // Creates a new PageDetailDto object to encapsulate the detailed page information for the response.
-        var pageDetail = new PageDetailDto
+        var pageDetail = new PageDetailDTO
         {
             // Maps the Id property from the Page entity to the DTO.
             Id = page.Id,

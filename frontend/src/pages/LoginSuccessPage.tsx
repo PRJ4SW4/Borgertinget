@@ -20,7 +20,7 @@ const LoginSuccessPage: React.FC<LoginSuccessPageProps> = ({ setToken }) => {
       localStorage.setItem('jwt', token);
       setToken(token);
       // Naviger til hjemmesiden (eller dashboard) og erstat /login-success i historikken
-      navigate('/home', { replace: true });
+      navigate('/', { replace: true });
     } else {
       console.error("Intet token fundet i URL efter Google login.");
       // Håndter fejl - send evt. brugeren tilbage til login

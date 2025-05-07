@@ -1,0 +1,132 @@
+/* Styles for the Footer component */
+
+.footer {
+    background-color: #1a1a1a; /* Very dark background for contrast */
+    color: #f0f0f0; /* Light text color for readability */
+    padding: 3rem 2rem 1rem 2rem; /* Top, horizontal, bottom padding */
+    border-top: 4px solid #8B0000; /* Adds a red accent line at the top */
+  }
+
+  /* Container for the main footer content (columns) */
+  .footer-container {
+    display: flex; /* Arranges columns using flexbox */
+    justify-content: space-around; /* Distributes space evenly between columns */
+    flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
+    gap: 2rem; /* Space between columns */
+    max-width: 1200px; /* Limit the maximum width */
+    margin: 0 auto 2rem auto; /* Centers container and adds bottom margin */
+  }
+
+  /* Styling for individual columns in the footer */
+  .footer-column {
+    flex: 1; /* Allows columns to grow and shrink proportionally */
+    min-width: 180px; /* Sets minimum width before wrapping */
+  }
+
+  /* Specific styling for the column containing the logo and social icons */
+  .footer-column-logo-social {
+    flex-basis: 250px; /* Sets initial width basis */
+    flex-grow: 1.5; /* Allows this column to grow more relative to others */
+    display: flex; /* Enables flexbox for vertical alignment */
+    flex-direction: column; /* Stacks logo and icons vertically */
+    align-items: flex-start; /* Aligns items to the left */
+  }
+
+  /* Styling for the footer logo image */
+  .footer-logo {
+    max-width: 150px; /* Control logo size */
+    margin-bottom: 1.5rem; /* Space below the logo */
+  }
+
+  /* Container for the social media icons */
+  .footer-social-icons {
+    display: flex; /* Arranges icons horizontally */
+    gap: 1rem; /* Defines space between icons */
+  }
+
+  /* Styling for individual social icon links */
+  .footer-social-icons a {
+    color: #f0f0f0; /* Light icon color */
+    font-size: 1.5rem; /* Size for font-based icons (if used) */
+    transition: color 0.2s ease; /* Smooths color change on hover */
+  }
+  /* Styling for image-based social icons (e.g., SVGs) */
+  .footer-social-icons a img {
+      height: 24px; /* Set icon height */
+      width: 24px; /* Set icon width */
+      /* Filter to make black source images appear white */
+      filter: brightness(0) invert(1);
+  }
+
+  /* Hover state for social icons */
+  .footer-social-icons a:hover {
+    color: #8B0000; /* Change font icon color to red on hover */
+  }
+  /* Hover state for image-based icons - changes color to red */
+  /* This filter value is trying to achieve the Borgertinget red color however I can't get it to match exactly */
+  .footer-social-icons a:hover img {
+      filter: invert(13%) sepia(78%) saturate(4583%) hue-rotate(349deg) brightness(91%) contrast(118%);
+  }
+
+
+  /* Styling for column headings */
+  .footer-column h4 {
+    color: #ffffff; /* White heading color */
+    margin-bottom: 1rem; /* Space below heading */
+    font-size: 1.1rem; /* Heading font size */
+    border-bottom: 1px solid #444; /* Adds a separator line below headings */
+    padding-bottom: 0.5rem; /* Space between text and separator */
+  }
+
+  /* Styling for lists within footer columns */
+  .footer-column ul {
+    list-style: none; /* Remove default bullet points */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+  }
+
+  /* Styling for list items */
+  .footer-column ul li {
+    margin-bottom: 0.6rem; /* Space between list items */
+  }
+
+  /* Styling for links within the lists */
+  .footer-column ul li a {
+    color: #cccccc; /* Slightly dimmer color for links */
+    text-decoration: none; /* Remove underline */
+    transition: color 0.2s ease; /* Smooths color change on hover */
+  }
+
+  /* Hover state for list links */
+  .footer-column ul li a:hover {
+    color: #ffffff; /* Brighter white on hover */
+    text-decoration: underline; /* Adds underline on hover */
+  }
+
+  /* Styling for the bottom section (copyright) */
+  .footer-bottom {
+      text-align: center; /* Center the text */
+      margin-top: 2rem; /* Space above the bottom section */
+      padding-top: 1rem; /* Space below the separator line */
+      border-top: 1px solid #333; /* Separator line above copyright */
+      font-size: 0.85rem; /* Smaller font size */
+      color: #aaa; /* Grey color for copyright text */
+  }
+
+  /* Responsive adjustments for smaller screens (max-width 768px) */
+  @media (max-width: 768px) {
+    /* Stacks columns vertically */
+    .footer-container {
+      flex-direction: column;
+      align-items: center; /* Centers columns horizontally */
+      text-align: center; /* Centers text within columns */
+    }
+    /* Centers items in the logo/social column when stacked */
+    .footer-column-logo-social {
+      align-items: center;
+    }
+    /* Centers the social icons when stacked */
+    .footer-social-icons {
+        justify-content: center;
+    }
+  }
