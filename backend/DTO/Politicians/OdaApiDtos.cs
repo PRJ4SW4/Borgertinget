@@ -46,8 +46,9 @@ namespace backend.DTO.FT
         public string? PartyShortname { get; set; }
         public string? Sex { get; set; }
         public string? Born { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public string? EducationStatistic { get; set; }
-        public string? PictureMiRes { get; set; }
+        public string? Portraet { get; set; }
         public string? FunctionFormattedTitle { get; set; }
         public string? FunctionStartDate { get; set; }
         public string? PositionsOfTrust { get; set; }
@@ -62,11 +63,12 @@ namespace backend.DTO.FT
         public List<string>? Constituencies { get; set; }
         public List<string>? Nominations { get; set; }
         public List<string>? Educations { get; set; }
+        public string? EducatinUsedInPolidle { get; set; }
         public List<string>? Occupations { get; set; }
         public List<string>? PublicationTitles { get; set; }
 
         //Helper method for mapping 
-        public static AktorDetailDto FromAktor(Models.Aktor aktor)
+        public static AktorDetailDto FromAktor(Models.Aktor aktor, ILogger? logger = null)
         {
             return new AktorDetailDto
             {
@@ -79,8 +81,10 @@ namespace backend.DTO.FT
                 PartyShortname = aktor.PartyShortname,
                 Sex = aktor.Sex,
                 Born = aktor.Born,
+                //* Added DateOfBirth
+                DateOfBirth = Services.DataParsingHelpers.ParseBornStringToDateTime(aktor.Born, logger),
                 EducationStatistic = aktor.EducationStatistic,
-                PictureMiRes = aktor.PictureMiRes,
+                Portraet = aktor.Portraet != null ? Convert.ToBase64String(aktor.Portraet) : null,
                 FunctionFormattedTitle = aktor.FunctionFormattedTitle,
                 FunctionStartDate = aktor.FunctionStartDate,
                 PositionsOfTrust = aktor.PositionsOfTrust,
@@ -92,6 +96,7 @@ namespace backend.DTO.FT
                 Constituencies = aktor.Constituencies,
                 Nominations = aktor.Nominations,
                 Educations = aktor.Educations,
+                EducatinUsedInPolidle = Services.DataParsingHelpers.GetFirstEducation(aktor.Educations),
                 Occupations = aktor.Occupations,
                 PublicationTitles = aktor.PublicationTitles,
             };

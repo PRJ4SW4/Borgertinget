@@ -1,33 +1,30 @@
-// DailySelection.cs
-namespace backend.Models;
+// backend/Models/PolidleGame/DailySelection.cs
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-[Table("daily_selections")]
-public class DailySelection
+namespace backend.Models // Ensure this namespace matches your other Polidle models
 {
-    // Del 1 af sammensat PK
-    [Column("selection_date")]
-    public DateOnly SelectionDate { get; set; }
+    [Table("daily_selections")]
+    public class DailySelection
+    {
+        // Part 1 of composite PK
+        [Column("selection_date")]
+        public DateOnly SelectionDate { get; set; }
 
-    // Del 2 af sammensat PK
-    [Column("gamemode")]
-    [Required]
-    public GamemodeTypes GameMode { get; set; }
+        // Part 2 of composite PK
+        [Column("gamemode")]
+        [Required]
+        public GamemodeTypes GameMode { get; set; } // Assuming GamemodeTypes enum exists
 
-    // FK til den valgte politiker
-    [Column("selected_politiker_id")]
-    public int SelectedPolitikerID { get; set; }
+        [Column("selected_politiker_id")] // This will be FK to Aktor.Id
+        public int SelectedPolitikerID { get; set; }
 
-    // === NY PROPERTY ===
-    // Gemmer teksten for det specifikke citat valgt for Citat-mode på denne dato.
-    // Er null for andre gamemodes. Gør den nullable (string?).
-    [Column("selected_quote_text")]
-    public string? SelectedQuoteText { get; set; }
-    // ==================
+        [Column("selected_quote_text")]
+        public string? SelectedQuoteText { get; set; }
 
-    // Navigation property tilbage til politikeren (uændret)
-    [ForeignKey(nameof(SelectedPolitikerID))]
-    public virtual FakePolitiker SelectedPolitiker { get; set; } = null!;
+        // Navigation property to Aktor
+        [ForeignKey(nameof(SelectedPolitikerID))]
+        public virtual Aktor SelectedPolitiker { get; set; } = null!;
+    }
 }

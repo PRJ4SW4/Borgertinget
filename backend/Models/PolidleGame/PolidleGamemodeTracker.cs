@@ -12,29 +12,22 @@ public enum GamemodeTypes
 
 public class PolidleGamemodeTracker
 {
-    // --- Del 1 af den sammensatte primærnøgle ---
-    // Også fremmednøgle til Politiker tabellen
-    // [Key] // Markering som Key her er KUN nødvendig for ældre EF Core versioner, hvis Fluent API ikke bruges.
-    [Column("politiker_id")] // Matcher kolonnenavnet i databasen
+    // Part 1 of composite PK & FK to Aktor
+    [Column("politiker_id")]
     public int PolitikerId { get; set; }
 
-    // --- Del 2 af den sammensatte primærnøgle ---
-    // [Key] // Markering som Key her er KUN nødvendig for ældre EF Core versioner, hvis Fluent API ikke bruges.
-    [Required] // GameMode må ikke være null
-    [Column("gamemode")] // Matcher kolonnenavnet
-    public GamemodeTypes GameMode { get; set; }  // Initialiser for non-nullable string
+    // Part 2 of composite PK
+    [Column("gamemode")]
+    [Required]
+    public GamemodeTypes GameMode { get; set; }
 
-    // --- Andre kolonner ---
     [Column("lastselecteddate")]
-    public DateOnly? LastSelectedDate { get; set; } // Gemmer KUN dato, ikke tidspunkt
+    public DateOnly? LastSelectedDate { get; set; }
 
-    [Column("algovægt")] // Bemærk: Overvej 'AlgoVaegt' som C# navn for konsekvens
-    public int? AlgoWeight { get; set; } //* Vægt vil være [days since last selection] i heltal
+    [Column("algovægt")]
+    public int? AlgoWeight { get; set; }
 
-    // --- Navigation Property ---
-    // Dette repræsenterer relationen tilbage til den Politiker, som denne tracking-række tilhører.
-    // EF Core bruger dette + PolitikerId til at forstå fremmednøgle-relationen.
-    [ForeignKey(nameof(PolitikerId))] // Eksplicit angivelse af fremmednøgle-property
-    public virtual FakePolitiker  FakePolitiker { get; set; } = null!; // Navigation property til den relaterede politiker
-
+    // Navigation Property to Aktor
+    [ForeignKey(nameof(PolitikerId))]
+    public virtual Aktor Aktor { get; set; } = null!;
 }

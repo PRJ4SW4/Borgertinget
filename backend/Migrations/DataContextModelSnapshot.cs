@@ -117,7 +117,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Aktor");
+                    b.ToTable("Aktor", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
@@ -153,7 +153,7 @@ namespace backend.Migrations
                     b.HasIndex("SourceUrl")
                         .IsUnique();
 
-                    b.ToTable("CalendarEvents");
+                    b.ToTable("CalendarEvents", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
@@ -181,7 +181,7 @@ namespace backend.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("AnswerOptions");
+                    b.ToTable("AnswerOptions", (string)null);
 
                     b.HasData(
                         new
@@ -320,7 +320,7 @@ namespace backend.Migrations
 
                     b.HasIndex("CollectionId");
 
-                    b.ToTable("Flashcards");
+                    b.ToTable("Flashcards", (string)null);
 
                     b.HasData(
                         new
@@ -396,7 +396,7 @@ namespace backend.Migrations
 
                     b.HasKey("CollectionId");
 
-                    b.ToTable("FlashcardCollections");
+                    b.ToTable("FlashcardCollections", (string)null);
 
                     b.HasData(
                         new
@@ -440,7 +440,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ParentPageId");
 
-                    b.ToTable("Pages");
+                    b.ToTable("Pages", (string)null);
 
                     b.HasData(
                         new
@@ -503,7 +503,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
 
                     b.HasData(
                         new
@@ -583,7 +583,7 @@ namespace backend.Migrations
 
                     b.HasIndex("viceChairmanId");
 
-                    b.ToTable("Party");
+                    b.ToTable("Party", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
@@ -618,7 +618,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
@@ -664,50 +664,6 @@ namespace backend.Migrations
                     b.Navigation("Page");
                 });
 
-            modelBuilder.Entity("backend.Models.DailySelection", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "SelectedPolitiker")
-                        .WithMany()
-                        .HasForeignKey("SelectedPolitikerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("SelectedPolitiker");
-                });
-
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.HasOne("backend.Models.FakeParti", "FakeParti")
-                        .WithMany("FakePolitikers")
-                        .HasForeignKey("PartiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FakeParti");
-                });
-
-            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
-                        .WithMany("GameTrackings")
-                        .HasForeignKey("PolitikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FakePolitiker");
-                });
-
-            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
-                        .WithMany("Quotes")
-                        .HasForeignKey("PolitikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FakePolitiker");
-                });
-
             modelBuilder.Entity("backend.Models.Party", b =>
                 {
                     b.HasOne("backend.Models.Aktor", "chairman")
@@ -751,18 +707,6 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.LearningEnvironment.Question", b =>
                 {
                     b.Navigation("AnswerOptions");
-                });
-
-            modelBuilder.Entity("backend.Models.FakeParti", b =>
-                {
-                    b.Navigation("FakePolitikers");
-                });
-
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.Navigation("GameTrackings");
-
-                    b.Navigation("Quotes");
                 });
 #pragma warning restore 612, 618
         }

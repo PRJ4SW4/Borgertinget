@@ -1,6 +1,6 @@
 // Fil: DailySelectionService.cs
 using backend.Models;
-using backend.DTO;
+using backend.DTO; // For Polidle DTOs like GuessResultDto, PoliticianSummaryDto etc.
 using backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+// Make sure you have a using statement for your DataParsingHelpers
+using backend.Services; // Or backend.Helpers if you placed DataParsingHelpers there
 
 namespace backend.Services
 {
@@ -29,53 +31,57 @@ namespace backend.Services
 
         #region Interface Implementation: IDailySelectionService
 
-        // GetOrSelectDailyPoliticianAsync (Inkluderer parti)
-        public async Task<FakePolitiker?> GetOrSelectDailyPoliticianAsync(GamemodeTypes gameMode)
+        public async Task<Aktor?> GetOrSelectDailyPoliticianAsync(GamemodeTypes gameMode)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            _logger.LogDebug("Attempting to get daily politician for {GameMode} on {Date}", gameMode, today);
+            _logger.LogDebug("Attempting to get daily Aktor for {GameMode} on {Date}", gameMode, today);
 
-            var existingSelection = await _context.DailySelections
-                                            .Include(ds => ds.SelectedPolitiker)
-                                                .ThenInclude(p => p.FakeParti)  // VIGTIGT: Inkluder parti
-                                            .FirstOrDefaultAsync(ds => ds.SelectionDate == today && ds.GameMode == gameMode);
+            var existingSelectionQuery = _context.DailySelections
+                                                .Include(ds => ds.SelectedPolitiker); // Aktor
+
+            // Conditional Include for Party. This depends on your Aktor model having a
+            // navigation property to Party (e.g., Aktor.PartyNavigation) and a corresponding FK.
+            // If Aktor.Party is just a string property with the party name, this ThenInclude isn't directly applicable
+            // to loading a Party *entity* unless Aktor has a FK to the Party table.
+            // The current Aktor model seems to have `string? Party` for the name.
+            // If you need to compare based on Party *ID*, Aktor should have a PartyId.
+            // For now, we'll assume Aktor.Party (string) is used or PartyId is on Aktor.
+            // The `.ThenInclude(p => p.MembersOfParty)` from your code implies SelectedPolitiker had a MembersOfParty property.
+            // If Aktor is replacing it, Aktor needs a similar link or you adapt.
+            // Let's assume you want to load the Party entity if Aktor has a PartyId FK and navigation property 'PartyEntity'.
+            // if (existingSelectionQuery.FirstOrDefault()?.SelectedPolitiker.PartyId != null) // Check if PartyId exists if that's your FK
+            // {
+            //    existingSelectionQuery = existingSelectionQuery.ThenInclude(ds => ds.SelectedPolitiker.PartyEntity);
+            // }
+
+
+            var existingSelection = await existingSelectionQuery
+                                        .FirstOrDefaultAsync(ds => ds.SelectionDate == today && ds.GameMode == gameMode);
+
 
             if (existingSelection?.SelectedPolitiker != null)
             {
-                _logger.LogInformation("Found existing daily selection for {GameMode} on {Date}: PolitikerId {PolitikerId}", gameMode, today, existingSelection.SelectedPolitikerID);
-                 // Sikkerhedstjek for Include
-                 if (existingSelection.SelectedPolitiker.FakeParti == null && existingSelection.SelectedPolitiker.PartiId > 0)
-                {
-                     _logger.LogWarning("Party not included for existing selection's politician {PolitikerId}. Attempting manual load.", existingSelection.SelectedPolitikerID);
-                     existingSelection.SelectedPolitiker.FakeParti = await _context.FakePartier.FindAsync(existingSelection.SelectedPolitiker.PartiId);
-                }
+                _logger.LogInformation("Found existing daily selection for {GameMode} on {Date}: AktorId {AktorId}", gameMode, today, existingSelection.SelectedPolitikerID);
+                // If Aktor.Party is just a string, this check/load isn't for the Party *entity* directly.
+                // The manual load you had `existingSelection.SelectedPolitiker.MembersOfParty = await _context.Party.FindAsync(existingSelection.SelectedPolitiker.partyId);`
+                // implies SelectedPolitiker had a 'partyId' and a 'MembersOfParty' navigation property.
+                // Ensure your Aktor model has a corresponding 'PartyId' field if this logic is to be preserved.
+                // And a navigation property for the party.
+                // For now, we'll assume this is handled or not strictly needed for `GetOrSelectDailyPoliticianAsync` if Party name string is enough.
                 return existingSelection.SelectedPolitiker;
             }
 
-            _logger.LogInformation("No existing selection found for {GameMode} on {Date}. Performing weighted selection.", gameMode, today);
+            _logger.LogInformation("No existing selection for {GameMode} on {Date}. Performing weighted selection.", gameMode, today);
             try
             {
-                // Udfør den vægtede udvælgelse (som nu returnerer politiker med parti)
                 var selectedPolitician = await PerformWeightedSelectionAsync(gameMode, today);
 
                 if (selectedPolitician == null)
                 {
-                    _logger.LogWarning("Weighted selection for {GameMode} returned no politician.", gameMode);
+                    _logger.LogWarning("Weighted selection for {GameMode} returned no Aktor.", gameMode);
                     return null;
                 }
 
-                 // Dobbelttjek parti (burde være loaded af PerformWeightedSelectionAsync nu)
-                 if (selectedPolitician.FakeParti == null && selectedPolitician.PartiId > 0)
-                {
-                     _logger.LogError("Party was unexpectedly null after PerformWeightedSelectionAsync for politician {PolitikerId}. Attempting manual load.", selectedPolitician.Id);
-                     selectedPolitician.FakeParti = await _context.FakePartier.FindAsync(selectedPolitician.PartiId);
-                      if (selectedPolitician.FakeParti == null) {
-                        _logger.LogError("Could not find party with ID {PartiId} for selected politician {PolitikerId} after manual load.", selectedPolitician.PartiId, selectedPolitician.Id);
-                        return null; // Kan ikke fortsætte uden parti
-                     }
-                }
-
-                // Gem det nye valg og opdater tracking i en transaktion
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
@@ -85,293 +91,482 @@ namespace backend.Services
                         GameMode = gameMode,
                         SelectedPolitikerID = selectedPolitician.Id,
                     };
+                     // If Citat mode, also store the selected quote text
+                    if (gameMode == GamemodeTypes.Citat && (selectedPolitician.Quotes?.Any() ?? false))
+                    {
+                        newDailySelection.SelectedQuoteText = selectedPolitician.Quotes.ElementAt(_random.Next(selectedPolitician.Quotes.Count)).QuoteText;
+                    }
+
                     _context.DailySelections.Add(newDailySelection);
-
-                    await UpdateTrackerAsync(selectedPolitician, gameMode, today); // Opdater/opret tracker
-
+                    await UpdateTrackerAsync(selectedPolitician, gameMode, today); // Update/create tracker
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    _logger.LogInformation("Successfully selected and saved PolitikerId {PolitikerId} for {GameMode} on {Date}", selectedPolitician.Id, gameMode, today);
-                    return selectedPolitician; // Returner den valgte politiker (med parti)
+                    _logger.LogInformation("Successfully selected and saved AktorId {AktorId} for {GameMode} on {Date}", selectedPolitician.Id, gameMode, today);
+                    return selectedPolitician;
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
                     _logger.LogError(ex, "Error saving daily selection or updating tracking for {GameMode}.", gameMode);
-                    throw; // Kast fejlen videre
+                    throw;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during weighted selection process call for {GameMode}.", gameMode);
-                throw; // Kast fejlen videre
+                throw;
             }
         }
 
-        // GetAllPoliticiansForGuessingAsync (Med server-side search)
         public async Task<List<PoliticianSummaryDto>> GetAllPoliticiansForGuessingAsync(string? search = null)
         {
-            _logger.LogInformation("Fetching politicians for guessing with search term: '{SearchTerm}'", search ?? "<null>");
-            var query = _context.FakePolitikere.AsNoTracking().AsQueryable();
+            _logger.LogInformation("Fetching Aktors for guessing with search term: '{SearchTerm}'", search ?? "<null>");
+            // Assuming Aktor model has typeid, and politicians are typeid == 5
+            var query = _context.Aktor.AsNoTracking().Where(a => a.typeid == 5);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 string searchTermLower = search.ToLower().Trim();
-                // Brug EF.Functions.ILike for case-insensitive på PostgreSQL, ellers ToLower()
-                // query = query.Where(p => EF.Functions.ILike(p.PolitikerNavn, $"%{searchTermLower}%"));
-                query = query.Where(p => p.PolitikerNavn.ToLower().Contains(searchTermLower)); // Standard fallback
+                query = query.Where(p => (p.navn != null && p.navn.ToLower().Contains(searchTermLower)));
             }
 
-            int maxResults = 10; // Begræns antal søgeresultater
+            int maxResults = 10;
             var politicians = await query
-                .OrderBy(p => p.PolitikerNavn)
+                .OrderBy(p => p.navn)
                 .Select(p => new PoliticianSummaryDto
                 {
                     Id = p.Id,
-                    PolitikerNavn = p.PolitikerNavn,
-                    Portraet = p.Portræt // Antager Portræt (med æ) i Model, Portraet (uden æ) i DTO
+                    navn = p.navn ?? "Ukendt Navn",
+                    Portraet = p.Portraet ?? Array.Empty<byte>() // Directly use the Aktor.Portraet byte array
                 })
                 .Take(maxResults)
                 .ToListAsync();
 
-            _logger.LogInformation("Returning {Count} politician summaries for search term: '{SearchTerm}'", politicians.Count, search ?? "<null>");
+            _logger.LogInformation("Returning {Count} Aktor summaries for search term: '{SearchTerm}'", politicians.Count, search ?? "<null>");
             return politicians;
         }
 
-        // ProcessGuessAsync (Opdateret til at bruge CalculateAge med DateTime->DateOnly konvertering)
         public async Task<GuessResultDto> ProcessGuessAsync(GuessRequestDto guessDto)
         {
-             _logger.LogInformation("Processing guess for GameMode {GameMode}, GuessedId {GuessedId}", guessDto.GameMode, guessDto.GuessedPoliticianId);
+            _logger.LogInformation("Processing guess for GameMode {GameMode}, GuessedAktorId {GuessedId}", guessDto.GameMode, guessDto.GuessedPoliticianId);
 
-             // 1. Hent korrekt politiker (m/ parti)
-             var correctPolitician = await GetOrSelectDailyPoliticianAsync(guessDto.GameMode);
-             if (correctPolitician == null) { throw new KeyNotFoundException($"Ingen dagens politiker fundet for spiltype {guessDto.GameMode}."); }
+            // 1. Hent korrekt Aktor
+            var correctAktor = await GetOrSelectDailyPoliticianAsync(guessDto.GameMode);
+            if (correctAktor == null)
+            {
+                _logger.LogError("Could not retrieve correct Aktor for GameMode {GameMode}.", guessDto.GameMode);
+                throw new KeyNotFoundException($"Ingen dagens politiker fundet for spiltype {guessDto.GameMode}.");
+            }
 
-             // 2. Hent gættet politiker (m/ parti)
-             var guessedPolitician = await _context.FakePolitikere
-                                             .Include(p => p.FakeParti)
-                                             .AsNoTracking()
-                                             .FirstOrDefaultAsync(p => p.Id == guessDto.GuessedPoliticianId);
-             if (guessedPolitician == null) { throw new KeyNotFoundException($"Den gættede politiker med ID {guessDto.GuessedPoliticianId} blev ikke fundet."); }
+            // 2. Hent gættet Aktor
+            // Include party if Aktor has a PartyId and a navigation property to Party entity
+            // For now, assuming Aktor.Party (string name) and Aktor.Constituencies (List<string>) are sufficient
+            var guessedAktor = await _context.Aktor
+                                          .AsNoTracking()
+                                          .FirstOrDefaultAsync(a => a.Id == guessDto.GuessedPoliticianId && a.typeid == 5);
 
-             // *** BEREGN ALDRE MED KONVERTERING FRA DateTime ***
-             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-             // Konverter DateTime DateOfBirth til DateOnly før kald til CalculateAge
-             int correctAge = CalculateAge(DateOnly.FromDateTime(correctPolitician.DateOfBirth), today);
-             int guessedAge = CalculateAge(DateOnly.FromDateTime(guessedPolitician.DateOfBirth), today);
-             // ****************************************************
+            if (guessedAktor == null)
+            {
+                _logger.LogError("Guessed Aktor with ID {GuessedId} not found or is not typeid 5.", guessDto.GuessedPoliticianId);
+                throw new KeyNotFoundException($"Den gættede politiker med ID {guessDto.GuessedPoliticianId} blev ikke fundet.");
+            }
 
-             // 3. Byg resultat DTO'en
-             var result = new GuessResultDto
-             {
-                 IsCorrectGuess = correctPolitician.Id == guessedPolitician.Id,
-                 Feedback = new Dictionary<string, FeedbackType>(),
-                 GuessedPolitician = new GuessedPoliticianDetailsDto
-                 {
-                      Id = guessedPolitician.Id,
-                      PolitikerNavn = guessedPolitician.PolitikerNavn,
-                      PartiNavn = guessedPolitician.FakeParti?.PartiNavn ?? "Ukendt Parti",
-                      Age = guessedAge, // Brug beregnet alder
-                      Køn = guessedPolitician.Køn,
-                      Uddannelse = guessedPolitician.Uddannelse,
-                      Region = guessedPolitician.Region,
-                      Portraet = guessedPolitician.Portræt ?? Array.Empty<byte>()
-                 }
-             };
+            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-             // 4. Udfør sammenligninger (kun hvis Klassisk mode)
-             if (guessDto.GameMode == GamemodeTypes.Klassisk)
-             {
-                 result.Feedback["Navn"] = result.IsCorrectGuess ? FeedbackType.Korrekt : FeedbackType.Forkert;
-                 result.Feedback["Parti"] = correctPolitician.PartiId == guessedPolitician.PartiId ? FeedbackType.Korrekt : FeedbackType.Forkert;
+            DateTime? correctAktorBirthDateTime = DataParsingHelpers.ParseBornStringToDateTime(correctAktor.Born, _logger);
+            if (!correctAktorBirthDateTime.HasValue)
+            {
+                _logger.LogError("Could not parse DateOfBirth for correct Aktor ID {AktorId}. Born string: '{BornString}'", correctAktor.Id, correctAktor.Born);
+                throw new InvalidOperationException($"Could not parse birth date for correct Aktor ID {correctAktor.Id}.");
+            }
+            int correctAge = CalculateAge(DateOnly.FromDateTime(correctAktorBirthDateTime.Value), today);
 
-                 // Sammenlign beregnede aldre
-                 if (correctAge == guessedAge) result.Feedback["Alder"] = FeedbackType.Korrekt;
-                 else if (correctAge > guessedAge) result.Feedback["Alder"] = FeedbackType.Højere;
-                 else result.Feedback["Alder"] = FeedbackType.Lavere;
+            DateTime? guessedAktorBirthDateTime = DataParsingHelpers.ParseBornStringToDateTime(guessedAktor.Born, _logger);
+            if (!guessedAktorBirthDateTime.HasValue)
+            {
+                _logger.LogError("Could not parse DateOfBirth for guessed Aktor ID {AktorId}. Born string: '{BornString}'", guessedAktor.Id, guessedAktor.Born);
+                throw new InvalidOperationException($"Could not parse birth date for guessed Aktor ID {guessedAktor.Id}.");
+            }
+            int guessedAge = CalculateAge(DateOnly.FromDateTime(guessedAktorBirthDateTime.Value), today);
 
-                 result.Feedback["Region"] = string.Equals(correctPolitician.Region, guessedPolitician.Region, StringComparison.OrdinalIgnoreCase) ? FeedbackType.Korrekt : FeedbackType.Forkert;
-                 result.Feedback["Køn"] = string.Equals(correctPolitician.Køn, guessedPolitician.Køn, StringComparison.OrdinalIgnoreCase) ? FeedbackType.Korrekt : FeedbackType.Forkert;
-                 result.Feedback["Uddannelse"] = string.Equals(correctPolitician.Uddannelse, guessedPolitician.Uddannelse, StringComparison.OrdinalIgnoreCase) ? FeedbackType.Korrekt : FeedbackType.Forkert;
-             }
-             // Tilføj evt. simpel feedback for andre modes hvis nødvendigt
+            var guessedDetails = new GuessedPoliticianDetailsDto
+            {
+                Id = guessedAktor.Id,
+                navn = guessedAktor.navn ?? "N/A",
+                partyName = guessedAktor.Party ?? "Ukendt Parti", // Uses string Party name from Aktor
+                Age = guessedAge,
+                Sex = guessedAktor.Sex ?? "N/A",
+                Uddannelse = DataParsingHelpers.GetFirstEducation(guessedAktor.Educations) ?? "N/A",
+                Region = guessedAktor.Constituencies?.FirstOrDefault() ?? "N/A", // First constituency as region
+                Portraet = guessedAktor.Portraet ?? Array.Empty<byte>() // Use the byte array
+            };
 
-             _logger.LogInformation("Guess result calculated for GuessedId {GuessedId}: IsCorrect={IsCorrect}, FeedbackItems={FeedbackCount}",
-                 guessDto.GuessedPoliticianId, result.IsCorrectGuess, result.Feedback.Count);
+            var result = new GuessResultDto
+            {
+                IsCorrectGuess = correctAktor.Id == guessedAktor.Id,
+                Feedback = new Dictionary<string, FeedbackType>(),
+                GuessedPolitician = guessedDetails
+            };
 
-             return result;
+            if (guessDto.GameMode == GamemodeTypes.Klassisk)
+            {
+                result.Feedback["Navn"] = result.IsCorrectGuess ? FeedbackType.Korrekt : FeedbackType.Forkert;
+                
+                result.Feedback["Parti"] = string.Equals(correctAktor.Party, guessedAktor.Party, StringComparison.OrdinalIgnoreCase) 
+                                            ? FeedbackType.Korrekt 
+                                            : FeedbackType.Forkert;
+
+                if (correctAge == guessedAge) result.Feedback["Alder"] = FeedbackType.Korrekt;
+                else if (correctAge > guessedAge) result.Feedback["Alder"] = FeedbackType.Højere;
+                else result.Feedback["Alder"] = FeedbackType.Lavere;
+
+                string? correctRegionString = correctAktor.Constituencies?.FirstOrDefault();
+                string? guessedRegionString = guessedAktor.Constituencies?.FirstOrDefault();
+                result.Feedback["Region"] = string.Equals(correctRegionString, guessedRegionString, StringComparison.OrdinalIgnoreCase) 
+                                            ? FeedbackType.Korrekt 
+                                            : FeedbackType.Forkert;
+                
+                result.Feedback["Køn"] = string.Equals(correctAktor.Sex, guessedAktor.Sex, StringComparison.OrdinalIgnoreCase) 
+                                            ? FeedbackType.Korrekt 
+                                            : FeedbackType.Forkert;
+                
+                string? correctFirstEducation = DataParsingHelpers.GetFirstEducation(correctAktor.Educations);
+                string? guessedFirstEducation = DataParsingHelpers.GetFirstEducation(guessedAktor.Educations);
+                result.Feedback["Uddannelse"] = string.Equals(correctFirstEducation, guessedFirstEducation, StringComparison.OrdinalIgnoreCase) 
+                                            ? FeedbackType.Korrekt 
+                                            : FeedbackType.Forkert;
+            }
+
+            _logger.LogInformation("Guess result for GuessedAktorId {GuessedId}: Correct={IsCorrect}, Feedback Count={FeedbackCount}",
+                guessDto.GuessedPoliticianId, result.IsCorrectGuess, result.Feedback.Count);
+
+            return result;
         }
 
-        // GetQuoteOfTheDayAsync
         public async Task<QuoteDto> GetQuoteOfTheDayAsync()
         {
-              DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-              var selection = await _context.DailySelections.AsNoTracking()
-                  .FirstOrDefaultAsync(ds => ds.SelectionDate == today && ds.GameMode == GamemodeTypes.Citat);
-             if (selection == null) { throw new KeyNotFoundException($"Ingen dagens citat fundet for {today}."); }
-             if (string.IsNullOrEmpty(selection.SelectedQuoteText)) { throw new InvalidOperationException($"Intet citat gemt for {today}."); }
-             return new QuoteDto { QuoteText = selection.SelectedQuoteText };
+            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var selection = await _context.DailySelections
+                .AsNoTracking()
+                .Include(ds => ds.SelectedPolitiker) // Aktor
+                    .ThenInclude(p => p!.Quotes)    // Quotes from Aktor
+                .FirstOrDefaultAsync(ds => ds.SelectionDate == today && ds.GameMode == GamemodeTypes.Citat);
+
+            if (selection == null) { throw new KeyNotFoundException($"Ingen dagens citat fundet for {today}."); }
+            
+            if (string.IsNullOrEmpty(selection.SelectedQuoteText))
+            {
+                if (selection.SelectedPolitiker?.Quotes != null && selection.SelectedPolitiker.Quotes.Any())
+                {
+                    _logger.LogWarning("SelectedQuoteText was missing for Citat selection on {Date} for Aktor {AktorId}. Selecting a random quote now.", today, selection.SelectedPolitikerID);
+                    return new QuoteDto { QuoteText = selection.SelectedPolitiker.Quotes.ElementAt(_random.Next(selection.SelectedPolitiker.Quotes.Count)).QuoteText };
+                }
+                throw new InvalidOperationException($"Intet citat gemt eller findes for politikeren (ID: {selection.SelectedPolitikerID}) for {today}.");
+            }
+            return new QuoteDto { QuoteText = selection.SelectedQuoteText };
         }
 
-        // GetPhotoOfTheDayAsync
         public async Task<PhotoDto> GetPhotoOfTheDayAsync()
         {
-             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-             int politicianId = await GetSelectedPoliticianIdAsync(GamemodeTypes.Foto, today);
-             var photoData = await _context.FakePolitikere
-                                     .Where(p => p.Id == politicianId)
-                                     .Select(p => p.Portræt)
-                                     .FirstOrDefaultAsync();
-             if (photoData == null) { throw new KeyNotFoundException($"Politiker ({politicianId}) fundet i DailySelection, men ikke i FakePolitikere, eller Portræt er null."); }
-             if (photoData.Length == 0) { throw new InvalidOperationException($"Politiker ({politicianId}) har tomme portræt data."); }
-             return new PhotoDto { PortraitBase64 = Convert.ToBase64String(photoData) };
+            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+            _logger.LogInformation("Attempting to get photo of the day for {Date}", today);
+
+            var selection = await _context.DailySelections
+                .Include(ds => ds.SelectedPolitiker) // Aktor
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ds => ds.SelectionDate == today && ds.GameMode == GamemodeTypes.Foto);
+
+            if (selection == null || selection.SelectedPolitiker == null)
+            {
+                _logger.LogError("Daily selection or Aktor not found for Foto mode on {Date}", today);
+                // Consider if GetOrSelectDailyPoliticianAsync should be called here as a fallback
+                // to ensure a selection is made if the job hasn't run yet for today.
+                // For now, throwing as per previous logic if no selection exists.
+                throw new KeyNotFoundException($"Ingen dagens fotovalg eller politiker fundet for {today}.");
+            }
+
+            // Directly use the Portraet byte array from the Aktor model
+            byte[]? portraitData = selection.SelectedPolitiker.Portraet; 
+
+            if (portraitData == null || portraitData.Length == 0)
+            {
+                // This means the Aktor entity was found, but its Portraet field is empty or null.
+                // This should ideally be handled during data import/seeding.
+                _logger.LogWarning("Aktor ID {AktorId} for Photo mode has no portrait byte[] data (Aktor.Portraet is null or empty).", selection.SelectedPolitiker.Id);
+                // Return an empty DTO or a DTO with a placeholder/error indicator based on frontend requirements.
+                return new PhotoDto { PortraitBase64 = string.Empty }; 
+            }
+
+            // If we have portraitData, convert to Base64 for the DTO
+            try
+            {
+                return new PhotoDto { PortraitBase64 = Convert.ToBase64String(portraitData) };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to convert portrait data to Base64 for Aktor ID {AktorId}", selection.SelectedPolitiker.Id);
+                // Handle conversion error, e.g., return empty or throw
+                return new PhotoDto { PortraitBase64 = string.Empty };
+            }
         }
+        
+        public async Task SelectAndSaveDailyPoliticiansAsync(DateOnly date)
+        {
+             _logger.LogInformation("Starting daily selection process for Aktor for {Date}", date);
+            bool alreadyExists = await _context.DailySelections.AnyAsync(ds => ds.SelectionDate == date);
+            if (alreadyExists) 
+            {
+                 _logger.LogWarning("Daily selections already exist for {Date}. Skipping generation.", date); 
+                 return; 
+            }
 
-        // SelectAndSaveDailyPoliticiansAsync (Job metode)
-         public async Task SelectAndSaveDailyPoliticiansAsync(DateOnly date)
-         {
-              _logger.LogInformation("Starting daily selection process for {Date}", date);
-              bool alreadyExists = await _context.DailySelections.AnyAsync(ds => ds.SelectionDate == date);
-              if (alreadyExists) { _logger.LogWarning("Daily selections already exist for {Date}. Skipping generation.", date); return; }
+            var allPoliticians = await _context.Aktor
+                                            .Where(a => a.typeid == 5) 
+                                            .Include(a => a.Quotes)
+                                            .Include(a => a.GameTrackings)
+                                            // .Include(a => a.PartyEntity) // If you have a direct navigation to a Party entity
+                                            .ToListAsync();
 
-              // Antager at FakePolitiker har en navigation property 'Quotes' af typen ICollection<PoliticianQuote>
-              // og at PoliticianQuote har en string property 'QuoteText'
-              var allPoliticians = await _context.FakePolitikere
-                                              .Include(p => p.Quotes)
-                                              .Include(p => p.GameTrackings)
-                                              .ToListAsync();
-              if (!allPoliticians.Any()) { _logger.LogError("No politicians found."); return; }
+            if (!allPoliticians.Any()) 
+            {
+                 _logger.LogError("No Aktors (typeid=5) found in the database for daily selection."); 
+                 return; 
+            }
 
-              // Vælg Classic
-              var classicCandidates = allPoliticians.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Klassisk, date))).ToList();
-              var classicPolitician = SelectWeightedRandom(classicCandidates);
-              if (classicPolitician == null) { _logger.LogError("Could not select classic politician."); return; }
+            Aktor? classicPolitician = SelectWeightedRandom(allPoliticians.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Klassisk, date))).ToList());
+            if (classicPolitician == null) { _logger.LogError("Could not select classic Aktor for {Date}.", date); return; }
 
-              // Vælg Citat (med fallback)
-              FakePolitiker? quotePolitician = null; PoliticianQuote? selectedQuote = null;
-              var quoteCandidatesRaw = allPoliticians.Where(p => p.Quotes != null && p.Quotes.Any()).ToList();
-              if (!quoteCandidatesRaw.Any()) {
-                   _logger.LogWarning("No politicians with quotes found. Selecting random politician for Quote mode fallback.");
-                   var fallbackQuoteCandidates = allPoliticians.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Citat, date))).ToList();
-                   quotePolitician = SelectWeightedRandom(fallbackQuoteCandidates);
-               } else {
-                   var quoteCandidatesWeighted = quoteCandidatesRaw.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Citat, date))).ToList();
-                   quotePolitician = SelectWeightedRandom(quoteCandidatesWeighted);
-                   if (quotePolitician?.Quotes?.Any() ?? false) { selectedQuote = quotePolitician.Quotes.ElementAt(_random.Next(quotePolitician.Quotes.Count)); }
-               }
-               if (quotePolitician == null) { _logger.LogError("Could not select quote politician."); return; }
+            Aktor? quotePolitician;
+            PoliticianQuote? selectedQuote = null;
+            var quoteCandidates = allPoliticians.Where(p => p.Quotes != null && p.Quotes.Any()).ToList();
+            if (!quoteCandidates.Any()) {
+                _logger.LogWarning("No Aktors with quotes found for {Date}. Selecting random Aktor for Quote mode fallback.", date);
+                quotePolitician = SelectWeightedRandom(allPoliticians.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Citat, date))).ToList());
+            } else {
+                quotePolitician = SelectWeightedRandom(quoteCandidates.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Citat, date))).ToList());
+                if (quotePolitician?.Quotes?.Any() ?? false) 
+                {
+                     selectedQuote = quotePolitician.Quotes.ElementAt(_random.Next(quotePolitician.Quotes.Count)); 
+                }
+            }
+            if (quotePolitician == null) { _logger.LogError("Could not select quote Aktor for {Date}.", date); return; }
 
-               // Vælg Foto (med fallback)
-                FakePolitiker? photoPolitician = null;
-                var photoCandidatesRaw = allPoliticians.Where(p => p.Portræt != null && p.Portræt.Length > 0).ToList();
-                 if (!photoCandidatesRaw.Any()) {
-                    _logger.LogWarning("No politicians with portraits found. Selecting random politician for Photo mode fallback.");
-                    var fallbackPhotoCandidates = allPoliticians.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Foto, date))).ToList();
-                    photoPolitician = SelectWeightedRandom(fallbackPhotoCandidates);
-                } else {
-                     var photoCandidatesWeighted = photoCandidatesRaw.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Foto, date))).ToList();
-                     photoPolitician = SelectWeightedRandom(photoCandidatesWeighted);
-                 }
-                 if (photoPolitician == null) { _logger.LogError("Could not select photo politician."); return; }
+            Aktor? photoPolitician;
+            // Now using Aktor.Portraet (byte[])
+            var photoCandidates = allPoliticians.Where(p => p.Portraet != null && p.Portraet.Length > 0).ToList();
+            if (!photoCandidates.Any()) {
+                _logger.LogWarning("No Aktors with portrait data found for {Date}. Selecting random Aktor for Photo mode fallback.", date);
+                photoPolitician = SelectWeightedRandom(allPoliticians.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Foto, date))).ToList());
+            } else {
+                photoPolitician = SelectWeightedRandom(photoCandidates.Select(p => (politician: p, weight: CalculateSelectionWeight(p, GamemodeTypes.Foto, date))).ToList());
+            }
+            if (photoPolitician == null) { _logger.LogError("Could not select photo Aktor for {Date}.", date); return; }
 
-              // Gem Valg
-              var dailySelections = new List<DailySelection> {
-                   new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Klassisk, SelectedPolitikerID = classicPolitician.Id },
-                   new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Citat, SelectedPolitikerID = quotePolitician.Id, SelectedQuoteText = selectedQuote?.QuoteText }, // Antager PoliticianQuote model
-                   new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Foto, SelectedPolitikerID = photoPolitician.Id }
-               };
-              _context.DailySelections.AddRange(dailySelections);
+            var dailySelections = new List<DailySelection> {
+                new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Klassisk, SelectedPolitikerID = classicPolitician.Id },
+                new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Citat, SelectedPolitikerID = quotePolitician.Id, SelectedQuoteText = selectedQuote?.QuoteText },
+                new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Foto, SelectedPolitikerID = photoPolitician.Id }
+            };
+            _context.DailySelections.AddRange(dailySelections);
 
-              // Opdater Trackers
-              await UpdateTrackerAsync(classicPolitician, GamemodeTypes.Klassisk, date);
-              await UpdateTrackerAsync(quotePolitician, GamemodeTypes.Citat, date);
-              await UpdateTrackerAsync(photoPolitician, GamemodeTypes.Foto, date);
+            await UpdateTrackerAsync(classicPolitician, GamemodeTypes.Klassisk, date);
+            await UpdateTrackerAsync(quotePolitician, GamemodeTypes.Citat, date);
+            await UpdateTrackerAsync(photoPolitician, GamemodeTypes.Foto, date);
 
-              await _context.SaveChangesAsync();
-              _logger.LogInformation("Successfully selected and saved daily politicians for {Date}. Classic: {ClassicId}, Quote: {QuoteId}, Photo: {PhotoId}", date, classicPolitician.Id, quotePolitician.Id, photoPolitician.Id);
-         }
-
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully selected and saved daily Aktors for {Date}. Classic: {ClassicId}, Quote: {QuoteId}, Photo: {PhotoId}", date, classicPolitician.Id, quotePolitician.Id, photoPolitician.Id);
+        }
         #endregion // Interface Implementation
 
         #region Helper Methods
-
-        // CalculateAge (uændret - forventer DateOnly)
         private int CalculateAge(DateOnly dateOfBirth, DateOnly referenceDate)
         {
             int age = referenceDate.Year - dateOfBirth.Year;
-            if (referenceDate.DayOfYear < dateOfBirth.DayOfYear) { age--; }
+            if (referenceDate < dateOfBirth.AddYears(age)) age--; // More accurate check
             return Math.Max(0, age);
         }
 
-        // GetSelectedPoliticianIdAsync (uændret)
-         private async Task<int> GetSelectedPoliticianIdAsync(GamemodeTypes gameMode, DateOnly today)
-         {
-             var selection = await _context.DailySelections.AsNoTracking().FirstOrDefaultAsync(ds => ds.SelectionDate == today && ds.GameMode == gameMode);
-             if (selection == null) { throw new KeyNotFoundException($"Ingen dagens politiker fundet for {gameMode} d. {today}."); }
-             return selection.SelectedPolitikerID;
-         }
+        private async Task<int> GetSelectedPoliticianIdAsync(GamemodeTypes gameMode, DateOnly today)
+        {
+            var selection = await _context.DailySelections.AsNoTracking()
+                .FirstOrDefaultAsync(ds => ds.SelectionDate == today && ds.GameMode == gameMode);
+            if (selection == null) 
+            {
+                _logger.LogError("No daily selection found for {GameMode} on {Date}. Attempting to select now.", gameMode, today);
+                // Attempt to select one if missing (important for first run or if job failed)
+                var politiker = await GetOrSelectDailyPoliticianAsync(gameMode);
+                if (politiker == null)
+                {
+                    throw new KeyNotFoundException($"Could not select or find a daily politician for {gameMode} on {today} after fallback attempt.");
+                }
+                return politiker.Id;
+            }
+            return selection.SelectedPolitikerID;
+        }
         #endregion Helper Methods
 
         #region Weighted Selection Helpers
-
-        // PerformWeightedSelectionAsync (med rettet Include/Select)
-        private async Task<FakePolitiker?> PerformWeightedSelectionAsync(GamemodeTypes gameMode, DateOnly today)
+        private async Task<Aktor?> PerformWeightedSelectionAsync(GamemodeTypes gameMode, DateOnly today)
         {
-             const int maxWeightDays = 365 * 2; const int defaultWeight = maxWeightDays + 1;
-             _logger.LogDebug("Performing weighted selection for {GameMode} on {Date}", gameMode, today);
+            const int maxWeightDays = 365 * 2; 
+            const int defaultWeightIfNeverSelected = maxWeightDays + 1;
+            _logger.LogDebug("Performing weighted selection for Aktor in {GameMode} on {Date}", gameMode, today);
 
-             var candidates = await _context.FakePolitikere
-                 .Include(p => p.FakeParti) // Inkluder parti
-                 .Include(p => p.GameTrackings.Where(gt => gt.GameMode == gameMode)) // Inkluder relevant tracking
-                 // .Where(p => p.IsActive) // Evt. filter
-                 .Select(p => new { Politician = p }) // Projektér EFTER includes
-                 .ToListAsync();
+            var candidatesQuery = _context.Aktor.Where(a => a.typeid == 5); 
+                                          
+            if (gameMode == GamemodeTypes.Citat)
+            {
+                candidatesQuery = candidatesQuery.Include(a => a.Quotes);
+            }
+            // No need to include Aktor.Portraet (byte[]) here as it's part of the main entity.
+            // Aktor.Party (string) is also part of the main entity.
+                                          
+            var allAktorsForMode = await candidatesQuery
+                .Include(a => a.GameTrackings.Where(gt => gt.GameMode == gameMode))
+                .ToListAsync();
 
-             if (!candidates.Any()) { _logger.LogWarning("No candidates found for weighted selection..."); return null; }
+            if (!allAktorsForMode.Any()) { _logger.LogWarning("No Aktor candidates (typeid=5) found for weighted selection in {GameMode}.", gameMode); return null; }
 
-             var weightedCandidates = candidates.Select(c => {
-                 var tracker = c.Politician.GameTrackings.FirstOrDefault(); // Bør kun være én
-                 int daysSinceLast = tracker?.LastSelectedDate.HasValue ?? false ? today.DayNumber - tracker.LastSelectedDate.Value.DayNumber : defaultWeight;
-                 int weight = Math.Max(1, Math.Min(daysSinceLast, maxWeightDays));
-                 return new { c.Politician, Weight = weight };
-             }).ToList();
+            List<(Aktor politician, int weight)> weightedCandidates;
 
-             return SelectWeightedRandom(weightedCandidates.Select(wc => (wc.Politician, wc.Weight)).ToList());
+            if (gameMode == GamemodeTypes.Citat)
+            {
+                weightedCandidates = allAktorsForMode
+                    .Where(a => a.Quotes != null && a.Quotes.Any()) // Only those with quotes
+                    .Select(aktor => (
+                        politician: aktor, 
+                        weight: CalculateSelectionWeight(aktor, gameMode, today)
+                    )).ToList();
+                if (!weightedCandidates.Any()) // Fallback if no one has quotes
+                {
+                    _logger.LogWarning("No Aktors with quotes for Citat mode. Falling back to all Aktors for {GameMode}.", gameMode);
+                    weightedCandidates = allAktorsForMode.Select(aktor => (politician: aktor, weight: CalculateSelectionWeight(aktor, gameMode, today))).ToList();
+                }
+            }
+            else if (gameMode == GamemodeTypes.Foto)
+            {
+                weightedCandidates = allAktorsForMode
+                    .Where(a => a.Portraet != null && a.Portraet.Length > 0) // Only those with portrait data
+                    .Select(aktor => (
+                        politician: aktor, 
+                        weight: CalculateSelectionWeight(aktor, gameMode, today)
+                    )).ToList();
+                 if (!weightedCandidates.Any()) // Fallback if no one has portraits
+                {
+                    _logger.LogWarning("No Aktors with portrait data for Foto mode. Falling back to all Aktors for {GameMode}.", gameMode);
+                    weightedCandidates = allAktorsForMode.Select(aktor => (politician: aktor, weight: CalculateSelectionWeight(aktor, gameMode, today))).ToList();
+                }
+            }
+            else // Klassisk or other modes
+            {
+                 weightedCandidates = allAktorsForMode.Select(aktor => (
+                    politician: aktor, 
+                    weight: CalculateSelectionWeight(aktor, gameMode, today)
+                )).ToList();
+            }
+            
+            if (!weightedCandidates.Any()) { 
+                _logger.LogWarning("No suitable weighted candidates found for {GameMode} after filtering.", gameMode); 
+                return null; // Or handle fallback if allAktorsForMode had items but filtering removed all
+            }
+
+            return SelectWeightedRandom(weightedCandidates);
         }
 
-        // CalculateSelectionWeight (som før)
-         private int CalculateSelectionWeight(FakePolitiker politician, GamemodeTypes gameMode, DateOnly currentDate)
-         {
-              const int maxWeight = 365 * 2; const int baseWeight = 1;
-              var tracker = politician.GameTrackings?.FirstOrDefault(gt => gt.GameMode == gameMode);
-              if (tracker == null || tracker.LastSelectedDate == null) { return maxWeight; }
-              else { int days = (currentDate.DayNumber - tracker.LastSelectedDate.Value.DayNumber); return Math.Max(baseWeight, Math.Min(maxWeight, days + baseWeight)); }
-         }
+        private int CalculateSelectionWeight(Aktor politician, GamemodeTypes gameMode, DateOnly currentDate)
+        {
+            const int maxWeightDays = 365 * 2; 
+            const int defaultWeightIfNeverSelected = maxWeightDays + 1; 
+            const int baseWeight = 1; 
 
-        // SelectWeightedRandom (som før)
-         private FakePolitiker? SelectWeightedRandom(List<(FakePolitiker politician, int weight)> weightedCandidates)
-         {
-              if (weightedCandidates == null || !weightedCandidates.Any()) return null;
-              var validCandidates = weightedCandidates.Where(c => c.weight > 0).ToList();
-               if (!validCandidates.Any()) { /* fallback */ if (!weightedCandidates.Any()) return null; return weightedCandidates[_random.Next(weightedCandidates.Count)].politician;}
-               long totalWeight = validCandidates.Sum(c => (long)c.weight);
-               if (totalWeight <= 0) { /* fallback */ return validCandidates[_random.Next(validCandidates.Count)].politician; }
-               double randomValue = _random.NextDouble() * totalWeight; long cumulativeWeight = 0;
-               foreach (var candidate in validCandidates) { cumulativeWeight += candidate.weight; if (randomValue < cumulativeWeight) return candidate.politician; }
-               _logger.LogError("Weighted random selection failed unexpectedly..."); return validCandidates.LastOrDefault().politician; // Fallback
-         }
+            var tracker = politician.GameTrackings?.FirstOrDefault(gt => gt.GameMode == gameMode);
 
-        // UpdateTrackerAsync (som før)
-         private async Task UpdateTrackerAsync(FakePolitiker politician, GamemodeTypes gameMode, DateOnly selectionDate)
-         {
-             var existingTracker = politician.GameTrackings?.FirstOrDefault(gt => gt.GameMode == gameMode);
-             if (existingTracker == null) { existingTracker = await _context.GameTrackings.FirstOrDefaultAsync(gt => gt.PolitikerId == politician.Id && gt.GameMode == gameMode); }
-              if (existingTracker != null) { existingTracker.LastSelectedDate = selectionDate; existingTracker.AlgoWeight = null; _context.GameTrackings.Update(existingTracker); }
-              else { var nt = new PolidleGamemodeTracker { PolitikerId = politician.Id, GameMode = gameMode, LastSelectedDate = selectionDate }; await _context.GameTrackings.AddAsync(nt); }
-             // Bemærk: SaveChanges() kaldes samlet i SelectAndSaveDailyPoliticiansAsync
-         }
+            if (tracker == null || !tracker.LastSelectedDate.HasValue) // Check HasValue for nullable DateOnly
+            {
+                return defaultWeightIfNeverSelected;
+            }
+            else
+            {
+                int daysSinceLastSelected = currentDate.DayNumber - tracker.LastSelectedDate.Value.DayNumber;
+                return Math.Max(baseWeight, Math.Min(daysSinceLastSelected + baseWeight, maxWeightDays));
+            }
+        }
 
-        #endregion // Weighted Selection Helpers
+        private Aktor? SelectWeightedRandom(List<(Aktor politician, int weight)> weightedCandidates)
+        {
+            if (weightedCandidates == null || !weightedCandidates.Any()) 
+            {
+                _logger.LogWarning("SelectWeightedRandom called with no candidates.");
+                return null;
+            }
+
+            var validCandidates = weightedCandidates.Where(c => c.weight > 0).ToList();
+            if (!validCandidates.Any()) 
+            {
+                _logger.LogWarning("All candidates had non-positive weights. Performing simple random selection from original list (if any).");
+                return weightedCandidates.Any() ? weightedCandidates[_random.Next(weightedCandidates.Count)].politician : null;
+            }
+
+            long totalWeight = validCandidates.Sum(c => (long)c.weight); 
+            if (totalWeight <= 0) { // Should ideally not be reached if weights are > 0
+                 _logger.LogError("Total weight is zero or less even with positive-weighted candidates. Fallback.");
+                return validCandidates.Any() ? validCandidates[_random.Next(validCandidates.Count)].politician : null;
+            }
+
+            double randomValue = _random.NextDouble() * totalWeight;
+            long cumulativeWeight = 0;
+            foreach (var candidate in validCandidates)
+            {
+                cumulativeWeight += candidate.weight;
+                if (randomValue < cumulativeWeight)
+                {
+                    return candidate.politician;
+                }
+            }
+            
+            _logger.LogError("Weighted random selection logic failed unexpectedly. Returning last valid candidate as fallback.");
+            return validCandidates.LastOrDefault().politician; 
+        }
+
+        private async Task UpdateTrackerAsync(Aktor politician, GamemodeTypes gameMode, DateOnly selectionDate)
+        {
+            var existingTracker = politician.GameTrackings?.FirstOrDefault(gt => gt.GameMode == gameMode);
+            
+            if (existingTracker == null && politician.Id > 0) // Check politician.Id to ensure it's a valid entity
+            {
+                existingTracker = await _context.GameTrackings
+                                            .FirstOrDefaultAsync(gt => gt.PolitikerId == politician.Id && gt.GameMode == gameMode);
+            }
+
+            if (existingTracker != null)
+            {
+                existingTracker.LastSelectedDate = selectionDate;
+                existingTracker.AlgoWeight = null; 
+                _context.GameTrackings.Update(existingTracker);
+            }
+            else if (politician.Id > 0) // Only add if politician is a valid entity (has an ID)
+            {
+                var newTracker = new PolidleGamemodeTracker
+                {
+                    PolitikerId = politician.Id, 
+                    // Aktor = politician, // EF Core should link this via PolitikerId FK
+                    GameMode = gameMode,
+                    LastSelectedDate = selectionDate
+                };
+                await _context.GameTrackings.AddAsync(newTracker);
+                
+                politician.GameTrackings ??= new List<PolidleGamemodeTracker>();
+                if(!politician.GameTrackings.Contains(newTracker))
+                {
+                    politician.GameTrackings.Add(newTracker);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Skipped UpdateTrackerAsync for Aktor without ID. Politician: {PoliticianName}", politician.navn);
+            }
+        }
+        #endregion
     }
 }

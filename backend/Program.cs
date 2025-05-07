@@ -21,63 +21,40 @@ var builder = WebApplication.CreateBuilder(args);
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
 if (string.IsNullOrEmpty(openSearchUrl))
 {
-    // Handle missing configuration - throw an error or default
-    openSearchUrl = "http://localhost:9200"; // Default if not configured
+    openSearchUrl = "http://localhost:9200"; 
     Console.WriteLine("Warning: OpenSearch URL not configured in appsettings.json. Using default: http://localhost:9200");
 }
 
-// Add credentials if needed (example using Basic Auth - get from config)
-// var openSearchUser = builder.Configuration["OpenSearch:Username"];
-// var openSearchPassword = builder.Configuration["OpenSearch:Password"];
-
-// Configure the connection settings
 var settings = new ConnectionSettings(new Uri(openSearchUrl))
-    // Optional: Set a default index if most operations target one index
-    // .DefaultIndex("your-default-index-name")
-    // Optional: Add authentication if required
-    // .BasicAuthentication(openSearchUser, openSearchPassword)
-    // Optional: Disable SSL verification for local dev (NOT recommended for production)
-    .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // Use ONLY for dev/testing
-    .PrettyJson(); // Makes debugging easier by formatting JSON requests/responses
+    .ServerCertificateValidationCallback(CertificateValidations.AllowAll) 
+    .PrettyJson(); 
 
-// Register IOpenSearchClient as a singleton (recommended by the library)
 builder.Services.AddSingleton<IOpenSearchClient>(new OpenSearchClient(settings));
 
-// --- ADD OPENSEARCH CONFIGURATION AND REGISTRATION END ---
-
-
-// Enable detailed error messages for JWT validation
-IdentityModelEventSource.ShowPII = true;
-
-// Enable detailed error messages for JWT validation
 IdentityModelEventSource.ShowPII = true;
 IdentityModelEventSource.LogCompleteSecurityArtifact = true;
 
-// JWT-konfiguration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(
     jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key mangler i konfigurationen")
 );
 
-// Authorization Policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(
         "RequireAdministratorRole",
-        policy => policy.RequireRole(ClaimTypes.Role, "Admin") // Bruger standard role claim type
+        policy => policy.RequireRole(ClaimTypes.Role, "Admin") 
     );
     options.AddPolicy(
         "UserOrAdmin",
-        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin") // Bruger standard role claim type
+        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin") 
     );
 });
 
-// EF Core Database Context
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))
 );
 
-// Authentication med JWT Bearer
 builder
     .Services.AddAuthentication(options =>
     {
@@ -86,7 +63,7 @@ builder
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment(); // Kræv kun HTTPS i produktion
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment(); 
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -97,17 +74,23 @@ builder
             ValidIssuer = jwtSettings["Issuer"],
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(key),
-            ClockSkew = TimeSpan.Zero, // Vær præcis med token udløb
-            RoleClaimType = ClaimTypes.Role, // Specificerer hvilket claim der indeholder roller
+            ClockSkew = TimeSpan.Zero, 
+            RoleClaimType = ClaimTypes.Role, 
         };
-        // Event hooks til debugging/logging af token validering
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
             {
-                // Brug ILogger i stedet for Console.WriteLine i en rigtig applikation
-                Console.WriteLine($"🚫 TOKEN VALIDATION FAILED: {context.Exception}");
-                // Overvej at logge context.Exception for flere detaljer
+                Console.WriteLine($"🚫 TOKEN VALIDATION FAILED: {context.Exception.Message}");
+                if (context.Exception is SecurityTokenExpiredException tokenExpiredException)
+                {
+                    Console.WriteLine($"Token expired at: {tokenExpiredException.Expires}");
+                }
+                else if (context.Exception is SecurityTokenInvalidSignatureException)
+                {
+                     Console.WriteLine($"Token signature invalid.");
+                }
+                // Add more specific logging if needed
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
@@ -116,27 +99,27 @@ builder
                 if (context.Principal?.Identity != null)
                 {
                     Console.WriteLine("User: " + context.Principal.Identity?.Name);
-                    return Task.CompletedTask;
                 } else {
-                    Console.WriteLine("User information not available.");
+                    Console.WriteLine("User information not available after validation.");
                 }
                 return Task.CompletedTask;
             },
             OnForbidden = context => {
-                 // Log når adgang nægtes (f.eks. 403 Forbidden)
-                 Console.WriteLine($"🚫 FORBIDDEN: User {context.Principal?.Identity?.Name} does not have required permissions.");
+                 Console.WriteLine($"🚫 FORBIDDEN: User {context.Principal?.Identity?.Name} does not have required permissions for the resource.");
                  return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                Console.WriteLine($"챌린지 발생: {context.Error} - {context.ErrorDescription}");
+                return Task.CompletedTask;
             }
         };
     });
 
-// Swagger/OpenAPI konfiguration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
-
-    // Tilføj JWT authentication knap i Swagger UI
     options.AddSecurityDefinition(
         "Bearer",
         new OpenApiSecurityScheme
@@ -149,7 +132,6 @@ builder.Services.AddSwaggerGen(options =>
             Description = "Indtast JWT token i formatet: Bearer {token}",
         }
     );
-
     options.AddSecurityRequirement(
         new OpenApiSecurityRequirement
         {
@@ -168,20 +150,20 @@ builder.Services.AddSwaggerGen(options =>
     );
 });
 
-// Registrering af dine custom services
 builder.Services.AddScoped<EmailService>();
-
-//oda.ft crawler
 builder.Services.AddScoped<HttpService>();
-
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient(); // Ensures IHttpClientFactory is available
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
+builder.Services.AddHostedService<DailySelectionJob>(); 
+builder.Services.AddScoped<SearchIndexingService>();
+builder.Services.AddScoped<AltingetScraperService>();
+builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
+// builder.Services.AddHostedService<TestScheduledIndexService>(); // Keep this commented unless actively testing indexing
 
-// CORS (Cross-Origin Resource Sharing) konfiguration
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
-        "AllowReactApp", // Navnet på din policy
+        "AllowReactApp", 
         policy =>
         {
             policy.WithOrigins(builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
@@ -191,60 +173,42 @@ builder.Services.AddCors(options =>
     );
 });
 
-builder.Services.AddHttpClient(); // til OAuth
-
 builder.Services.AddControllers();
-builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
-builder.Services.AddHostedService<DailySelectionJob>(); //* Bruges til udvælgelse af "dagens politiker"
 
-//Search indexing service
-builder.Services.AddScoped<SearchIndexingService>();
-
-// For altinget scraping
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<AltingetScraperService>();
-builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
-builder.Services.AddHostedService<TestScheduledIndexService>();
-
-
-// -----------------------------------------
-// Byg WebApplication objektet
-// -----------------------------------------
 var app = builder.Build();
 
-
+// --- OpenSearch Index Setup ---
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>(); // Or specific category
-
+    var logger = services.GetRequiredService<ILogger<Program>>();
     try
     {
         logger.LogInformation("Ensuring OpenSearch index exists before starting...");
-        // Ensure SearchIndexSetup class exists or move this logic inline
         await SearchIndexSetup.EnsureIndexExistsWithMapping(services);
-        logger.LogInformation("Index check/creation complete.");
+        logger.LogInformation("OpenSearch Index check/creation complete.");
 
-        // --- Trigger initial indexing ---
-        logger.LogInformation("Triggering initial background indexing task...");
-        var indexingService = services.GetRequiredService<SearchIndexingService>();
-        // --- End trigger initial indexing ---
-
+        // Consider if initial indexing should be run here or by the scheduled service.
+        // If TestScheduledIndexService is enabled, it will run shortly after start.
+        // If not, you might want to trigger an initial index if the index was just created:
+        // var indexExistsResponse = await services.GetRequiredService<IOpenSearchClient>().Indices.ExistsAsync("borgertinget-search");
+        // if (indexExistsResponse.Exists && !wasCreatedNow) { // you'd need a flag from EnsureIndexExists
+        //    logger.LogInformation("Triggering initial background indexing task...");
+        //    var indexingService = services.GetRequiredService<SearchIndexingService>();
+        //    _ = indexingService.RunFullIndexAsync(); // Run in background, don't await
+        // }
     }
     catch (Exception ex)
     {
         logger.LogCritical(ex, "An error occurred during application startup while setting up OpenSearch.");
-        // Optionally prevent the application from starting if setup fails
-        // throw;
     }
 }
 
 // --- DATABASE MIGRATION OG SEEDING START ---
-// Dette afsnit køres én gang ved applikationens opstart
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>(); // Logger hentes her for scope't
+    var logger = services.GetRequiredService<ILogger<Program>>(); 
     try
     {
         var context = services.GetRequiredService<DataContext>();
@@ -253,38 +217,24 @@ using (var scope = app.Services.CreateScope())
         await context.Database.MigrateAsync();
         logger.LogInformation("Database migrations applied successfully.");
 
-
-        logger.LogInformation("Attempting to seed data if necessary...");
-        await PolidleSeed.SeedDataAsync(context, 75); // Kald til din seeder
-        logger.LogInformation("Data seeding completed (data added only if tables were empty).");
-
+        logger.LogInformation("Attempting to seed Polidle-specific data (photos/quotes for existing Aktors)...");
+        // Corrected call to the Polidle-specific seeder
+        await PolidleSeed.SeedPolidleDataAsync(context); 
+        logger.LogInformation("Polidle-specific data seeding completed.");
     }
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred while migrating or seeding the database.");
-        // throw; // Overvej at genkaste fejlen for at stoppe opstart
     }
 }
 // --- DATABASE MIGRATION OG SEEDING SLUT ---
 
-
-// -----------------------------------------
-// Konfigurer HTTP request pipeline (Middleware)
-// Rækkefølgen er VIGTIG
-// -----------------------------------------
-
-// Konfigurer kun detaljeret fejlvisning og Swagger i udviklingsmiljøet
-
 if (app.Environment.IsDevelopment())
 {
-    // Hent logger specifikt til denne blok
     var devLogger = app.Services.GetRequiredService<ILogger<Program>>();
-
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    // Brug den hentede logger
     devLogger.LogInformation("Development environment detected. Swagger enabled.");
 }
 else
@@ -294,20 +244,13 @@ else
 }
 
 app.UseHttpsRedirection();
-
-// app.UseStaticFiles(); // Behold hvis du har filer i wwwroot
-
 app.UseRouting();
-
-app.UseCors("AllowReactApp"); // Skal typisk før UseAuthentication/UseAuthorization
-
+app.UseCors("AllowReactApp"); 
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
-// Hent logger til den sidste besked før Run()
 var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
 startupLogger.LogInformation("Starting application...");
 
-app.Run(); // Starter applikationen
+app.Run();

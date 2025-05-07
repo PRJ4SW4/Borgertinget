@@ -62,7 +62,7 @@ const GuessItem: React.FC<GuessItemProps> = ({ result }) => {
       {/* Alder */}
       <div className={`guess-data ${getFeedbackClass(feedback["Alder"])}`}>
         {/* VIS SELVE ALDEREN */}
-        {guessed.age}
+        {guessed.alder}
         {/* Vis pil baseret på Højere/Lavere feedback */}
         {feedback["Alder"] === FeedbackType.Lavere && (
           <span className="arrow"> &#8595;</span>

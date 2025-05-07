@@ -5,15 +5,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 public class PoliticianQuote
 {
-    [Key]
+    [Key] // Primary Key
     public int QuoteId { get; set; }
 
     [Required]
     public string QuoteText { get; set; } = string.Empty;
 
-    // Foreign key til FakePolitiker
+    // Foreign key to Aktor
     public int PolitikerId { get; set; }
 
     [ForeignKey(nameof(PolitikerId))]
-    public virtual FakePolitiker FakePolitiker { get; set; } = null!;
+    public virtual Aktor Aktor { get; set; } = null!;
 }

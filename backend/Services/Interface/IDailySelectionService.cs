@@ -16,8 +16,8 @@ namespace backend.Services
         /// Sørger for at relatere data (som parti) er inkluderet.
         /// </summary>
         /// <param name="gameMode">Spiltypen der hentes for.</param>
-        /// <returns>Dagens FakePolitiker objekt med parti inkluderet, eller null hvis ingen kunne findes/vælges.</returns>
-        Task<FakePolitiker?> GetOrSelectDailyPoliticianAsync(GamemodeTypes gameMode);
+        /// <returns>Dagens Aktor objekt med parti inkluderet, eller null hvis ingen kunne findes/vælges.</returns>
+        Task<Aktor?> GetOrSelectDailyPoliticianAsync(GamemodeTypes gameMode);
 
         // --- OPDATERET METODE SIGNATUR ---
         /// <summary>

@@ -152,18 +152,22 @@ namespace backend.Services
             // Combine relevant text fields for searchable content
             var contentParts = new List<string?>
             {
+                aktor.navn,
                 aktor.Party,
                 aktor.PartyShortname,
                 aktor.MinisterTitel,
                 aktor.FunctionFormattedTitle,
                 aktor.PositionsOfTrust,
+                aktor.Sex,
+                aktor.Born,
                 // Add other text fields you want searchable here
             };
             contentParts.AddRange(aktor.Spokesmen ?? Enumerable.Empty<string>());
             contentParts.AddRange(aktor.Ministers ?? Enumerable.Empty<string>());
-            contentParts.AddRange(
-                aktor.ParliamentaryPositionsOfTrust ?? Enumerable.Empty<string>()
-            );
+            contentParts.AddRange(aktor.ParliamentaryPositionsOfTrust ?? Enumerable.Empty<string>());
+            contentParts.AddRange(aktor.Constituencies ?? Enumerable.Empty<string>());
+            contentParts.AddRange(aktor.Educations ?? Enumerable.Empty<string>()); // Add educations
+            contentParts.AddRange(aktor.Occupations ?? Enumerable.Empty<string>()); // Add occupations
 
             return new SearchDocument
             {
@@ -180,7 +184,6 @@ namespace backend.Services
                 AktorName = aktor.navn,
                 Party = aktor.Party,
                 PartyShortname = aktor.PartyShortname,
-                PictureUrl = aktor.PictureMiRes,
                 MinisterTitle = aktor.MinisterTitel,
                 Constituencies = aktor.Constituencies,
                 // Map other Aktor fields as needed

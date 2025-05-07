@@ -32,7 +32,7 @@ public class AktorController : ControllerBase{
         var aktors = await _context.Aktor.
                                           Where(a => a.typeid ==5).
                                           OrderBy(a => a.navn).
-                                          Select(a => AktorDetailDto.FromAktor(a)).
+                                          Select(a => AktorDetailDto.FromAktor(a, _logger)).
                                           ToListAsync();
 
         return Ok(aktors);
@@ -86,7 +86,7 @@ public class AktorController : ControllerBase{
                 .Where(a => (a.Party != null && a.Party.ToLower() == lowerPartyName) ||
                             (a.PartyShortname != null && a.PartyShortname.ToLower() == lowerPartyName))
                 .OrderBy(a => a.navn)
-                .Select(a => AktorDetailDto.FromAktor(a))
+                .Select(a => AktorDetailDto.FromAktor(a, _logger))
                 .ToListAsync();
 
             // Return the list of found politicians with 200 OK status
@@ -405,7 +405,7 @@ public class AktorController : ControllerBase{
         aktor.Sex = bioDetails.GetValueOrDefault("Sex") as string;
         aktor.Born = bioDetails.GetValueOrDefault("Born") as string;
         aktor.EducationStatistic = bioDetails.GetValueOrDefault("EducationStatistic") as string;
-        aktor.PictureMiRes = bioDetails.GetValueOrDefault("PictureMiRes") as string;
+        aktor.Portraet = bioDetails.GetValueOrDefault("Portraet") as byte[];
         aktor.Email = bioDetails.GetValueOrDefault("Email") as string;
         aktor.FunctionFormattedTitle = bioDetails.GetValueOrDefault("FunctionFormattedTitle") as string;
         aktor.FunctionStartDate = bioDetails.GetValueOrDefault("FunctionStartDate") as string;
@@ -424,7 +424,6 @@ public class AktorController : ControllerBase{
 
         return aktor;
     }
-    
 }
 
 

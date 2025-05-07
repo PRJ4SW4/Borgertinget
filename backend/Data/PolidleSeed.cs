@@ -1,40 +1,24 @@
-using backend.Data; // Namespace for DataContext
-using backend.Models; // Namespace for FakePolitiker, FakeParti etc.
+// backend/Data/PolidleSeed.cs
+using backend.Data; 
+using backend.Models; // Should contain Aktor, Party, PoliticianQuote, PolidleGamemodeTracker
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+// Removed System.Text.RegularExpressions as it's not used in this simplified version
 
 namespace backend.Data
 {
     public class PolidleSeed
     {
-        // Lister til navne, uddannelser, regioner
-        private static readonly List<string> FirstNames = new List<string> {
-             "Anders", "Mette", "Lars", "Pia", "Sofie", "Jakob", "Ida", "Morten", "Pernille", "Kristian",
-             "Camilla", "Peter", "Signe", "Jens", "Louise", "Søren", "Laura", "Mikkel", "Anna", "Rasmus"
-        };
-        private static readonly List<string> LastNames = new List<string> {
-             "Nielsen", "Jensen", "Hansen", "Pedersen", "Andersen", "Christensen", "Larsen", "Sørensen", "Rasmussen", "Jørgensen",
-             "Olsen", "Thomsen", "Kristiansen", "Poulsen", "Johansen", "Knudsen", "Mortensen", "Møller", "Madsen", "Bruun"
-        };
-        private static readonly List<string> Educations = new List<string> {
-             "Cand.polit.", "Cand.merc.", "Jurist", "Folkeskolelærer", "Sygeplejerske", "Ingeniør", "Pædagog",
-             "Statskundskab", "Historiker", "Journalist", "Landmand", "Håndværker", "Sociolog", "Økonomi", "IT-uddannet"
-        };
-        private static readonly List<string> Regions = new List<string> {
-             "Region Hovedstaden", "Region Sjælland", "Region Syddanmark", "Region Midtjylland", "Region Nordjylland",
-             "København", "Aarhus", "Odense", "Aalborg", "Esbjerg", "Randers", "Kolding", "Vejle", "Horsens", "Roskilde"
-        };
-
-        // Portræt-filnavne
+        // Portrait file names (still used for seeding byte[])
         private static readonly List<string> MalePortraits = new List<string> { "mand1.png", "mand2.png", "mand3.png", "mand4.png" };
         private static readonly List<string> FemalePortraits = new List<string> { "kvinde1.png", "kvinde2.png", "kvinde3.png" };
         private static readonly string DefaultPortrait = "default_avatar.png";
 
-        // Liste med eksempel-citater
+        // Sample quotes (still used for seeding)
         private static readonly List<string> SampleQuotes = new List<string> {
             "Vi skal styrke fællesskabet og sikre velfærd for alle.",
             "Lavere skatter og mindre bureaukrati er vejen frem for Danmark.",
@@ -50,25 +34,22 @@ namespace backend.Data
 
         private static readonly Random random = new Random();
 
-        // Hjælpefunktion til at vælge et tilfældigt element fra en liste
-        private static T GetRandomElement<T>(List<T> list)
+        // Helper function to get a random element
+        private static T? GetRandomElement<T>(List<T>? list) 
         {
-            if (list == null || list.Count == 0) { return default(T); }
+            if (list == null || list.Count == 0) { return default; } 
             return list[random.Next(list.Count)];
         }
 
-        // Hjælpefunktion til at generere et tilfældigt navn
-        private static string GenerateRandomName()
-        {
-            return $"{GetRandomElement(FirstNames)} {GetRandomElement(LastNames)}";
-        }
-
-        // Hjælpefunktion til at hente portræt-billeddata som byte array
-        private static async Task<byte[]> GetPortraitBytesAsync(string gender, string imageBasePath)
+        // Helper function to get portrait image data as byte array
+        private static async Task<byte[]> GetPortraitBytesAsync(string? gender, string imageBasePath) // Made gender nullable
         {
             string selectedFileName = DefaultPortrait;
-            if (gender == "Mand" && MalePortraits.Any()) { selectedFileName = GetRandomElement(MalePortraits); }
-            else if (gender == "Kvinde" && FemalePortraits.Any()) { selectedFileName = GetRandomElement(FemalePortraits); }
+            // Use a default gender if not provided, for selecting a portrait type
+            string effectiveGender = gender ?? (random.Next(0, 2) == 0 ? "Mand" : "Kvinde");
+
+            if (effectiveGender == "Mand" && MalePortraits.Any()) { selectedFileName = GetRandomElement(MalePortraits) ?? DefaultPortrait; } 
+            else if (effectiveGender == "Kvinde" && FemalePortraits.Any()) { selectedFileName = GetRandomElement(FemalePortraits) ?? DefaultPortrait; } 
 
             string fullImagePath = Path.Combine(imageBasePath, selectedFileName);
 
@@ -90,107 +71,90 @@ namespace backend.Data
             }
         }
 
-        // --- SeedDataAsync - RETTET DateTimeKind fejl ---
-        public static async Task SeedDataAsync(DataContext context, int numberOfPoliticians = 75)
+        // SeedDataAsync - Updated to only seed photos and quotes for existing Aktors.
+        // Assumes Aktors and Parties are populated from API calls.
+        public static async Task SeedPolidleDataAsync(DataContext context) 
         {
             string baseDirectory = AppContext.BaseDirectory;
             string imageBasePath = Path.Combine(baseDirectory, "SeedData", "Images");
-            Console.WriteLine($"INFO: Leder efter seed-billeder i: {imageBasePath}");
+            Console.WriteLine($"INFO: PolidleSeed: Searching for seed images in: {imageBasePath}");
 
-            // --- Seed Partier ---
-            bool partiesWereSeeded = false;
-            if (!await context.FakePartier.AnyAsync())
+            // --- Seed/Update Aktor Photos and Quotes ---
+            // This part now assumes Aktors (typeid=5) ALREADY EXIST from your API fetch.
+            // It will add sample photos and quotes to them if they don't have them.
+            Console.WriteLine("INFO: PolidleSeed: Checking existing Aktors (typeid=5) for missing photos and quotes...");
+            
+            var existingPoliticians = await context.Aktor
+                                                .Where(a => a.typeid == 5) // Ensure we are only working with politicians
+                                                .Include(a => a.Quotes) 
+                                                .ToListAsync(); 
+
+            if (!existingPoliticians.Any())
             {
-                Console.WriteLine("INFO: Ingen partier fundet. Seeder partier...");
-                var partier = new List<FakeParti>
-                {
-                    new FakeParti { PartiNavn = "Socialdemokratiet" }, new FakeParti { PartiNavn = "Venstre" },
-                    new FakeParti { PartiNavn = "Moderaterne" }, new FakeParti { PartiNavn = "SF - Socialistisk Folkeparti" },
-                    new FakeParti { PartiNavn = "Danmarksdemokraterne" }, new FakeParti { PartiNavn = "Liberal Alliance" },
-                    new FakeParti { PartiNavn = "Det Konservative Folkeparti" }, new FakeParti { PartiNavn = "Enhedslisten" },
-                    new FakeParti { PartiNavn = "Radikale Venstre" }, new FakeParti { PartiNavn = "Dansk Folkeparti" },
-                    new FakeParti { PartiNavn = "Alternativet" }, new FakeParti { PartiNavn = "Nye Borgerlige" }
-                };
-                await context.FakePartier.AddRangeAsync(partier);
-                await context.SaveChangesAsync();
-                partiesWereSeeded = true;
-                Console.WriteLine("INFO: Danske partier seeded.");
-            }
-            else
-            {
-                Console.WriteLine("INFO: Partier findes allerede i databasen.");
+                Console.WriteLine("INFO: PolidleSeed: No existing politicians (typeid=5) found to seed photos/quotes for. This is okay if API data hasn't been fetched yet or no politicians exist.");
+                return;
             }
 
-            // --- Seed Politikere ---
-            bool politiciansWereSeeded = false;
-            if (!await context.FakePolitikere.AnyAsync())
+            int photosAdded = 0;
+            int quotesAddedCount = 0;
+            bool changesMade = false;
+
+            foreach(var politiker in existingPoliticians)
             {
-                Console.WriteLine("INFO: Ingen politikere fundet. Seeder politikere...");
-                var seededPartier = await context.FakePartier.ToListAsync();
-                if (!seededPartier.Any())
+                // Seed Photo (Portraet byte[]) if it's missing or empty
+                // This is useful if your API provides a URL (PictureMiRes) but you want to cache/store the bytes locally.
+                // The actual download from PictureMiRes to Portraet should happen in your Aktor import logic.
+                // This seed step can be a fallback or for local development if API images aren't fetched.
+                if (politiker.Portraet == null || politiker.Portraet.Length == 0)
                 {
-                    Console.WriteLine("FEJL: Kunne ikke finde nogen partier i DB at tilknytte til politikere. Politker-seeding afbrydes.");
-                    return;
-                }
-                Console.WriteLine($"INFO: Fundet {seededPartier.Count} partier at bruge til politiker-seeding.");
-
-                var politikere = new List<FakePolitiker>();
-                var today = DateTime.Today;
-
-                for (int i = 0; i < numberOfPoliticians; i++)
-                {
-                    var randomParti = GetRandomElement(seededPartier);
-                    if (randomParti == null) { continue; }
-
-                    var køn = random.Next(0, 2) == 0 ? "Mand" : "Kvinde";
-                    byte[] portrætBytes = await GetPortraitBytesAsync(køn, imageBasePath);
-
-                    // Generer fødselsdato som DateOnly
-                    int randomAge = random.Next(25, 75);
-                    int birthYear = today.Year - randomAge;
-                    int maxDayOfYear = DateTime.IsLeapYear(birthYear) ? 366 : 365;
-                    int dayOfYear = random.Next(1, maxDayOfYear + 1);
-                    DateOnly birthDate = new DateOnly(birthYear, 1, 1).AddDays(dayOfYear - 1);
-
-                    // === RETTELSE: Konverter til DateTime og specificer Kind som UTC ===
-                    DateTime birthDateTimeUtc = birthDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-                    // ================================================================
-
-                    // Opret politiker objekt
-                    var politiker = new FakePolitiker
+                    // Use politiker.Sex if available, otherwise make a random guess for a portrait.
+                    politiker.Portraet = await GetPortraitBytesAsync(politiker.Sex, imageBasePath);
+                    if (politiker.Portraet.Length > 0)
                     {
-                        PolitikerNavn = GenerateRandomName(),
-                        // *** RETTET: Brug UTC DateTime ***
-                        DateOfBirth = birthDateTimeUtc,
-                        Køn = køn,
-                        Uddannelse = GetRandomElement(Educations),
-                        Region = GetRandomElement(Regions),
-                        Portræt = portrætBytes,
-                        PartiId = randomParti.PartiId
-                    };
-
-                    // Tilføj citater
-                    int numberOfQuotes = random.Next(1, 4);
-                    for(int q = 0; q < numberOfQuotes; q++)
-                    {
-                        var newQuote = new PoliticianQuote { QuoteText = GetRandomElement(SampleQuotes) };
-                        politiker.Quotes.Add(newQuote);
+                        context.Aktor.Update(politiker); 
+                        photosAdded++;
+                        changesMade = true;
                     }
-                    politikere.Add(politiker);
                 }
 
-                await context.FakePolitikere.AddRangeAsync(politikere);
-                await context.SaveChangesAsync(); // Gem politikere OG deres citater
-                politiciansWereSeeded = true;
-                Console.WriteLine($"INFO: {numberOfPoliticians} tilfældige politikere seeded (med portrætter, partiId, DateOfBirth og citater).");
+                // Seed Quotes if none exist for this politician
+                if (politiker.Quotes == null || !politiker.Quotes.Any())
+                {
+                    int numberOfQuotes = random.Next(1, 4); 
+                    politiker.Quotes ??= new List<PoliticianQuote>(); 
+                    for (int q = 0; q < numberOfQuotes; q++)
+                    {
+                        string? quoteText = GetRandomElement(SampleQuotes);
+                        if (!string.IsNullOrEmpty(quoteText))
+                        {
+                            // Create new quote and associate it with the politiker's ID
+                            var newQuote = new PoliticianQuote { QuoteText = quoteText, PolitikerId = politiker.Id };
+                            context.PoliticianQuotes.Add(newQuote); 
+                            // politiker.Quotes.Add(newQuote); // EF Core should handle this if newQuote.PolitikerId is set
+                                                            // and politiker entity is tracked. Adding to context directly is safer.
+                            quotesAddedCount++;
+                            changesMade = true;
+                        }
+                    }
+                }
+            }
+
+            if (changesMade)
+            {
+                try
+                {
+                    await context.SaveChangesAsync();
+                    Console.WriteLine($"INFO: PolidleSeed: Update complete. Added {photosAdded} photos and {quotesAddedCount} quotes to existing Aktors.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: PolidleSeed: Failed to save changes for photos/quotes. {ex.Message}");
+                }
             }
             else
             {
-                Console.WriteLine("INFO: Politikere findes allerede i databasen.");
+                 Console.WriteLine("INFO: PolidleSeed: No missing photos or quotes found for existing Aktors, or no changes made.");
             }
-
-            // Log samlet status
-            Console.WriteLine($"INFO: Seeding status - Parties seeded: {partiesWereSeeded}, Politicians seeded: {politiciansWereSeeded}");
         }
     }
 }
