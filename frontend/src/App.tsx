@@ -19,6 +19,7 @@ import PartyPage from "./pages/PartyPage"; // Displays details for a specific pa
 import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
 import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
 import LandingPage from "./pages/LandingPage/LandingPage";
+import FeedPage from './pages/FeedPage';
 // Navbar and Footer are rendered via MainLayout.
 
 // The main application component.
@@ -75,6 +76,8 @@ function App() {
             path="/kalender"
             element={<CalendarView />}
         />
+        <Route path="/feed" 
+        element={token ? <FeedPage /> : <Navigate to="/login" />} />
 
         {/* Other routes requiring login and using MainLayout. */}
         <Route path="/parties" element={<PartiesPage />} />
@@ -101,6 +104,10 @@ function App() {
         />
         <Route path="/homepage" element={<HomePage/>} />
         {/* If others need to define other protected routes using MainLayout do it here. */}
+        <Route 
+        path="/feed" element={<FeedPage />}
+
+        />
 
       </Route> {/* End of Protected MainLayout routes */}
 

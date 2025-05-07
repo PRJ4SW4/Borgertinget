@@ -9,9 +9,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using backend.Hubs;                
 
 // for .env secrets
 DotNetEnv.Env.Load();
+         
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,12 +91,31 @@ builder
                 }
                 return Task.CompletedTask;
             },
+             OnMessageReceived = context =>
+    {
+        // Tjek om tokenet findes i 'access_token' query parameteren
+        var accessToken = context.Request.Query["access_token"];
+
+        // Tjek om requesten er til din SignalR Hub sti
+        var path = context.HttpContext.Request.Path;
+        if (!string.IsNullOrEmpty(accessToken) &&
+            (path.StartsWithSegments("/feedHub"))) // <-- Match din Hub URL
+        {
+            Console.WriteLine("SIGNALR DEBUG: Setting token from query string."); // <-- ADD LOG
+            context.Token = accessToken;
+        }
+        return Task.CompletedTask;
+    }
         };
     });
 
 // Swagger
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
+
+
+
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
 
@@ -135,6 +157,9 @@ builder.Services.AddScoped<EmailService>();
 //oda.ft crawler
 builder.Services.AddScoped<HttpService>();
 
+builder.Services.AddHostedService<TweetFetchingService>(); 
+builder.Services.AddHttpClient<TwitterService>();
+
 
 // CORS
 builder.Services.AddCors(options =>
@@ -143,14 +168,23 @@ builder.Services.AddCors(options =>
         "AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod();
+            policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()
+            .AllowAnyHeader()                   
+            .AllowAnyMethod()                  
+            .AllowCredentials();  
         }
     );
 });
 
 builder.Services.AddHttpClient(); // til OAuth
 
-builder.Services.AddControllers();
+// note af Jakob, put option id virkede med det her der er uddokumenteret, men da jeg havde det til, så virkede feed og partier ikke, jeg har ikke den post til pools på min git, derfor håber jeg det virker uden dette,
+ 
+
+builder.Services.AddControllers();/* .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    });*/
 
 // For altinget scraping
 builder.Services.AddHttpClient();
@@ -174,4 +208,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+app.MapHub<FeedHub>("/feedHub");
 app.Run();

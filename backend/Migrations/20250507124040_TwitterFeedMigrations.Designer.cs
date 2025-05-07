@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -12,9 +13,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250507124040_TwitterFeedMigrations")]
+    partial class TwitterFeedMigrations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -195,58 +198,6 @@ namespace backend.Migrations
                     b.HasIndex("CollectionId");
 
                     b.ToTable("Flashcards");
-
-                    b.HasData(
-                        new
-                        {
-                            FlashcardId = 1,
-                            BackContentType = 0,
-                            BackText = "Mette Frederiksen",
-                            CollectionId = 1,
-                            DisplayOrder = 1,
-                            FrontContentType = 1,
-                            FrontImagePath = "/uploads/flashcards/mettef.png"
-                        },
-                        new
-                        {
-                            FlashcardId = 2,
-                            BackContentType = 0,
-                            BackText = "Lars Løkke Rasmussen",
-                            CollectionId = 1,
-                            DisplayOrder = 2,
-                            FrontContentType = 1,
-                            FrontImagePath = "/uploads/flashcards/larsl.png"
-                        },
-                        new
-                        {
-                            FlashcardId = 3,
-                            BackContentType = 0,
-                            BackText = "Inger Støjberg",
-                            CollectionId = 1,
-                            DisplayOrder = 3,
-                            FrontContentType = 0,
-                            FrontText = "Hvem er formand for Danmarksdemokraterne?"
-                        },
-                        new
-                        {
-                            FlashcardId = 4,
-                            BackContentType = 0,
-                            BackText = "Folkestyre",
-                            CollectionId = 2,
-                            DisplayOrder = 1,
-                            FrontContentType = 0,
-                            FrontText = "Hvad betyder 'Demokrati'?"
-                        },
-                        new
-                        {
-                            FlashcardId = 5,
-                            BackContentType = 0,
-                            BackText = "Statens budget for det kommende år",
-                            CollectionId = 2,
-                            DisplayOrder = 2,
-                            FrontContentType = 0,
-                            FrontText = "Hvad er 'Finansloven'?"
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>
