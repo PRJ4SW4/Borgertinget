@@ -458,22 +458,81 @@ namespace backend.Data
 
             // --- FLASHCARDS ---
 
-            modelBuilder
-                .Entity<FlashcardCollection>()
-                .HasData(
-                    new FlashcardCollection
-                    {
-                        CollectionId = 1,
-                        Title = "Politikerne og deres navne",
-                        DisplayOrder = 1,
-                    },
-                    new FlashcardCollection
-                    {
-                        CollectionId = 2,
-                        Title = "Politiske begreber",
-                        DisplayOrder = 2,
-                    }
-                );
+        modelBuilder
+            .Entity<FlashcardCollection>()
+            .HasData(
+                new FlashcardCollection
+                {
+                    CollectionId = 1,
+                    Title = "Politikerne og deres navne",
+                    DisplayOrder = 1,
+                },
+                new FlashcardCollection
+                {
+                    CollectionId = 2,
+                    Title = "Politiske begreber",
+                    DisplayOrder = 2,
+                }
+            );
+
+        modelBuilder
+            .Entity<Flashcard>()
+            .HasData(
+                // Cards for Collection 1
+                new Flashcard
+                {
+                    FlashcardId = 1,
+                    CollectionId = 1,
+                    DisplayOrder = 1,
+                    FrontContentType = FlashcardContentType.Image,
+                    FrontImagePath = "/uploads/flashcards/mettef.png",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Mette Frederiksen",
+                },
+                new Flashcard
+                {
+                    FlashcardId = 2,
+                    CollectionId = 1,
+                    DisplayOrder = 2,
+                    FrontContentType = FlashcardContentType.Image,
+                    FrontImagePath = "/uploads/flashcards/larsl.png",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Lars Løkke Rasmussen",
+                },
+                new Flashcard
+                {
+                    FlashcardId = 3,
+                    CollectionId = 1,
+                    DisplayOrder = 3,
+                    FrontContentType = FlashcardContentType.Text,
+                    FrontText = "Hvem er formand for Danmarksdemokraterne?",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Inger Støjberg",
+                },
+                // Cards for Collection 2
+                new Flashcard
+                {
+                    FlashcardId = 4,
+                    CollectionId = 2,
+                    DisplayOrder = 1,
+                    FrontContentType = FlashcardContentType.Text,
+                    FrontText = "Hvad betyder 'Demokrati'?",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Folkestyre",
+                },
+                new Flashcard
+                {
+                    FlashcardId = 5,
+                    CollectionId = 2,
+                    DisplayOrder = 2,
+                    FrontContentType = FlashcardContentType.Text,
+                    FrontText = "Hvad er 'Finansloven'?",
+                    BackContentType = FlashcardContentType.Text,
+                    BackText = "Statens budget for det kommende år",
+                }
+            );
+
+        // --- /FLASHCARDS ---
 
 
             const int SeedPoliticianId = 1; 
