@@ -88,7 +88,8 @@ export default function EditLearningPage() {
       <div className="top-red-line"></div>
       <h1>Rediger Læringsside</h1>
 
-      <select value={selectedPageId ?? ""} onChange={(e) => setSelectedPageId(Number(e.target.value))} className="add-poll-input">
+      <label className="page-label">Vælg Side</label>
+      <select value={selectedPageId ?? ""} onChange={(e) => setSelectedPageId(Number(e.target.value))} className="page-input">
         <option value="">-- Vælg side --</option>
         {pages.map((p) => (
           <option key={p.id} value={p.id}>
@@ -99,12 +100,17 @@ export default function EditLearningPage() {
 
       {selectedPageId && (
         <form onSubmit={handleSubmit}>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titel" className="add-poll-title" />
-          <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={6} placeholder="Markdown indhold" className="add-poll-form" />
+          <label className="page-label">Titel</label>
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titel" className="page-title" />
+
+          <label className="page-label">Indhold</label>
+          <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={6} placeholder="Markdown indhold" className="page-form" />
+
+          <label className="page-label">Overordnet side</label>
           <select
             value={parentPageId ?? ""}
             onChange={(e) => setParentPageId(e.target.value === "" ? null : Number(e.target.value))}
-            className="add-poll-input">
+            className="page-input">
             <option value="">(Ingen overordnet side)</option>
             {pages
               .filter((p) => p.id !== selectedPageId)
@@ -115,7 +121,7 @@ export default function EditLearningPage() {
               ))}
           </select>
 
-          <button type="submit" className="add-poll-submit-btn">
+          <button type="submit" className="page-btn">
             Gem Ændringer
           </button>
         </form>

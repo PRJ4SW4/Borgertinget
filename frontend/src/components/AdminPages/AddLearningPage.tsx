@@ -68,24 +68,26 @@ export default function AddLearningPage() {
       </div>
       <div className="top-red-line"></div>
       <h1>Opret Læringsside</h1>
-
+      <label className="page-label">Titel</label>
       <input type="text" placeholder="Titel" value={title} onChange={(e) => setTitle(e.target.value)} className="page-input" />
 
+      <label className="page-label">Indhold</label>
       <textarea
-        className="add-poll-form"
+        className="page-form"
         placeholder="Indhold (Markdown understøttet)"
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={6}
       />
 
+      <label className="page-label">Parent page</label>
       <select
         value={parentId ?? ""}
         onChange={(e) => {
           const value = e.target.value;
           setParentId(value === "" ? null : Number(value));
         }}
-        className="add-poll-input">
+        className="page-input">
         <option value="">(Ingen overordnet side)</option>
         {pages.map((page) => (
           <option key={page.id} value={page.id}>
@@ -94,7 +96,7 @@ export default function AddLearningPage() {
         ))}
       </select>
 
-      <button onClick={handleSubmit} className="add-poll-submit-btn">
+      <button onClick={handleSubmit} className="page-btn">
         Gem Side
       </button>
     </div>
