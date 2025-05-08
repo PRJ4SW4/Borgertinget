@@ -31,22 +31,20 @@ namespace backend.Controllers
         private readonly IHttpClientFactory _httpClientFactory; 
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        private readonly IUrlHelper _urlHelper;
+        //private readonly IUrlHelper _urlHelper;
 
         public UsersController(
             IConfiguration config,
             EmailService emailService,
             IHttpClientFactory httpClientFactory,
             UserManager<User> userManager,
-            SignInManager<User> signInManager,
-            IUrlHelper urlHelper)
+            SignInManager<User> signInManager)
         {
             _config = config;
             _emailService = emailService;
             _httpClientFactory = httpClientFactory; 
             _userManager = userManager;
             _signInManager = signInManager;
-            _urlHelper = urlHelper;
         }
 
         // GET: api/users
@@ -80,7 +78,7 @@ namespace backend.Controllers
             if (existingEmail)
                 return BadRequest(new { error = "Email er allerede i brug." });
 
-            
+            Console.WriteLine("1");
             // Opret user-objekt
             var user = new User
             {
@@ -97,11 +95,13 @@ namespace backend.Controllers
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             
+            Console.WriteLine("2");
+
             if (result.Succeeded) {
                 var roleResult = await _userManager.AddToRoleAsync(user, "User");
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var encodedToken = HttpUtility.UrlEncode(token);
-
+            Console.WriteLine("3");
                 var frontendBaseUrl = _config["FrontendBaseUrl"];
 
                 var verificationLink = $"{frontendBaseUrl}/verify-email?userId={user.Id}&token={encodedToken}";
@@ -116,7 +116,8 @@ namespace backend.Controllers
 
                 try
                 {
-                    await _emailService.SendEmailAsync(user.Email, subject, message); 
+                    await _emailService.SendEmailAsync(user.Email, subject, message);
+                    Console.WriteLine("4");
                 }
                 catch (Exception ex)
                 {

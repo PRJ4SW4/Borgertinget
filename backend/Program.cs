@@ -116,11 +116,11 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(
         "RequireAdministratorRole",
-        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
+        policy => policy.RequireRole("Admin")
     );
     options.AddPolicy(
         "UserOrAdmin",
-        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
+        policy => policy.RequireRole("User", "Admin")
     );
 });
 
