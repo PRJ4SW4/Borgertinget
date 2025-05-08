@@ -1,0 +1,131 @@
+/* Fil: src/pages/Polidle/ClassicMode/ClassicMode.module.css */
+
+.searchAndGuess {
+  display: flex;
+  flex-direction: column; /* Stack input/results and button vertically */
+  align-items: center; /* Center items horizontally */
+  gap: 1rem; /* Space between search area and button */
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 500px; /* Limit width */
+}
+
+.searchContainer {
+  position: relative; /* Needed for absolute positioning of results */
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.searchResultsContainer {
+  position: absolute;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none; /* Avoid double border with input */
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10; /* Ensure it's above other content */
+  max-height: 200px; /* Limit height and make scrollable */
+  overflow-y: auto;
+  margin-top: -1px; /* Overlap slightly with input border */
+}
+
+.searchResults {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.searchResultItem {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #eee; /* Separator */
+}
+
+.searchResultItem:last-child {
+  border-bottom: none;
+}
+
+.searchResultItem:hover {
+  background-color: #f0f0f0;
+}
+
+/* Removed searchResultImage styles as image is not included */
+.searchResultName {
+  font-size: 0.95rem;
+}
+
+.searchLoader,
+.noResults,
+.searchError {
+  padding: 0.75rem 1rem;
+  color: #555;
+  font-style: italic;
+  text-align: center;
+}
+
+.searchError {
+  color: #dc3545; /* Red for errors */
+  font-style: normal;
+}
+
+.guessButton {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #007bff; /* Blue */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: auto; /* Adjust width as needed */
+}
+
+.guessButton:hover:not(:disabled) {
+  background-color: #0056b3; /* Darker blue */
+}
+
+.guessButton:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.guessError {
+  color: #dc3545; /* Red */
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  text-align: center;
+  width: 100%;
+}
+
+.guessListContainer {
+  width: 100%;
+  max-width: 800px; /* Adjust as needed */
+  margin-top: 1.5rem;
+}
+
+.infoboxContainer {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* Add styles for the GuessList component itself if needed */

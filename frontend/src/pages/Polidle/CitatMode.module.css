@@ -1,0 +1,207 @@
+/* Fil: src/pages/Polidle/CitatMode/CitatMode.module.css */
+
+/* --- Quote Display --- */
+.quoteContainer {
+  background-color: #f8f9fa; /* Light grey background */
+  padding: 1.5rem 2rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 700px;
+}
+
+.quote {
+  font-size: 1.3rem; /* Larger font for the quote */
+  font-style: italic;
+  color: #333;
+  line-height: 1.6;
+  margin: 0.5rem 0 0 0; /* Remove default blockquote margins if needed */
+}
+
+.loadingText,
+.warningText,
+.errorText {
+  color: #555;
+  font-style: italic;
+}
+.errorText {
+  color: #dc3545; /* Red */
+  font-weight: bold;
+}
+.warningText {
+  color: #ffc107; /* Orange/Yellow */
+}
+
+/* --- Search and Guess Area (Similar to Classic) --- */
+.searchAndGuess {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.searchContainer {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.searchInput:focus {
+  outline: none;
+  border-color: #6c757d; /* Grey focus */
+  box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.25);
+}
+
+.searchResultsContainer {
+  position: absolute;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: -1px;
+}
+
+.searchResults {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.searchResultItem {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+.searchResultItem:last-child {
+  border-bottom: none;
+}
+.searchResultItem:hover {
+  background-color: #f0f0f0;
+}
+.searchResultName {
+  font-size: 0.95rem;
+}
+
+.searchLoader,
+.noResults,
+.searchError {
+  padding: 0.75rem 1rem;
+  color: #555;
+  font-style: italic;
+  text-align: center;
+}
+.searchError {
+  color: #dc3545;
+  font-style: normal;
+}
+
+.guessButton {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #6c757d; /* Grey */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.guessButton:hover:not(:disabled) {
+  background-color: #5a6268; /* Darker grey */
+}
+.guessButton:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.guessError {
+  color: #dc3545;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  text-align: center;
+  width: 100%;
+}
+
+.gameWonMessage {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #d4edda; /* Light green */
+  color: #155724; /* Dark green */
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* --- Guess History --- */
+.guessHistory {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.guessHistory h3 {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+.guessHistoryItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Space out name and indicator */
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+}
+
+.historyName {
+  flex-grow: 1; /* Allow name to take up space */
+  margin-right: 1rem; /* Space before indicator */
+  font-size: 0.95rem;
+}
+
+.historyIndicator {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.correct {
+  border-left: 5px solid #28a745; /* Green border for correct */
+}
+.correct .historyIndicator {
+  color: #28a745; /* Green check */
+}
+
+.incorrect {
+  border-left: 5px solid #dc3545; /* Red border for incorrect */
+}
+.incorrect .historyIndicator {
+  color: #dc3545; /* Red X */
+}
+
+/* Removed historyImage styles */

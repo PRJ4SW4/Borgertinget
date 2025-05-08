@@ -3,7 +3,7 @@ import React, { useState, useCallback } from "react";
 import GuessList from "../../components/Polidle/GuessList/GuessList"; // Opdateret sti
 import Infobox from "../../components/Polidle/Infobox/Infobox"; // Opdateret sti
 import GameSelector from "../../components/Polidle/GamemodeSelector/GamemodeSelector"; // Opdateret sti
-import styles from "../Polidle.module.css"; // Generelle Polidle styles
+import styles from "./Polidle.module.css"; // Generelle Polidle styles
 import classicStyles from "./ClassicMode.module.css"; // Specifikke styles for ClassicMode (opret denne)
 
 // Importer typer - bemærk at PoliticianOption nu hedder PoliticianSummaryDto

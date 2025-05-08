@@ -1,0 +1,229 @@
+/* Fil: src/pages/Polidle/FotoBlurMode/FotoBlurMode.module.css */
+
+/* --- Photo Display --- */
+.photoContainer {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.blurredImage {
+  display: block;
+  max-width: 300px; /* Adjust size as needed */
+  max-height: 400px;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  margin-top: 0.5rem;
+  /* Add blur filter via inline style or dynamically change class */
+  /* filter: blur(10px); Example */
+  transition: filter 0.5s ease-out; /* Smooth transition for blur changes */
+}
+
+.loadingText,
+.warningText,
+.errorText {
+  color: #555;
+  font-style: italic;
+  margin-top: 1rem;
+}
+.errorText {
+  color: #dc3545; /* Red */
+  font-weight: bold;
+}
+.warningText {
+  color: #ffc107; /* Orange/Yellow */
+}
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.retryButton {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.retryButton:hover {
+  background-color: #0056b3;
+}
+
+/* --- Search and Guess Area (Reuse styles from Citat/Classic or define here) --- */
+.searchAndGuess {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.searchContainer {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.searchInput:focus {
+  outline: none;
+  border-color: #17a2b8; /* Teal focus */
+  box-shadow: 0 0 0 2px rgba(23, 162, 184, 0.25);
+}
+
+.searchResultsContainer {
+  position: absolute;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: -1px;
+}
+
+.searchResults {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.searchResultItem {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+.searchResultItem:last-child {
+  border-bottom: none;
+}
+.searchResultItem:hover {
+  background-color: #f0f0f0;
+}
+.searchResultName {
+  font-size: 0.95rem;
+}
+
+.searchLoader,
+.noResults,
+.searchError {
+  padding: 0.75rem 1rem;
+  color: #555;
+  font-style: italic;
+  text-align: center;
+}
+.searchError {
+  color: #dc3545;
+  font-style: normal;
+}
+
+.guessButton {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #17a2b8; /* Teal */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.guessButton:hover:not(:disabled) {
+  background-color: #117a8b; /* Darker teal */
+}
+.guessButton:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.guessError {
+  color: #dc3545;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  text-align: center;
+  width: 100%;
+}
+
+.gameWonMessage {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #d4edda; /* Light green */
+  color: #155724; /* Dark green */
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* --- Guess History (Reuse styles from Citat or define here) --- */
+.guessHistory {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.guessHistory h3 {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+.guessHistoryItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+}
+
+.historyName {
+  flex-grow: 1;
+  margin-right: 1rem;
+  font-size: 0.95rem;
+}
+
+.historyIndicator {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.correct {
+  border-left: 5px solid #28a745; /* Green */
+}
+.correct .historyIndicator {
+  color: #28a745;
+}
+
+.incorrect {
+  border-left: 5px solid #dc3545; /* Red */
+}
+.incorrect .historyIndicator {
+  color: #dc3545;
+}

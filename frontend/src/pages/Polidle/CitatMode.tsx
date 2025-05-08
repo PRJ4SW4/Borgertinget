@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 // Importer nødvendige komponenter
 import GameSelector from "../../components/Polidle/GamemodeSelector/GamemodeSelector";
 // Importer styles
-import styles from "../Polidle.module.css"; // Generelle Polidle styles
+import styles from "./Polidle.module.css"; // Generelle Polidle styles
 import citatStyles from "./CitatMode.module.css"; // Specifikke styles for CitatMode (opret denne)
 
 // Importer typer

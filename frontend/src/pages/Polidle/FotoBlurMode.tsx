@@ -3,7 +3,7 @@ import React, { useState, useCallback } from "react";
 // Importer nødvendige komponenter
 import GameSelector from "../../components/Polidle/GamemodeSelector/GamemodeSelector";
 // Importer styles
-import styles from "../Polidle.module.css"; // Generelle Polidle styles
+import styles from "./Polidle.module.css"; // Generelle Polidle styles
 import fotoStyles from "./FotoBlurMode.module.css"; // Specifikke styles for FotoBlurMode (opret denne)
 
 // Importer typer
