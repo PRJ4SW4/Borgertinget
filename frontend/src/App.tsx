@@ -1,20 +1,24 @@
 import { useState, useEffect, JSX } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
+// Layout Components: Provide consistent page structure.
 import LearningLayout from "./layouts/LearningEnvironment/LearningLayout";
 import FlashcardLayout from "./layouts/Flashcards/FlashcardLayout";
-import MainLayout from "./layouts/MainLayout";
+import MainLayout from "./layouts/MainLayout"; // Standard layout with Navbar/Footer.
+import NavbarLandingPageLayout from "./layouts/LandingPage/NavbarLandingPageLayout";
 
+// Page Components: Represent different views/pages in the application.
 import Login from "./pages/Login";
-import Home from "./pages/Home";
+// HomePage after user signs in.
 import HomePage from "./pages/HomePage/HomePage";
-import PageContent from "./components/LearningEnvironment/PageContent";
+import PageContent from "./components/LearningEnvironment/PageContent"; // Renders content within LearningLayout.
 import CalendarView from "./components/Calendar/CalendarView";
 import LoginSuccessPage from "./pages/LoginSuccessPage";
-import PartyPage from "./pages/PartyPage";
-import PoliticianPage from "./pages/PoliticianPage";
-import PartiesPage from "./pages/PartiesPage";
-
+import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
+import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
+import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
+import LandingPage from "./pages/LandingPage/LandingPage";
+import FeedPage from "./pages/FeedPage";
 // Admin Pages
 import CreateFlashcardCollection from "./components/AdminPages/AddFlashcardCollection";
 import AdminPage from "./components/AdminPages/AdminPage";
@@ -37,6 +41,10 @@ import Polidle from "./pages/Polidle/Polidle";
 import ClassicMode from "./pages/Polidle/ClassicMode";
 import CitatMode from "./pages/Polidle/CitatMode";
 import FotoBlurMode from "./pages/Polidle/FotoBlurMode";
+
+// Navbar and Footer are rendered via MainLayout.
+
+// The main application component.
 
 function App() {
   // State hook for the JWT authentication token.
@@ -67,6 +75,10 @@ function App() {
   // Defines the application's routes using the Routes component.
   return (
     <Routes>
+      {/* --- Public Navbar Route --- */}
+      <Route element={<NavbarLandingPageLayout></NavbarLandingPageLayout>}>
+        <Route path="/LandingPage" element={<LandingPage />} />
+      </Route>
       {/* --- Public Routes (No MainLayout, No login required) --- */}
       {/* Login page route. */}
       <Route path="/login" element={<Login setToken={setToken} />} />
@@ -90,6 +102,8 @@ function App() {
         />
         {/* Calendar route (requires login). */}
         <Route path="/kalender" element={<CalendarView />} />
+        <Route path="/kalender" element={<CalendarView />} />
+        <Route path="/feed" element={token ? <FeedPage /> : <Navigate to="/login" />} />
         {/* Other routes requiring login and using MainLayout. */}
         <Route path="/parties" element={<PartiesPage />} />
         <Route path="/party/:partyName" element={<PartyPage />} /> {/* ':partyName' is a dynamic URL parameter. */}
@@ -108,6 +122,8 @@ function App() {
         {/* --- Flashcards Routes (Nested and Protected) --- */}
         {/* Uses FlashcardLayout, protection inherited. "/*" enables nested routing within FlashcardLayout. */}
         <Route path="/flashcards/*" element={<FlashcardLayout />} />
+        <Route path="/flashcards/*" element={<FlashcardLayout />} />
+        <Route path="/homepage" element={<HomePage />} />
         {/* If others need to define other protected routes using MainLayout do it here. */}
         {/* Admin routes */}
         <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
@@ -133,7 +149,11 @@ function App() {
       {/* Redirects based on authentication status: "/" if logged in, "/login" if not. */}
       <Route
         path="*"
-        element={<Navigate to={token ? "/" : "/login"} replace />} // 'replace' avoids adding the redirect to browser history.
+        element={<Navigate to={token ? "/" : "/landingpage"} replace />} // 'replace' avoids adding the redirect to browser history.
+      />
+      <Route
+        path="/"
+        element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />} // 'replace' avoids adding the redirect to browser history.
       />
       {/* Game Modes */}
       <Route path="/Polidle" element={<Polidle />} />

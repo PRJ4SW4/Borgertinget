@@ -11,11 +11,14 @@ using Microsoft.Extensions.Logging; // Inkluderer ILogger
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using backend.Hubs;                
 using OpenSearch.Client;
 using OpenSearch.Net;
 
 // for .env secrets
 DotNetEnv.Env.Load();
+         
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -132,6 +135,21 @@ builder
                 }
                 return Task.CompletedTask;
             },
+             OnMessageReceived = context =>
+    {
+        // Tjek om tokenet findes i 'access_token' query parameteren
+        var accessToken = context.Request.Query["access_token"];
+
+        // Tjek om requesten er til din SignalR Hub sti
+        var path = context.HttpContext.Request.Path;
+        if (!string.IsNullOrEmpty(accessToken) &&
+            (path.StartsWithSegments("/feedHub"))) // <-- Match din Hub URL
+        {
+            Console.WriteLine("SIGNALR DEBUG: Setting token from query string."); // <-- ADD LOG
+            context.Token = accessToken;
+        }
+        return Task.CompletedTask;
+    }
             OnForbidden = context =>
             {
                 // Log når adgang nægtes (f.eks. 403 Forbidden)
@@ -148,6 +166,9 @@ builder.Services.AddSignalR();
 // Swagger/OpenAPI konfiguration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
+
+
+
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
 
@@ -199,18 +220,24 @@ builder.Services.AddCors(options =>
         "AllowReactApp", // Navnet på din policy
         policy =>
         {
-            policy
-                .WithOrigins(builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
-                .AllowAnyHeader()
-                .AllowAnyMethod();
+            policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()                   
+            .AllowAnyMethod()                  
+            .AllowCredentials();  
         }
     );
 });
 
 builder.Services.AddHttpClient(); // til OAuth
 
+// note af Jakob, put option id virkede med det her der er uddokumenteret, men da jeg havde det til, så virkede feed og partier ikke, jeg har ikke den post til pools på min git, derfor håber jeg det virker uden dette,
+ 
+
 // Registrer Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers();/* .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    });*/
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 builder.Services.AddHostedService<DailySelectionJob>(); //* Bruges til udvælgelse af "dagens politiker"
 

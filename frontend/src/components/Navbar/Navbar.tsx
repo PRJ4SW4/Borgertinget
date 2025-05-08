@@ -30,7 +30,7 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
     // Optional chaining () prevents errors if setToken is not passed.
     setToken?.(null);
     // Redirects the user to the login page after logout actions.
-    navigate("/login");
+    navigate('/landingpage');
   };
 
   // --- JWT Role Checking ---

@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { IAktor } from '../types/Aktor'; // Adjust path if needed
-import "./PoliticianPage.css"; // We will update this CSS
+import { IAktor } from '../types/Aktor';
+import "./PoliticianPage.css";
+// Consider adding a default image import if you need one for onError
+// import DefaultPic from "../images/defaultPic.jpg";
 import DefaultPic from "../images/defaultPic.jpg"; // Import your default picture
+//Af Jakob, dette er til subscribe knappen
+import SubscribeButton from '../components/FeedComponents/SubscribeButton';
+import { getSubscriptions } from '../services/tweetService';
 
 const PoliticianPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [politician, setPolitician] = useState<IAktor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  //Af Jakob, dette er til subscribe knappen
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [twitterId, setTwitterId] = useState<number | null>(null);
+ 
   const defaultImageUrl = DefaultPic; // Use the imported default image
 
   // --- Helper: Calculate Age ---
@@ -91,7 +101,42 @@ const PoliticianPage: React.FC = () => {
     };
 
     fetchPolitician();
-  }, [id]);
+  }, [id]); // Dependency array is correct, only depends on id
+
+
+  // Af Jakob, dette er til subscribe knappen
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      if (politician && politician.id) { // KORREKT: aktørId → id
+        try {
+          // Hent brugerens eksisterende abonnementer
+          const subscriptions = await getSubscriptions();
+          
+          // Find Twitter ID via lookup-API'et (behold aktorId som parameter i URL)
+          const lookupResponse = await fetch(`http://localhost:5218/api/subscription/lookup/politicianTwitterId?aktorId=${politician.id}`, { // KORREKT: aktørId → id
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+            }
+          });
+
+          if (lookupResponse.ok) {
+            const lookupData = await lookupResponse.json();
+            setTwitterId(lookupData.politicianTwitterId);
+            
+            // Tjek om politikeren allerede følges
+            setIsSubscribed(subscriptions.some(sub => sub.id === lookupData.politicianTwitterId));
+          } else {
+            console.error('Kunne ikke finde Twitter ID for denne politiker');
+          }
+        } catch (error) {
+          console.error('Fejl ved tjek af abonnementsstatus:', error);
+        }
+      }
+    };
+    
+    checkSubscriptionStatus();
+  }, [politician]);
+
 
   // --- Loading & Error States ---
   if (loading) return <div className="loading-message">Henter politiker detaljer...</div>;
@@ -126,18 +171,84 @@ const PoliticianPage: React.FC = () => {
          )}
       </nav>
 
-      {/* --- Main Content Area (Two Columns) --- */}
-      <div className="politician-main-content">
+      {/* Gray Information Box */}
+      <div className="info-box">
+        {politician.pictureMiRes ? ( // Use ternary for cleaner conditional rendering
+          <img
+            src={politician.pictureMiRes}
+            alt={`Portræt af ${politician.navn || 'Politiker'}`} // Danish alt text
+            className="info-box-photo"
+            onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                const imgElement = e.target as HTMLImageElement;
+                console.error(`Kunne ikke loade billede: ${politician.pictureMiRes}`); // Danish
+                imgElement.style.display = 'none'; // Simple hide on error
+            }}
+          />
+        ) : (
+           <div className="info-box-photo-placeholder">Intet billede</div> // Danish
+        )}
+        <h4>Navn</h4>
+        {/* Use politician's name or fallback */}
+        <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : (politician.navn || 'Ukendt')}</p>
 
-        {/* --- Left Column: Details --- */}
-        <div className="politician-details-column">
-          {/* Top title and button matching design */}
-          <div className="politician-header">
-            <h1>{politician.navn || 'Politiker'}</h1>
-            <button className="subscribe-button">Abonnere</button> {/* Basic button */}
+
+
+        {/*Subscribe*/}
+        {twitterId !== null && (
+          <div className="subscription-container">
+            <SubscribeButton
+              politicianTwitterId={twitterId}
+              initialIsSubscribed={isSubscribed}
+              onSubscriptionChange={(newStatus) => setIsSubscribed(newStatus)}
+            />
           </div>
+        )}
 
-          {/* Placeholder sections based on design */}
+        <h4>Parti</h4>
+        <p>
+          {politician.party ? (
+            <Link to={`/party/${encodeURIComponent(politician.party)}`}>
+              {politician.party}
+            </Link>
+          ) : (
+            politician.partyShortname || 'Partiløs/Ukendt' // Show shortname or indicate independent/unknown
+          )}
+        </p>
+        <h4>Email</h4>
+        <p>{politician.email ? <a href={`mailto:${politician.email}`}>{politician.email}</a> : 'Ikke tilgængelig'}</p>
+
+        {/* Conditional rendering for lists inside the info-box */}
+        {politician.educations && politician.educations.length > 0 && (
+           <>
+             <h4>Uddannelse</h4>
+             <ul>
+               {politician.educations.map((edu, index) => <li key={`edu-${index}`}>{edu}</li>)}
+             </ul>
+           </>
+         )}
+
+        {politician.constituencies && politician.constituencies.length > 0 && (
+           <>
+             <h4>Embede / Valgkreds</h4> {/* More specific title */}
+             <ul>
+               {politician.constituencies.map((con, index) => <li key={`con-${index}`}>{con}</li>)}
+             </ul>
+           </>
+         )}
+      </div> {/* END: Info Box */}
+
+
+      {/* Other Details Outside the Box */}
+      <article className="politician-details">
+        
+        <section className="detail-section">
+            <h3>Grundlæggende Information</h3> {/* Danish */}
+            <p><strong>Født:</strong> {politician.born || 'Ikke tilgængelig'}</p> {/* Danish */}
+            <p><strong>Titel:</strong> {politician.functionFormattedTitle || 'Ikke tilgængelig'}</p> {/* Danish */}
+        </section>
+
+        {/* Display other lists NOT in the info-box */}
+        {politician.publicationTitles && politician.publicationTitles.length > 0 && (
           <section className="detail-section">
             <h3>Baggrund</h3>
             <p className="detail-content-placeholder">

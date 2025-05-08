@@ -1,0 +1,122 @@
+/* src/components/NavbarLanding/NavbarLanding.css */
+
+/* Styles specifically for the NavbarLanding component */
+
+.NavbarLanding {
+  background-color: #ffffff; /* White background */
+  border-bottom: 1px solid #e0e0e0; /* Subtle bottom border */
+  padding: 0.8rem 1rem; /* Vertical and horizontal padding */
+  position: sticky; /* Makes the NavbarLanding stick to the top during scroll */
+  top: 0; /* Positions the sticky NavbarLanding at the top */
+  z-index: 1000; /* Ensures NavbarLanding renders above other positioned elements */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+}
+
+.NavbarLanding-container {
+  display: flex; /* Enables flexbox layout */
+  justify-content: space-between; /* Pushes logo and links to opposite ends */
+  align-items: center; /* Vertically aligns items */
+  margin: 0 auto; /* Centers the container horizontally */
+  width: 100%; /* Take full width */
+  flex-wrap: wrap; /* Allows items to wrap to the next line on smaller viewports */
+  gap: 1rem; /* Defines space between logo and links when wrapped */
+}
+
+.NavbarLanding-logo {
+  display: flex; /* Needed for align-items */
+  align-items: center; /* Vertically align items within the logo link */
+  text-decoration: none; /* Remove underline from link */
+  color: inherit; /* Use the default text color */
+  flex-shrink: 0; /* Prevents the logo from shrinking when space is limited */
+}
+
+.NavbarLanding-logo img {
+  height: 40px; /* Set logo height */
+}
+
+.NavbarLanding-links {
+  list-style: none; /* Remove default bullet points */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
+  display: flex; /* Arranges links horizontally */
+  align-items: center; /* Vertically aligns links */
+  flex-wrap: wrap; /* Allows individual links to wrap */
+  gap: 0.5rem; /* Defines space between links */
+  justify-content: flex-end; /* Aligns links to the right */
+  flex-grow: 1; /* Allows the link container to occupy remaining horizontal space */
+}
+
+/* Styling for individual navigation links */
+.nav-link {
+  text-decoration: none; /* Remove underline */
+  background-color: #950018; /* Borgertinget primary red */
+  color: #FFFFFF; /* White text */
+  padding: 0.5rem 1rem; /* Padding inside the link */
+  border-radius: 20px; /* Creates pill-shaped corners */
+  transition: background-color 0.2s ease, color 0.2s ease; /* Smooths color changes on hover */
+  font-weight: 500; /* Medium font weight */
+  font-size: 0.95rem; /* Slightly smaller font size */
+  white-space: nowrap; /* Prevents link text from wrapping */
+}
+
+/* Hover effect for navigation links */
+.nav-link:hover {
+  background-color: #f0f0f0; /* Light grey background on hover */
+  color: #8B0000; /* Dark red text on hover */
+}
+
+/* Styling for the currently active navigation link */
+.nav-link.active {
+  background-color: #8B0000; /* Darker red for active link */
+  color: #ffffff; /* Keep text white when active */
+}
+
+/* login Button Styles */
+.NavbarLanding-login-button {
+  background-color: transparent; /* No background */
+  color: #d9534f; /* Red text color */
+  border: 1px solid #d9534f; /* Red border */
+  padding: 0.4rem 0.9rem; /* Padding inside the button */
+  border-radius: 20px; /* Rounded corners */
+  cursor: pointer; /* Changes cursor to indicate interactivity */
+  font-family: inherit; /* Use the same font as the rest of the site */
+  font-size: 0.9rem; /* Slightly smaller font */
+  font-weight: 500; /* Medium weight */
+  line-height: 1.4; /* Standard line height */
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; /* Smooths appearance changes on hover */
+  white-space: nowrap; /* Prevents button text from wrapping */
+}
+
+/* Hover effect for the login button */
+.NavbarLanding-login-button:hover {
+  background-color: #d9534f; /* Fill with red on hover */
+  color: #ffffff; /* White text on hover */
+  border-color: #d9534f; /* Keep border color consistent */
+}
+
+/* --- Basic Responsive Adjustments for Wrapping --- */
+/* Styles applied for viewports 768px wide or smaller */
+@media (max-width: 768px) {
+  .NavbarLanding-container {
+    gap: 0.5rem; /* Reduces space between logo and links when wrapped */
+  }
+  .NavbarLanding-links {
+     gap: 0.4rem; /* Reduces space between individual links */
+     justify-content: center; /* Centers links when they wrap below the logo */
+     margin-top: 0.5rem; /* Adds space above wrapped links */
+  }
+  /* Adjusts link padding and font size for smaller screens */
+  .nav-link {
+     padding: 0.4rem 0.8rem;
+     font-size: 0.9rem;
+  }
+  /* Adjusts login button padding and font size */
+  .NavbarLanding-login-button {
+     padding: 0.3rem 0.7rem;
+     font-size: 0.85rem;
+  }
+  /* Reduces overall NavbarLanding padding */
+  .NavbarLanding {
+      padding: 0.6rem 0.8rem;
+  }
+}

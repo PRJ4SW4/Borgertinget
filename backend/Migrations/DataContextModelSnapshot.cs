@@ -156,33 +156,7 @@ namespace backend.Migrations
                     b.ToTable("CalendarEvents");
                 });
 
-            modelBuilder.Entity("backend.Models.DailySelection", b =>
-                {
-                    b.Property<DateOnly>("SelectionDate")
-                        .HasColumnType("date")
-                        .HasColumnName("selection_date");
-
-                    b.Property<string>("GameMode")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("gamemode");
-
-                    b.Property<int>("SelectedPolitikerID")
-                        .HasColumnType("integer")
-                        .HasColumnName("selected_politiker_id");
-
-                    b.Property<string>("SelectedQuoteText")
-                        .HasColumnType("text")
-                        .HasColumnName("selected_quote_text");
-
-                    b.HasKey("SelectionDate", "GameMode");
-
-                    b.HasIndex("SelectedPolitikerID");
-
-                    b.ToTable("daily_selections");
-                });
-
-            modelBuilder.Entity("backend.Models.FakeParti", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
                 {
                     b.Property<int>("PartiId")
                         .ValueGeneratedOnAdd()
@@ -245,7 +219,7 @@ namespace backend.Migrations
                     b.ToTable("FakePolitikere");
                 });
 
-            modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Flashcard", b =>
                 {
                     b.Property<int>("FlashcardId")
                         .ValueGeneratedOnAdd()
@@ -338,7 +312,7 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.FlashcardCollection", b =>
                 {
                     b.Property<int>("CollectionId")
                         .ValueGeneratedOnAdd()
@@ -365,45 +339,15 @@ namespace backend.Migrations
                         new
                         {
                             CollectionId = 1,
-                            Description = "Kendte danske politikere",
                             DisplayOrder = 1,
-                            Title = "Politikere"
+                            Title = "Politikerne og deres navne"
                         },
                         new
                         {
                             CollectionId = 2,
-                            Description = "Grundlæggende politiske termer",
                             DisplayOrder = 2,
-                            Title = "Politiske Begreber"
+                            Title = "Politiske begreber"
                         });
-                });
-
-            modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
-                {
-                    b.Property<int>("AnswerOptionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AnswerOptionId"));
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("OptionText")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("AnswerOptionId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("AnswerOptions");
                 });
 
             modelBuilder.Entity("backend.Models.LearningEnvironment.Page", b =>
@@ -711,48 +655,6 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("backend.Models.Tweet", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Likes")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PoliticianTwitterId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Replies")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Retweets")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TwitterTweetId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PoliticianTwitterId", "TwitterTweetId")
-                        .IsUnique();
-
-                    b.ToTable("Tweets");
-                });
-
             modelBuilder.Entity("backend.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -799,68 +701,6 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("backend.Models.UserVote", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChosenOptionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PollId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChosenOptionId");
-
-                    b.HasIndex("PollId");
-
-                    b.HasIndex("UserId", "PollId")
-                        .IsUnique();
-
-                    b.ToTable("UserVotes");
-                });
-
-            modelBuilder.Entity("backend.Models.DailySelection", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "SelectedPolitiker")
-                        .WithMany()
-                        .HasForeignKey("SelectedPolitikerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("SelectedPolitiker");
-                });
-
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.HasOne("backend.Models.FakeParti", "FakeParti")
-                        .WithMany("FakePolitikers")
-                        .HasForeignKey("PartiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FakeParti");
-                });
-
-            modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
-                {
-                    b.HasOne("backend.Models.Flashcards.FlashcardCollection", "FlashcardCollection")
-                        .WithMany("Flashcards")
-                        .HasForeignKey("CollectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FlashcardCollection");
-                });
-
             modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
                 {
                     b.HasOne("backend.Models.LearningEnvironment.Question", "Question")
@@ -869,7 +709,18 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Question");
+                    b.Navigation("SelectedPolitiker");
+                });
+
+            modelBuilder.Entity("backend.Models.LearningEnvironment.Flashcard", b =>
+                {
+                    b.HasOne("backend.Models.LearningEnvironment.FlashcardCollection", "FlashcardCollection")
+                        .WithMany("Flashcards")
+                        .HasForeignKey("CollectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FlashcardCollection");
                 });
 
             modelBuilder.Entity("backend.Models.LearningEnvironment.Page", b =>
@@ -893,148 +744,7 @@ namespace backend.Migrations
                     b.Navigation("Page");
                 });
 
-            modelBuilder.Entity("backend.Models.Party", b =>
-                {
-                    b.HasOne("backend.Models.Aktor", "chairman")
-                        .WithMany()
-                        .HasForeignKey("chairmanId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("backend.Models.Aktor", "secretary")
-                        .WithMany()
-                        .HasForeignKey("secretaryId");
-
-                    b.HasOne("backend.Models.Aktor", "spokesman")
-                        .WithMany()
-                        .HasForeignKey("spokesmanId");
-
-                    b.HasOne("backend.Models.Aktor", "viceChairman")
-                        .WithMany()
-                        .HasForeignKey("viceChairmanId");
-
-                    b.Navigation("chairman");
-
-                    b.Navigation("secretary");
-
-                    b.Navigation("spokesman");
-
-                    b.Navigation("viceChairman");
-                });
-
-            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
-                        .WithMany("GameTrackings")
-                        .HasForeignKey("PolitikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FakePolitiker");
-                });
-
-            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
-                        .WithMany("Quotes")
-                        .HasForeignKey("PolitikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FakePolitiker");
-                });
-
-            modelBuilder.Entity("backend.Models.Poll", b =>
-                {
-                    b.HasOne("backend.Models.PoliticianTwitterId", "Politician")
-                        .WithMany()
-                        .HasForeignKey("PoliticianId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Politician");
-                });
-
-            modelBuilder.Entity("backend.Models.PollOption", b =>
-                {
-                    b.HasOne("backend.Models.Poll", "Poll")
-                        .WithMany("Options")
-                        .HasForeignKey("PollId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Poll");
-                });
-
-            modelBuilder.Entity("backend.Models.Subscription", b =>
-                {
-                    b.HasOne("backend.Models.PoliticianTwitterId", "Politician")
-                        .WithMany("Subscriptions")
-                        .HasForeignKey("PoliticianTwitterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Models.User", "User")
-                        .WithMany("Subscriptions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Politician");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("backend.Models.Tweet", b =>
-                {
-                    b.HasOne("backend.Models.PoliticianTwitterId", "Politician")
-                        .WithMany("Tweets")
-                        .HasForeignKey("PoliticianTwitterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Politician");
-                });
-
-            modelBuilder.Entity("backend.Models.UserVote", b =>
-                {
-                    b.HasOne("backend.Models.PollOption", "ChosenOption")
-                        .WithMany("UserVotes")
-                        .HasForeignKey("ChosenOptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Models.Poll", "Poll")
-                        .WithMany("UserVotes")
-                        .HasForeignKey("PollId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChosenOption");
-
-                    b.Navigation("Poll");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("backend.Models.FakeParti", b =>
-                {
-                    b.Navigation("FakePolitikers");
-                });
-
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.Navigation("GameTrackings");
-
-                    b.Navigation("Quotes");
-                });
-
-            modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.FlashcardCollection", b =>
                 {
                     b.Navigation("Flashcards");
                 });
@@ -1049,30 +759,6 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.LearningEnvironment.Question", b =>
                 {
                     b.Navigation("AnswerOptions");
-                });
-
-            modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
-                {
-                    b.Navigation("Subscriptions");
-
-                    b.Navigation("Tweets");
-                });
-
-            modelBuilder.Entity("backend.Models.Poll", b =>
-                {
-                    b.Navigation("Options");
-
-                    b.Navigation("UserVotes");
-                });
-
-            modelBuilder.Entity("backend.Models.PollOption", b =>
-                {
-                    b.Navigation("UserVotes");
-                });
-
-            modelBuilder.Entity("backend.Models.User", b =>
-                {
-                    b.Navigation("Subscriptions");
                 });
 #pragma warning restore 612, 618
         }
