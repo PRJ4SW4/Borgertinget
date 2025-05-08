@@ -96,10 +96,10 @@ function App() {
         {/* Root path ("/") route, shows HomePage for logged-in users. */}
         <Route path="/" element={<HomePage />} />
         {/* Home is an old route for a previous homepage, should be removed for production environment */}
-        <Route
+        {/* <Route
           path="/home"
           element={<Home setToken={setToken} />} // Pass setToken for logout functionality within Home.
-        />
+        /> */}
         {/* Calendar route (requires login). */}
         <Route path="/kalender" element={<CalendarView />} />
         <Route path="/kalender" element={<CalendarView />} />

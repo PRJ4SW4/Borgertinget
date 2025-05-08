@@ -113,7 +113,7 @@ export default function AddPolls() {
       <div>
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
       </div>
-      <div className="top-red-line"></div>
+      <div className="top-red-line"></div>w
       <h1 className="add-poll-title">Opret en Poll</h1>
       <p className="add-poll-subtitle">Vælg politiker og lav dit spørgsmål</p>
 

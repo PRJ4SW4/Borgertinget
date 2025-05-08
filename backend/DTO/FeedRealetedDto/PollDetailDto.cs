@@ -20,16 +20,20 @@ namespace backend.DTOs
         // Svarmuligheder
         public List<PollOptionDto> Options { get; set; } = new List<PollOptionDto>();
 
-        
-        public int? CurrentUserVoteOptionId { get; set; } = null; // Hvilken option har brugeren stemt på? 
-        public int TotalVotes { get; set; } 
+        public int? CurrentUserVoteOptionId { get; set; } = null; // Hvilken option har brugeren stemt på?
+        public int TotalVotes { get; set; }
     }
 
-
-
     public class PollQuestionUpdate
-{
-    public string NewQuestion { get; set; } = string.Empty;
-}
+    {
+        public string NewQuestion { get; set; } = string.Empty;
+    }
 
+    public class UpdatePollDto
+    {
+        public string Question { get; set; } = string.Empty;
+        public List<string> Options { get; set; } = new();
+        public string PoliticianTwitterId { get; set; } = string.Empty;
+        public DateTime? EndedAt { get; set; }
+    }
 }

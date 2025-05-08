@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+
 // i polls models.cs er der på nuværende tidspunkt 3 forskellige
 // klasser: Poll, PollOption og UserVote.
 // Poll repræsenterer en afstemning, PollOption repræsenterer de forskellige svarmuligheder
@@ -21,18 +22,20 @@ namespace backend.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? EndedAt { get; set; }
 
-        
         [Required]
-        public int PoliticianTwitterId { get; set; } // foreign key til PoliticianTwitterId tabellen
-        public virtual PoliticianTwitterId Politician { get; set; } = null!; // relation til PoliticianTwitterId, dette for at lave en poll der tilhøre en politiker 
+        public int PoliticianId { get; set; } // Foreign Key til PoliticianTwitterId tabellen
 
+        [Required]
+        public string? PoliticianTwitterId { get; set; } // foreign key til PoliticianTwitterId tabellen
+        public virtual PoliticianTwitterId Politician { get; set; } = null!; // relation til PoliticianTwitterId, dette for at lave en poll der tilhøre en politiker
 
-        // Relation til Svar-muligheder, da vi skal have en liste af pollotpions, som jo er de svar muligheder, 
+        // Relation til Svar-muligheder, da vi skal have en liste af pollotpions, som jo er de svar muligheder,
         public virtual List<PollOption> Options { get; set; } = new List<PollOption>();
 
-        // Relation til Afgivne Stemmmer på de forskellige option muligheder 
+        // Relation til Afgivne Stemmmer på de forskellige option muligheder
         public virtual List<UserVote> UserVotes { get; set; } = new List<UserVote>();
     }
+
     public class PollOption
     {
         public int Id { get; set; } // Primærnøgle for PollOption
@@ -51,8 +54,8 @@ namespace backend.Models
         // Relation til Afgivne Stemmer (for denne option)
         public virtual List<UserVote> UserVotes { get; set; } = new List<UserVote>();
     }
-    
-     public class UserVote
+
+    public class UserVote
     {
         public int Id { get; set; } // Primærnøgle for UserVote
 
@@ -72,4 +75,9 @@ namespace backend.Models
         public virtual PollOption ChosenOption { get; set; } = null!; // Navigation Property
     }
 
+    public class PollSummaryDto
+    {
+        public int Id { get; set; }
+        public string Question { get; set; }
+    }
 }

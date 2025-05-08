@@ -1,5 +1,6 @@
 // DailySelection.cs
 namespace backend.Models;
+
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -25,6 +26,7 @@ public class DailySelection
     // Er null for andre gamemodes. Gør den nullable (string?).
     [Column("selected_quote_text")]
     public string? SelectedQuoteText { get; set; }
+
     // ==================
 
     // Navigation property tilbage til politikeren (uændret)
