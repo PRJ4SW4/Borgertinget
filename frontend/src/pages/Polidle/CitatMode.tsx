@@ -1,105 +1,67 @@
-// Fil: src/pages/Polidle/CitatMode.tsx (eller hvor den ligger)
-import React, { useState, useEffect, useCallback, useRef } from "react";
-
-// --- IMPORTER TYPER FRA DEN CENTRALE FIL ---
-import {
-  PoliticianOption,
-  GuessRequestDto,
-  GuessedPoliticianDetailsDto,
-  GuessResultDto,
-  QuoteDto, // Specifik for CitatMode
-  GameMode,
-} from "../../types/polidleTypes"; // <-- !! VIGTIGT: Juster stien så den peger korrekt på din types fil !!
-
-// Importer styles - opret/brug evt. separate filer
-import styles from "./Polidle.module.css"; // Antager generelle page styles her
-import polidleStyles from "../../components/Polidle/PolidleStyles.module.css"; // Styles til spillets UI-dele
+// Fil: src/pages/Polidle/CitatMode/CitatMode.tsx
+import React, { useState, useEffect, useCallback } from "react";
+// Importer nødvendige komponenter
 import GameSelector from "../../components/Polidle/GamemodeSelector/GamemodeSelector";
+// Importer styles
+import styles from "../Polidle.module.css"; // Generelle Polidle styles
+import citatStyles from "./CitatMode.module.css"; // Specifikke styles for CitatMode (opret denne)
 
-// --- Type for historik i denne mode ---
-interface CitatGuessHistoryItem {
-  guessedInfo: GuessedPoliticianDetailsDto;
-  isCorrect: boolean;
-}
+// Importer typer
+import {
+  PoliticianSummaryDto,
+  GuessRequestDto,
+  GuessResultDto,
+  QuoteDto,
+  GameMode,
+  GuessHistoryItem, // Brug den generiske historik type
+} from "../../types/polidleTypes";
 
-interface CitatModeProps {
-  citat: string;
-  correctPolitiker: string;
-}
+// Importer custom hook og API service funktioner
+import { usePoliticianSearch } from "../../hooks/usePoliticianSearch";
+import { submitGuess, getQuoteOfTheDay } from "../../services/polidleApi";
 
-// --- Helper Funktion (Flyt evt. til en utils.ts fil) ---
-function convertByteArrayToDataUrl(
-  byteArray: number[],
-  mimeType = "image/png"
-): string {
-  if (!byteArray || byteArray.length === 0) return "placeholder.png"; // Sørg for at have en placeholder i /public mappen
-  try {
-    const uint8Array = new Uint8Array(byteArray);
-    let binaryString = "";
-    uint8Array.forEach((byte) => {
-      binaryString += String.fromCharCode(byte);
-    });
-    const base64String = btoa(binaryString);
-    return `data:${mimeType};base64,${base64String}`;
-  } catch (error) {
-    console.error("Error converting byte array:", error);
-    return "placeholder.png";
-  }
-}
+// Fjernet unødvendig import af imageUtils, da portræt ikke vises i historik her
+// import { convertByteArrayToDataUrl } from '../../../utils/imageUtils';
 
 // --- Komponenten ---
-const CitatMode: React.FC<CitatModeProps> = ({ citat, correctPolitiker }) => {
+// Fjernet CitatModeProps, da citat hentes internt
+const CitatMode: React.FC = () => {
   // State for Citat
   const [quote, setQuote] = useState<string | null>(null);
   const [isLoadingQuote, setIsLoadingQuote] = useState<boolean>(true);
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
-  // State for Politiker Søgning
+  // State for Politiker Søgning (bruger hook)
   const [searchText, setSearchText] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<PoliticianOption[]>([]);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // State for Valgt Politiker
-  const [selectedPoliticianId, setSelectedPoliticianId] = useState<
-    number | null
-  >(null);
+  const [selectedPolitician, setSelectedPolitician] =
+    useState<PoliticianSummaryDto | null>(null);
 
   // State for Gæt Processering
   const [isGuessing, setIsGuessing] = useState<boolean>(false);
   const [guessError, setGuessError] = useState<string | null>(null);
 
-  // State for Gæt Historik
-  const [citatGuesses, setCitatGuesses] = useState<CitatGuessHistoryItem[]>([]);
+  // State for Gæt Historik (bruger GuessHistoryItem)
+  const [guessHistory, setGuessHistory] = useState<GuessHistoryItem[]>([]);
 
   // State for om spillet er vundet
   const [isGameWon, setIsGameWon] = useState<boolean>(false);
 
+  // Brug custom hook til søgning
+  const {
+    searchResults,
+    isLoading: isSearching,
+    error: searchError,
+    search: triggerSearch,
+    clearResults: clearSearchResults,
+  } = usePoliticianSearch(300);
+
   // --- Effekt til at hente dagens citat ---
   useEffect(() => {
-    if (citat) {
-      setQuote(citat);
-      setIsLoadingQuote(false);
-      return;
-    }
-
     const fetchQuote = async () => {
       setIsLoadingQuote(true);
       setQuoteError(null);
-      // JUSTER evt. base URL hvis din backend kører på en anden port
-      const apiUrl = "/api/Polidle/quote/today";
       try {
-        const token = localStorage.getItem("jwt");
-        const headers: HeadersInit = {
-          "Content-Type":
-            "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
-        };
-        const response = await fetch(apiUrl, { headers });
-        if (!response.ok) {
-          throw new Error(`Fejl ${response.status}`);
-        }
-        const data: QuoteDto = await response.json();
+        const data = await getQuoteOfTheDay(); // Brug API service funktion
         setQuote(data.quoteText);
       } catch (error: any) {
         console.error("Fetch quote error:", error);
@@ -111,133 +73,70 @@ const CitatMode: React.FC<CitatModeProps> = ({ citat, correctPolitiker }) => {
     fetchQuote();
   }, []); // Kør kun ved mount
 
-  // --- Effekt til Debounced Politiker Søgning ---
-  useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    if (searchText.trim() === "" || selectedPoliticianId !== null) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-    debounceTimeoutRef.current = setTimeout(() => {
-      const fetchFilteredPoliticians = async () => {
-        if (searchText.trim() === "") {
-          setSearchResults([]);
-          setIsSearching(false);
-          return;
-        }
-        setIsSearching(true);
-        setSearchError(null);
-        const encodedSearch = encodeURIComponent(searchText);
-        const apiUrl = `/api/polidle/politicians?search=${encodedSearch}`;
-        try {
-          const token = localStorage.getItem("jwt");
-          const headers: HeadersInit = {
-            "Content-Type":
-              "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
-          };
-          const response = await fetch(apiUrl, { headers });
-          if (!response.ok) {
-            throw new Error(`Fejl ${response.status}`);
-          }
-          const data: PoliticianOption[] = await response.json();
-          if (searchText.trim() !== "") {
-            setSearchResults(data);
-          } else {
-            setSearchResults([]);
-          }
-        } catch (error: any) {
-          console.error("Search fetch error:", error);
-          setSearchError(error.message || "Fejl ved søgning.");
-          setSearchResults([]);
-        } finally {
-          setIsSearching(false);
-        }
-      };
-      fetchFilteredPoliticians();
-    }, 300);
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [searchText, selectedPoliticianId]);
-
   // --- Handlers ---
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(event.target.value);
-    setSelectedPoliticianId(null);
-  };
-
-  const handleOptionSelect = (option: PoliticianOption) => {
-    setSearchText(option.politikerNavn);
-    setSelectedPoliticianId(option.id);
-    setSearchResults([]);
-    setSearchError(null);
-  };
-
-  const handleMakeGuess = async () => {
-    if (selectedPoliticianId === null || isGameWon) {
-      return;
+    const newSearchText = event.target.value;
+    setSearchText(newSearchText);
+    setSelectedPolitician(null);
+    if (newSearchText.trim() === "") {
+      clearSearchResults();
+    } else {
+      triggerSearch(newSearchText);
     }
+  };
+
+  const handleOptionSelect = (option: PoliticianSummaryDto) => {
+    setSearchText(option.politikerNavn);
+    setSelectedPolitician(option);
+    clearSearchResults();
+  };
+
+  const handleMakeGuess = useCallback(async () => {
+    if (!selectedPolitician || isGameWon) return;
+
     setIsGuessing(true);
     setGuessError(null);
-    const gameModeValue = GameMode.Citat; // Brug enum
-    const apiUrl = "/api/polidle/guess";
+
     const requestBody: GuessRequestDto = {
-      guessedPoliticianId: selectedPoliticianId,
-      gameMode: gameModeValue,
+      guessedPoliticianId: selectedPolitician.id,
+      gameMode: GameMode.Citat, // Brug enum
     };
 
     try {
-      const token = localStorage.getItem("jwt");
-      const headers: HeadersInit = {
-        "Content-Type":
-          "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
-      };
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(requestBody),
-      });
-      if (!response.ok) {
-        let errorMsg = `Fejl ${response.status}.`;
-        try {
-          const errorData = await response.json();
-          errorMsg = `${errorMsg} ${
-            errorData.message || errorData.title || ""
-          }`;
-        } catch (e) {}
-        throw new Error(errorMsg);
-      }
-      const resultData: GuessResultDto = await response.json();
+      const resultData = await submitGuess(requestBody);
+
       if (resultData.guessedPolitician) {
-        const historyItem: CitatGuessHistoryItem = {
+        const historyItem: GuessHistoryItem = {
+          // Brug GuessHistoryItem
           guessedInfo: resultData.guessedPolitician,
           isCorrect: resultData.isCorrectGuess,
+          // Feedback er ikke relevant for CitatMode historik
         };
-        setCitatGuesses((prevGuesses) => [...prevGuesses, historyItem]);
+        setGuessHistory((prevGuesses) => [...prevGuesses, historyItem]);
+
         if (resultData.isCorrectGuess) {
           setIsGameWon(true);
-          // Udskift evt. alert med en pænere besked i UI
-          setTimeout(() => alert("Tillykke, du gættede rigtigt!"), 100); // Lille delay så UI kan opdatere
+          // Overvej en mere integreret success-besked end alert
+          // f.eks. vis en besked i UI'en
         }
-        // Tilføj evt. logik for max gæt
+        // Tilføj evt. logik for max antal gæt her
       } else {
-        throw new Error("Manglende politiker detaljer i svar.");
+        // Dette burde ikke ske hvis API'et altid returnerer guessedPolitician
+        console.error("API response missing 'guessedPolitician' details.");
+        throw new Error("Manglende politiker detaljer i svar fra server.");
       }
+
+      // Ryd op efter gæt
       setSearchText("");
-      setSelectedPoliticianId(null);
-      setSearchResults([]);
+      setSelectedPolitician(null);
+      clearSearchResults();
     } catch (error: any) {
       console.error("Guess API error:", error);
       setGuessError(error.message || "Ukendt fejl under gæt.");
     } finally {
       setIsGuessing(false);
     }
-  };
+  }, [selectedPolitician, isGameWon, clearSearchResults]); // Dependencies
 
   // --- JSX Rendering ---
   return (
@@ -246,119 +145,123 @@ const CitatMode: React.FC<CitatModeProps> = ({ citat, correctPolitiker }) => {
       <GameSelector />
 
       {/* --- Vis Citat --- */}
-      <div className={polidleStyles.quoteContainer}>
+      <div className={citatStyles.quoteContainer}>
         <p className={styles.paragraph}>Hvem sagde dette citat?</p>
-        {isLoadingQuote && <p>Henter dagens citat...</p>}
+        {isLoadingQuote && (
+          <p className={citatStyles.loadingText}>Henter dagens citat...</p>
+        )}
         {quoteError && (
-          <p className={polidleStyles.errorText}>Fejl: {quoteError}</p>
+          <p className={citatStyles.errorText}>Fejl: {quoteError}</p>
         )}
         {!isLoadingQuote && !quoteError && quote && (
-          <p className={styles.citat}>"{quote}"</p>
+          // Brug blockquote for semantisk korrekt HTML for citater
+          <blockquote className={citatStyles.quote}>"{quote}"</blockquote>
         )}
         {!isLoadingQuote && !quoteError && !quote && (
-          <p style={{ color: "orange" }}>
+          <p className={citatStyles.warningText}>
             Kunne ikke finde et citat for i dag.
           </p>
         )}
       </div>
       {/* --------------- */}
 
-      {/* --- Politiker Søgning/Valg --- */}
-      {!isGameWon && ( // Vis kun søgning hvis spillet ikke er vundet
-        <div className={polidleStyles.searchContainer}>
-          <input
-            type="text"
-            placeholder="Skriv navn på politiker..."
-            value={searchText}
-            onChange={handleSearchChange}
-            disabled={isGuessing || isGameWon}
-            className={polidleStyles.searchInput}
-            autoComplete="off"
-          />
-          {/* Viser søgeresultater / loading / fejl */}
-          {searchText && selectedPoliticianId === null && (
-            <>
-              {isSearching && (
-                <div className={polidleStyles.searchLoader}>Søger...</div>
-              )}
-              {searchError && (
-                <div className={polidleStyles.searchError}>
-                  Fejl: {searchError}
-                </div>
-              )}
-              {!isSearching && !searchError && searchResults.length === 0 && (
-                <div className={polidleStyles.noResults}>
-                  Ingen match fundet.
-                </div>
-              )}
-              {!isSearching && !searchError && searchResults.length > 0 && (
-                <ul className={polidleStyles.searchResults}>
-                  {searchResults.map((option) => (
-                    <li
-                      key={option.id}
-                      onClick={() => handleOptionSelect(option)}
-                      className={polidleStyles.searchResultItem}
-                    >
-                      <img
-                        src={convertByteArrayToDataUrl(option.portraet)}
-                        alt={option.politikerNavn}
-                        className={polidleStyles.searchResultImage}
-                        loading="lazy"
-                      />
-                      <span className={polidleStyles.searchResultName}>
-                        {option.politikerNavn}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-          {/* Knap og Fejl for Gæt */}
+      {/* --- Politiker Søgning/Valg (kun hvis spillet ikke er vundet) --- */}
+      {!isGameWon && (
+        <div className={citatStyles.searchAndGuess}>
+          {" "}
+          {/* Ny container for input + knap */}
+          <div className={citatStyles.searchContainer}>
+            {" "}
+            {/* Container specifikt for input + resultater */}
+            <input
+              type="text"
+              placeholder="Skriv navn på politiker..."
+              value={searchText}
+              onChange={handleSearchChange}
+              disabled={isGuessing || isGameWon}
+              className={citatStyles.searchInput}
+              autoComplete="off"
+            />
+            {/* Vis kun listen hvis der er søgetekst OG en politiker IKKE er valgt */}
+            {searchText && !selectedPolitician && (
+              <div className={citatStyles.searchResultsContainer}>
+                {isSearching && (
+                  <div className={citatStyles.searchLoader}>Søger...</div>
+                )}
+                {searchError && (
+                  <div className={citatStyles.searchError}>
+                    Fejl: {searchError}
+                  </div>
+                )}
+                {!isSearching &&
+                  !searchError &&
+                  searchResults.length === 0 &&
+                  searchText.trim() !== "" && (
+                    <div className={citatStyles.noResults}>
+                      Ingen match fundet.
+                    </div>
+                  )}
+                {!isSearching && !searchError && searchResults.length > 0 && (
+                  <ul className={citatStyles.searchResults}>
+                    {searchResults.map((option) => (
+                      <li
+                        key={option.id}
+                        onClick={() => handleOptionSelect(option)}
+                        className={citatStyles.searchResultItem}
+                        role="option"
+                        aria-selected={false}
+                      >
+                        {/* Billede fjernet - ikke i PoliticianSummaryDto */}
+                        <span className={citatStyles.searchResultName}>
+                          {option.politikerNavn}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
           <button
             onClick={handleMakeGuess}
-            disabled={isGuessing || selectedPoliticianId === null || isGameWon}
-            className={polidleStyles.guessButton}
+            disabled={isGuessing || !selectedPolitician || isGameWon}
+            className={citatStyles.guessButton}
           >
             {isGuessing ? "Gætter..." : "Gæt"}
           </button>
-          {guessError && (
-            <div className={polidleStyles.guessError}>Fejl: {guessError}</div>
-          )}
         </div>
       )}
+      {guessError &&
+        !isGameWon && ( // Vis kun gættefejl hvis spillet ikke er slut
+          <div className={citatStyles.guessError}>
+            Fejl ved gæt: {guessError}
+          </div>
+        )}
+
       {/* Vis besked hvis spillet er vundet */}
       {isGameWon && (
-        <div className={polidleStyles.gameWonMessage}>
-          Godt gået! Du fandt politikeren!
+        <div className={citatStyles.gameWonMessage}>
+          Tillykke! Du gættede rigtigt!
         </div>
       )}
       {/* --------------------------- */}
 
       {/* --- Vis Gætte-Historik for Citat Mode --- */}
-      <div className={polidleStyles.citatGuessHistory}>
-        {citatGuesses.length > 0 && <h3>Dine Gæt:</h3>}
-        {citatGuesses.map((guessItem, index) => (
+      <div className={citatStyles.guessHistory}>
+        {guessHistory.length > 0 && <h3>Dine Gæt:</h3>}
+        {guessHistory.map((guessItem, index) => (
           <div
-            key={index}
-            className={`${polidleStyles.citatGuessItem} ${
-              guessItem.isCorrect
-                ? polidleStyles.correct
-                : polidleStyles.incorrect
+            key={`${guessItem.guessedInfo.id}-${index}`} // Bedre key end bare index
+            className={`${citatStyles.guessHistoryItem} ${
+              guessItem.isCorrect ? citatStyles.correct : citatStyles.incorrect
             }`}
           >
-            {/* Brug de CSS klasser du definerede */}
-            {guessItem.guessedInfo?.portraet && (
-              <img
-                src={convertByteArrayToDataUrl(guessItem.guessedInfo.portraet)}
-                alt={guessItem.guessedInfo.politikerNavn}
-                className={polidleStyles.historyImage}
-              />
-            )}
-            <span className={polidleStyles.historyName}>
+            {/* Billede fjernet - GuessedPoliticianDetailsDto har ikke portræt */}
+            {/* <img src={placeholder} alt="" className={citatStyles.historyImage} /> */}
+            <span className={citatStyles.historyName}>
               {guessItem.guessedInfo?.politikerNavn ?? "Ukendt"}
             </span>
-            <span className={polidleStyles.historyIndicator}>
+            <span className={citatStyles.historyIndicator}>
               {guessItem.isCorrect ? "✓" : "✕"}
             </span>
           </div>

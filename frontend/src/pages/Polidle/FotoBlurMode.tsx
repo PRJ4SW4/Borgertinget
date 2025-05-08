@@ -1,259 +1,130 @@
-// Fil: src/pages/Polidle/FotoBlurMode.tsx (eller hvor den ligger)
-import React, { useState, useEffect, useCallback, useRef } from "react";
-
-// --- IMPORTER TYPER FRA DEN CENTRALE FIL ---
-import {
-  PoliticianOption,
-  GuessRequestDto,
-  GuessedPoliticianDetailsDto,
-  GuessResultDto,
-  PhotoDto, // Specifik for FotoMode
-  GameMode,
-  // Importer FeedbackType hvis du skal bruge den (f.eks. i CitatGuessHistoryItem hvis den genbruges)
-} from "../../types/polidleTypes"; // <-- !! JUSTER STIEN !!
-
-// Importer styles
-import styles from "./Polidle.module.css"; // Generelle page styles
-import polidleStyles from "../../components/Polidle/PolidleStyles.module.css"; // Styles til spillets UI-dele
+// Fil: src/pages/Polidle/FotoBlurMode/FotoBlurMode.tsx
+import React, { useState, useCallback } from "react";
+// Importer nødvendige komponenter
 import GameSelector from "../../components/Polidle/GamemodeSelector/GamemodeSelector";
+// Importer styles
+import styles from "../Polidle.module.css"; // Generelle Polidle styles
+import fotoStyles from "./FotoBlurMode.module.css"; // Specifikke styles for FotoBlurMode (opret denne)
 
-// --- Type for historik i denne mode ---
-interface FotoGuessHistoryItem {
-  guessedInfo: GuessedPoliticianDetailsDto;
-  isCorrect: boolean;
-}
+// Importer typer
+import {
+  PoliticianSummaryDto,
+  GuessRequestDto,
+  GuessResultDto,
+  PhotoDto,
+  GameMode,
+  GuessHistoryItem, // Brug den generiske historik type
+} from "../../types/polidleTypes";
 
-interface FotoBlurModeProps {
-  imageUrl: string;
-  correctPolitiker: string;
-}
+// Importer custom hooks og API service funktioner
+import { usePoliticianSearch } from "../../hooks/usePoliticianSearch";
+import { useDailyPhoto } from "../../hooks/useDailyPhoto"; // Ny hook
+import { submitGuess } from "../../services/polidleApi";
 
-// --- Helper Funktion (Genbrugt - Flyt evt. til utils.ts) ---
-function convertByteArrayToDataUrl(
-  byteArray: number[],
-  mimeType = "image/png"
-): string {
-  if (!byteArray || byteArray.length === 0) return "placeholder.png"; // Sørg for at have en placeholder i /public mappen
-  try {
-    const uint8Array = new Uint8Array(byteArray);
-    let binaryString = "";
-    uint8Array.forEach((byte) => {
-      binaryString += String.fromCharCode(byte);
-    });
-    const base64String = btoa(binaryString);
-    return `data:${mimeType};base64,${base64String}`;
-  } catch (error) {
-    console.error("Error converting byte array:", error);
-    return "placeholder.png";
-  }
-}
+// Importer utility funktion til at vise Base64 billeder
+import { convertBase64ToDataUrl } from "../../utils/polidleHelpers";
 
 // --- Komponenten ---
-const FotoBlurMode: React.FC<FotoBlurModeProps> = ({ imageUrl }) => {
-  // State for Foto
-  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
-  const [isLoadingPhoto, setIsLoadingPhoto] = useState<boolean>(true);
-  const [photoError, setPhotoError] = useState<string | null>(null);
-  // const [blurLevel, setBlurLevel] = useState<number>(10); // State til blur-effekt
+// Fjernet FotoBlurModeProps, da foto hentes internt via hook
+const FotoBlurMode: React.FC = () => {
+  // State for Foto (bruger hook)
+  const {
+    photoData,
+    isLoading: isLoadingPhoto,
+    error: photoError,
+    retry: retryFetchPhoto,
+  } = useDailyPhoto();
 
-  // State for Politiker Søgning
+  // const [blurLevel, setBlurLevel] = useState<number>(10); // State til blur-effekt (stadig kommenteret ud)
+
+  // State for Politiker Søgning (bruger hook)
   const [searchText, setSearchText] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<PoliticianOption[]>([]);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // State for Valgt Politiker
-  const [selectedPoliticianId, setSelectedPoliticianId] = useState<
-    number | null
-  >(null);
+  const [selectedPolitician, setSelectedPolitician] =
+    useState<PoliticianSummaryDto | null>(null);
 
   // State for Gæt Processering
   const [isGuessing, setIsGuessing] = useState<boolean>(false);
   const [guessError, setGuessError] = useState<string | null>(null);
 
-  // State for Gæt Historik
-  const [fotoGuesses, setFotoGuesses] = useState<FotoGuessHistoryItem[]>([]);
+  // State for Gæt Historik (bruger GuessHistoryItem)
+  const [guessHistory, setGuessHistory] = useState<GuessHistoryItem[]>([]);
 
   // State for om spillet er vundet
   const [isGameWon, setIsGameWon] = useState<boolean>(false);
 
-  // --- Effekt til at hente dagens foto ---
-  useEffect(() => {
-    if (imageUrl) {
-      setPhotoBase64(imageUrl);
-      setIsLoadingPhoto(false);
-      return;
-    }
-
-    const fetchPhoto = async () => {
-      setIsLoadingPhoto(true);
-      setPhotoError(null);
-      const apiUrl = "/api/Polidle/photo/today"; // JUSTER evt. base URL
-      try {
-        const token = localStorage.getItem("jwt");
-        const headers: HeadersInit = {
-          "Content-Type":
-            "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
-        };
-        const response = await fetch(apiUrl, { headers });
-        if (!response.ok) {
-          throw new Error(
-            `Fejl ${response.status}: Kunne ikke hente dagens foto.`
-          );
-        }
-        const data: PhotoDto = await response.json();
-        // Sammensæt fuld Data URL hvis backend kun sender Base64-delen
-        if (
-          data.portraitBase64 &&
-          !data.portraitBase64.startsWith("data:image")
-        ) {
-          setPhotoBase64(`data:image/png;base64,${data.portraitBase64}`); // Antager png, juster hvis nødvendigt
-        } else {
-          setPhotoBase64(data.portraitBase64); // Antager backend sender fuld URL
-        }
-      } catch (error: any) {
-        console.error("Fetch photo error:", error);
-        setPhotoError(error.message || "Ukendt fejl ved hentning af foto.");
-      } finally {
-        setIsLoadingPhoto(false);
-      }
-    };
-    fetchPhoto();
-  }, []);
-
-  // --- Effekt til Debounced Politiker Søgning ---
-  useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    if (searchText.trim() === "" || selectedPoliticianId !== null) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-    debounceTimeoutRef.current = setTimeout(() => {
-      const fetchFilteredPoliticians = async () => {
-        if (searchText.trim() === "") {
-          setSearchResults([]);
-          setIsSearching(false);
-          return;
-        }
-        setIsSearching(true);
-        setSearchError(null);
-        const encodedSearch = encodeURIComponent(searchText);
-        const apiUrl = `/api/polidle/politicians?search=${encodedSearch}`; // JUSTER evt. base URL
-        try {
-          const token = localStorage.getItem("jwt");
-          const headers: HeadersInit = {
-            "Content-Type":
-              "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
-          };
-          const response = await fetch(apiUrl, { headers });
-          if (!response.ok) {
-            throw new Error(`Fejl ${response.status}`);
-          }
-          const data: PoliticianOption[] = await response.json();
-          if (searchText.trim() !== "") {
-            setSearchResults(data);
-          } else {
-            setSearchResults([]);
-          }
-        } catch (error: any) {
-          console.error("Search fetch error:", error);
-          setSearchError(error.message || "Fejl ved søgning.");
-          setSearchResults([]);
-        } finally {
-          setIsSearching(false);
-        }
-      };
-      fetchFilteredPoliticians();
-    }, 300);
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [searchText, selectedPoliticianId]);
+  // Brug custom hook til politikersøgning
+  const {
+    searchResults,
+    isLoading: isSearching,
+    error: searchError,
+    search: triggerSearch,
+    clearResults: clearSearchResults,
+  } = usePoliticianSearch(300);
 
   // --- Handlers ---
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(event.target.value);
-    setSelectedPoliticianId(null);
-  };
-
-  const handleOptionSelect = (option: PoliticianOption) => {
-    setSearchText(option.politikerNavn);
-    setSelectedPoliticianId(option.id);
-    setSearchResults([]);
-    setSearchError(null);
-  };
-
-  const handleMakeGuess = async () => {
-    if (selectedPoliticianId === null || isGameWon) {
-      return;
+    const newSearchText = event.target.value;
+    setSearchText(newSearchText);
+    setSelectedPolitician(null);
+    if (newSearchText.trim() === "") {
+      clearSearchResults();
+    } else {
+      triggerSearch(newSearchText);
     }
+  };
+
+  const handleOptionSelect = (option: PoliticianSummaryDto) => {
+    setSearchText(option.politikerNavn);
+    setSelectedPolitician(option);
+    clearSearchResults();
+  };
+
+  const handleMakeGuess = useCallback(async () => {
+    if (!selectedPolitician || isGameWon) return;
+
     setIsGuessing(true);
     setGuessError(null);
-    const gameModeValue = GameMode.Foto; // Brug enum (værdi 2)
-    const apiUrl = "/api/polidle/guess"; // JUSTER evt. base URL
+
     const requestBody: GuessRequestDto = {
-      guessedPoliticianId: selectedPoliticianId,
-      gameMode: gameModeValue,
+      guessedPoliticianId: selectedPolitician.id,
+      gameMode: GameMode.Foto, // Brug enum
     };
 
     try {
-      const token = localStorage.getItem("jwt");
-      const headers: HeadersInit = {
-        "Content-Type":
-          "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
-      };
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(requestBody),
-      });
-      if (!response.ok) {
-        let errorMsg = `Fejl ${response.status}.`;
-        try {
-          const errorData = await response.json();
-          errorMsg = `${errorMsg} ${
-            errorData.message || errorData.title || ""
-          }`;
-        } catch (e) {}
-        throw new Error(errorMsg);
-      }
-      const resultData: GuessResultDto = await response.json();
+      const resultData = await submitGuess(requestBody);
+
       if (resultData.guessedPolitician) {
-        const historyItem: FotoGuessHistoryItem = {
+        const historyItem: GuessHistoryItem = {
           guessedInfo: resultData.guessedPolitician,
           isCorrect: resultData.isCorrectGuess,
         };
-        setFotoGuesses((prevGuesses) => [...prevGuesses, historyItem]); // Opdater Foto historik
+        setGuessHistory((prevGuesses) => [...prevGuesses, historyItem]);
 
         // TODO: Implementer blur reduktion ved forkert gæt
         // if (!resultData.isCorrectGuess) { setBlurLevel(prev => Math.max(0, prev - 2)); }
 
         if (resultData.isCorrectGuess) {
           setIsGameWon(true);
-          // setBlurLevel(0); // Fjern blur
-          // Vis evt. en pænere besked end alert
-          setTimeout(() => alert("Tillykke, du gættede rigtigt!"), 100);
+          // setBlurLevel(0); // Fjern blur ved korrekt gæt
+          // Overvej en mere integreret success-besked
         }
-        // TODO: Implementer max antal gæt logik hvis relevant
+        // TODO: Implementer max antal gæt logik
       } else {
-        throw new Error("Manglende politiker detaljer i svar.");
+        console.error("API response missing 'guessedPolitician' details.");
+        throw new Error("Manglende politiker detaljer i svar fra server.");
       }
+
+      // Ryd op efter gæt
       setSearchText("");
-      setSelectedPoliticianId(null);
-      setSearchResults([]);
+      setSelectedPolitician(null);
+      clearSearchResults();
     } catch (error: any) {
       console.error("Guess API error:", error);
       setGuessError(error.message || "Ukendt fejl under gæt.");
     } finally {
       setIsGuessing(false);
     }
-  };
+  }, [selectedPolitician, isGameWon, clearSearchResults]); // Dependencies
 
   // --- JSX Rendering ---
   return (
@@ -262,120 +133,130 @@ const FotoBlurMode: React.FC<FotoBlurModeProps> = ({ imageUrl }) => {
       <GameSelector />
 
       {/* --- Vis Foto --- */}
-      <div className={polidleStyles.photoContainer}>
+      <div className={fotoStyles.photoContainer}>
         <p className={styles.paragraph}>Hvem er på billedet?</p>
-        {isLoadingPhoto && <p>Henter dagens billede...</p>}
-        {photoError && (
-          <p className={polidleStyles.errorText}>Fejl: {photoError}</p>
+        {isLoadingPhoto && (
+          <p className={fotoStyles.loadingText}>Henter dagens billede...</p>
         )}
-        {!isLoadingPhoto && !photoError && photoBase64 && (
+        {photoError && (
+          <div className={fotoStyles.errorContainer}>
+            <p className={fotoStyles.errorText}>Fejl: {photoError}</p>
+            <button
+              onClick={retryFetchPhoto}
+              className={fotoStyles.retryButton}
+            >
+              Prøv igen
+            </button>
+          </div>
+        )}
+        {!isLoadingPhoto && !photoError && photoData?.portraitBase64 && (
           <img
-            src={photoBase64}
+            // Brug convertBase64ToDataUrl da PhotoDto indeholder Base64 streng
+            src={convertBase64ToDataUrl(photoData.portraitBase64)}
             alt="Sløret politiker portræt"
-            className={polidleStyles.blurredImage} // Tilføj CSS for denne klasse!
-            // style={{ filter: `blur(${blurLevel}px)` }} // Tilføj når blur state er klar
+            className={fotoStyles.blurredImage} // Sørg for at denne klasse findes i CSS
+            // style={{ filter: `blur(${blurLevel}px)` }} // Tilføj når blur state implementeres
           />
         )}
-        {!isLoadingPhoto && !photoError && !photoBase64 && (
-          <p style={{ color: "orange" }}>
+        {!isLoadingPhoto && !photoError && !photoData?.portraitBase64 && (
+          // Viser dette hvis API'et returnerede data, men base64 strengen var tom
+          <p className={fotoStyles.warningText}>
             Kunne ikke finde et billede for i dag.
           </p>
         )}
       </div>
       {/* --------------- */}
 
-      {/* --- Politiker Søgning/Valg --- */}
+      {/* --- Politiker Søgning/Valg (kun hvis spillet ikke er vundet) --- */}
       {!isGameWon && (
-        <div className={polidleStyles.searchContainer}>
-          <input
-            type="text"
-            placeholder="Skriv navn på politiker..."
-            value={searchText}
-            onChange={handleSearchChange}
-            disabled={isGuessing || isGameWon}
-            className={polidleStyles.searchInput}
-            autoComplete="off"
-          />
-          {searchText && selectedPoliticianId === null && (
-            <>
-              {isSearching && (
-                <div className={polidleStyles.searchLoader}>Søger...</div>
-              )}
-              {searchError && (
-                <div className={polidleStyles.searchError}>
-                  Fejl: {searchError}
-                </div>
-              )}
-              {!isSearching && !searchError && searchResults.length === 0 && (
-                <div className={polidleStyles.noResults}>
-                  Ingen match fundet.
-                </div>
-              )}
-              {!isSearching && !searchError && searchResults.length > 0 && (
-                <ul className={polidleStyles.searchResults}>
-                  {searchResults.map((option) => (
-                    <li
-                      key={option.id}
-                      onClick={() => handleOptionSelect(option)}
-                      className={polidleStyles.searchResultItem}
-                    >
-                      <img
-                        src={convertByteArrayToDataUrl(option.portraet)}
-                        alt={option.politikerNavn}
-                        className={polidleStyles.searchResultImage}
-                        loading="lazy"
-                      />
-                      <span className={polidleStyles.searchResultName}>
-                        {option.politikerNavn}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
+        <div className={fotoStyles.searchAndGuess}>
+          <div className={fotoStyles.searchContainer}>
+            <input
+              type="text"
+              placeholder="Skriv navn på politiker..."
+              value={searchText}
+              onChange={handleSearchChange}
+              disabled={isGuessing || isGameWon}
+              className={fotoStyles.searchInput}
+              autoComplete="off"
+            />
+            {searchText && !selectedPolitician && (
+              <div className={fotoStyles.searchResultsContainer}>
+                {isSearching && (
+                  <div className={fotoStyles.searchLoader}>Søger...</div>
+                )}
+                {searchError && (
+                  <div className={fotoStyles.searchError}>
+                    Fejl: {searchError}
+                  </div>
+                )}
+                {!isSearching &&
+                  !searchError &&
+                  searchResults.length === 0 &&
+                  searchText.trim() !== "" && (
+                    <div className={fotoStyles.noResults}>
+                      Ingen match fundet.
+                    </div>
+                  )}
+                {!isSearching && !searchError && searchResults.length > 0 && (
+                  <ul className={fotoStyles.searchResults}>
+                    {searchResults.map((option) => (
+                      <li
+                        key={option.id}
+                        onClick={() => handleOptionSelect(option)}
+                        className={fotoStyles.searchResultItem}
+                        role="option"
+                        aria-selected={false}
+                      >
+                        {/* Billede fjernet */}
+                        <span className={fotoStyles.searchResultName}>
+                          {option.politikerNavn}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={handleMakeGuess}
-            disabled={isGuessing || selectedPoliticianId === null || isGameWon}
-            className={polidleStyles.guessButton}
+            disabled={isGuessing || !selectedPolitician || isGameWon}
+            className={fotoStyles.guessButton}
           >
             {isGuessing ? "Gætter..." : "Gæt"}
           </button>
-          {guessError && (
-            <div className={polidleStyles.guessError}>Fejl: {guessError}</div>
-          )}
         </div>
       )}
+      {guessError && !isGameWon && (
+        <div className={fotoStyles.guessError}>Fejl ved gæt: {guessError}</div>
+      )}
+
+      {/* Vis besked hvis spillet er vundet */}
       {isGameWon && (
-        <div className={polidleStyles.gameWonMessage}>
-          Godt gået! Du fandt politikeren!
+        <div className={fotoStyles.gameWonMessage}>
+          Tillykke! Du gættede rigtigt!
         </div>
       )}
       {/* --------------------------- */}
 
       {/* --- Vis Gætte-Historik for Foto Mode --- */}
-      <div className={polidleStyles.fotoGuessHistory}>
-        {fotoGuesses.length > 0 && <h3>Dine Gæt:</h3>}
-        {fotoGuesses.map((guessItem, index) => (
+      <div className={fotoStyles.guessHistory}>
+        {guessHistory.length > 0 && <h3>Dine Gæt:</h3>}
+        {guessHistory.map((guessItem, index) => (
           <div
-            key={index}
-            className={`${polidleStyles.citatGuessItem} ${
-              guessItem.isCorrect
-                ? polidleStyles.correcta
-                : polidleStyles.incorrect
+            key={`${guessItem.guessedInfo.id}-${index}`}
+            className={`${fotoStyles.guessHistoryItem} ${
+              // Brug evt. samme styles som Citat?
+              guessItem.isCorrect ? fotoStyles.correct : fotoStyles.incorrect
             }`}
           >
-            {guessItem.guessedInfo?.portraet && (
-              <img
-                src={convertByteArrayToDataUrl(guessItem.guessedInfo.portraet)}
-                alt={guessItem.guessedInfo.politikerNavn}
-                className={polidleStyles.historyImage}
-              />
-            )}
-            <span className={polidleStyles.historyName}>
+            {/* Billede fjernet */}
+            <span className={fotoStyles.historyName}>
               {guessItem.guessedInfo?.politikerNavn ?? "Ukendt"}
             </span>
-            <span className={polidleStyles.historyIndicator}>
+            <span className={fotoStyles.historyIndicator}>
               {guessItem.isCorrect ? "✓" : "✕"}
             </span>
           </div>

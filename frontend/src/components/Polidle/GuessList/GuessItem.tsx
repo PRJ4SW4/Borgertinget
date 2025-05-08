@@ -6,7 +6,7 @@ import {
   GuessResultDto,
   FeedbackType,
   GuessedPoliticianDetailsDto,
-} from "../../../pages/Polidle/ClassicMode"; // Juster sti
+} from "../../../types/polidleTypes"; // Juster sti
 
 interface GuessItemProps {
   result: GuessResultDto; // Modtager nu ét resultat objekt
@@ -53,7 +53,7 @@ const GuessItem: React.FC<GuessItemProps> = ({ result }) => {
       </div>
       {/* Køn */}
       <div className={`guess-data ${getFeedbackClass(feedback["Køn"])}`}>
-        {guessed.køn}
+        {guessed.sex}
       </div>
       {/* Parti */}
       <div className={`guess-data ${getFeedbackClass(feedback["Parti"])}`}>
@@ -62,7 +62,7 @@ const GuessItem: React.FC<GuessItemProps> = ({ result }) => {
       {/* Alder */}
       <div className={`guess-data ${getFeedbackClass(feedback["Alder"])}`}>
         {/* VIS SELVE ALDEREN */}
-        {guessed.alder}
+        {guessed.age}
         {/* Vis pil baseret på Højere/Lavere feedback */}
         {feedback["Alder"] === FeedbackType.Lavere && (
           <span className="arrow"> &#8595;</span>

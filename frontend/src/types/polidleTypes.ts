@@ -2,7 +2,7 @@
 
 // Bruges i søgeresultater fra GET /api/polidle/politicians
 // Matcher din backend PoliticianSummaryDto
-export interface PoliticianOption {
+export interface PoliticianSummaryDto {
   id: number;
   politikerNavn: string;
   portraet: number[]; // Repræsenterer byte[] fra C#
@@ -30,7 +30,7 @@ export interface GuessedPoliticianDetailsDto {
   politikerNavn: string;
   partiNavn: string;
   age: number; // Vigtigt: Hedder 'age' for at matche JSON fra backend
-  køn: string;
+  sex: string;
   uddannelse: string;
   region: string;
   portraet: number[];
@@ -56,10 +56,11 @@ export interface PhotoDto {
   // Tilføj evt. politikerId hvis backend sender det
 }
 
-// Type for historik-elementer i CitatMode state (kan blive her eller flyttes)
-export interface CitatGuessHistoryItem {
-  guessedInfo: GuessedPoliticianDetailsDto;
-  isCorrect: boolean;
+// Generic type for guess history items across different modes
+export interface GuessHistoryItem {
+  guessedInfo: GuessedPoliticianDetailsDto; // Details of the politician guessed
+  isCorrect: boolean; // Was the guess correct?
+  feedback?: Record<string, FeedbackType>; // Optional: Feedback details (used in ClassicMode)
 }
 
 // Tilføj andre typer, f.eks. for ClassicMode state hvis nødvendigt

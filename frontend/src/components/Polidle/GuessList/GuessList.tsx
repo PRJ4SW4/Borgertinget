@@ -3,7 +3,7 @@ import React from "react";
 import GuessItem from "./GuessItem";
 import "./GuessList.css"; // Behold eller opdater din CSS
 // Importer typerne fra ClassicMode eller en delt types fil
-import { GuessResultDto } from "../../../pages/Polidle/ClassicMode"; // Juster stien efter behov
+import { GuessResultDto } from "../../../types/polidleTypes"; // Juster stien efter behov
 
 interface GuessListProps {
   results: GuessResultDto[]; // Modtager nu listen af resultater
