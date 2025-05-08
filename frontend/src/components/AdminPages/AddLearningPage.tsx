@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchPagesStructure } from "../../services/ApiService";
 import type { PageSummaryDto } from "../../types/pageTypes";
 import "./ChangeLearningPage.css"; // Updated CSS import
+import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 
 export default function AddLearningPage() {
   const [title, setTitle] = useState("");
@@ -62,6 +63,10 @@ export default function AddLearningPage() {
 
   return (
     <div className="container">
+      <div>
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+      </div>
+      <div className="top-red-line"></div>
       <h1>Opret Læringsside</h1>
 
       <input type="text" placeholder="Titel" value={title} onChange={(e) => setTitle(e.target.value)} className="page-input" />

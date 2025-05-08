@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "./ChangeInhold.css";
+import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 
 interface Party {
   partyId: number;
@@ -79,8 +80,13 @@ export default function RedigerInhold() {
   };
 
   return (
-    <div className="edit-inhold-container">
-      <h1 className="edit-inhold-title">Rediger Indhold for Partier</h1>
+    <div className="container">
+      <div>
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+      </div>
+      <div className="top-red-line"></div>
+
+      <h1>Rediger Indhold for Partier</h1>
       <p className="edit-inhold-subtitle">Klik på et parti for at redigere deres indhold</p>
 
       {selectedParty && <h2 className="edit-inhold-selected">Valgt parti: {selectedParty.partyName}</h2>}

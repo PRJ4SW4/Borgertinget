@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ChangePolls.css";
+import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 
 interface PollSummary {
   id: number;
@@ -183,7 +184,11 @@ export default function EditPoll() {
   };
 
   return (
-    <div className="add-poll-container">
+    <div className="container">
+      <div>
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+      </div>
+      <div className="top-red-line"></div>
       <h1 className="add-poll-title">Rediger Poll</h1>
       <p className="add-poll-subtitle">Vælg en poll for at redigere</p>
 

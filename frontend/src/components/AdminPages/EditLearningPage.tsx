@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ChangeLearningPage.css";
+import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 
 interface PageSummaryDto {
   id: number;
@@ -81,6 +82,10 @@ export default function EditLearningPage() {
 
   return (
     <div className="container">
+      <div>
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+      </div>
+      <div className="top-red-line"></div>
       <h1>Rediger Læringsside</h1>
 
       <select value={selectedPageId ?? ""} onChange={(e) => setSelectedPageId(Number(e.target.value))} className="add-poll-input">
