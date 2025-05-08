@@ -1,10 +1,10 @@
 // Fil: src/hooks/usePoliticianSearch.ts
 import { useState, useEffect, useRef, useCallback } from "react";
-import { PoliticianOption } from "../types/polidleTypes"; // Importer type
+import { PoliticianSummaryDto } from "../types/polidleTypes"; // Importer type
 import { searchPoliticians } from "../services/polidleApi"; // Importer API funktion
 
 interface UsePoliticianSearchResult {
-  searchResults: PoliticianOption[];
+  searchResults: PoliticianSummaryDto[];
   isLoading: boolean;
   error: string | null;
   search: (term: string) => void; // Funktion til at starte søgning
@@ -20,7 +20,9 @@ export function usePoliticianSearch(
   debounceMs: number = 300
 ): UsePoliticianSearchResult {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<PoliticianOption[]>([]);
+  const [searchResults, setSearchResults] = useState<PoliticianSummaryDto[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
