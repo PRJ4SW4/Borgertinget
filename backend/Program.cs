@@ -3,18 +3,20 @@ using System.Security.Claims;
 using System.Text;
 using backend.Data;
 using backend.Services;
+using backend.Models;
 using backend.Services.AutomationServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using backend.Hubs;                
+using backend.Hubs;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+
 
 // for .env secrets
 DotNetEnv.Env.Load();
-         
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,23 +30,23 @@ var key = Encoding.UTF8.GetBytes(
     jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key mangler")
 );
 
-// Authorization for Admin and User roles
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(
-        "RequireAdministratorRole",
-        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
-    );
-    options.AddPolicy(
-        "UserOrAdmin",
-        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
-    );
-});
-
 // EF Core
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+builder.Services
+    .AddIdentity<User, IdentityRole<int>>(options => {
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        options.User.RequireUniqueEmail = true;
+        options.SignIn.RequireConfirmedEmail = true;
+    })
+    .AddEntityFrameworkStores<DataContext>()
+    .AddDefaultTokenProviders();
 
 // Auth + JWT
 builder
@@ -52,6 +54,7 @@ builder
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
@@ -68,9 +71,9 @@ builder
             IssuerSigningKey = new SymmetricSecurityKey(key),
             // THIS LINE ensures ASP.NET picks up "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
             // as the user's role claim.
-            RoleClaimType = ClaimTypes.Role,
+            RoleClaimType = ClaimTypes.Role
         };
-        // 💥 Indsæt event hooks til fejllogning
+        // Indsæt event hooks til fejllogning
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -108,6 +111,18 @@ builder
     }
         };
     });
+// Authorization for Admin and User roles
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        "RequireAdministratorRole",
+        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
+    );
+    options.AddPolicy(
+        "UserOrAdmin",
+        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
+    );
+});
 
 // Swagger
 builder.Services.AddSignalR();
@@ -186,13 +201,19 @@ builder.Services.AddControllers();/* .AddJsonOptions(options =>
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     });*/
 
+builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
+
 // For altinget scraping
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<AltingetScraperService>();
 builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 
+builder.Services.AddRouting();
+
 var app = builder.Build();
 
+app.UseRouting();
 // For static images from wwwroot folder
 app.UseStaticFiles();
 

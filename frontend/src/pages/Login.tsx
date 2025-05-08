@@ -104,14 +104,13 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
       client_id: clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
-      scope: 'openid profile email', // Standard scopes til login
+      scope: 'openid profile email', 
       // state: 'tilfaeldig-sikkerheds-streng' // Implementeres senere for CSRF-beskyttelse
     };
 
     const queryString = new URLSearchParams(options).toString();
 
-    // Omdirigerer brugerens browser
-    console.log("Redirecting to Google:", `${googleAuthUrl}?${queryString}`); // God til debugging
+    console.log("Redirecting to Google:", `${googleAuthUrl}?${queryString}`); 
     window.location.href = `${googleAuthUrl}?${queryString}`;
   };
 
