@@ -93,7 +93,7 @@ export default function AddPolls() {
     const payload = {
       question: questions[0].question,
       options: questions[0].options.filter((o) => o.trim() !== ""),
-      politicianTwitterId: "123868861", // Venstre
+      politicianTwitterId: "2965907578", // Troels Lunds Twitter ID
       // politicianTwitterId: selectedPoliticianId, // Uncomment this line when TwitterUserIds are available
       endedAt: endDate ? new Date(endDate).toISOString() : null,
     };

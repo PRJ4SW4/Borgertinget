@@ -202,7 +202,6 @@ namespace backend.Controllers
             // Update fields
             poll.Question = updateDto.Question;
             poll.PoliticianTwitterId = updateDto.PoliticianTwitterId;
-            poll.PoliticianId = politician.Id;
             poll.EndedAt = updateDto.EndedAt?.ToUniversalTime();
 
             // Replace all options

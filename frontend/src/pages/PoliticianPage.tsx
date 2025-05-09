@@ -203,17 +203,6 @@ const PoliticianPage: React.FC = () => {
         {/* Use politician's name or fallback */}
         <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : politician.navn || "Ukendt"}</p>
 
-        {/*Subscribe*/}
-        {twitterId !== null && (
-          <div className="subscription-container">
-            <SubscribeButton
-              politicianTwitterId={twitterId}
-              initialIsSubscribed={isSubscribed}
-              onSubscriptionChange={(newStatus) => setIsSubscribed(newStatus)}
-            />
-          </div>
-        )}
-
         <h4>Parti</h4>
         <p>
           {politician.party ? (
@@ -385,6 +374,16 @@ const PoliticianPage: React.FC = () => {
                 onError={handleImageError}
               />
             </div>
+            {/*Subscribe*/}
+            {twitterId !== null && (
+              <div className="subscription-container">
+                <SubscribeButton
+                  politicianTwitterId={twitterId}
+                  initialIsSubscribed={isSubscribed}
+                  onSubscriptionChange={(newStatus) => setIsSubscribed(newStatus)}
+                />
+              </div>
+            )}
             {/* Details */}
             <h3>{politician.navn || "Ukendt Navn"}</h3>
             <p className="info-box-role">
