@@ -8,14 +8,34 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class SomePolls : Migration
+    public partial class MaybeWorks : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Subscriptions_PoliticianTwitterIds_PoliticianTwitterId",
+                table: "Subscriptions");
+
             migrationBuilder.DropColumn(
                 name: "PoliticianId",
                 table: "Polls");
+
+            migrationBuilder.AlterColumn<int>(
+                name: "PoliticianTwitterId",
+                table: "Tweets",
+                type: "integer",
+                nullable: true,
+                oldClrType: typeof(int),
+                oldType: "integer");
+
+            migrationBuilder.AlterColumn<int>(
+                name: "PoliticianTwitterId",
+                table: "Subscriptions",
+                type: "integer",
+                nullable: true,
+                oldClrType: typeof(int),
+                oldType: "integer");
 
             migrationBuilder.InsertData(
                 table: "Polls",
@@ -39,11 +59,22 @@ namespace backend.Migrations
                     { 6, "Nej, det nuværende niveau er passende", 2, 15 },
                     { 7, "Nej, vi bør investere mindre", 2, 8 }
                 });
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Subscriptions_PoliticianTwitterIds_PoliticianTwitterId",
+                table: "Subscriptions",
+                column: "PoliticianTwitterId",
+                principalTable: "PoliticianTwitterIds",
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Subscriptions_PoliticianTwitterIds_PoliticianTwitterId",
+                table: "Subscriptions");
+
             migrationBuilder.DeleteData(
                 table: "PollOptions",
                 keyColumn: "Id",
@@ -89,12 +120,40 @@ namespace backend.Migrations
                 keyColumn: "Id",
                 keyValue: 2);
 
+            migrationBuilder.AlterColumn<int>(
+                name: "PoliticianTwitterId",
+                table: "Tweets",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0,
+                oldClrType: typeof(int),
+                oldType: "integer",
+                oldNullable: true);
+
+            migrationBuilder.AlterColumn<int>(
+                name: "PoliticianTwitterId",
+                table: "Subscriptions",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0,
+                oldClrType: typeof(int),
+                oldType: "integer",
+                oldNullable: true);
+
             migrationBuilder.AddColumn<int>(
                 name: "PoliticianId",
                 table: "Polls",
                 type: "integer",
                 nullable: false,
                 defaultValue: 0);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Subscriptions_PoliticianTwitterIds_PoliticianTwitterId",
+                table: "Subscriptions",
+                column: "PoliticianTwitterId",
+                principalTable: "PoliticianTwitterIds",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
     }
 }

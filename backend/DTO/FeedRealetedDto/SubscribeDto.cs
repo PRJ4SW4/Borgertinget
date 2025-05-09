@@ -1,10 +1,10 @@
-
 using System.ComponentModel.DataAnnotations;
-namespace backend.Models{
 
+namespace backend.Models
+{
     public class SubscribeDto
     {
         [Required]
-        public int PoliticianId { get; set; }
+        public int? PoliticianId { get; set; }
     }
 }

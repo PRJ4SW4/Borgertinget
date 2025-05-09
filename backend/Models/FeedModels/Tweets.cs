@@ -14,7 +14,7 @@ namespace backend.Models
 
         public string TwitterTweetId { get; set; } = string.Empty;
 
-        public int PoliticianTwitterId { get; set; }
+        public int? PoliticianTwitterId { get; set; }
         public PoliticianTwitterId Politician { get; set; } = null!;
 
         public DateTime CreatedAt { get; set; }
