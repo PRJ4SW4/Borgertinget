@@ -297,8 +297,7 @@ namespace backend.Data
                     entityPoll
                         .HasOne(poll => poll.Politician)
                         .WithMany(politician => politician.Polls)
-                        .HasForeignKey(poll => poll.PoliticianTwitterId)
-                        .HasPrincipalKey(p => p.TwitterUserId); // 👈 explicitly link to string key
+                        .HasForeignKey(poll => poll.PoliticianTwitterId);
                 });
 
                 modelBuilder
@@ -605,7 +604,7 @@ namespace backend.Data
             // --- /FLASHCARDS ---
 
 
-            const string SeedPoliticianId = "2965907578";
+            const int SeedPoliticianId = 3;
             const int SeedPollId = 1;
             const int NewPollId = 2;
 

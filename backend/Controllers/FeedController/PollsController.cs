@@ -36,7 +36,7 @@ namespace backend.Controllers
         {
             var politician = await _context
                 .PoliticianTwitterIds.AsNoTracking()
-                .FirstOrDefaultAsync(p => p.TwitterUserId == createPollDto.PoliticianTwitterId);
+                .FirstOrDefaultAsync(p => p.Id == createPollDto.PoliticianTwitterId);
             if (politician == null)
             {
                 ModelState.AddModelError(
@@ -166,7 +166,7 @@ namespace backend.Controllers
                 return NotFound();
 
             var politician = await _context.PoliticianTwitterIds.FirstOrDefaultAsync(p =>
-                p.TwitterUserId == updateDto.PoliticianTwitterId
+                p.Id == updateDto.PoliticianTwitterId
             );
 
             if (politician == null)

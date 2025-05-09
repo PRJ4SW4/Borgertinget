@@ -17,7 +17,7 @@ namespace backend.DTOs
         public List<string> Options { get; set; } = new List<string>();
 
         [Required(ErrorMessage = "Politiker ID mangler.")]
-        public string? PoliticianTwitterId { get; set; } // ID på den politiker, det omhandler
+        public int PoliticianTwitterId { get; set; } // ID på den politiker, det omhandler
 
         public DateTime? EndedAt { get; set; } // slut dato for afstemningen
     }
