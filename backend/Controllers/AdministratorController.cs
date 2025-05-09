@@ -12,9 +12,9 @@ using Microsoft.EntityFrameworkCore;
 [Route("api/[controller]")]
 public class AdministratorController : ControllerBase
 {
-    private readonly AdministratorService _service;
+    private readonly IAdministratorService _service;
 
-    public AdministratorController(AdministratorService service)
+    public AdministratorController(IAdministratorService service)
     {
         _service = service;
     }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import {FlashcardDto, FlashcardCollectionDetailDto, FlashcardContentType} from "../../types/flashcardTypes";
+import {FlashcardDto, FlashcardCollectionDetailDto} from "../../types/flashcardTypes";
 import './AddFlashcardCollection.css'
 import BorgertingetIcon from "../../images/BorgertingetIcon.png"
 
@@ -19,15 +19,15 @@ export default function CreateFlashcardCollection() {
         },
     ]);
 
-    const handleAddFlashcard = (asImageFront : boolean, asImageBack: boolean = false) => {
+    const handleAddFlashcard = (imageFront : boolean, imageBack: boolean = false) => {
         const newCard: FlashcardDto = {
             flashcardId: 0,
-            frontContentType: asImageFront ? "Image" : "Text",
-            frontText: asImageFront ? null : "",
-            frontImagePath: asImageFront ? "" : null,
-            backContentType: asImageBack ? "Image" : "Text",
-            backText: asImageBack ? null : "",
-            backImagePath: asImageBack ? "" : null,
+            frontContentType: imageFront ? "Image" : "Text",
+            frontText: imageFront ? null : "",
+            frontImagePath: imageFront ? "" : null,
+            backContentType: imageBack ? "Image" : "Text",
+            backText: imageBack ? null : "",
+            backImagePath: imageBack ? "" : null,
         };
 
         setFlashcards([...flashcards, newCard]);

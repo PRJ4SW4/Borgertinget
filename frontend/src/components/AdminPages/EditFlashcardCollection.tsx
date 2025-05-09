@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import {FlashcardDto, FlashcardCollectionDetailDto, FlashcardContentType} from "../../types/flashcardTypes";
+import {FlashcardDto, FlashcardCollectionDetailDto} from "../../types/flashcardTypes";
 import './EditFlashcardCollection.css'
 import BorgertingetIcon from "../../images/BorgertingetIcon.png"
 

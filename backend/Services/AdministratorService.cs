@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
 {
-    public class AdministratorService
+    public class AdministratorService : IAdministratorService
     {
         private readonly DataContext _context;
 
