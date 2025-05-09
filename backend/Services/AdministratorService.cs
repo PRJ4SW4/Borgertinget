@@ -109,7 +109,7 @@ namespace backend.Services
         {
             var titles = await _context.FlashcardCollections.Select(fc => fc.Title).ToListAsync();
 
-            if (titles == null)
+            if (titles.Count == 0)
             {
                 throw new KeyNotFoundException($"No Flashcard Collection titles found");
             }
@@ -201,7 +201,7 @@ namespace backend.Services
             // Search user by username
             var users = await _context.Users.ToArrayAsync();
 
-            if (users == null)
+            if (users.Length == 0)
             {
                 throw new KeyNotFoundException($"Error finding users");
             }
@@ -236,7 +236,7 @@ namespace backend.Services
         {
             var quotes = await _context.PoliticianQuotes.ToListAsync(); // Get list of quotes
 
-            if (quotes == null)
+            if (quotes.Count == 0)
             {
                 throw new KeyNotFoundException($"Error finding Politician Quotes");
             }
