@@ -10,7 +10,7 @@ import SubscribeButton from "../components/FeedComponents/SubscribeButton";
 import { getSubscriptions } from "../services/tweetService";
 
 const PoliticianPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>(); // Step 1: id (e.g., "3") is extracted from the URL.
+  const { id } = useParams<{ id: string }>();
   const [politician, setPolitician] = useState<IAktor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +73,6 @@ const PoliticianPage: React.FC = () => {
       setPolitician(null);
 
       try {
-        // Step 2: The id from the URL is used to fetch the Aktor data.
         const apiUrl = `http://localhost:5218/api/Aktor/${id}`;
         const response = await fetch(apiUrl);
 
@@ -92,7 +91,6 @@ const PoliticianPage: React.FC = () => {
           }
         }
         const data: IAktor = await response.json();
-        // The politician state is set here. politician.id will be the id from the fetched Aktor data (e.g., 3).
         setPolitician(data);
       } catch (err: unknown) {
         console.error("Fetch error:", err);
@@ -112,16 +110,14 @@ const PoliticianPage: React.FC = () => {
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       if (politician && politician.id) {
-        // politician.id here is, for example, 3.
+        // KORREKT: aktørId → id
         try {
           // Hent brugerens eksisterende abonnementer
           const subscriptions = await getSubscriptions();
 
-          // Step 3: politician.id (e.g., 3) is used as aktorId in this API call.
-          // If the database has AktorId=206 for this politician in PoliticianTwitterId table,
-          // but politician.id is 3, it indicates a mismatch between the Aktor loaded by URL
-          // and the expected AktorId in the PoliticianTwitterId table.
+          // Find Twitter ID via lookup-API'et (behold aktorId som parameter i URL)
           const lookupResponse = await fetch(`http://localhost:5218/api/subscription/lookup/politicianTwitterId?aktorId=${politician.id}`, {
+            // KORREKT: aktørId → id
             headers: {
               Authorization: `Bearer ${localStorage.getItem("jwt")}`,
             },

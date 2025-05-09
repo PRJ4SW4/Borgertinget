@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250509152413_MaybeWorks")]
-    partial class MaybeWorks
+    [Migration("20250509095058_SomePolls")]
+    partial class SomePolls
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -914,7 +914,7 @@ namespace backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("PoliticianTwitterId")
+                    b.Property<int>("PoliticianTwitterId")
                         .HasColumnType("integer");
 
                     b.Property<int>("UserId")
@@ -946,7 +946,7 @@ namespace backend.Migrations
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("PoliticianTwitterId")
+                    b.Property<int>("PoliticianTwitterId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Replies")
@@ -1186,7 +1186,9 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Models.PoliticianTwitterId", "Politician")
                         .WithMany("Subscriptions")
-                        .HasForeignKey("PoliticianTwitterId");
+                        .HasForeignKey("PoliticianTwitterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("backend.Models.User", "User")
                         .WithMany("Subscriptions")
@@ -1204,7 +1206,8 @@ namespace backend.Migrations
                     b.HasOne("backend.Models.PoliticianTwitterId", "Politician")
                         .WithMany("Tweets")
                         .HasForeignKey("PoliticianTwitterId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Politician");
                 });

@@ -99,7 +99,7 @@ namespace backend.Controllers
                 // 3. Resultatet bruges til at filtrere tweets i den efterfølgende kode
                 // 4. Returnerer tom liste hvis brugeren ikke følger nogen eller den valgte politiker
 
-                List<int?> relevantPoliticianDbIds;
+                List<int> relevantPoliticianDbIds;
                 bool isFiltered = politicianId.HasValue;
 
                 if (isFiltered) // Filter er sat
@@ -110,7 +110,7 @@ namespace backend.Controllers
                     );
                     if (!isSubscribed)
                         return Ok(new PaginatedFeedResult()); // Tomt hvis der ikke følges nogen :-(
-                    relevantPoliticianDbIds = new List<int?> { politicianId!.Value }; // måske slet !her
+                    relevantPoliticianDbIds = new List<int> { politicianId!.Value }; // måske slet !her
                 }
                 else // Intet filter ("Alle Tweets" view)
                 {
