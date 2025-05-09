@@ -160,6 +160,8 @@ builder
 
 builder.Services.AddSignalR();
 
+builder.Services.AddScoped<IAdministratorService, AdministratorService>();
+
 // Swagger/OpenAPI konfiguration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

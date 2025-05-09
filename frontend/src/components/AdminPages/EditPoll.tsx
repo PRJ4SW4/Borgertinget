@@ -32,6 +32,7 @@ interface PollDetails {
 interface Politician {
   id: string;
   navn: string;
+  politicianTwitterId?: number; // must be included in /api/aktor/all
 }
 
 export default function EditPoll() {
@@ -125,7 +126,7 @@ export default function EditPoll() {
         });
         const pollData: PollDetails = response.data;
 
-        setFeedText(""); // If not used
+        setFeedText(""); // optional
         setQuestions([
           {
             id: pollData.id,
@@ -137,13 +138,30 @@ export default function EditPoll() {
           },
         ]);
         setEndDate(pollData.endedAt ? pollData.endedAt.split("T")[0] : null);
-        setSelectedPoliticianId(pollData.politicianId ? String(pollData.politicianId) : null);
+
+        // 🧠 Resolve politicianTwitterId → aktorId
+        if (pollData.politicianId) {
+          const token = localStorage.getItem("jwt");
+          try {
+            const lookupRes = await axios.get(`/api/administrator/lookup/aktorId?twitterId=${pollData.politicianId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const aktorId = lookupRes.data.aktorId;
+            setSelectedPoliticianId(String(aktorId)); // now correct
+          } catch (err) {
+            console.error("Could not resolve aktorId from twitterId", err);
+            setSelectedPoliticianId(null);
+          }
+        } else {
+          setSelectedPoliticianId(null);
+        }
       } catch (error) {
         console.error("Failed to fetch poll details", error);
       }
     }
+
     fetchPollDetails();
-  }, [selectedPollId]);
+  }, [selectedPollId, politicians]);
 
   const handleQuestionChange = (index: number, value: string) => {
     const newQuestions = [...questions];
@@ -205,6 +223,10 @@ export default function EditPoll() {
     }
   };
 
+  useEffect(() => {
+    console.log("Dropdown preselected politician:", selectedPoliticianId);
+  }, [selectedPoliticianId]);
+
   return (
     <div className="container">
       <div>
@@ -230,11 +252,7 @@ export default function EditPoll() {
         <form onSubmit={handleSubmit} className="add-poll-form">
           <div className="add-poll-section">
             <label className="add-poll-label">Vælg Politiker</label>
-            <select
-              className="add-poll-input"
-              value={selectedPoliticianId ?? ""}
-              onChange={(e) => setSelectedPoliticianId(String(e.target.value))}
-              required>
+            <select className="add-poll-input" value={selectedPoliticianId ?? ""} onChange={(e) => setSelectedPoliticianId(e.target.value)} required>
               <option value="">-- Vælg en politiker --</option>
               {politicians.map((p) => (
                 <option key={p.id} value={p.id}>
