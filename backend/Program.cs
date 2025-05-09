@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using backend.Data;
 using backend.Hubs; // <--- TILFØJ DENNE LINJE
-using backend.Hubs;
 using backend.Services;
 using backend.Services.AutomationServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

@@ -3,74 +3,68 @@ using System.Collections.Generic;
 
 namespace Interfaces.PollsService
 {
-    
-
-
-public interface ISubject
-{
-    string State { get; set; }  // Add this property definition
-    void Attach(IObserver observer);
-    void Detach(IObserver observer);
-    void Notify();
-}
-
-// Concrete Subject class
-public class ConcreteSubject : ISubject
-{
-    private List<IObserver> observers = new List<IObserver>();
-    private string state;
-
-    public string State
+    public interface ISubject
     {
-        get { return state; }
-        set
+        string State { get; set; } // Add this property definition
+        void Attach(IObserver observer);
+        void Detach(IObserver observer);
+        void Notify();
+    }
+
+    // Concrete Subject class
+    public class ConcreteSubject : ISubject
+    {
+        private List<IObserver> observers = new List<IObserver>();
+        private string state = string.Empty;
+
+        public string State
         {
-            state = value;
-            Notify();
+            get { return state; }
+            set
+            {
+                state = value;
+                Notify();
+            }
+        }
+
+        public void Attach(IObserver observer)
+        {
+            observers.Add(observer);
+        }
+
+        public void Detach(IObserver observer)
+        {
+            observers.Remove(observer);
+        }
+
+        public void Notify()
+        {
+            foreach (var observer in observers)
+            {
+                observer.Update();
+            }
         }
     }
 
-    public void Attach(IObserver observer)
+    public interface IObserver
     {
-        observers.Add(observer);
+        void Update();
     }
 
-    public void Detach(IObserver observer)
+    public class ConcreteObserver : IObserver
     {
-        observers.Remove(observer);
-    }
+        private string name;
+        private ConcreteSubject subject;
 
-    public void Notify()
-    {
-        foreach (var observer in observers)
+        public ConcreteObserver(string name, ConcreteSubject subject)
         {
-            observer.Update();
+            this.name = name;
+            this.subject = subject;
+        }
+
+        public void Update()
+        {
+            Console.WriteLine($"Observer {name} has been notified with state: {subject.State}");
         }
     }
-}
-
-
-public interface IObserver
-{
-    void Update();
-}
-
-
-public class ConcreteObserver : IObserver
-{
-    private string name;
-    private ConcreteSubject subject;
-
-    public ConcreteObserver(string name, ConcreteSubject subject)
-    {
-        this.name = name;
-        this.subject = subject;
-    }
-
-    public void Update()
-    {
-        Console.WriteLine($"Observer {name} has been notified with state: {subject.State}");
-    }
-}
-
 }
