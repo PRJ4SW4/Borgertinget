@@ -119,14 +119,15 @@ namespace backend.Controllers
             Console.WriteLine("Received token: " + token);
 
             var user = await _context.Users.FirstOrDefaultAsync(u =>
-                u.VerificationToken != null &&
-                u.VerificationToken.ToLower() == token.ToLower()
+                u.VerificationToken != null && u.VerificationToken.ToLower() == token.ToLower()
             );
 
             if (user == null)
             {
                 // Maybe the user is already verified?
-                var alreadyVerified = await _context.Users.FirstOrDefaultAsync(u => u.IsVerified && u.VerificationToken == null);
+                var alreadyVerified = await _context.Users.FirstOrDefaultAsync(u =>
+                    u.IsVerified && u.VerificationToken == null
+                );
                 if (alreadyVerified != null)
                 {
                     return Ok(new { message = "Email er allerede blevet verificeret." });
@@ -144,11 +145,9 @@ namespace backend.Controllers
             return Ok(new { message = "Email verificeret! Du kan nu logge ind." });
         }
 
-
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            
             string loginInput = dto.EmailOrUsername.ToLower();
 
             // 1. Find bruger ud fra E-mail eller brugernavn

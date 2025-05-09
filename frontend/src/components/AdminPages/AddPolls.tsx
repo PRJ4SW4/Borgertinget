@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ChangePolls.css";
+import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 
 interface Politician {
   id: string;
@@ -108,7 +109,11 @@ export default function AddPolls() {
   };
 
   return (
-    <div className="add-poll-container">
+    <div className="container">
+      <div>
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+      </div>
+      <div className="top-red-line"></div>
       <h1 className="add-poll-title">Opret en Poll</h1>
       <p className="add-poll-subtitle">Vælg politiker og lav dit spørgsmål</p>
 
@@ -133,7 +138,7 @@ export default function AddPolls() {
         {/* Question Input */}
         {questions.map((q, qIndex) => (
           <div key={qIndex} className="add-poll-section">
-            <label className="add-poll-label">{`Spørgsmål ${qIndex + 1}`}</label>
+            <label className="add-poll-label">{`Spørgsmål`}</label>
             <input
               type="text"
               value={q.question}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ChangePolls.css";
+import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 
 interface PollSummary {
   id: number;
@@ -132,13 +133,17 @@ export default function DeletePoll() {
   };
 
   return (
-    <div className="add-poll-container">
-      <h1 className="add-poll-title">Slet Poll</h1>
-      <p className="add-poll-subtitle">Vælg en poll for at slette</p>
+    <div className="container">
+      <div>
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+      </div>
+      <div className="top-red-line"></div>
+      <h1 className="page-title">Slet Poll</h1>
+      <p className="page-subtitle">Vælg en poll for at slette</p>
 
-      <div className="add-poll-section">
-        <label className="add-poll-label">Vælg Poll</label>
-        <select className="add-poll-input" value={selectedPollId ?? ""} onChange={(e) => setSelectedPollId(Number(e.target.value))}>
+      <div className="page-section">
+        <label className="page-label">Vælg Poll</label>
+        <select className="page-input" value={selectedPollId ?? ""} onChange={(e) => setSelectedPollId(Number(e.target.value))}>
           <option value="">-- Vælg en poll --</option>
           {polls.map((poll) => (
             <option key={poll.id} value={poll.id}>
@@ -149,10 +154,10 @@ export default function DeletePoll() {
       </div>
 
       {selectedPollId && (
-        <form onSubmit={handleDelete} className="add-poll-form">
-          <div className="add-poll-section">
-            <label className="add-poll-label">Vælg Politiker</label>
-            <select className="add-poll-input" value={selectedPoliticianId ?? ""} disabled>
+        <form onSubmit={handleDelete} className="page-form">
+          <div className="page-section">
+            <label className="page-label">Vælg Politiker</label>
+            <select className="page-input" value={selectedPoliticianId ?? ""} disabled>
               <option value="">-- Vælg en politiker --</option>
               {politicians.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -163,18 +168,18 @@ export default function DeletePoll() {
           </div>
 
           {questions.map((q, qIndex) => (
-            <div key={q.id || qIndex} className="add-poll-section">
-              <label className="add-poll-label">{`Spørgsmål ${qIndex + 1}`}</label>
-              <input type="text" value={q.question} disabled className="add-poll-input" placeholder={`Skriv spørgsmål ${qIndex + 1} her...`} />
+            <div key={q.id || qIndex} className="page-section">
+              <label className="page-label">{`Spørgsmål ${qIndex + 1}`}</label>
+              <input type="text" value={q.question} disabled className="page-input" placeholder={`Skriv spørgsmål ${qIndex + 1} her...`} />
 
-              <div className="add-poll-option-group">
+              <div className="page-option-group">
                 {q.options.map((option, oIndex) => (
-                  <div key={option.id || oIndex} className="add-poll-option">
+                  <div key={option.id || oIndex} className="page-option">
                     <input
                       type="text"
                       value={option.optionText}
                       disabled
-                      className="add-poll-input"
+                      className="page-input"
                       placeholder={`Svarmulighed ${qIndex + 1}.${oIndex + 1}`}
                     />
                   </div>
@@ -183,13 +188,13 @@ export default function DeletePoll() {
             </div>
           ))}
 
-          <div className="add-poll-section">
-            <label className="add-poll-label">Slutdato</label>
-            <input type="date" value={endDate ?? ""} disabled className="add-poll-input" />
+          <div className="page-section">
+            <label className="page-label">Slutdato</label>
+            <input type="date" value={endDate ?? ""} disabled className="page-input" />
           </div>
 
-          <div className="add-poll-buttons">
-            <button type="submit" className="add-poll-submit-btn" style={{ backgroundColor: "#991b1b" }}>
+          <div className="page-buttons">
+            <button type="submit" className="page-btn" style={{ backgroundColor: "#991b1b" }}>
               Slet Poll
             </button>
           </div>

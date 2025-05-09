@@ -1,14 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { IAktor } from '../types/Aktor'; // Adjust path if needed
-import "./PoliticianPage.css"; // We will update this CSS
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { IAktor } from "../types/Aktor";
+import "./PoliticianPage.css";
+// Consider adding a default image import if you need one for onError
+// import DefaultPic from "../images/defaultPic.jpg";
 import DefaultPic from "../images/defaultPic.jpg"; // Import your default picture
+//Af Jakob, dette er til subscribe knappen
+import SubscribeButton from "../components/FeedComponents/SubscribeButton";
+import { getSubscriptions } from "../services/tweetService";
 
 const PoliticianPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [politician, setPolitician] = useState<IAktor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  //Af Jakob, dette er til subscribe knappen
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [twitterId, setTwitterId] = useState<number | null>(null);
+
   const defaultImageUrl = DefaultPic; // Use the imported default image
 
   // --- Helper: Calculate Age ---
@@ -35,22 +45,21 @@ const PoliticianPage: React.FC = () => {
 
   // --- Helper: Format Birth Date ---
   const formatBirthDate = (birthDateString?: string | null): string => {
-      if (!birthDateString) return 'Ikke angivet';
-      try {
-          const date = new Date(birthDateString);
-          if (isNaN(date.getTime())) return 'Ugyldig dato';
-          // Format as DD-MM-YYYY (adjust locale and options as needed)
-          return date.toLocaleDateString('da-DK', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric'
-          });
-      } catch (e) {
-          console.error("Error formatting birth date:", e);
-          return 'Formateringsfejl';
-      }
+    if (!birthDateString) return "Ikke angivet";
+    try {
+      const date = new Date(birthDateString);
+      if (isNaN(date.getTime())) return "Ugyldig dato";
+      // Format as DD-MM-YYYY (adjust locale and options as needed)
+      return date.toLocaleDateString("da-DK", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch (e) {
+      console.error("Error formatting birth date:", e);
+      return "Formateringsfejl";
+    }
   };
-
 
   useEffect(() => {
     const fetchPolitician = async () => {
@@ -72,18 +81,22 @@ const PoliticianPage: React.FC = () => {
             throw new Error(`Politiker med ID ${id} blev ikke fundet.`);
           } else {
             let errorMsg = `HTTP error ${response.status}: ${response.statusText}`;
-            try { const errorBody = await response.json(); errorMsg = errorBody.message || errorBody.title || errorMsg; } catch { /* Ignore */ }
+            try {
+              const errorBody = await response.json();
+              errorMsg = errorBody.message || errorBody.title || errorMsg;
+            } catch {
+              /* Ignore */
+            }
             throw new Error(errorMsg);
           }
         }
         const data: IAktor = await response.json();
         setPolitician(data);
-
       } catch (err: unknown) {
         console.error("Fetch error:", err);
         let message = `Kunne ikke hente data for politiker ${id}`;
         if (err instanceof Error) message = err.message;
-        else if (typeof err === 'string') message = err;
+        else if (typeof err === "string") message = err;
         setError(message);
       } finally {
         setLoading(false);
@@ -91,12 +104,57 @@ const PoliticianPage: React.FC = () => {
     };
 
     fetchPolitician();
-  }, [id]);
+  }, [id]); // Dependency array is correct, only depends on id
+
+  // Af Jakob, dette er til subscribe knappen
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      if (politician && politician.id) {
+        // KORREKT: aktørId → id
+        try {
+          // Hent brugerens eksisterende abonnementer
+          const subscriptions = await getSubscriptions();
+
+          // Find Twitter ID via lookup-API'et (behold aktorId som parameter i URL)
+          const lookupResponse = await fetch(`http://localhost:5218/api/subscription/lookup/politicianTwitterId?aktorId=${politician.id}`, {
+            // KORREKT: aktørId → id
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("jwt")}`,
+            },
+          });
+
+          if (lookupResponse.ok) {
+            const lookupData = await lookupResponse.json();
+            setTwitterId(lookupData.politicianTwitterId);
+
+            // Tjek om politikeren allerede følges
+            setIsSubscribed(subscriptions.some((sub) => sub.id === lookupData.politicianTwitterId));
+          } else {
+            console.error("Kunne ikke finde Twitter ID for denne politiker");
+          }
+        } catch (error) {
+          console.error("Fejl ved tjek af abonnementsstatus:", error);
+        }
+      }
+    };
+
+    checkSubscriptionStatus();
+  }, [politician]);
 
   // --- Loading & Error States ---
   if (loading) return <div className="loading-message">Henter politiker detaljer...</div>;
-  if (error) return <div className="error-message">Fejl: {error} <Link to="/">Tilbage til forsiden</Link></div>;
-  if (!politician) return <div className="info-message">Politikerdata er ikke tilgængelig. <Link to="/">Tilbage til forsiden</Link></div>;
+  if (error)
+    return (
+      <div className="error-message">
+        Fejl: {error} <Link to="/">Tilbage til forsiden</Link>
+      </div>
+    );
+  if (!politician)
+    return (
+      <div className="info-message">
+        Politikerdata er ikke tilgængelig. <Link to="/">Tilbage til forsiden</Link>
+      </div>
+    );
 
   // --- Calculate Age ---
   const age = calculateAge(politician.born);
@@ -104,14 +162,14 @@ const PoliticianPage: React.FC = () => {
 
   // --- Image Error Handler ---
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      const imgElement = e.target as HTMLImageElement;
-      if (imgElement.src !== defaultImageUrl) {
-          console.warn(`Kunne ikke loade billede: ${politician.pictureMiRes}. Bruger standardbillede.`);
-          imgElement.src = defaultImageUrl; // Use the imported default image
-      } else {
-          console.error(`Kunne ikke loade standardbillede: ${defaultImageUrl}`);
-          imgElement.style.display = 'none'; // Hide if default also fails
-      }
+    const imgElement = e.target as HTMLImageElement;
+    if (imgElement.src !== defaultImageUrl) {
+      console.warn(`Kunne ikke loade billede: ${politician.pictureMiRes}. Bruger standardbillede.`);
+      imgElement.src = defaultImageUrl; // Use the imported default image
+    } else {
+      console.error(`Kunne ikke loade standardbillede: ${defaultImageUrl}`);
+      imgElement.style.display = "none"; // Hide if default also fails
+    }
   };
 
   // --- Render Component ---
@@ -120,99 +178,200 @@ const PoliticianPage: React.FC = () => {
       {/* Navigation remains outside the main layout */}
       <nav className="politician-page-nav">
         {politician.party ? (
-           <Link to={`/party/${encodeURIComponent(politician.party)}`}>← Tilbage til {politician.party}</Link>
-         ) : (
-           <Link to="/parties">← Tilbage til partioversigt</Link>
-         )}
+          <Link to={`/party/${encodeURIComponent(politician.party)}`}>← Tilbage til {politician.party}</Link>
+        ) : (
+          <Link to="/parties">← Tilbage til partioversigt</Link>
+        )}
       </nav>
+      {/* Gray Information Box */}
+      <div className="info-box">
+        {politician.pictureMiRes ? ( // Use ternary for cleaner conditional rendering
+          <img
+            src={politician.pictureMiRes}
+            alt={`Portræt af ${politician.navn || "Politiker"}`} // Danish alt text
+            className="info-box-photo"
+            onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+              const imgElement = e.target as HTMLImageElement;
+              console.error(`Kunne ikke loade billede: ${politician.pictureMiRes}`); // Danish
+              imgElement.style.display = "none"; // Simple hide on error
+            }}
+          />
+        ) : (
+          <div className="info-box-photo-placeholder">Intet billede</div> // Danish
+        )}
+        <h4>Navn</h4>
+        {/* Use politician's name or fallback */}
+        <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : politician.navn || "Ukendt"}</p>
 
-      {/* --- Main Content Area (Two Columns) --- */}
-      <div className="politician-main-content">
-
-        {/* --- Left Column: Details --- */}
-        <div className="politician-details-column">
-          {/* Top title and button matching design */}
-          <div className="politician-header">
-            <h1>{politician.navn || 'Politiker'}</h1>
-            <button className="subscribe-button">Abonnere</button> {/* Basic button */}
+        {/*Subscribe*/}
+        {twitterId !== null && (
+          <div className="subscription-container">
+            <SubscribeButton
+              politicianTwitterId={twitterId}
+              initialIsSubscribed={isSubscribed}
+              onSubscriptionChange={(newStatus) => setIsSubscribed(newStatus)}
+            />
           </div>
+        )}
 
-          {/* Placeholder sections based on design */}
-          <section className="detail-section">
-            <h3>Baggrund</h3>
-            <p className="detail-content-placeholder">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam id commodo dolor. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse fermentum nisi a venenatis hendrerit. Curabitur mauris nunc, sodales ac lacinia eget, consectetur et arcu.
-              {/* Add more placeholder text or logic to extract from biografi */}
-            </p>
-          </section>
+        <h4>Parti</h4>
+        <p>
+          {politician.party ? (
+            <Link to={`/party/${encodeURIComponent(politician.party)}`}>{politician.party}</Link>
+          ) : (
+            politician.partyShortname || "Partiløs/Ukendt" // Show shortname or indicate independent/unknown
+          )}
+        </p>
+        <h4>Email</h4>
+        <p>{politician.email ? <a href={`mailto:${politician.email}`}>{politician.email}</a> : "Ikke tilgængelig"}</p>
 
-          <section className="detail-section">
-            <h3>Begyndende politisk karriere</h3>
-            <p className="detail-content-placeholder">
-              Integer feugiat tempus venenatis. Sed tempor massa tortor, fringilla suscipit ante eleifend ac. Proin sit amet vestibulum nulla. Maecenas et turpis sit amet lectus commodo facilisis ac sed leo. Donec a lacinia libero, id placerat urna.
-              {/* Add more placeholder text or logic to extract from biografi */}
-            </p>
-          </section>
+        {/* Conditional rendering for lists inside the info-box */}
+        {politician.educations && politician.educations.length > 0 && (
+          <>
+            <h4>Uddannelse</h4>
+            <ul>
+              {politician.educations.map((edu, index) => (
+                <li key={`edu-${index}`}>{edu}</li>
+              ))}
+            </ul>
+          </>
+        )}
 
-          {/* --- Existing Sections Moved Here --- */}
-          {politician.ministertitel && (
-             <section className="detail-section">
-               <h3>Nuværende minister post</h3>
-               <p>{politician.ministertitel}</p>
-             </section>
-          )}
-          {politician.ministers && politician.ministers.length > 0 && (
-             <section className="detail-section">
-               <h3>Ministerposter</h3>
-               <ul>{politician.ministers.map((min, index) => <li key={`min-${index}`}>{min}</li>)}</ul>
-             </section>
-          )}
-          {politician.spokesmen && politician.spokesmen.length > 0 && (
-             <section className="detail-section">
-               <h3>Ordførerskaber</h3>
-               <ul>{politician.spokesmen.map((spk, index) => <li key={`spk-${index}`}>{spk}</li>)}</ul>
-             </section>
-          )}
-           {politician.parliamentaryPositionsOfTrust && politician.parliamentaryPositionsOfTrust.length > 0 && (
-             <section className="detail-section">
-               <h3>Tillidshverv (Parlamentarisk)</h3>
-               <ul>{politician.parliamentaryPositionsOfTrust.map((ptrust, index) => <li key={`ptrust-${index}`}>{ptrust}</li>)}</ul>
-             </section>
-          )}
-          {politician.positionsOfTrust && politician.positionsOfTrust.length > 0 && (
-             <section className="detail-section">
-               <h3>Tillidshverv (ikke-parliamentarisk)</h3>
-               {/* Check if it's a simple string or needs mapping */}
-               {typeof politician.positionsOfTrust === 'string' ? (
-                    <p>{politician.positionsOfTrust}</p> // Render directly if string
-               ) : (
-                    <ul>{politician.positionsOfTrust.map((trust, index) => <li key={`trust-${index}`}>{trust}</li>)}</ul>
-               )}
-             </section>
-          )}
-          {politician.nominations && politician.nominations.length > 0 && (
+        {politician.constituencies && politician.constituencies.length > 0 && (
+          <>
+            <h4>Embede / Valgkreds</h4> {/* More specific title */}
+            <ul>
+              {politician.constituencies.map((con, index) => (
+                <li key={`con-${index}`}>{con}</li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>{" "}
+      {/* END: Info Box */}
+      {/* Other Details Outside the Box */}
+      <article className="politician-details">
+        <section className="detail-section">
+          <h3>Grundlæggende Information</h3> {/* Danish */}
+          <p>
+            <strong>Født:</strong> {politician.born || "Ikke tilgængelig"}
+          </p>{" "}
+          {/* Danish */}
+          <p>
+            <strong>Titel:</strong> {politician.functionFormattedTitle || "Ikke tilgængelig"}
+          </p>{" "}
+          {/* Danish */}
+        </section>
+
+        {/* Display other lists NOT in the info-box */}
+        {politician.publicationTitles && politician.publicationTitles.length > 0 && (
+          <>
             <section className="detail-section">
-                <h3>Kandidaturer</h3>
-                <ul>{politician.nominations.map((nom, index) => <li key={`nom-${index}`}>{nom}</li>)}</ul>
+              <h3>Baggrund</h3>
+              <p className="detail-content-placeholder">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam id commodo dolor. Class aptent taciti sociosqu ad litora torquent per
+                conubia nostra, per inceptos himenaeos. Suspendisse fermentum nisi a venenatis hendrerit. Curabitur mauris nunc, sodales ac lacinia
+                eget, consectetur et arcu.
+              </p>
+              {/* Add more placeholder text or logic to extract from biografi */}
             </section>
-           )}
-           {politician.occupations && politician.occupations.length > 0 && (
-             <section className="detail-section">
-               <h3>Beskæftigelse</h3>
-               <ul>{politician.occupations.map((occ, index) => <li key={`occ-${index}`}>{occ}</li>)}</ul>
-             </section>
-           )}
-           {politician.publicationTitles && politician.publicationTitles.length > 0 && (
-            <section className="detail-section">
-              <h3>Forfatterskab</h3>
-              <ul>{politician.publicationTitles.map((title, index) => <li key={`pub-${index}`}>{title}</li>)}</ul>
-            </section>
-           )}
-          {/* Add other sections as needed */}
+          </>
+        )}
 
-        </div>
+        <section className="detail-section">
+          <h3>Begyndende politisk karriere</h3>
+          <p className="detail-content-placeholder">
+            Integer feugiat tempus venenatis. Sed tempor massa tortor, fringilla suscipit ante eleifend ac. Proin sit amet vestibulum nulla. Maecenas
+            et turpis sit amet lectus commodo facilisis ac sed leo. Donec a lacinia libero, id placerat urna.
+            {/* Add more placeholder text or logic to extract from biografi */}
+          </p>
+        </section>
+
+        {/* --- Existing Sections Moved Here --- */}
+        {politician.ministertitel && (
+          <section className="detail-section">
+            <h3>Nuværende minister post</h3>
+            <p>{politician.ministertitel}</p>
+          </section>
+        )}
+        {politician.ministers && politician.ministers.length > 0 && (
+          <section className="detail-section">
+            <h3>Ministerposter</h3>
+            <ul>
+              {politician.ministers.map((min, index) => (
+                <li key={`min-${index}`}>{min}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {politician.spokesmen && politician.spokesmen.length > 0 && (
+          <section className="detail-section">
+            <h3>Ordførerskaber</h3>
+            <ul>
+              {politician.spokesmen.map((spk, index) => (
+                <li key={`spk-${index}`}>{spk}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {politician.parliamentaryPositionsOfTrust && politician.parliamentaryPositionsOfTrust.length > 0 && (
+          <section className="detail-section">
+            <h3>Tillidshverv (Parlamentarisk)</h3>
+            <ul>
+              {politician.parliamentaryPositionsOfTrust.map((ptrust, index) => (
+                <li key={`ptrust-${index}`}>{ptrust}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {politician.positionsOfTrust && politician.positionsOfTrust.length > 0 && (
+          <section className="detail-section">
+            <h3>Tillidshverv (ikke-parliamentarisk)</h3>
+            {/* Check if it's a simple string or needs mapping */}
+            {typeof politician.positionsOfTrust === "string" ? (
+              <p>{politician.positionsOfTrust}</p> // Render directly if string
+            ) : (
+              <ul>
+                {politician.positionsOfTrust.map((trust, index) => (
+                  <li key={`trust-${index}`}>{trust}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+        {politician.nominations && politician.nominations.length > 0 && (
+          <section className="detail-section">
+            <h3>Kandidaturer</h3>
+            <ul>
+              {politician.nominations.map((nom, index) => (
+                <li key={`nom-${index}`}>{nom}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {politician.occupations && politician.occupations.length > 0 && (
+          <section className="detail-section">
+            <h3>Beskæftigelse</h3>
+            <ul>
+              {politician.occupations.map((occ, index) => (
+                <li key={`occ-${index}`}>{occ}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {politician.publicationTitles && politician.publicationTitles.length > 0 && (
+          <section className="detail-section">
+            <h3>Forfatterskab</h3>
+            <ul>
+              {politician.publicationTitles.map((title, index) => (
+                <li key={`pub-${index}`}>{title}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {/* Add other sections as needed */}
+
         {/* --- End Left Column --- */}
-
 
         {/* --- Right Column: Info Box --- */}
         <div className="politician-infobox-column">
@@ -221,61 +380,54 @@ const PoliticianPage: React.FC = () => {
             <div className="info-box-image-container">
               <img
                 src={politician.pictureMiRes || defaultImageUrl}
-                alt={`Portræt af ${politician.navn || 'Politiker'}`}
+                alt={`Portræt af ${politician.navn || "Politiker"}`}
                 className="info-box-photo"
                 onError={handleImageError}
               />
             </div>
-
             {/* Details */}
-            <h3>{politician.navn || 'Ukendt Navn'}</h3>
+            <h3>{politician.navn || "Ukendt Navn"}</h3>
             <p className="info-box-role">
-                {politician.functionFormattedTitle || 'Medlem af Folketinget'}
-                {politician.party && `, `}
-                {politician.party && (
-                    <Link to={`/party/${encodeURIComponent(politician.party)}`}>{politician.party}</Link>
-                )}
-                {politician.ministertitel && ` (${politician.ministertitel})`}
+              {politician.functionFormattedTitle || "Medlem af Folketinget"}
+              {politician.party && `, `}
+              {politician.party && <Link to={`/party/${encodeURIComponent(politician.party)}`}>{politician.party}</Link>}
+              {politician.ministertitel && ` (${politician.ministertitel})`}
             </p>
-
             <hr className="info-box-divider" />
-
             {/* Use helper function for info items */}
             {renderInfoItem("Adresse", "[Ikke tilgængelig]")} {/* Placeholder */}
-            {renderInfoItem("Alder + føds", `${formattedBornDate}${age !== null ? ` - ${age} år` : ''}`)}
+            {renderInfoItem("Alder + føds", `${formattedBornDate}${age !== null ? ` - ${age} år` : ""}`)}
             {renderInfoItem("Tlf", "[Ikke tilgængelig]")} {/* Placeholder */}
-            {renderInfoItem("Email", politician.email ? <a href={`mailto:${politician.email}`}>{politician.email}</a> : 'Ikke tilgængelig')}
+            {renderInfoItem("Email", politician.email ? <a href={`mailto:${politician.email}`}>{politician.email}</a> : "Ikke tilgængelig")}
             {renderInfoItem("Hjemmeside", "[Ikke tilgængelig]")} {/* Placeholder - need to parse from bio or add field */}
-
-             {/* Add Education and Constituency lists if desired in info box */}
-             {politician.educations && politician.educations.length > 0 && (
-                <>
-                  <hr className="info-box-divider" />
-                  <h4>Uddannelse</h4>
-                  <ul className="info-box-list">
-                    {politician.educations.map((edu, index) => <li key={`edu-${index}`}>{edu}</li>)}
-                  </ul>
-                </>
-              )}
-             {/* {politician.constituencies && politician.constituencies.length > 0 && ( ... )} */}
-
+            {/* Add Education and Constituency lists if desired in info box */}
+            {politician.educations && politician.educations.length > 0 && (
+              <>
+                <hr className="info-box-divider" />
+                <h4>Uddannelse</h4>
+                <ul className="info-box-list">
+                  {politician.educations.map((edu, index) => (
+                    <li key={`edu-${index}`}>{edu}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {/* {politician.constituencies && politician.constituencies.length > 0 && ( ... )} */}
           </div>
         </div>
         {/* --- End Right Column --- */}
-
-      </div>
+      </article>
       {/* --- End Main Content Area --- */}
-
     </div>
   );
 };
 
 // Helper function to render info box items consistently
 const renderInfoItem = (label: string, value: React.ReactNode) => (
-    <div className="info-box-item">
-        <span className="info-box-label">{label}:</span>
-        <span className="info-box-value">{value}</span>
-    </div>
+  <div className="info-box-item">
+    <span className="info-box-label">{label}:</span>
+    <span className="info-box-value">{value}</span>
+  </div>
 );
 
 export default PoliticianPage;

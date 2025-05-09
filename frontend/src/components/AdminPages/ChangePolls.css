@@ -58,7 +58,7 @@
 .add-poll-add-btn,
 .add-poll-remove-btn,
 .add-poll-submit-btn {
-  background-color: #991b1b; /* Dark red */
+  background-color: #950018e5; /* Dark red */
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -70,7 +70,7 @@
 
 .add-poll-add-btn:hover,
 .add-poll-submit-btn:hover {
-  background-color: #7f1d1d;
+  background-color: #7b0015e5;
 }
 
 .add-poll-add-btn:disabled,
@@ -83,4 +83,34 @@
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.container {
+  background: var(--Background-element-red, #80273080);
+  margin: 5rem auto 0 auto;
+  width: 90%;
+  max-width: 800px;
+  padding: 3rem 2rem;
+  text-align: center;
+  border-radius: 16px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.container h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.top-red-line {
+  height: 2px;
+  background-color: #7a202d;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.Borgertinget-Icon {
+  width: 70px;
+  height: 70px;
+  margin-bottom: 1rem;
 }

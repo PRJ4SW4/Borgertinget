@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchPagesStructure } from "../../services/ApiService";
 import type { PageSummaryDto } from "../../types/pageTypes";
 import "./ChangeLearningPage.css"; // Updated CSS import
+import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 
 export default function AddLearningPage() {
   const [title, setTitle] = useState("");
@@ -62,25 +63,31 @@ export default function AddLearningPage() {
 
   return (
     <div className="container">
+      <div>
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+      </div>
+      <div className="top-red-line"></div>
       <h1>Opret Læringsside</h1>
-
+      <label className="page-label">Titel</label>
       <input type="text" placeholder="Titel" value={title} onChange={(e) => setTitle(e.target.value)} className="page-input" />
 
+      <label className="page-label">Indhold</label>
       <textarea
-        className="add-poll-form"
+        className="page-form"
         placeholder="Indhold (Markdown understøttet)"
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={6}
       />
 
+      <label className="page-label">Parent page</label>
       <select
         value={parentId ?? ""}
         onChange={(e) => {
           const value = e.target.value;
           setParentId(value === "" ? null : Number(value));
         }}
-        className="add-poll-input">
+        className="page-input">
         <option value="">(Ingen overordnet side)</option>
         {pages.map((page) => (
           <option key={page.id} value={page.id}>
@@ -89,7 +96,7 @@ export default function AddLearningPage() {
         ))}
       </select>
 
-      <button onClick={handleSubmit} className="add-poll-submit-btn">
+      <button onClick={handleSubmit} className="page-btn">
         Gem Side
       </button>
     </div>
