@@ -7,6 +7,7 @@ import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 interface PollSummary {
   id: number;
   question: string;
+  politicianTwitterId: string;
 }
 
 interface PollOption {
@@ -169,7 +170,7 @@ export default function EditPoll() {
     const payload = {
       question: questions[0]?.question || "",
       options: questions[0]?.options.map((o) => o.optionText).filter((o) => o.trim() !== "") || [],
-      politicianTwitterId: selectedPoliticianId,
+      politicianTwitterId: "123868861",
       endedAt: endDate ? new Date(endDate).toISOString() : null,
     };
 

@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateInitialSchemaAndSeedData : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -123,21 +123,6 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PoliticianTwitterIds",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    TwitterUserId = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    TwitterHandle = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PoliticianTwitterIds", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -148,7 +133,7 @@ namespace backend.Migrations
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
                     IsVerified = table.Column<bool>(type: "boolean", nullable: false),
                     VerificationToken = table.Column<string>(type: "text", nullable: true),
-                    Roles = table.Column<string>(type: "text", nullable: false)
+                    Roles = table.Column<List<string>>(type: "text[]", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -166,12 +151,12 @@ namespace backend.Migrations
                     partyProgram = table.Column<string>(type: "text", nullable: true),
                     politics = table.Column<string>(type: "text", nullable: true),
                     history = table.Column<string>(type: "text", nullable: true),
-                    stats = table.Column<string>(type: "text", nullable: true),
+                    stats = table.Column<List<string>>(type: "text[]", nullable: true),
                     chairmanId = table.Column<int>(type: "integer", nullable: true),
                     viceChairmanId = table.Column<int>(type: "integer", nullable: true),
                     secretaryId = table.Column<int>(type: "integer", nullable: true),
                     spokesmanId = table.Column<int>(type: "integer", nullable: true),
-                    memberIds = table.Column<string>(type: "text", nullable: true)
+                    memberIds = table.Column<List<int>>(type: "integer[]", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -180,8 +165,7 @@ namespace backend.Migrations
                         name: "FK_Party_Aktor_chairmanId",
                         column: x => x.chairmanId,
                         principalTable: "Aktor",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Party_Aktor_secretaryId",
                         column: x => x.secretaryId,
@@ -195,6 +179,27 @@ namespace backend.Migrations
                     table.ForeignKey(
                         name: "FK_Party_Aktor_viceChairmanId",
                         column: x => x.viceChairmanId,
+                        principalTable: "Aktor",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PoliticianTwitterIds",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TwitterUserId = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    TwitterHandle = table.Column<string>(type: "text", nullable: false),
+                    AktorId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PoliticianTwitterIds", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PoliticianTwitterIds_Aktor_AktorId",
+                        column: x => x.AktorId,
                         principalTable: "Aktor",
                         principalColumn: "Id");
                 });
@@ -279,8 +284,8 @@ namespace backend.Migrations
                     Question = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    PoliticianTwitterId = table.Column<string>(type: "text", nullable: false),
-                    PoliticianId = table.Column<int>(type: "integer", nullable: false)
+                    PoliticianId = table.Column<int>(type: "integer", nullable: false),
+                    PoliticianTwitterId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -289,6 +294,33 @@ namespace backend.Migrations
                         name: "FK_Polls_PoliticianTwitterIds_PoliticianId",
                         column: x => x.PoliticianId,
                         principalTable: "PoliticianTwitterIds",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Subscriptions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    PoliticianTwitterId = table.Column<int>(type: "integer", nullable: false),
+                    PoliticianId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Subscriptions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Subscriptions_PoliticianTwitterIds_PoliticianId",
+                        column: x => x.PoliticianId,
+                        principalTable: "PoliticianTwitterIds",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Subscriptions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -306,41 +338,16 @@ namespace backend.Migrations
                     Replies = table.Column<int>(type: "integer", nullable: false),
                     TwitterTweetId = table.Column<string>(type: "text", nullable: false),
                     PoliticianTwitterId = table.Column<int>(type: "integer", nullable: false),
+                    PoliticianId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tweets", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tweets_PoliticianTwitterIds_PoliticianTwitterId",
-                        column: x => x.PoliticianTwitterId,
+                        name: "FK_Tweets_PoliticianTwitterIds_PoliticianId",
+                        column: x => x.PoliticianId,
                         principalTable: "PoliticianTwitterIds",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Subscriptions",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    PoliticianTwitterId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Subscriptions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Subscriptions_PoliticianTwitterIds_PoliticianTwitterId",
-                        column: x => x.PoliticianTwitterId,
-                        principalTable: "PoliticianTwitterIds",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Subscriptions_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -491,19 +498,9 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "PoliticianTwitterIds",
-                columns: new[] { "Id", "Name", "TwitterHandle", "TwitterUserId" },
-                values: new object[,]
-                {
-                    { 1, "Statsministeriet", "Statsmin", "806068174567460864" },
-                    { 2, "Venstre, Danmarks Liberale Parti", "venstredk", "123868861" },
-                    { 3, "Troels Lund Poulsen", "troelslundp", "2965907578" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "Id", "Email", "IsVerified", "PasswordHash", "Roles", "UserName", "VerificationToken" },
-                values: new object[] { 1, "testuser@example.com", true, "hashed_password_placeholder", "[\"User\"]", "TestUser", null });
+                table: "Pages",
+                columns: new[] { "Id", "Content", "DisplayOrder", "ParentPageId", "Title" },
+                values: new object[] { 1, "Indhold for Politik 101...", 1, null, "Politik 101" });
 
             migrationBuilder.InsertData(
                 table: "Flashcards",
@@ -518,13 +515,62 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Subscriptions",
-                columns: new[] { "Id", "PoliticianTwitterId", "UserId" },
+                table: "Pages",
+                columns: new[] { "Id", "Content", "DisplayOrder", "ParentPageId", "Title" },
+                values: new object[] { 2, "Indhold for Den Politiske Akse...", 1, 1, "Den Politiske Akse" });
+
+            migrationBuilder.InsertData(
+                table: "Questions",
+                columns: new[] { "QuestionId", "PageId", "QuestionText" },
                 values: new object[,]
                 {
-                    { 1, 1, 1 },
-                    { 2, 2, 1 },
-                    { 3, 3, 1 }
+                    { 1, 1, "Hvad beskæftiger politologi sig primært med?" },
+                    { 2, 1, "Hvilket begreb dækker over fordelingen af autoritet i et samfund?" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "AnswerOptions",
+                columns: new[] { "AnswerOptionId", "DisplayOrder", "IsCorrect", "OptionText", "QuestionId" },
+                values: new object[,]
+                {
+                    { 1, 1, true, "Studiet af magtstrukturer og beslutningsprocesser", 1 },
+                    { 2, 2, false, "Analyse af internationale handelsaftaler", 1 },
+                    { 3, 3, false, "Udforskning af historiske monarkier", 1 },
+                    { 4, 1, false, "Social mobilitet", 2 },
+                    { 5, 2, true, "Magtdeling", 2 },
+                    { 6, 3, false, "Kulturel assimilation", 2 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Pages",
+                columns: new[] { "Id", "Content", "DisplayOrder", "ParentPageId", "Title" },
+                values: new object[,]
+                {
+                    { 3, "Indhold for Venstre vs Højre...", 1, 2, "Venstre vs Højre" },
+                    { 4, "Højre er at være højre...", 1, 3, "Højre" },
+                    { 5, "Venstre er at være venstre...", 2, 3, "Venstre" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Questions",
+                columns: new[] { "QuestionId", "PageId", "QuestionText" },
+                values: new object[,]
+                {
+                    { 3, 4, "Hvilket økonomisk princip forbindes ofte med højreorienteret politik?" },
+                    { 4, 5, "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "AnswerOptions",
+                columns: new[] { "AnswerOptionId", "DisplayOrder", "IsCorrect", "OptionText", "QuestionId" },
+                values: new object[,]
+                {
+                    { 7, 1, false, "Planøkonomi", 3 },
+                    { 8, 2, false, "Høj grad af omfordeling", 3 },
+                    { 9, 3, true, "Frit marked og privat ejendomsret", 3 },
+                    { 10, 1, false, "Individuel konkurrence", 4 },
+                    { 11, 2, true, "Social lighed og fællesskabets velfærd", 4 },
+                    { 12, 3, false, "Traditionelle hierarkier", 4 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -584,10 +630,9 @@ namespace backend.Migrations
                 column: "PolitikerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PoliticianTwitterIds_TwitterUserId",
+                name: "IX_PoliticianTwitterIds_AktorId",
                 table: "PoliticianTwitterIds",
-                column: "TwitterUserId",
-                unique: true);
+                column: "AktorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PollOptions_PollId",
@@ -605,9 +650,9 @@ namespace backend.Migrations
                 column: "PageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Subscriptions_PoliticianTwitterId",
+                name: "IX_Subscriptions_PoliticianId",
                 table: "Subscriptions",
-                column: "PoliticianTwitterId");
+                column: "PoliticianId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Subscriptions_UserId",
@@ -615,10 +660,9 @@ namespace backend.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tweets_PoliticianTwitterId_TwitterTweetId",
+                name: "IX_Tweets_PoliticianId",
                 table: "Tweets",
-                columns: new[] { "PoliticianTwitterId", "TwitterTweetId" },
-                unique: true);
+                column: "PoliticianId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserVotes_ChosenOptionId",
@@ -631,10 +675,9 @@ namespace backend.Migrations
                 column: "PollId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserVotes_UserId_PollId",
+                name: "IX_UserVotes_UserId",
                 table: "UserVotes",
-                columns: new[] { "UserId", "PollId" },
-                unique: true);
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -677,9 +720,6 @@ namespace backend.Migrations
                 name: "FlashcardCollections");
 
             migrationBuilder.DropTable(
-                name: "Aktor");
-
-            migrationBuilder.DropTable(
                 name: "FakePolitikere");
 
             migrationBuilder.DropTable(
@@ -699,6 +739,9 @@ namespace backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "PoliticianTwitterIds");
+
+            migrationBuilder.DropTable(
+                name: "Aktor");
         }
     }
 }

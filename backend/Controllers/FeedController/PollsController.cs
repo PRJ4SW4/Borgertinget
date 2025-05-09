@@ -100,6 +100,24 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<PollSummaryDto>>> GetAllPolls()
+        {
+            var polls = await _context
+                .Polls.AsNoTracking()
+                .Select(p => new PollSummaryDto
+                {
+                    Id = p.Id,
+                    Question = p.Question,
+                    PoliticianTwitterId = p.PoliticianTwitterId!,
+                })
+                .OrderByDescending(p => p.Id)
+                .ToListAsync();
+
+            return Ok(polls);
+        }
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<ActionResult<PollDetailsDto>> GetPollById(int id)

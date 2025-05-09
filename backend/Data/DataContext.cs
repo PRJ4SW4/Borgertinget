@@ -170,7 +170,170 @@ namespace backend.Data
                         ?? new List<string>()
                 );
 
+            #region Polidle
+            // --- NY KONFIGURATION for Polidle ---
+
+            // 1. Konfigurer sammensat primærnøgle for PolidleGamemodeTracker
+            modelBuilder
+                .Entity<PolidleGamemodeTracker>()
+                .HasKey(pgt => new { pgt.PolitikerId, pgt.GameMode }); // Definerer PK som (PolitikerId, GameMode)
+
+            // 2. Konfigurer En-til-mange relation mellem FakePolitiker og PolidleGamemodeTracker
+            modelBuilder
+                .Entity<PolidleGamemodeTracker>()
+                .HasOne(pgt => pgt.FakePolitiker) // Fra Tracker peg på én Politiker
+                .WithMany(p => p.GameTrackings) // Fra Politiker peg på mange Trackings
+                .HasForeignKey(pgt => pgt.PolitikerId) // Specificer FK kolonnen i Tracker
+                .OnDelete(DeleteBehavior.Cascade); // Eksempel: Slet tracking-rækker hvis politikeren slettes
+
+            // 3. Konfigurer Enum-til-String konvertering for GameMode (Valgfrit, men anbefalet)
+            modelBuilder
+                .Entity<PolidleGamemodeTracker>()
+                .Property(pgt => pgt.GameMode)
+                .HasConversion<string>() // Konverter til string
+                .HasMaxLength(50); // Sæt en passende max længde
+
+            // --- Konfiguration for DailySelection ---
+            modelBuilder
+                .Entity<DailySelection>()
+                .HasKey(ds => new { ds.SelectionDate, ds.GameMode }); // Sammensat PK
+
+            // Konfigurer relation til FakePolitiker (En DailySelection har én Politiker)
+            modelBuilder
+                .Entity<DailySelection>()
+                .HasOne(ds => ds.SelectedPolitiker)
+                .WithMany() // En politiker kan være valgt mange gange (over tid/gamemodes)
+                .HasForeignKey(ds => ds.SelectedPolitikerID)
+                .OnDelete(DeleteBehavior.Restrict); // Undgå at slette en politiker hvis de er et dagligt valg?
+
+            // Konfigurer evt. Enum-til-String for GameMode her også, hvis den ikke er globalt konfigureret
+            modelBuilder
+                .Entity<DailySelection>()
+                .Property(ds => ds.GameMode)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+            // ------------------------------------
+
+            // --- NYT: Konfiguration for FakeParti <-> FakePolitiker relation ---
+            // Antagelser:
+            // 1. Din `FakePolitiker` model har en `int PartiId` foreign key property.
+            // 2. Din `FakePolitiker` model har en `FakeParti FakeParti` navigation property.
+            // Juster `.HasForeignKey()` og `.WithOne()` hvis dine properties hedder noget andet.
+
+            modelBuilder
+                .Entity<FakeParti>()
+                .HasMany(p => p.FakePolitikers)
+                .WithOne(fp => fp.FakeParti) // Matcher navigation property i FakePolitiker
+                .HasForeignKey(fp => fp.PartiId) // Matcher foreign key property i FakePolitiker
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // === NYT: Konfiguration for FakePolitiker <-> PoliticianQuote relation ===
+            modelBuilder
+                .Entity<PoliticianQuote>()
+                .HasOne(q => q.FakePolitiker) // Et citat har én politiker
+                .WithMany(p => p.Quotes) // En politiker har mange citater (via 'Quotes' collection i FakePolitiker)
+                .HasForeignKey(q => q.PolitikerId) // Fremmednøglen i PoliticianQuote tabellen
+                .OnDelete(DeleteBehavior.Cascade); // Slet citater hvis politikeren slettes
+            // -------------------------------------------------------------------
+            #endregion
+
             // --- SEED DATA ---
+
+            modelBuilder.Entity<PoliticianTwitterId>(entity =>
+            {
+                entity.HasIndex(p => p.TwitterUserId).IsUnique();
+                entity
+                    .HasMany(p => p.Tweets)
+                    .WithOne(t => t.Politician)
+                    .HasForeignKey(t => t.PoliticianTwitterId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity
+                    .HasMany(p => p.Subscriptions)
+                    .WithOne(s => s.Politician)
+                    .HasForeignKey(s => s.PoliticianTwitterId);
+                entity
+                    .HasMany(p => p.Polls)
+                    .WithOne(p => p.Politician)
+                    .HasForeignKey(p => p.PoliticianTwitterId);
+
+                entity.Property(p => p.TwitterUserId).IsRequired();
+                entity.Property(p => p.Name).IsRequired();
+                entity.Property(p => p.TwitterHandle).IsRequired();
+
+                entity
+                    .HasOne(politicianTwitter => politicianTwitter.Aktor)
+                    .WithOne()
+                    .HasForeignKey<PoliticianTwitterId>(politicianTwitter =>
+                        politicianTwitter.AktorId
+                    )
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                modelBuilder.Entity<Tweet>(entity =>
+                {
+                    entity
+                        .HasIndex(t => new { t.PoliticianTwitterId, t.TwitterTweetId })
+                        .IsUnique();
+                    entity.Property(t => t.TwitterTweetId).IsRequired();
+                    entity.Property(t => t.Text).IsRequired();
+                });
+
+                modelBuilder.Entity<User>(entity =>
+                {
+                    entity
+                        .HasMany(u => u.Subscriptions)
+                        .WithOne(s => s.User)
+                        .HasForeignKey(s => s.UserId);
+                });
+
+                modelBuilder.Entity<Subscription>(entity =>
+                {
+                    entity.HasIndex(s => s.UserId);
+                    entity.HasIndex(s => s.PoliticianTwitterId);
+                });
+
+                modelBuilder.Entity<Poll>(entityPoll =>
+                {
+                    entityPoll
+                        .HasOne(poll => poll.Politician)
+                        .WithMany(politician => politician.Polls)
+                        .HasForeignKey(poll => poll.PoliticianTwitterId)
+                        .HasPrincipalKey(p => p.TwitterUserId); // 👈 explicitly link to string key
+                });
+
+                modelBuilder
+                    .Entity<UserVote>()
+                    .HasIndex(uv => new { uv.UserId, uv.PollId })
+                    .IsUnique();
+
+                //ved merge skal nedestående være commented, da der ellers vi blive problemer med constraints i databasen
+                entity.HasData(
+                    new PoliticianTwitterId
+                    {
+                        Id = 1,
+                        TwitterUserId = "806068174567460864",
+                        Name = "Statsministeriet",
+                        TwitterHandle = "Statsmin",
+                        AktorId = null,
+                    },
+                    new PoliticianTwitterId
+                    {
+                        Id = 2,
+                        TwitterUserId = "123868861",
+                        Name = "Venstre, Danmarks Liberale Parti",
+                        TwitterHandle = "venstredk",
+                        AktorId = null,
+                    },
+                    new PoliticianTwitterId
+                    {
+                        Id = 3,
+                        TwitterUserId = "2965907578",
+                        Name = "Troels Lund Poulsen",
+                        TwitterHandle = "troelslundp",
+                        AktorId = null,
+                    }
+                );
+            });
 
             // --- Learning Environment Seeding ---
 

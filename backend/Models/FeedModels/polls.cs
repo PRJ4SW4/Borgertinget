@@ -78,6 +78,7 @@ namespace backend.Models
     public class PollSummaryDto
     {
         public int Id { get; set; }
-        public string Question { get; set; }
+        public string Question { get; set; } = string.Empty;
+        public string PoliticianTwitterId { get; set; } = string.Empty;
     }
 }

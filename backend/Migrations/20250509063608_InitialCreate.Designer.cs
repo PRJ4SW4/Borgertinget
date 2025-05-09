@@ -13,15 +13,15 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250507124040_TwitterFeedMigrations")]
-    partial class TwitterFeedMigrations
+    [Migration("20250509063608_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -159,6 +159,95 @@ namespace backend.Migrations
                     b.ToTable("CalendarEvents");
                 });
 
+            modelBuilder.Entity("backend.Models.DailySelection", b =>
+                {
+                    b.Property<DateOnly>("SelectionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("selection_date");
+
+                    b.Property<string>("GameMode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("gamemode");
+
+                    b.Property<int>("SelectedPolitikerID")
+                        .HasColumnType("integer")
+                        .HasColumnName("selected_politiker_id");
+
+                    b.Property<string>("SelectedQuoteText")
+                        .HasColumnType("text")
+                        .HasColumnName("selected_quote_text");
+
+                    b.HasKey("SelectionDate", "GameMode");
+
+                    b.HasIndex("SelectedPolitikerID");
+
+                    b.ToTable("daily_selections");
+                });
+
+            modelBuilder.Entity("backend.Models.FakeParti", b =>
+                {
+                    b.Property<int>("PartiId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PartiId"));
+
+                    b.Property<string>("PartiNavn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("PartiId");
+
+                    b.ToTable("FakePartier");
+                });
+
+            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date_of_birth");
+
+                    b.Property<string>("Køn")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PartiId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PolitikerNavn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<byte[]>("Portræt")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("Region")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Uddannelse")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartiId");
+
+                    b.ToTable("FakePolitikere");
+                });
+
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
                 {
                     b.Property<int>("FlashcardId")
@@ -198,6 +287,58 @@ namespace backend.Migrations
                     b.HasIndex("CollectionId");
 
                     b.ToTable("Flashcards");
+
+                    b.HasData(
+                        new
+                        {
+                            FlashcardId = 1,
+                            BackContentType = 0,
+                            BackText = "Mette Frederiksen",
+                            CollectionId = 1,
+                            DisplayOrder = 1,
+                            FrontContentType = 1,
+                            FrontImagePath = "/uploads/flashcards/mettef.png"
+                        },
+                        new
+                        {
+                            FlashcardId = 2,
+                            BackContentType = 0,
+                            BackText = "Lars Løkke Rasmussen",
+                            CollectionId = 1,
+                            DisplayOrder = 2,
+                            FrontContentType = 1,
+                            FrontImagePath = "/uploads/flashcards/larsl.png"
+                        },
+                        new
+                        {
+                            FlashcardId = 3,
+                            BackContentType = 0,
+                            BackText = "Inger Støjberg",
+                            CollectionId = 1,
+                            DisplayOrder = 3,
+                            FrontContentType = 0,
+                            FrontText = "Hvem er formand for Danmarksdemokraterne?"
+                        },
+                        new
+                        {
+                            FlashcardId = 4,
+                            BackContentType = 0,
+                            BackText = "Folkestyre",
+                            CollectionId = 2,
+                            DisplayOrder = 1,
+                            FrontContentType = 0,
+                            FrontText = "Hvad betyder 'Demokrati'?"
+                        },
+                        new
+                        {
+                            FlashcardId = 5,
+                            BackContentType = 0,
+                            BackText = "Statens budget for det kommende år",
+                            CollectionId = 2,
+                            DisplayOrder = 2,
+                            FrontContentType = 0,
+                            FrontText = "Hvad er 'Finansloven'?"
+                        });
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>
@@ -227,14 +368,16 @@ namespace backend.Migrations
                         new
                         {
                             CollectionId = 1,
+                            Description = "Kendte danske politikere",
                             DisplayOrder = 1,
-                            Title = "Politikerne og deres navne"
+                            Title = "Politikere"
                         },
                         new
                         {
                             CollectionId = 2,
+                            Description = "Grundlæggende politiske termer",
                             DisplayOrder = 2,
-                            Title = "Politiske begreber"
+                            Title = "Politiske Begreber"
                         });
                 });
 
@@ -483,6 +626,106 @@ namespace backend.Migrations
                         });
                 });
 
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.Property<int>("partyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
+
+                    b.Property<int?>("chairmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("history")
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<List<int>>("memberIds")
+                        .HasColumnType("integer[]");
+
+                    b.Property<string>("partyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyProgram")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyShortName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("politics")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("secretaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("spokesmanId")
+                        .HasColumnType("integer");
+
+                    b.PrimitiveCollection<List<string>>("stats")
+                        .HasColumnType("text[]");
+
+                    b.Property<int?>("viceChairmanId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("partyId");
+
+                    b.HasIndex("chairmanId");
+
+                    b.HasIndex("secretaryId");
+
+                    b.HasIndex("spokesmanId");
+
+                    b.HasIndex("viceChairmanId");
+
+                    b.ToTable("Party");
+                });
+
+            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
+                {
+                    b.Property<int>("PolitikerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("politiker_id");
+
+                    b.Property<string>("GameMode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("gamemode");
+
+                    b.Property<int?>("AlgoWeight")
+                        .HasColumnType("integer")
+                        .HasColumnName("algovægt");
+
+                    b.Property<DateOnly?>("LastSelectedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("lastselecteddate");
+
+                    b.HasKey("PolitikerId", "GameMode");
+
+                    b.ToTable("GameTrackings");
+                });
+
+            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
+                {
+                    b.Property<int>("QuoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuoteId"));
+
+                    b.Property<int>("PolitikerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("QuoteText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("QuoteId");
+
+                    b.HasIndex("PolitikerId");
+
+                    b.ToTable("PoliticianQuotes");
+                });
+
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
                     b.Property<int>("Id")
@@ -508,36 +751,9 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AktorId")
-                        .IsUnique();
-
-                    b.HasIndex("TwitterUserId")
-                        .IsUnique();
+                    b.HasIndex("AktorId");
 
                     b.ToTable("PoliticianTwitterIds");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Statsministeriet",
-                            TwitterHandle = "Statsmin",
-                            TwitterUserId = "806068174567460864"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Venstre, Danmarks Liberale Parti",
-                            TwitterHandle = "venstredk",
-                            TwitterUserId = "123868861"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Troels Lund Poulsen",
-                            TwitterHandle = "troelslundp",
-                            TwitterUserId = "2965907578"
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.Poll", b =>
@@ -554,8 +770,12 @@ namespace backend.Migrations
                     b.Property<DateTime?>("EndedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("PoliticianTwitterId")
+                    b.Property<int>("PoliticianId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("PoliticianTwitterId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Question")
                         .IsRequired()
@@ -564,25 +784,9 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PoliticianTwitterId");
+                    b.HasIndex("PoliticianId");
 
                     b.ToTable("Polls");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PoliticianTwitterId = 1,
-                            Question = "Hvad synes du om den nye bro?"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 4, 28, 14, 30, 0, 0, DateTimeKind.Utc),
-                            PoliticianTwitterId = 1,
-                            Question = "Skal Danmark øge investeringer i vedvarende energi?"
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.PollOption", b =>
@@ -609,57 +813,6 @@ namespace backend.Migrations
                     b.HasIndex("PollId");
 
                     b.ToTable("PollOptions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            OptionText = "Den er fantastisk!",
-                            PollId = 1,
-                            Votes = 5
-                        },
-                        new
-                        {
-                            Id = 2,
-                            OptionText = "Den er ok, men dyr.",
-                            PollId = 1,
-                            Votes = 12
-                        },
-                        new
-                        {
-                            Id = 3,
-                            OptionText = "Den er unødvendig.",
-                            PollId = 1,
-                            Votes = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            OptionText = "Ja, meget mere end nu",
-                            PollId = 2,
-                            Votes = 42
-                        },
-                        new
-                        {
-                            Id = 5,
-                            OptionText = "Ja, lidt mere",
-                            PollId = 2,
-                            Votes = 28
-                        },
-                        new
-                        {
-                            Id = 6,
-                            OptionText = "Nej, det nuværende niveau er passende",
-                            PollId = 2,
-                            Votes = 15
-                        },
-                        new
-                        {
-                            Id = 7,
-                            OptionText = "Nej, vi bør investere mindre",
-                            PollId = 2,
-                            Votes = 8
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.Subscription", b =>
@@ -670,6 +823,9 @@ namespace backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("PoliticianId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("PoliticianTwitterId")
                         .HasColumnType("integer");
 
@@ -678,7 +834,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PoliticianTwitterId");
+                    b.HasIndex("PoliticianId");
 
                     b.HasIndex("UserId");
 
@@ -702,6 +858,9 @@ namespace backend.Migrations
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
+                    b.Property<int>("PoliticianId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("PoliticianTwitterId")
                         .HasColumnType("integer");
 
@@ -721,8 +880,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PoliticianTwitterId", "TwitterTweetId")
-                        .IsUnique();
+                    b.HasIndex("PoliticianId");
 
                     b.ToTable("Tweets");
                 });
@@ -785,10 +943,31 @@ namespace backend.Migrations
 
                     b.HasIndex("PollId");
 
-                    b.HasIndex("UserId", "PollId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserVotes");
+                });
+
+            modelBuilder.Entity("backend.Models.DailySelection", b =>
+                {
+                    b.HasOne("backend.Models.FakePolitiker", "SelectedPolitiker")
+                        .WithMany()
+                        .HasForeignKey("SelectedPolitikerID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SelectedPolitiker");
+                });
+
+            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
+                {
+                    b.HasOne("backend.Models.FakeParti", "FakeParti")
+                        .WithMany("FakePolitikers")
+                        .HasForeignKey("PartiId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FakeParti");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -834,12 +1013,60 @@ namespace backend.Migrations
                     b.Navigation("Page");
                 });
 
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "chairman")
+                        .WithMany()
+                        .HasForeignKey("chairmanId");
+
+                    b.HasOne("backend.Models.Aktor", "secretary")
+                        .WithMany()
+                        .HasForeignKey("secretaryId");
+
+                    b.HasOne("backend.Models.Aktor", "spokesman")
+                        .WithMany()
+                        .HasForeignKey("spokesmanId");
+
+                    b.HasOne("backend.Models.Aktor", "viceChairman")
+                        .WithMany()
+                        .HasForeignKey("viceChairmanId");
+
+                    b.Navigation("chairman");
+
+                    b.Navigation("secretary");
+
+                    b.Navigation("spokesman");
+
+                    b.Navigation("viceChairman");
+                });
+
+            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
+                {
+                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
+                        .WithMany("GameTrackings")
+                        .HasForeignKey("PolitikerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FakePolitiker");
+                });
+
+            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
+                {
+                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
+                        .WithMany("Quotes")
+                        .HasForeignKey("PolitikerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FakePolitiker");
+                });
+
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
                     b.HasOne("backend.Models.Aktor", "Aktor")
-                        .WithOne()
-                        .HasForeignKey("backend.Models.PoliticianTwitterId", "AktorId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .WithMany()
+                        .HasForeignKey("AktorId");
 
                     b.Navigation("Aktor");
                 });
@@ -848,7 +1075,7 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Models.PoliticianTwitterId", "Politician")
                         .WithMany("Polls")
-                        .HasForeignKey("PoliticianTwitterId")
+                        .HasForeignKey("PoliticianId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -870,7 +1097,7 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Models.PoliticianTwitterId", "Politician")
                         .WithMany("Subscriptions")
-                        .HasForeignKey("PoliticianTwitterId")
+                        .HasForeignKey("PoliticianId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -889,7 +1116,7 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Models.PoliticianTwitterId", "Politician")
                         .WithMany("Tweets")
-                        .HasForeignKey("PoliticianTwitterId")
+                        .HasForeignKey("PoliticianId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -921,6 +1148,18 @@ namespace backend.Migrations
                     b.Navigation("Poll");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend.Models.FakeParti", b =>
+                {
+                    b.Navigation("FakePolitikers");
+                });
+
+            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
+                {
+                    b.Navigation("GameTrackings");
+
+                    b.Navigation("Quotes");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>
