@@ -1,7 +1,7 @@
+using System;
+using System.Collections.Generic; // Nødvendig for ICollection
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema; // Nødvendig for [ForeignKey]
-using System.Collections.Generic; // Nødvendig for ICollection
-using System;
 
 namespace backend.Models;
 
@@ -49,7 +49,8 @@ public class FakePolitiker
 
     // --- Relation til PolidleGamemodeTracker (En-til-mange fra Politikerens perspektiv) ---
     // En FakePolitiker kan have mange Game Tracking entries
-    public virtual ICollection<PolidleGamemodeTracker> GameTrackings { get; set; } = new List<PolidleGamemodeTracker>();
+    public virtual ICollection<PolidleGamemodeTracker> GameTrackings { get; set; } =
+        new List<PolidleGamemodeTracker>();
 
     // --- Relation til PoliticianQuote (en politiker har en række citater som bruges i spillet)
     public virtual ICollection<PoliticianQuote> Quotes { get; set; } = new List<PoliticianQuote>();

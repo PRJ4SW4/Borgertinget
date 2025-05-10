@@ -17,6 +17,7 @@ namespace backend.Models
         public string? PartyShortname { get; set; }
         public string? PictureUrl { get; set; }
         public string? MinisterTitle { get; set; }
+
         // Add other relevant Aktor fields you want to search or display directly...
         public List<string>? Constituencies { get; set; } // Example list field
 

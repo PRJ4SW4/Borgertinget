@@ -1,5 +1,6 @@
 // PoliticianQuote.cs
 namespace backend.Models;
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

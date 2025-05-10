@@ -112,13 +112,9 @@ public class AltingetScraperService : IAutomationService
         // Iterate through each day group node.
         foreach (var dayGroupNode in dayGroupNodes)
         {
-            string rawDate = "";
-            var dateNode = dayGroupNode.SelectSingleNode(dateXPath);
-            if (dateNode != null)
-            {
-                HtmlNode node = dateNode; // assign to non-nullable local
-                rawDate = HtmlEntity.DeEntitize(node.InnerText).Trim();
-            }
+            var dateNode = dayGroupNode.SelectSingleNode(dateXPath); // Select the date node within the current day group node.
+            string rawDate =
+                dateNode != null ? HtmlEntity.DeEntitize(dateNode.InnerText).Trim() : ""; // Extract the raw date string from the date node.
 
             // Try to parse the raw date string into a DateOnly object.
             if (

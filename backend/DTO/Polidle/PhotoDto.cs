@@ -1,4 +1,5 @@
 namespace backend.DTO;
+
 public class PhotoDto
 {
     // Send som Base64 streng i JSON

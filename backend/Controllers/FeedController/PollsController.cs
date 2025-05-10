@@ -215,92 +215,94 @@ namespace backend.Controllers
             return NoContent();
         }
 
-        // denne endpoint opdaterer spørgsmålet på en poll så det vil sige (spørgsmål option option option option)
-        // endpoint ændrer derfor kun spørgsmål kun
-        [HttpPut("{id}/question")]
-        [Authorize]
-        public async Task<ActionResult<string>> UpdatePollQuestion(
-            int id,
-            [FromBody] PollQuestionUpdate update
-        )
-        {
-            if (string.IsNullOrWhiteSpace(update.NewQuestion))
-            {
-                return BadRequest("Spørgsmålet må ikke være tomt.");
-            }
-
-            var poll = await _context.Polls.FindAsync(id);
-            if (poll == null)
-            {
-                return NotFound($"Poll med ID {id} blev ikke fundet.");
-            }
-
-            if (poll.EndedAt.HasValue && poll.EndedAt.Value < DateTime.UtcNow)
-            {
-                return BadRequest("Kan ikke redigere en afsluttet poll.");
-            }
-
-            // Just update the question
-            poll.Question = update.NewQuestion;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Spørgsmålet blev opdateret", question = poll.Question });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Fejl ved opdatering af poll spørgsmål: {ex}");
-                return StatusCode(500, "Intern fejl ved opdatering af poll spørgsmål.");
-            }
-        }
-
-        // denne endpoint opdaterer option på en poll så det vil sige (spørgsmål option option option option)
-        // endpoint ændrer derfor kun den option der vælges, likes, forbliver det samme
-
-        [HttpPut("{pollId}/options/{optionId}")]
-        [Authorize]
-        public async Task<ActionResult> UpdatePollOption(
-            int pollId,
-            int optionId,
-            [FromBody] PollOptionUpdate update
-        )
-        {
-            // først findes pollId og derfor option 1d i databasen.
-            if (string.IsNullOrWhiteSpace(update.NewOptionText))
-            {
-                return BadRequest("Option text must not be empty.");
-            }
-
-            var poll = await _context
-                .Polls.Include(p => p.Options)
-                .FirstOrDefaultAsync(p => p.Id == pollId);
-            if (poll == null)
-            {
-                return NotFound($"Poll with ID {pollId} not found.");
-            }
-
-            var pollOption = await _context.PollOptions.FirstOrDefaultAsync(o =>
-                o.Id == optionId && o.PollId == pollId
-            );
-            if (pollOption == null)
-            {
-                return NotFound($"Option with ID {optionId} not found for Poll with ID {pollId}.");
-            }
-
-            pollOption.OptionText = update.NewOptionText;
-
-            try
-            {
-                await _context.SaveChangesAsync(); // gemmer ændringerne i databasen
-                return Ok(new { message = "Poll option updated", option = pollOption });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating poll option: {ex}");
-                return StatusCode(500, "Internal server error while updating poll option.");
-            }
-        }
+        /*
+                // denne endpoint opdaterer spørgsmålet på en poll så det vil sige (spørgsmål option option option option)
+                // endpoint ændrer derfor kun spørgsmål kun
+                [HttpPut("{id}/question")]
+                [Authorize]
+                public async Task<ActionResult<string>> UpdatePollQuestion(
+                    int id,
+                    [FromBody] PollQuestionUpdate update
+                )
+                {
+                    if (string.IsNullOrWhiteSpace(update.NewQuestion))
+                    {
+                        return BadRequest("Spørgsmålet må ikke være tomt.");
+                    }
+        
+                    var poll = await _context.Polls.FindAsync(id);
+                    if (poll == null)
+                    {
+                        return NotFound($"Poll med ID {id} blev ikke fundet.");
+                    }
+        
+                    if (poll.EndedAt.HasValue && poll.EndedAt.Value < DateTime.UtcNow)
+                    {
+                        return BadRequest("Kan ikke redigere en afsluttet poll.");
+                    }
+        
+                    // Just update the question
+                    poll.Question = update.NewQuestion;
+        
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+                        return Ok(new { message = "Spørgsmålet blev opdateret", question = poll.Question });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Fejl ved opdatering af poll spørgsmål: {ex}");
+                        return StatusCode(500, "Intern fejl ved opdatering af poll spørgsmål.");
+                    }
+                }
+        
+                // denne endpoint opdaterer option på en poll så det vil sige (spørgsmål option option option option)
+                // endpoint ændrer derfor kun den option der vælges, likes, forbliver det samme
+        
+                [HttpPut("{pollId}/options/{optionId}")]
+                [Authorize]
+                public async Task<ActionResult> UpdatePollOption(
+                    int pollId,
+                    int optionId,
+                    [FromBody] PollOptionUpdate update
+                )
+                {
+                    // først findes pollId og derfor option 1d i databasen.
+                    if (string.IsNullOrWhiteSpace(update.NewOptionText))
+                    {
+                        return BadRequest("Option text must not be empty.");
+                    }
+        
+                    var poll = await _context
+                        .Polls.Include(p => p.Options)
+                        .FirstOrDefaultAsync(p => p.Id == pollId);
+                    if (poll == null)
+                    {
+                        return NotFound($"Poll with ID {pollId} not found.");
+                    }
+        
+                    var pollOption = await _context.PollOptions.FirstOrDefaultAsync(o =>
+                        o.Id == optionId && o.PollId == pollId
+                    );
+                    if (pollOption == null)
+                    {
+                        return NotFound($"Option with ID {optionId} not found for Poll with ID {pollId}.");
+                    }
+        
+                    pollOption.OptionText = update.NewOptionText;
+        
+                    try
+                    {
+                        await _context.SaveChangesAsync(); // gemmer ændringerne i databasen
+                        return Ok(new { message = "Poll option updated", option = pollOption });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error updating poll option: {ex}");
+                        return StatusCode(500, "Internal server error while updating poll option.");
+                    }
+                }
+                */
 
         [HttpPost("{pollId}/vote")]
         [Authorize]

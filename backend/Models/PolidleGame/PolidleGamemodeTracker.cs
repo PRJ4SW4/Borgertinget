@@ -1,4 +1,5 @@
 namespace backend.Models;
+
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -22,7 +23,7 @@ public class PolidleGamemodeTracker
     // [Key] // Markering som Key her er KUN nødvendig for ældre EF Core versioner, hvis Fluent API ikke bruges.
     [Required] // GameMode må ikke være null
     [Column("gamemode")] // Matcher kolonnenavnet
-    public GamemodeTypes GameMode { get; set; }  // Initialiser for non-nullable string
+    public GamemodeTypes GameMode { get; set; } // Initialiser for non-nullable string
 
     // --- Andre kolonner ---
     [Column("lastselecteddate")]
@@ -35,6 +36,5 @@ public class PolidleGamemodeTracker
     // Dette repræsenterer relationen tilbage til den Politiker, som denne tracking-række tilhører.
     // EF Core bruger dette + PolitikerId til at forstå fremmednøgle-relationen.
     [ForeignKey(nameof(PolitikerId))] // Eksplicit angivelse af fremmednøgle-property
-    public virtual FakePolitiker  FakePolitiker { get; set; } = null!; // Navigation property til den relaterede politiker
-
+    public virtual FakePolitiker FakePolitiker { get; set; } = null!; // Navigation property til den relaterede politiker
 }
