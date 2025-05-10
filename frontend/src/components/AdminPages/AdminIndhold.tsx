@@ -56,6 +56,18 @@ export default function AdminIndhold() {
         <button onClick={() => navigate("/admin/Indhold/redigerIndhold")} className="Button">
           Rediger Indhold
         </button>
+        <br />
+        <button onClick={() => navigate("/admin/Indhold/tilføjBegivenhed")} className="Button">
+          Tilføj Begivenhed
+        </button>
+        <br />
+        <button onClick={() => navigate("/admin/Indhold/redigerBegivenhed")} className="Button">
+          Rediger Begivenhed
+        </button>
+        <br />
+        <button onClick={() => navigate("/admin/Indhold/sletBegivenhed")} className="Button">
+          Slet Begivenhed
+        </button>
       </div>
     </div>
   );
