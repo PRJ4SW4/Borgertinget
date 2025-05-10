@@ -125,6 +125,7 @@ export default function AddPolls() {
       navigate("/admin/polls");
     } catch (error) {
       console.error("Failed to create poll", error);
+      window.alert("Failed to create poll. Please try again."); // Added alert
     }
   };
 
@@ -140,12 +141,14 @@ export default function AddPolls() {
       <form onSubmit={handleSubmit} className="add-poll-form">
         {/* Politician Selection */}
         <div className="add-poll-section">
-          <label className="add-poll-label">Vælg Politiker</label>
+          <label className="add-poll-label" htmlFor="politicianSelect">
+            Vælg Politiker
+          </label>
           <select
+            id="politicianSelect"
             className="add-poll-input"
             value={selectedPoliticianId ?? ""}
-            onChange={(e) => setSelectedPoliticianId(String(e.target.value))}
-            required>
+            onChange={(e) => setSelectedPoliticianId(String(e.target.value))}>
             <option value="">-- Vælg en politiker --</option>
             {politicians.map((p) => (
               <option key={p.id} value={p.id}>
@@ -158,8 +161,9 @@ export default function AddPolls() {
         {/* Question Input */}
         {questions.map((q, qIndex) => (
           <div key={qIndex} className="add-poll-section">
-            <label className="add-poll-label">{`Spørgsmål`}</label>
+            <label className="add-poll-label" htmlFor="questionInput">{`Spørgsmål`}</label>
             <input
+              id="questionInput"
               type="text"
               value={q.question}
               onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
@@ -202,8 +206,10 @@ export default function AddPolls() {
 
         {/* End Date */}
         <div className="add-poll-section">
-          <label className="add-poll-label">Slutdato (valgfri)</label>
-          <input type="date" value={endDate ?? ""} onChange={(e) => setEndDate(e.target.value)} className="add-poll-input" />
+          <label className="add-poll-label" htmlFor="endDateSelect">
+            Slutdato (valgfri)
+          </label>
+          <input id="endDateSelect" type="date" value={endDate ?? ""} onChange={(e) => setEndDate(e.target.value)} className="add-poll-input" />
         </div>
 
         {/* Submit */}

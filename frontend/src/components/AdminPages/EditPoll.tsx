@@ -237,8 +237,10 @@ export default function EditPoll() {
       <p className="add-poll-subtitle">Vælg en poll for at redigere</p>
 
       <div className="add-poll-section">
-        <label className="add-poll-label">Vælg Poll</label>
-        <select className="add-poll-input" value={selectedPollId ?? ""} onChange={(e) => setSelectedPollId(Number(e.target.value))}>
+        <label className="add-poll-label" htmlFor="pollSelect">
+          Vælg Poll
+        </label>
+        <select id="pollSelect" className="add-poll-input" value={selectedPollId ?? ""} onChange={(e) => setSelectedPollId(Number(e.target.value))}>
           <option value="">-- Vælg en poll --</option>
           {polls.map((poll) => (
             <option key={poll.id} value={poll.id}>
@@ -251,8 +253,14 @@ export default function EditPoll() {
       {selectedPollId && (
         <form onSubmit={handleSubmit} className="add-poll-form">
           <div className="add-poll-section">
-            <label className="add-poll-label">Vælg Politiker</label>
-            <select className="add-poll-input" value={selectedPoliticianId ?? ""} onChange={(e) => setSelectedPoliticianId(e.target.value)} required>
+            <label className="add-poll-label" htmlFor="politicianSelect">
+              Vælg Politiker
+            </label>
+            <select
+              id="politicianSelect"
+              className="add-poll-input"
+              value={selectedPoliticianId ?? ""}
+              onChange={(e) => setSelectedPoliticianId(String(e.target.value))}>
               <option value="">-- Vælg en politiker --</option>
               {politicians.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -264,8 +272,9 @@ export default function EditPoll() {
 
           {questions.map((q, qIndex) => (
             <div key={q.id || qIndex} className="add-poll-section">
-              <label className="add-poll-label">{`Spørgsmål ${qIndex + 1}`}</label>
+              <label className="add-poll-label" htmlFor="questionInput">{`Spørgsmål ${qIndex + 1}`}</label>
               <input
+                id="questionInput"
                 type="text"
                 value={q.question}
                 onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
@@ -301,8 +310,10 @@ export default function EditPoll() {
           ))}
 
           <div className="add-poll-section">
-            <label className="add-poll-label">Slutdato (valgfri)</label>
-            <input type="date" value={endDate ?? ""} onChange={(e) => setEndDate(e.target.value)} className="add-poll-input" />
+            <label className="add-poll-label" htmlFor="endDateSelect">
+              Slutdato (valgfri)
+            </label>
+            <input id="endDateSelect" type="date" value={endDate ?? ""} onChange={(e) => setEndDate(e.target.value)} className="add-poll-input" />
           </div>
 
           <div className="add-poll-buttons">

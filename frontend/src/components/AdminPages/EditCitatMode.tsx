@@ -13,9 +13,7 @@ export default function EditCitatMode() {
   useEffect(() => {
     const fetchAllQuotes = async () => {
       try {
-        const res = await axios.get<EditQuoteDTO[]>(
-          "/api/administrator/GetAllQuotes"
-        );
+        const res = await axios.get<EditQuoteDTO[]>("/api/administrator/GetAllQuotes");
         setQuotes(res.data);
       } catch (err) {
         console.error(err);
@@ -28,9 +26,7 @@ export default function EditCitatMode() {
   // Fetch Quote when a Quote is clicked
   const fetchQuote = async (quoteId: number) => {
     try {
-      const res = await axios.get<EditQuoteDTO>(
-        `/api/administrator/GetQuoteById?quoteId=${quoteId}`
-      );
+      const res = await axios.get<EditQuoteDTO>(`/api/administrator/GetQuoteById?quoteId=${quoteId}`);
       setSelectedQuote(res.data);
       setNewText(res.data.quoteText);
     } catch (err) {
@@ -56,11 +52,7 @@ export default function EditCitatMode() {
     alert("Citatet er opdateret!");
 
     // Update local list of Quotes without using the GET
-    setQuotes((qs) =>
-      qs.map((q) =>
-        q.quoteId === selectedQuote.quoteId ? { ...q, quoteText: newText } : q
-      )
-    );
+    setQuotes((qs) => qs.map((q) => (q.quoteId === selectedQuote.quoteId ? { ...q, quoteText: newText } : q)));
 
     setSelectedQuote(null);
     setNewText("");
@@ -68,19 +60,17 @@ export default function EditCitatMode() {
 
   return (
     <div className="container">
-
-    <div><img src={BorgertingetIcon} className='Borgertinget-Icon'></img></div>
-    <div className='top-red-line'></div>
+      <div>
+        <img src={BorgertingetIcon} className="Borgertinget-Icon"></img>
+      </div>
+      <div className="top-red-line"></div>
 
       <h1>Rediger Citat‑mode</h1>
 
       <ul className="quote-list">
         {quotes.map((q) => (
           <li key={q.quoteId}>
-            <button
-              className="quote-button"
-              onClick={() => fetchQuote(q.quoteId)}
-            >
+            <button className="quote-button" onClick={() => fetchQuote(q.quoteId)}>
               {q.quoteText}
             </button>
           </li>
@@ -90,21 +80,16 @@ export default function EditCitatMode() {
       {selectedQuote && (
         <div className="editor">
           <span className="quote-badge">ID #{selectedQuote.quoteId}</span>
-          <br/>
+          <br />
 
-          <textarea
-            value={newText}
-            onChange={(e) => setNewText(e.target.value)}
-          />
+          <label htmlFor="editQuoteTextarea">Rediger citat:</label>
+          <textarea id="editQuoteTextarea" value={newText} onChange={(e) => setNewText(e.target.value)} />
 
           <br />
           <button className="save-button" onClick={saveQuote}>
             Gem
           </button>
-          <button
-            className="cancel-button"
-            onClick={() => setSelectedQuote(null)}
-          >
+          <button className="cancel-button" onClick={() => setSelectedQuote(null)}>
             Annullér
           </button>
         </div>

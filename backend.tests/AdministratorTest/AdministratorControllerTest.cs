@@ -1,15 +1,13 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using backend.Controllers;
+using backend.Data;
 using backend.DTO.Flashcards;
 using backend.DTOs;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using NUnit.Framework;
 
 namespace Tests.Controllers
 {
@@ -18,12 +16,24 @@ namespace Tests.Controllers
     {
         private AdministratorController _controller;
         private IAdministratorService _service;
+        private DataContext _context;
 
         [SetUp]
         public void Setup()
         {
             _service = Substitute.For<IAdministratorService>();
-            _controller = new AdministratorController(_service);
+            var options = new DbContextOptionsBuilder<DataContext>()
+                .UseInMemoryDatabase(databaseName: "TestDb")
+                .Options;
+            _context = new DataContext(options);
+            _controller = new AdministratorController(_service, _context);
+        }
+
+        [TearDown]
+        public void Teardown()
+        {
+            _context.Database.EnsureDeleted(); // clean after each test
+            _context.Dispose();
         }
 
         #region Flashcard Collection POST
