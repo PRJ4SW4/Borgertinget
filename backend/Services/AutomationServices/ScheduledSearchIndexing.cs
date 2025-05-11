@@ -204,7 +204,7 @@ namespace backend.Services.AutomationServices // Adjust namespace if needed
                     */
 
                     // INSTEAD, use a short fixed delay for testing:
-                    delay = TimeSpan.FromSeconds(300000); // Run approximately every 15 seconds
+                    delay = TimeSpan.FromSeconds(30000); // Run approximately every 15 seconds
                     _logger.LogInformation("TEST MODE: Indexing will run after a {Delay} delay.", delay);
                     // ==============================================================
                     // --- END MODIFICATION ---

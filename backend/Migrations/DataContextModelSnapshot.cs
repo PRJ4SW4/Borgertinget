@@ -532,103 +532,6 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("backend.Models.Aktor", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Born")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Constituencies")
-                        .HasColumnType("text");
-
-                    b.Property<string>("EducationStatistic")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Educations")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FunctionFormattedTitle")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FunctionStartDate")
-                        .HasColumnType("text");
-
-                    b.Property<string>("MinisterTitel")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Ministers")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Nominations")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Occupations")
-                        .HasColumnType("text");
-
-                    b.PrimitiveCollection<List<string>>("ParliamentaryPositionsOfTrust")
-                        .HasColumnType("text[]");
-
-                    b.Property<string>("Party")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PartyShortname")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PictureMiRes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PositionsOfTrust")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PublicationTitles")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Sex")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Spokesmen")
-                        .HasColumnType("text");
-
-                    b.Property<string>("biografi")
-                        .HasColumnType("text");
-
-                    b.Property<string>("efternavn")
-                        .HasColumnType("text");
-
-                    b.Property<string>("fornavn")
-                        .HasColumnType("text");
-
-                    b.Property<string>("gruppeNavnKort")
-                        .HasColumnType("text");
-
-                    b.Property<string>("navn")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("opdateringsdato")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("periodeid")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("slutdato")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("startdato")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("typeid")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Aktor");
-                });
-
             modelBuilder.Entity("backend.Models.Party", b =>
                 {
                     b.Property<int>("partyId")
@@ -655,7 +558,7 @@ namespace backend.Migrations
                     b.Property<string>("partyShortName")
                         .HasColumnType("text");
 
-                    b.Property<string>("poilitics")
+                    b.Property<string>("politics")
                         .HasColumnType("text");
 
                     b.Property<int?>("secretaryId")
@@ -789,7 +692,7 @@ namespace backend.Migrations
                     b.Navigation("viceChairman");
                 });
 
-            modelBuilder.Entity("FlashcardCollection", b =>
+            modelBuilder.Entity("backend.Models.LearningEnvironment.FlashcardCollection", b =>
                 {
                     b.Navigation("Flashcards");
                 });
