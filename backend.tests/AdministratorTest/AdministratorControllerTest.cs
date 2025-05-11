@@ -54,7 +54,7 @@ namespace Tests.Controllers
         [Test]
         public async Task PostFlashCardCollection_NullDto_ReturnsBadRequest()
         {
-            var result = await _controller.PostFlashCardCollection(null);
+            var result = await _controller.PostFlashCardCollection(null!);
 
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var badRequest = result as BadRequestObjectResult;
@@ -84,7 +84,7 @@ namespace Tests.Controllers
         [Test]
         public async Task UploadImage_NullFile_ReturnsBadRequest()
         {
-            var result = await _controller.UploadImage(null);
+            var result = await _controller.UploadImage(null!);
 
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var bad = result as BadRequestObjectResult;
@@ -187,7 +187,7 @@ namespace Tests.Controllers
         [Test]
         public async Task UpdateFlashcardCollection_NullDto_ReturnsBadRequest()
         {
-            var result = await _controller.UpdateFlashcardCollection(1, null);
+            var result = await _controller.UpdateFlashcardCollection(1, null!);
 
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var bad = result as BadRequestObjectResult;
@@ -243,7 +243,7 @@ namespace Tests.Controllers
         [Test]
         public async Task GetUsernameID_NullUsername_ReturnsBadRequest()
         {
-            var result = await _controller.GetUsernameID(null);
+            var result = await _controller.GetUsernameID(null!);
 
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var bad = result as BadRequestObjectResult;
@@ -271,7 +271,7 @@ namespace Tests.Controllers
         [Test]
         public async Task PutNewUserName_NullDto_ReturnsBadRequest()
         {
-            var result = await _controller.PutNewUserName(5, null);
+            var result = await _controller.PutNewUserName(5, null!);
 
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var bad = result as BadRequestObjectResult;
@@ -368,6 +368,77 @@ namespace Tests.Controllers
             var obj = result as ObjectResult;
             Assert.That(obj?.StatusCode, Is.EqualTo(500));
             Assert.That(obj?.Value?.ToString(), Does.Contain("4"));
+        }
+
+        #endregion
+
+        #region GetAktorIdByTwitterId
+
+        [Test]
+        public async Task GetAktorIdByTwitterId_ValidId_ReturnsOkWithAktorId()
+        {
+            // Arrange
+            var twitterId = 123;
+            var expectedAktorId = 456;
+            var politicianTwitterId = new PoliticianTwitterId
+            {
+                Id = twitterId,
+                AktorId = expectedAktorId,
+            };
+            _context.PoliticianTwitterIds.Add(politicianTwitterId);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetAktorIdByTwitterId(twitterId);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ActionResult<object>>());
+            var okResult = result.Result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
+            Assert.That(okResult.Value, Is.Not.Null);
+            dynamic value = okResult.Value!;
+            Assert.That(
+                value.GetType().GetProperty("aktorId")?.GetValue(value, null),
+                Is.EqualTo(expectedAktorId)
+            );
+        }
+
+        [Test]
+        public async Task GetAktorIdByTwitterId_NotFound_ReturnsNotFound()
+        {
+            // Arrange
+            var twitterId = 789;
+
+            // Act
+            var result = await _controller.GetAktorIdByTwitterId(twitterId);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ActionResult<object>>());
+            var notFoundResult = result.Result as NotFoundObjectResult;
+            Assert.That(notFoundResult, Is.Not.Null);
+            Assert.That(notFoundResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
+            Assert.That(
+                notFoundResult.Value,
+                Is.EqualTo($"Ingen AktorId fundet for Twitter ID {twitterId}")
+            );
+        }
+
+        [Test]
+        public async Task GetAktorIdByTwitterId_InvalidId_ReturnsBadRequest()
+        {
+            // Arrange
+            var twitterId = 0;
+
+            // Act
+            var result = await _controller.GetAktorIdByTwitterId(twitterId);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ActionResult<object>>());
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.That(badRequestResult, Is.Not.Null);
+            Assert.That(badRequestResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
+            Assert.That(badRequestResult.Value, Is.EqualTo("Ugyldigt Twitter ID."));
         }
 
         #endregion
