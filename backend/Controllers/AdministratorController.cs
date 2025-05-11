@@ -78,7 +78,8 @@ public class AdministratorController : ControllerBase
     public async Task<IActionResult> GetFlashCardCollectionTitles()
     {
         try
-        {
+        {   
+            // Fetches all Flashcard Collection titles
             var Titles = await _service.GetAllFlashcardCollectionTitlesAsync();
 
             return Ok(Titles);
