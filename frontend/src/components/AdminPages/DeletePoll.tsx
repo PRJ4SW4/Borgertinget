@@ -31,6 +31,7 @@ export default function DeletePoll() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);
+  const [twitterId, setTwitterId] = useState<number | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -100,7 +101,21 @@ export default function DeletePoll() {
           },
         ]);
         setEndDate(pollData.endedAt ? pollData.endedAt.split("T")[0] : null);
-        setSelectedPoliticianId(pollData.politicianId ? String(pollData.politicianId) : null);
+        if (pollData.politicianId) {
+          const token = localStorage.getItem("jwt");
+          try {
+            const lookupRes = await axios.get(`/api/administrator/lookup/aktorId?twitterId=${pollData.politicianId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const aktorId = lookupRes.data.aktorId;
+            setSelectedPoliticianId(String(aktorId)); // now correct
+          } catch (err) {
+            console.error("Could not resolve aktorId from twitterId", err);
+            setSelectedPoliticianId(null);
+          }
+        } else {
+          setSelectedPoliticianId(null);
+        }
       } catch (error) {
         console.error("Failed to fetch poll details", error);
       }
@@ -142,8 +157,10 @@ export default function DeletePoll() {
       <p className="page-subtitle">Vælg en poll for at slette</p>
 
       <div className="page-section">
-        <label className="page-label">Vælg Poll</label>
-        <select className="page-input" value={selectedPollId ?? ""} onChange={(e) => setSelectedPollId(Number(e.target.value))}>
+        <label className="page-label" htmlFor="pollSelect">
+          Vælg Poll
+        </label>
+        <select className="page-input" id="pollSelect" value={selectedPollId ?? ""} onChange={(e) => setSelectedPollId(Number(e.target.value))}>
           <option value="">-- Vælg en poll --</option>
           {polls.map((poll) => (
             <option key={poll.id} value={poll.id}>
@@ -156,8 +173,10 @@ export default function DeletePoll() {
       {selectedPollId && (
         <form onSubmit={handleDelete} className="page-form">
           <div className="page-section">
-            <label className="page-label">Vælg Politiker</label>
-            <select className="page-input" value={selectedPoliticianId ?? ""} disabled>
+            <label className="page-label" htmlFor="selectPolitician">
+              Vælg Politiker
+            </label>
+            <select id="selectPolitician" className="page-input" value={selectedPoliticianId ?? ""} disabled>
               <option value="">-- Vælg en politiker --</option>
               {politicians.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -169,8 +188,17 @@ export default function DeletePoll() {
 
           {questions.map((q, qIndex) => (
             <div key={q.id || qIndex} className="page-section">
-              <label className="page-label">{`Spørgsmål ${qIndex + 1}`}</label>
-              <input type="text" value={q.question} disabled className="page-input" placeholder={`Skriv spørgsmål ${qIndex + 1} her...`} />
+              <label className="page-label" htmlFor="questionInput">
+                Spørgsmål
+              </label>
+              <input
+                type="text"
+                value={q.question}
+                disabled
+                className="page-input"
+                id="questionInput"
+                placeholder={`Skriv spørgsmålet her...`}
+              />
 
               <div className="page-option-group">
                 {q.options.map((option, oIndex) => (
@@ -180,7 +208,7 @@ export default function DeletePoll() {
                       value={option.optionText}
                       disabled
                       className="page-input"
-                      placeholder={`Svarmulighed ${qIndex + 1}.${oIndex + 1}`}
+                      placeholder={`Svarmulighed ${oIndex + 1}`}
                     />
                   </div>
                 ))}
@@ -189,8 +217,10 @@ export default function DeletePoll() {
           ))}
 
           <div className="page-section">
-            <label className="page-label">Slutdato</label>
-            <input type="date" value={endDate ?? ""} disabled className="page-input" />
+            <label className="page-label" htmlFor="endDateSelect">
+              Slutdato
+            </label>
+            <input id="endDateSelect" type="date" value={endDate ?? ""} disabled className="page-input" />
           </div>
 
           <div className="page-buttons">

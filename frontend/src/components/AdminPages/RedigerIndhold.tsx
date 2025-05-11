@@ -109,8 +109,11 @@ export default function RedigerInhold() {
       {selectedParty && (
         <form onSubmit={handleSubmit} className="edit-inhold-form">
           <div className="edit-inhold-section">
-            <label className="edit-inhold-label">Partiprogram</label>
+            <label htmlFor="partyProgram" className="edit-inhold-label">
+              Partiprogram <span style={{ color: "red" }}>*</span>
+            </label>
             <textarea
+              id="partyProgram"
               className="edit-inhold-input"
               value={editData.partyProgram}
               onChange={(e) => handleChange("partyProgram", e.target.value)}
@@ -120,8 +123,11 @@ export default function RedigerInhold() {
           </div>
 
           <div className="edit-inhold-section">
-            <label className="edit-inhold-label">Politik</label>
+            <label htmlFor="politics" className="edit-inhold-label">
+              Politik <span style={{ color: "red" }}>*</span>
+            </label>
             <textarea
+              id="politics"
               className="edit-inhold-input"
               value={editData.politics}
               onChange={(e) => handleChange("politics", e.target.value)}
@@ -131,8 +137,11 @@ export default function RedigerInhold() {
           </div>
 
           <div className="edit-inhold-section">
-            <label className="edit-inhold-label">Historie</label>
+            <label htmlFor="history" className="edit-inhold-label">
+              Historie <span style={{ color: "red" }}>*</span>
+            </label>
             <textarea
+              id="history"
               className="edit-inhold-input"
               value={editData.history}
               onChange={(e) => handleChange("history", e.target.value)}

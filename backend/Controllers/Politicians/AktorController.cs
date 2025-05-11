@@ -259,8 +259,8 @@ public class AktorController : ControllerBase
         int totalAddedCount = 0;
         int totalUpdatedCount = 0;
         int totalDeletedCount = 0;
-        int totalPartiesAdded = 0;
-        int totalMembersAddedToParties = 0;
+        //int totalPartiesAdded = 0;
+        //int totalMembersAddedToParties = 0;
         string? nextPolitikerLink = initialPolitikerApiUrl + "&$format=json"; // Start withpoliticians URL
 
         var processedParties = new Dictionary<string, Party>();
@@ -305,7 +305,7 @@ public class AktorController : ControllerBase
                             var existingAktor = await _context.Aktor.FirstOrDefaultAsync(a =>
                                 a.Id == aktorDto.Id
                             );
-                            Aktor currentAktor = null; // Initialize to null
+                            Aktor? currentAktor = null; // Initialize to nullable Aktor
 
                             if (apiStatus == "1") // Active Politician
                             {
@@ -417,9 +417,9 @@ public class AktorController : ControllerBase
                                     }
                                     if (partyEnt.memberIds == null)
                                     {
-                                        partyEnt.memberIds = new List<int>();
+                                        partyEnt.memberIds ??= new List<int>();
                                     }
-                                    if (!partyEnt.memberIds.Contains(currentAktor.Id))
+                                    if (!partyEnt.memberIds.Contains(currentAktor!.Id))
                                     {
                                         partyEnt.memberIds.Add(currentAktor.Id);
                                         pageMembersAddedToparties++;

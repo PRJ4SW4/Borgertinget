@@ -193,7 +193,7 @@ namespace backend.Controllers
                     foreach (var polDbId in relevantPoliticianDbIds)
                     {
                         var politicianLatest2Polls = await _context
-                            .Polls.Where(p => p.PoliticianTwitterId == polDbId.ToString())
+                            .Polls.Where(p => p.PoliticianTwitterId == polDbId)
                             .OrderByDescending(p => p.CreatedAt)
                             .Take(2)
                             .Include(p => p.Politician)

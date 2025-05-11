@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using backend.Data;
 using backend.DTO.Flashcards;
 using backend.DTOs;
 using backend.Models;
 using backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,10 +15,12 @@ using Microsoft.EntityFrameworkCore;
 public class AdministratorController : ControllerBase
 {
     private readonly IAdministratorService _service;
+    private readonly DataContext _context;
 
-    public AdministratorController(IAdministratorService service)
+    public AdministratorController(IAdministratorService service, DataContext context)
     {
         _service = service;
+        _context = context;
     }
 
     #region Flashcard Collection
@@ -268,6 +272,29 @@ public class AdministratorController : ControllerBase
         {
             return StatusCode(500, $"An error occured while editing quote with id: {quoteId}");
         }
+    }
+
+    #endregion
+
+    #region Politician
+
+    [HttpGet("lookup/aktorId")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<object>> GetAktorIdByTwitterId([FromQuery] int twitterId)
+    {
+        if (twitterId <= 0)
+            return BadRequest("Ugyldigt Twitter ID.");
+
+        var aktor = await _context
+            .PoliticianTwitterIds.AsNoTracking()
+            .Where(p => p.Id == twitterId)
+            .Select(p => new { aktorId = p.AktorId })
+            .FirstOrDefaultAsync();
+
+        if (aktor == null)
+            return NotFound($"Ingen AktorId fundet for Twitter ID {twitterId}");
+
+        return Ok(aktor);
     }
 
     #endregion

@@ -794,9 +794,8 @@ namespace backend.Migrations
                     b.Property<DateTime?>("EndedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("PoliticianTwitterId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("PoliticianTwitterId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Question")
                         .IsRequired()
@@ -814,14 +813,14 @@ namespace backend.Migrations
                         {
                             Id = 1,
                             CreatedAt = new DateTime(2025, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PoliticianTwitterId = "2965907578",
+                            PoliticianTwitterId = 3,
                             Question = "Hvad synes du om den nye bro?"
                         },
                         new
                         {
                             Id = 2,
                             CreatedAt = new DateTime(2025, 4, 28, 14, 30, 0, 0, DateTimeKind.Utc),
-                            PoliticianTwitterId = "2965907578",
+                            PoliticianTwitterId = 3,
                             Question = "Skal Danmark øge investeringer i vedvarende energi?"
                         });
                 });
@@ -1161,7 +1160,6 @@ namespace backend.Migrations
                     b.HasOne("backend.Models.PoliticianTwitterId", "Politician")
                         .WithMany("Polls")
                         .HasForeignKey("PoliticianTwitterId")
-                        .HasPrincipalKey("TwitterUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

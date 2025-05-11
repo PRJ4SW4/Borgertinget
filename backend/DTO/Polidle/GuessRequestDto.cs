@@ -1,5 +1,5 @@
-using backend.Models; // For GamemodeTypes enum
 using System.ComponentModel.DataAnnotations;
+using backend.Models; // For GamemodeTypes enum
 
 namespace backend.DTO
 {

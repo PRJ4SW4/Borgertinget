@@ -1,8 +1,8 @@
-using backend.Models;
-using backend.DTO;
+using System; // For DateOnly
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System; // For DateOnly
+using backend.DTO;
+using backend.Models;
 
 namespace backend.Services
 {
@@ -27,6 +27,7 @@ namespace backend.Services
         /// <param name="search">Valgfri søgestreng til at filtrere på politikernavn (case-insensitive 'contains').</param>
         /// <returns>En liste af matchende politikere (begrænset antal) med ID, navn og portræt.</returns>
         Task<List<PoliticianSummaryDto>> GetAllPoliticiansForGuessingAsync(string? search = null);
+
         // ---------------------------------
 
         /// <summary>

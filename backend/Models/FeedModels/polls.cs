@@ -23,7 +23,7 @@ namespace backend.Models
         public DateTime? EndedAt { get; set; }
 
         [Required]
-        public string? PoliticianTwitterId { get; set; } // foreign key til PoliticianTwitterId tabellen
+        public int PoliticianTwitterId { get; set; } // foreign key til PoliticianTwitterId tabellen
         public virtual PoliticianTwitterId Politician { get; set; } = null!; // relation til PoliticianTwitterId, dette for at lave en poll der tilhøre en politiker
 
         // Relation til Svar-muligheder, da vi skal have en liste af pollotpions, som jo er de svar muligheder,
@@ -76,6 +76,6 @@ namespace backend.Models
     {
         public int Id { get; set; }
         public string Question { get; set; } = string.Empty;
-        public string PoliticianTwitterId { get; set; } = string.Empty;
+        public int PoliticianTwitterId { get; set; }
     }
 }

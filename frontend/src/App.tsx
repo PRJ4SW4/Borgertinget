@@ -25,6 +25,9 @@ import AdminPage from "./components/AdminPages/AdminPage";
 import AdminBruger from "./components/AdminPages/AdminBruger";
 import AdminIndhold from "./components/AdminPages/AdminIndhold";
 import RedigerIndhold from "./components/AdminPages/RedigerIndhold";
+import AddEvent from "./components/AdminPages/AddEvent";
+import EditEvent from "./components/AdminPages/EditEvent";
+import DeleteEvent from "./components/AdminPages/DeleteEvent";
 import AdminLearing from "./components/AdminPages/AdminLearing";
 import AdminPolls from "./components/AdminPages/AdminPolls";
 import EditFlashcardCollection from "./components/AdminPages/EditFlashcardCollection";
@@ -130,6 +133,9 @@ function App() {
         <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to="/home" />} />
         <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to="/home" />} />
         <Route path="/admin/Indhold/redigerIndhold" element={token ? <RedigerIndhold /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/tilføjBegivenhed" element={token ? <AddEvent /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/redigerBegivenhed" element={token ? <EditEvent /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/sletBegivenhed" element={token ? <DeleteEvent /> : <Navigate to="/home" />} />
         <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to="/home" />} />
         <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to="/home" />} />
         <Route path="/admin/Polls/addPoll" element={token ? <AddPoll /> : <Navigate to="/home" />} />

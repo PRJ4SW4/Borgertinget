@@ -6,13 +6,11 @@ namespace backend.Services
 {
     public class EmailService
     {
-
         private readonly IConfiguration _config;
 
         public EmailService(IConfiguration config)
         {
             _config = config;
-
         }
 
         public void SendVerificationEmail(string toEmail, string verificationLink)
@@ -23,9 +21,17 @@ namespace backend.Services
             var smtpPortString = (_config["Email:SmtpPort"]);
             var appPassword = _config["Email:AppPassword"];
 
-            if (string.IsNullOrEmpty(fromName) || string.IsNullOrEmpty(fromEmail) || string.IsNullOrEmpty(smtpServer) || string.IsNullOrEmpty(smtpPortString) || string.IsNullOrEmpty(appPassword))
+            if (
+                string.IsNullOrEmpty(fromName)
+                || string.IsNullOrEmpty(fromEmail)
+                || string.IsNullOrEmpty(smtpServer)
+                || string.IsNullOrEmpty(smtpPortString)
+                || string.IsNullOrEmpty(appPassword)
+            )
             {
-                Console.WriteLine("Advarsel: En eller flere påkrævede email-konfigurationer mangler.");
+                Console.WriteLine(
+                    "Advarsel: En eller flere påkrævede email-konfigurationer mangler."
+                );
                 // Consider throwing an exception or logging more details depending on your error handling strategy
                 return;
             }
@@ -43,7 +49,7 @@ namespace backend.Services
 
             message.Body = new TextPart("plain")
             {
-                Text = $"Klik på linket for at bekræfte din konto: {verificationLink}"
+                Text = $"Klik på linket for at bekræfte din konto: {verificationLink}",
             };
 
             using var client = new SmtpClient();

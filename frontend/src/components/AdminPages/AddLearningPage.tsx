@@ -68,11 +68,16 @@ export default function AddLearningPage() {
       </div>
       <div className="top-red-line"></div>
       <h1>Opret Læringsside</h1>
-      <label className="page-label">Titel</label>
-      <input type="text" placeholder="Titel" value={title} onChange={(e) => setTitle(e.target.value)} className="page-input" />
+      <label htmlFor="titleInput" className="page-label">
+        Titel <span style={{ color: "red" }}>*</span>
+      </label>
+      <input id="titleInput" type="text" placeholder="Titel" value={title} onChange={(e) => setTitle(e.target.value)} className="page-input" />
 
-      <label className="page-label">Indhold</label>
+      <label htmlFor="contentInput" className="page-label">
+        Indhold <span style={{ color: "red" }}>*</span>
+      </label>
       <textarea
+        id="contentInput"
         className="page-form"
         placeholder="Indhold (Markdown understøttet)"
         value={content}
@@ -80,8 +85,11 @@ export default function AddLearningPage() {
         rows={6}
       />
 
-      <label className="page-label">Parent page</label>
+      <label htmlFor="parentPageSelect" className="page-label">
+        Parent page
+      </label>
       <select
+        id="parentPageSelect"
         value={parentId ?? ""}
         onChange={(e) => {
           const value = e.target.value;

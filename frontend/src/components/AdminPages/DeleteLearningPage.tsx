@@ -79,8 +79,10 @@ export default function DeleteLearningPage() {
       <p className="subtitle">Vælg en læringsside for at se og slette den</p>
 
       <div className="page-section">
-        <label className="page-label">Vælg Side</label>
-        <select className="page-input" value={selectedPageId ?? ""} onChange={(e) => setSelectedPageId(Number(e.target.value))}>
+        <label htmlFor="select-page" className="page-label">
+          Vælg Side
+        </label>
+        <select id="select-page" className="page-input" value={selectedPageId ?? ""} onChange={(e) => setSelectedPageId(Number(e.target.value))}>
           <option value="">-- Vælg en side --</option>
           {pages.map((page) => (
             <option key={page.id} value={page.id}>
@@ -93,13 +95,17 @@ export default function DeleteLearningPage() {
       {pageDetails && (
         <form onSubmit={handleDelete} className="page-form">
           <div className="page-section">
-            <label className="page-label">Titel</label>
-            <input type="text" value={pageDetails.title} disabled className="page-input" />
+            <label htmlFor="page-title" className="page-label">
+              Titel
+            </label>
+            <input id="page-title" type="text" value={pageDetails.title} disabled className="page-input" />
           </div>
 
           <div className="page-section">
-            <label className="page-label">Indhold</label>
-            <textarea value={pageDetails.content} disabled rows={6} className="page-input" />
+            <label htmlFor="page-content" className="page-label">
+              Indhold
+            </label>
+            <textarea id="page-content" value={pageDetails.content} disabled rows={6} className="page-input" />
           </div>
 
           <div className="page-buttons">

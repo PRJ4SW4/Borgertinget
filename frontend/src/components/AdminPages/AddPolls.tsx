@@ -19,6 +19,7 @@ export default function AddPolls() {
   const [questions, setQuestions] = useState<Question[]>([{ question: "", options: ["", ""] }]);
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);
+  const [twitterId, setTwitterId] = useState<number | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -42,6 +43,25 @@ export default function AddPolls() {
 
     fetchPoliticians();
   }, []);
+
+  useEffect(() => {
+    const fetchTwitterId = async () => {
+      if (!selectedPoliticianId) return;
+
+      try {
+        const token = localStorage.getItem("jwt");
+        const response = await axios.get(`/api/subscription/lookup/politicianTwitterId?aktorId=${selectedPoliticianId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTwitterId(response.data.politicianTwitterId);
+      } catch (error) {
+        console.error("Could not fetch politicianTwitterId", error);
+        setTwitterId(null);
+      }
+    };
+
+    fetchTwitterId();
+  }, [selectedPoliticianId]);
 
   const handleQuestionChange = (index: number, value: string) => {
     const newQuestions = [...questions];
@@ -93,8 +113,8 @@ export default function AddPolls() {
     const payload = {
       question: questions[0].question,
       options: questions[0].options.filter((o) => o.trim() !== ""),
-      politicianTwitterId: "2965907578", // Troels Lunds Twitter ID
-      // politicianTwitterId: selectedPoliticianId, // Uncomment this line when TwitterUserIds are available
+      politicianTwitterId: 3, // Troels Lunds Twitter ID
+      // politicianTwitterId: twitterId, // Uncomment this line when TwitterUserIds are available
       endedAt: endDate ? new Date(endDate).toISOString() : null,
     };
 
@@ -105,6 +125,7 @@ export default function AddPolls() {
       navigate("/admin/polls");
     } catch (error) {
       console.error("Failed to create poll", error);
+      window.alert("Failed to create poll. Please try again."); // Added alert
     }
   };
 
@@ -120,12 +141,14 @@ export default function AddPolls() {
       <form onSubmit={handleSubmit} className="add-poll-form">
         {/* Politician Selection */}
         <div className="add-poll-section">
-          <label className="add-poll-label">Vælg Politiker</label>
+          <label className="add-poll-label" htmlFor="politicianSelect">
+            Vælg Politiker <span style={{ color: "red" }}>*</span>
+          </label>
           <select
+            id="politicianSelect"
             className="add-poll-input"
             value={selectedPoliticianId ?? ""}
-            onChange={(e) => setSelectedPoliticianId(String(e.target.value))}
-            required>
+            onChange={(e) => setSelectedPoliticianId(String(e.target.value))}>
             <option value="">-- Vælg en politiker --</option>
             {politicians.map((p) => (
               <option key={p.id} value={p.id}>
@@ -138,8 +161,11 @@ export default function AddPolls() {
         {/* Question Input */}
         {questions.map((q, qIndex) => (
           <div key={qIndex} className="add-poll-section">
-            <label className="add-poll-label">{`Spørgsmål`}</label>
+            <label className="add-poll-label" htmlFor="questionInput">
+              Spørgsmål <span style={{ color: "red" }}>*</span>
+            </label>
             <input
+              id="questionInput"
               type="text"
               value={q.question}
               onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
@@ -156,7 +182,7 @@ export default function AddPolls() {
                     value={option}
                     onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)}
                     className="add-poll-input"
-                    placeholder={`Svarmulighed ${qIndex + 1}.${oIndex + 1}`}
+                    placeholder={`Svarmulighed ${oIndex + 1}`}
                     required
                   />
                 </div>
@@ -182,8 +208,10 @@ export default function AddPolls() {
 
         {/* End Date */}
         <div className="add-poll-section">
-          <label className="add-poll-label">Slutdato (valgfri)</label>
-          <input type="date" value={endDate ?? ""} onChange={(e) => setEndDate(e.target.value)} className="add-poll-input" />
+          <label className="add-poll-label" htmlFor="endDateSelect">
+            Slutdato (valgfri)
+          </label>
+          <input id="endDateSelect" type="date" value={endDate ?? ""} onChange={(e) => setEndDate(e.target.value)} className="add-poll-input" />
         </div>
 
         {/* Submit */}

@@ -88,8 +88,10 @@ export default function EditLearningPage() {
       <div className="top-red-line"></div>
       <h1>Rediger Læringsside</h1>
 
-      <label className="page-label">Vælg Side</label>
-      <select value={selectedPageId ?? ""} onChange={(e) => setSelectedPageId(Number(e.target.value))} className="page-input">
+      <label htmlFor="pageSelect" className="page-label">
+        Vælg Side
+      </label>
+      <select id="pageSelect" value={selectedPageId ?? ""} onChange={(e) => setSelectedPageId(Number(e.target.value))} className="page-input">
         <option value="">-- Vælg side --</option>
         {pages.map((p) => (
           <option key={p.id} value={p.id}>
@@ -100,14 +102,28 @@ export default function EditLearningPage() {
 
       {selectedPageId && (
         <form onSubmit={handleSubmit}>
-          <label className="page-label">Titel</label>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titel" className="page-title" />
+          <label htmlFor="titleInput" className="page-label">
+            Titel <span style={{ color: "red" }}>*</span>
+          </label>
+          <input id="titleInput" type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titel" className="page-title" />
 
-          <label className="page-label">Indhold</label>
-          <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={6} placeholder="Markdown indhold" className="page-form" />
+          <label htmlFor="contentInput" className="page-label">
+            Indhold <span style={{ color: "red" }}>*</span>
+          </label>
+          <textarea
+            id="contentInput"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={6}
+            placeholder="Markdown indhold"
+            className="page-form"
+          />
 
-          <label className="page-label">Overordnet side</label>
+          <label htmlFor="parentPageSelect" className="page-label">
+            Overordnet side 
+          </label>
           <select
+            id="parentPageSelect"
             value={parentPageId ?? ""}
             onChange={(e) => setParentPageId(e.target.value === "" ? null : Number(e.target.value))}
             className="page-input">

@@ -33,7 +33,7 @@ namespace backend.DTOs
     {
         public string Question { get; set; } = string.Empty;
         public List<string> Options { get; set; } = new();
-        public string PoliticianTwitterId { get; set; } = string.Empty;
+        public int PoliticianTwitterId { get; set; }
         public DateTime? EndedAt { get; set; }
     }
 }

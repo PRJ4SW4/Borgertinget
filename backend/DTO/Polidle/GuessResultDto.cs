@@ -6,15 +6,15 @@ namespace backend.DTO
     public enum FeedbackType
     {
         Undefined, // Bør ikke ske
-        Korrekt,   // Værdien er korrekt
-        Forkert,   // Værdien er forkert (bruges til Navn, Parti, Region, Køn, Uddannelse)
-        Højere,    // Den korrekte værdi er højere (bruges til Alder)
-        Lavere     // Den korrekte værdi er lavere (bruges til Alder)
+        Korrekt, // Værdien er korrekt
+        Forkert, // Værdien er forkert (bruges til Navn, Parti, Region, Køn, Uddannelse)
+        Højere, // Den korrekte værdi er højere (bruges til Alder)
+        Lavere, // Den korrekte værdi er lavere (bruges til Alder)
         // Overvej 'Delvis' for f.eks. region/parti hvis det giver mening
     }
 
     // Indeholder detaljer om den gættede politiker - sendes med tilbage for nem visning i frontend
-     public class GuessedPoliticianDetailsDto
+    public class GuessedPoliticianDetailsDto
     {
         public int Id { get; set; }
         public string PolitikerNavn { get; set; } = string.Empty;
@@ -36,9 +36,10 @@ namespace backend.DTO
         /// <summary>
         /// Detaljeret feedback per attribut (feltnavn -> feedbacktype).
         /// </summary>
-        public Dictionary<string, FeedbackType> Feedback { get; set; } = new Dictionary<string, FeedbackType>();
+        public Dictionary<string, FeedbackType> Feedback { get; set; } =
+            new Dictionary<string, FeedbackType>();
 
-         /// <summary>
+        /// <summary>
         /// Detaljer om den politiker, der blev gættet på.
         /// </summary>
         public GuessedPoliticianDetailsDto? GuessedPolitician { get; set; }
