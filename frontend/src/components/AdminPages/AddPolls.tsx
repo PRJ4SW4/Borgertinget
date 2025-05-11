@@ -142,7 +142,7 @@ export default function AddPolls() {
         {/* Politician Selection */}
         <div className="add-poll-section">
           <label className="add-poll-label" htmlFor="politicianSelect">
-            Vælg Politiker
+            Vælg Politiker <span style={{ color: "red" }}>*</span>
           </label>
           <select
             id="politicianSelect"
@@ -161,7 +161,9 @@ export default function AddPolls() {
         {/* Question Input */}
         {questions.map((q, qIndex) => (
           <div key={qIndex} className="add-poll-section">
-            <label className="add-poll-label" htmlFor="questionInput">{`Spørgsmål`}</label>
+            <label className="add-poll-label" htmlFor="questionInput">
+              Spørgsmål <span style={{ color: "red" }}>*</span>
+            </label>
             <input
               id="questionInput"
               type="text"
@@ -180,7 +182,7 @@ export default function AddPolls() {
                     value={option}
                     onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)}
                     className="add-poll-input"
-                    placeholder={`Svarmulighed ${qIndex + 1}.${oIndex + 1}`}
+                    placeholder={`Svarmulighed ${oIndex + 1}`}
                     required
                   />
                 </div>

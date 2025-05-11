@@ -69,12 +69,12 @@ export default function AddLearningPage() {
       <div className="top-red-line"></div>
       <h1>Opret Læringsside</h1>
       <label htmlFor="titleInput" className="page-label">
-        Titel
+        Titel <span style={{ color: "red" }}>*</span>
       </label>
       <input id="titleInput" type="text" placeholder="Titel" value={title} onChange={(e) => setTitle(e.target.value)} className="page-input" />
 
       <label htmlFor="contentInput" className="page-label">
-        Indhold
+        Indhold <span style={{ color: "red" }}>*</span>
       </label>
       <textarea
         id="contentInput"

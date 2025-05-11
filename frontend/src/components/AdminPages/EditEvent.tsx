@@ -161,16 +161,16 @@ export default function EditEvent() {
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
       </div>
       <div className="top-red-line"></div>
-      <h1 className="add-poll-title">Rediger Begivenhed</h1>
-      <p className="add-poll-subtitle">Vælg en begivenhed for at redigere dens detaljer.</p>
+      <h1 className="event-title">Rediger Begivenhed</h1>
+      <p className="event-subtitle">Vælg en begivenhed for at redigere dens detaljer.</p>
 
-      <div className="add-poll-section">
-        <label className="add-poll-label" htmlFor="eventSelect">
+      <div className="event-section">
+        <label className="event-label" htmlFor="eventSelect">
           Vælg Begivenhed
         </label>
         <select
           id="eventSelect"
-          className="add-poll-input"
+          className="event-input"
           value={selectedEventId ?? ""}
           onChange={(e) => setSelectedEventId(Number(e.target.value) || null)}
           disabled={loading}>
@@ -183,17 +183,20 @@ export default function EditEvent() {
         </select>
       </div>
 
+      {/* Render message globally */}
+      {message && <p style={{ color: isError ? "red" : "green", fontWeight: "bold" }}>{message}</p>}
+
       {currentEvent && selectedEventId !== null && (
-        <form onSubmit={handleSubmit} className="add-poll-form">
-          <div className="add-poll-section">
-            <label className="add-poll-label" htmlFor="title">
+        <form onSubmit={handleSubmit} className="event-form">
+          <div className="event-section">
+            <label className="event-label" htmlFor="title">
               Titel <span style={{ color: "red" }}>*</span>
             </label>
-            <input id="title" name="title" type="text" value={currentEvent.title} onChange={handleChange} className="add-poll-input" required />
+            <input id="title" name="title" type="text" value={currentEvent.title} onChange={handleChange} className="event-input" required />
           </div>
 
-          <div className="add-poll-section">
-            <label className="add-poll-label" htmlFor="startDateTimeUtc">
+          <div className="event-section">
+            <label className="event-label" htmlFor="startDateTimeUtc">
               Start Dato/Tid (UTC) <span style={{ color: "red" }}>*</span>
             </label>
             <input
@@ -202,21 +205,21 @@ export default function EditEvent() {
               type="datetime-local"
               value={currentEvent.startDateTimeUtc}
               onChange={handleChange}
-              className="add-poll-input"
+              className="event-input"
               required
             />
             <small>Tiden vil blive fortolket som UTC ved gemning.</small>
           </div>
 
-          <div className="add-poll-section">
-            <label className="add-poll-label" htmlFor="location">
+          <div className="event-section">
+            <label className="event-label" htmlFor="location">
               Lokation
             </label>
-            <input id="location" name="location" type="text" value={currentEvent.location ?? ""} onChange={handleChange} className="add-poll-input" />
+            <input id="location" name="location" type="text" value={currentEvent.location ?? ""} onChange={handleChange} className="event-input" />
           </div>
 
-          <div className="add-poll-section">
-            <label className="add-poll-label" htmlFor="sourceUrl">
+          <div className="event-section">
+            <label className="event-label" htmlFor="sourceUrl">
               Kilde URL <span style={{ color: "red" }}>*</span>
             </label>
             <input
@@ -225,18 +228,16 @@ export default function EditEvent() {
               type="text"
               value={currentEvent.sourceUrl}
               onChange={handleChange}
-              className="add-poll-input"
+              className="event-input"
               required
             />
           </div>
 
-          {message && <p style={{ color: isError ? "red" : "green", fontWeight: "bold" }}>{message}</p>}
-
-          <div className="add-poll-buttons">
-            <button type="submit" className="add-poll-submit-btn" disabled={loading || !selectedEventId}>
+          <div className="event-buttons">
+            <button type="submit" className="event-submit-btn" disabled={loading || !selectedEventId}>
               {loading ? "Opdaterer..." : "Opdater Begivenhed"}
             </button>
-            <button type="button" className="add-poll-remove-btn" onClick={() => navigate("/admin/Indhold")} style={{ backgroundColor: "#6c757d" }}>
+            <button type="button" className="event-remove-btn" onClick={() => navigate("/admin/Indhold")} style={{ backgroundColor: "#6c757d" }}>
               Tilbage til Admin Indhold
             </button>
           </div>

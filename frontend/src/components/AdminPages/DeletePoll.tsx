@@ -31,6 +31,7 @@ export default function DeletePoll() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);
+  const [twitterId, setTwitterId] = useState<number | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -100,7 +101,21 @@ export default function DeletePoll() {
           },
         ]);
         setEndDate(pollData.endedAt ? pollData.endedAt.split("T")[0] : null);
-        setSelectedPoliticianId(pollData.politicianId ? String(pollData.politicianId) : null);
+        if (pollData.politicianId) {
+          const token = localStorage.getItem("jwt");
+          try {
+            const lookupRes = await axios.get(`/api/administrator/lookup/aktorId?twitterId=${pollData.politicianId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const aktorId = lookupRes.data.aktorId;
+            setSelectedPoliticianId(String(aktorId)); // now correct
+          } catch (err) {
+            console.error("Could not resolve aktorId from twitterId", err);
+            setSelectedPoliticianId(null);
+          }
+        } else {
+          setSelectedPoliticianId(null);
+        }
       } catch (error) {
         console.error("Failed to fetch poll details", error);
       }
@@ -173,14 +188,16 @@ export default function DeletePoll() {
 
           {questions.map((q, qIndex) => (
             <div key={q.id || qIndex} className="page-section">
-              <label className="page-label" htmlFor="questionInput">{`Spørgsmål ${qIndex + 1}`}</label>
+              <label className="page-label" htmlFor="questionInput">
+                Spørgsmål
+              </label>
               <input
                 type="text"
                 value={q.question}
                 disabled
                 className="page-input"
                 id="questionInput"
-                placeholder={`Skriv spørgsmål ${qIndex + 1} her...`}
+                placeholder={`Skriv spørgsmålet her...`}
               />
 
               <div className="page-option-group">
@@ -191,7 +208,7 @@ export default function DeletePoll() {
                       value={option.optionText}
                       disabled
                       className="page-input"
-                      placeholder={`Svarmulighed ${qIndex + 1}.${oIndex + 1}`}
+                      placeholder={`Svarmulighed ${oIndex + 1}`}
                     />
                   </div>
                 ))}

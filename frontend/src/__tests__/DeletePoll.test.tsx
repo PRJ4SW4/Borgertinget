@@ -38,6 +38,9 @@ describe("DeletePoll", () => {
       if (url === `/api/polls/${mockSelectedPollDetails.id}`) {
         return Promise.resolve({ data: mockSelectedPollDetails });
       }
+      if (url === `/api/administrator/lookup/aktorId?twitterId=${mockSelectedPollDetails.politicianId}`) {
+        return Promise.resolve({ data: { aktorId: mockSelectedPollDetails.politicianId } });
+      }
       return Promise.reject(new Error(`Unknown GET URL: ${url}`));
     });
     mockedAxios.delete.mockResolvedValue({ data: {} });
@@ -74,11 +77,11 @@ describe("DeletePoll", () => {
     });
 
     await waitFor(() => {
-      const questionInput = screen.getByPlaceholderText("Skriv spørgsmål 1 her...") as HTMLInputElement;
+      const questionInput = screen.getByPlaceholderText("Skriv spørgsmålet her...") as HTMLInputElement;
       expect(questionInput).toHaveValue(mockSelectedPollDetails.question);
       expect(questionInput).toBeDisabled();
 
-      const optionInput = screen.getByPlaceholderText("Svarmulighed 1.1") as HTMLInputElement;
+      const optionInput = screen.getByPlaceholderText("Svarmulighed 1") as HTMLInputElement;
       expect(optionInput).toHaveValue(mockSelectedPollDetails.options[0].optionText);
       expect(optionInput).toBeDisabled();
 

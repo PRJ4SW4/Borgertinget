@@ -139,7 +139,7 @@ export default function EditPoll() {
         ]);
         setEndDate(pollData.endedAt ? pollData.endedAt.split("T")[0] : null);
 
-        // 🧠 Resolve politicianTwitterId → aktorId
+        
         if (pollData.politicianId) {
           const token = localStorage.getItem("jwt");
           try {
@@ -223,10 +223,6 @@ export default function EditPoll() {
     }
   };
 
-  useEffect(() => {
-    console.log("Dropdown preselected politician:", selectedPoliticianId);
-  }, [selectedPoliticianId]);
-
   return (
     <div className="container">
       <div>
@@ -254,7 +250,7 @@ export default function EditPoll() {
         <form onSubmit={handleSubmit} className="add-poll-form">
           <div className="add-poll-section">
             <label className="add-poll-label" htmlFor="politicianSelect">
-              Vælg Politiker
+              Vælg Politiker <span style={{ color: "red" }}>*</span>
             </label>
             <select
               id="politicianSelect"
@@ -272,14 +268,16 @@ export default function EditPoll() {
 
           {questions.map((q, qIndex) => (
             <div key={q.id || qIndex} className="add-poll-section">
-              <label className="add-poll-label" htmlFor="questionInput">{`Spørgsmål ${qIndex + 1}`}</label>
+              <label className="add-poll-label" htmlFor="questionInput">
+                Spørgsmål <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 id="questionInput"
                 type="text"
                 value={q.question}
                 onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
                 className="add-poll-input"
-                placeholder={`Skriv spørgsmål ${qIndex + 1} her...`}
+                placeholder={`Skriv spørgsmålet her...`}
                 required
               />
 
@@ -291,7 +289,7 @@ export default function EditPoll() {
                       value={option.optionText}
                       onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)}
                       className="add-poll-input"
-                      placeholder={`Svarmulighed ${qIndex + 1}.${oIndex + 1}`}
+                      placeholder={`Svarmulighed ${oIndex + 1}`}
                       required
                     />
                   </div>

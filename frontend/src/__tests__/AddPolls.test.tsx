@@ -32,8 +32,8 @@ describe("AddPolls", () => {
     );
 
     expect(screen.getByText("Opret en Poll")).toBeInTheDocument();
-    expect(screen.getByLabelText("Vælg Politiker")).toBeInTheDocument();
     await waitFor(() => {
+      expect(screen.getByLabelText("Vælg Politiker *")).toBeInTheDocument();
       expect(mockedAxios.get).toHaveBeenCalledWith("/api/aktor/all", {
         headers: { Authorization: "Bearer fake-jwt-token" },
       });
@@ -42,8 +42,8 @@ describe("AddPolls", () => {
       expect(screen.getByText(p.navn)).toBeInTheDocument();
     });
     expect(screen.getByPlaceholderText("Skriv spørgsmålet her...")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Svarmulighed 1.1")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Svarmulighed 1.2")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Svarmulighed 1")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Svarmulighed 2")).toBeInTheDocument();
     expect(screen.getByText("Opret Poll")).toBeInTheDocument();
   });
 
@@ -59,7 +59,7 @@ describe("AddPolls", () => {
     fireEvent.change(questionInput, { target: { value: "Test Question?" } });
     expect(questionInput.value).toBe("Test Question?");
 
-    const option1Input = screen.getByPlaceholderText("Svarmulighed 1.1") as HTMLInputElement;
+    const option1Input = screen.getByPlaceholderText("Svarmulighed 1") as HTMLInputElement;
     fireEvent.change(option1Input, { target: { value: "Option Yes" } });
     expect(option1Input.value).toBe("Option Yes");
   });
@@ -72,7 +72,7 @@ describe("AddPolls", () => {
     );
     await waitFor(() => expect(screen.getByText(mockPoliticians[0].navn)).toBeInTheDocument());
 
-    const politicianSelect = screen.getByLabelText("Vælg Politiker") as HTMLSelectElement;
+    const politicianSelect = screen.getByLabelText("Vælg Politiker *") as HTMLSelectElement;
     fireEvent.change(politicianSelect, { target: { value: mockPoliticians[0].id } });
 
     await waitFor(() => {
@@ -92,16 +92,16 @@ describe("AddPolls", () => {
 
     const addOptionButton = screen.getByText("Tilføj Svarmulighed");
     fireEvent.click(addOptionButton); // Add 3rd option
-    expect(screen.getByPlaceholderText("Svarmulighed 1.3")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Svarmulighed 3")).toBeInTheDocument();
     fireEvent.click(addOptionButton); // Add 4th option
-    expect(screen.getByPlaceholderText("Svarmulighed 1.4")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Svarmulighed 4")).toBeInTheDocument();
     expect(addOptionButton).toBeDisabled();
 
     const removeOptionButton = screen.getByText("Fjern Svarmulighed");
     fireEvent.click(removeOptionButton); // Remove 4th option
-    expect(screen.queryByPlaceholderText("Svarmulighed 1.4")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("Svarmulighed 4")).not.toBeInTheDocument();
     fireEvent.click(removeOptionButton); // Remove 3rd option
-    expect(screen.queryByPlaceholderText("Svarmulighed 1.3")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("Svarmulighed 3")).not.toBeInTheDocument();
     expect(removeOptionButton).toBeDisabled();
   });
 
@@ -116,8 +116,8 @@ describe("AddPolls", () => {
 
     // Fill other required fields to ensure HTML5 validation doesn't block submission
     fireEvent.change(screen.getByPlaceholderText("Skriv spørgsmålet her..."), { target: { value: "A question" } });
-    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1.1"), { target: { value: "Option A" } });
-    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1.2"), { target: { value: "Option B" } });
+    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1"), { target: { value: "Option A" } });
+    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 2"), { target: { value: "Option B" } });
 
     const saveButton = screen.getByText("Opret Poll");
     fireEvent.click(saveButton);
@@ -135,14 +135,14 @@ describe("AddPolls", () => {
     );
     await waitFor(() => expect(screen.getByText(mockPoliticians[0].navn)).toBeInTheDocument());
 
-    fireEvent.change(screen.getByLabelText("Vælg Politiker"), { target: { value: mockPoliticians[0].id } });
+    fireEvent.change(screen.getByLabelText("Vælg Politiker *"), { target: { value: mockPoliticians[0].id } });
     await waitFor(() =>
       expect(mockedAxios.get).toHaveBeenCalledWith(`/api/subscription/lookup/politicianTwitterId?aktorId=${mockPoliticians[0].id}`, expect.anything())
     );
 
     fireEvent.change(screen.getByPlaceholderText("Skriv spørgsmålet her..."), { target: { value: "Favorite Season?" } });
-    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1.1"), { target: { value: "Summer" } });
-    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1.2"), { target: { value: "Winter" } });
+    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1"), { target: { value: "Summer" } });
+    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 2"), { target: { value: "Winter" } });
     fireEvent.change(screen.getByLabelText("Slutdato (valgfri)"), { target: { value: "2024-12-31" } });
 
     const saveButton = screen.getByText("Opret Poll");
@@ -176,11 +176,11 @@ describe("AddPolls", () => {
     );
     await waitFor(() => expect(screen.getByText(mockPoliticians[0].navn)).toBeInTheDocument());
 
-    fireEvent.change(screen.getByLabelText("Vælg Politiker"), { target: { value: mockPoliticians[0].id } });
+    fireEvent.change(screen.getByLabelText("Vælg Politiker *"), { target: { value: mockPoliticians[0].id } });
     fireEvent.change(screen.getByPlaceholderText("Skriv spørgsmålet her..."), { target: { value: "Error Poll" } });
     // Fill required option fields
-    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1.1"), { target: { value: "Option X" } });
-    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1.2"), { target: { value: "Option Y" } });
+    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1"), { target: { value: "Option X" } });
+    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 2"), { target: { value: "Option Y" } });
 
     const saveButton = screen.getByText("Opret Poll");
     fireEvent.click(saveButton);
@@ -188,7 +188,7 @@ describe("AddPolls", () => {
     await waitFor(() => {
       expect(mockedAxios.post).toHaveBeenCalled();
     });
-    
+
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith("Failed to create poll. Please try again.");
     });

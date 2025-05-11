@@ -108,16 +108,16 @@ export default function DeleteEvent() {
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
       </div>
       <div className="top-red-line"></div>
-      <h1 className="add-poll-title">Slet Begivenhed</h1>
-      <p className="add-poll-subtitle">Vælg en begivenhed for at slette den.</p>
+      <h1 className="event-title">Slet Begivenhed</h1>
+      <p className="event-subtitle">Vælg en begivenhed for at slette den.</p>
 
-      <div className="add-poll-section">
-        <label className="add-poll-label" htmlFor="eventSelectDelete">
+      <div className="event-section">
+        <label className="event-label" htmlFor="eventSelectDelete">
           Vælg Begivenhed
         </label>
         <select
           id="eventSelectDelete"
-          className="add-poll-input"
+          className="event-input"
           value={selectedEventId ?? ""}
           onChange={(e) => setSelectedEventId(Number(e.target.value) || null)}
           disabled={loading || events.length === 0}>
@@ -131,7 +131,7 @@ export default function DeleteEvent() {
       </div>
 
       {currentEvent && selectedEventId !== null && (
-        <div className="add-poll-form" style={{ marginTop: "2rem" }}>
+        <div className="event-form" style={{ marginTop: "2rem" }}>
           <h3 style={{ color: "#333" }}>Begivenhedsdetaljer:</h3>
           <p>
             <strong>Titel:</strong> {currentEvent.title}
@@ -150,16 +150,15 @@ export default function DeleteEvent() {
 
       {message && <p style={{ color: isError ? "red" : "green", fontWeight: "bold", marginTop: "1rem" }}>{message}</p>}
 
-      <div className="add-poll-buttons" style={{ marginTop: "2rem" }}>
+      <div className="event-buttons" style={{ marginTop: "2rem" }}>
         <button
           onClick={handleDelete}
-          className="add-poll-submit-btn"
+          className="event-submit-btn"
           disabled={loading || !selectedEventId}
-          style={{ backgroundColor: "#dc3545" }} // Red color for delete
         >
           {loading ? "Sletter..." : "Slet Begivenhed"}
         </button>
-        <button type="button" className="add-poll-remove-btn" onClick={() => navigate("/admin/Indhold")} style={{ backgroundColor: "#6c757d" }}>
+        <button type="button" className="event-remove-btn" onClick={() => navigate("/admin/Indhold")} style={{ backgroundColor: "#6c757d" }}>
           Tilbage til Admin Indhold
         </button>
       </div>

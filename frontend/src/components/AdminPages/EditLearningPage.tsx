@@ -103,12 +103,12 @@ export default function EditLearningPage() {
       {selectedPageId && (
         <form onSubmit={handleSubmit}>
           <label htmlFor="titleInput" className="page-label">
-            Titel
+            Titel <span style={{ color: "red" }}>*</span>
           </label>
           <input id="titleInput" type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titel" className="page-title" />
 
           <label htmlFor="contentInput" className="page-label">
-            Indhold
+            Indhold <span style={{ color: "red" }}>*</span>
           </label>
           <textarea
             id="contentInput"
@@ -120,7 +120,7 @@ export default function EditLearningPage() {
           />
 
           <label htmlFor="parentPageSelect" className="page-label">
-            Overordnet side
+            Overordnet side 
           </label>
           <select
             id="parentPageSelect"

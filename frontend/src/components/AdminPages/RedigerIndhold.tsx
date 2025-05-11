@@ -110,7 +110,7 @@ export default function RedigerInhold() {
         <form onSubmit={handleSubmit} className="edit-inhold-form">
           <div className="edit-inhold-section">
             <label htmlFor="partyProgram" className="edit-inhold-label">
-              Partiprogram
+              Partiprogram <span style={{ color: "red" }}>*</span>
             </label>
             <textarea
               id="partyProgram"
@@ -124,7 +124,7 @@ export default function RedigerInhold() {
 
           <div className="edit-inhold-section">
             <label htmlFor="politics" className="edit-inhold-label">
-              Politik
+              Politik <span style={{ color: "red" }}>*</span>
             </label>
             <textarea
               id="politics"
@@ -138,7 +138,7 @@ export default function RedigerInhold() {
 
           <div className="edit-inhold-section">
             <label htmlFor="history" className="edit-inhold-label">
-              Historie
+              Historie <span style={{ color: "red" }}>*</span>
             </label>
             <textarea
               id="history"

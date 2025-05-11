@@ -1,23 +1,22 @@
-/* filepath: c:\Users\Olivia_Wass_Hee\Desktop\Borgertinget\frontend\src\components\AdminPages\ChangeEvent.css */
-.add-poll-container {
+.event-container {
   padding: 2rem;
   max-width: 50rem;
   margin: 0 auto;
 }
 
-.add-poll-title {
+.event-title {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
-.add-poll-subtitle {
+.event-subtitle {
   font-size: 1.2rem;
   color: #666;
   margin-bottom: 2rem;
 }
 
-.add-poll-form {
+.event-form {
   background-color: #c99b9b; /* Light pink background */
   padding: 2rem;
   border-radius: 0.5rem;
@@ -26,17 +25,17 @@
   gap: 2rem;
 }
 
-.add-poll-section {
+.event-section {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.add-poll-label {
+.event-label {
   font-weight: 600;
 }
 
-.add-poll-input {
+.event-input {
   width: 100%;
   padding: 0.75rem;
   border: none;
@@ -44,21 +43,21 @@
   background-color: white;
 }
 
-.add-poll-option-group {
+.event-option-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.add-poll-option {
+.event-option {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.add-poll-add-btn,
-.add-poll-remove-btn,
-.add-poll-submit-btn {
+.event-add-btn,
+.event-remove-btn,
+.event-submit-btn {
   background-color: #950018e5; /* Dark red */
   color: white;
   border: none;
@@ -69,18 +68,18 @@
   width: fit-content;
 }
 
-.add-poll-add-btn:hover,
-.add-poll-submit-btn:hover {
+.event-add-btn:hover,
+.event-submit-btn:hover {
   background-color: #7b0015e5;
 }
 
-.add-poll-add-btn:disabled,
-.add-poll-remove-btn:disabled {
+.event-add-btn:disabled,
+.event-remove-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
 
-.add-poll-buttons {
+.event-buttons {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
