@@ -9,6 +9,8 @@ using backend.Services.AutomationServices;
 using backend.Services.AutomationServices.HtmlFetching;
 using backend.Services.AutomationServices.Parsing;
 using backend.Services.AutomationServices.Repositories;
+// Flashcard Services
+using backend.Services.Flashcards;
 // Learning Environment Services
 using backend.Services.LearningEnvironmentServices;
 // JWT Stuff
@@ -201,6 +203,9 @@ builder.Services.AddScoped<IAutomationService, AltingetScraperService>();
 // Learning Environment Services
 builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<ILearningPageService, LearningPageService>();
+
+// Flashcard Services
+builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
 var app = builder.Build();
 
