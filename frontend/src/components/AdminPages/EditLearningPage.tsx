@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./ChangeLearningPage.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
-import type {
-  PageSummaryDto,
-  PageDetailDto as ApiPageDetailDto,
-  QuestionDto as ApiQuestionDto,
-  AnswerOptionDto as ApiAnswerOptionDto,
-} from "../../types/pageTypes";
+import type { PageSummaryDto, PageDetailDto as ApiPageDetailDto } from "../../types/pageTypes";
+import { fetchPagesStructure } from "../../services/ApiService";
+import "./ChangeLearningPage.css";
 
 interface AnswerOptionFormState {
   id: number;
@@ -21,10 +17,6 @@ interface QuestionFormState {
   id: number;
   questionText: string;
   options: AnswerOptionFormState[];
-}
-
-interface PageDetailFormState extends Omit<ApiPageDetailDto, "associatedQuestions"> {
-  associatedQuestions: QuestionFormState[];
 }
 
 export default function EditLearningPage() {
@@ -41,13 +33,17 @@ export default function EditLearningPage() {
   const [nextOptionTempId, setNextOptionTempId] = useState(-1);
 
   useEffect(() => {
-    axios
-      .get("/api/pages", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setPages(res.data as PageSummaryDto[]))
-      .catch(console.error);
-  }, [token]);
+    const loadPages = async () => {
+      try {
+        const data = await fetchPagesStructure();
+        setPages(data);
+      } catch (err) {
+        console.error("Fejl ved hentning af sider:", err);
+        // Optionally, set an error state here to display to the user
+      }
+    };
+    loadPages();
+  }, []);
 
   useEffect(() => {
     if (!selectedPageId) {

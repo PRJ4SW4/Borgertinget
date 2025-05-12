@@ -25,6 +25,8 @@ export interface PageSummaryDto {
   export interface AnswerOptionDto {
     id: number;
     optionText: string;
+    isCorrect: boolean;
+    displayOrder: number;
   }
   
   export interface QuestionDto {

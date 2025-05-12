@@ -37,46 +37,11 @@ public class PagesController : ControllerBase
         // Calls the service to get page details.
         var pageDetail = await _pageService.GetPageDetailAsync(id);
 
-        // Initializes variables to store the IDs of the previous and next pages in the sequence.
-        int? previousPageId = null;
-        int? nextPageId = null;
-
-        // Finds the index of the current page's ID within the ordered list of page IDs in the section.
-        int currentIndex = sectionOrder.IndexOf(id);
-
-        // Checks if the current page ID was found in the ordered list.
-        if (currentIndex != -1)
+        // If the page detail is null (page not found), returns an HTTP 404 Not Found response.
+        if (pageDetail == null)
         {
-            // If the current page is not the first page in the list, assign the ID of the preceding page to previousPageId.
-            if (currentIndex > 0)
-            {
-                previousPageId = sectionOrder[currentIndex - 1];
-            }
-            // If the current page is not the last page in the list, assign the ID of the succeeding page to nextPageId.
-            if (currentIndex < sectionOrder.Count - 1)
-            {
-                nextPageId = sectionOrder[currentIndex + 1];
-            }
+            return NotFound($"Page with ID {id} not found.");
         }
-
-        // Creates a new PageDetailDto object to encapsulate the detailed page information for the response.
-        var pageDetail = new PageDetailDTO
-        {
-            // Maps the Id property from the Page entity to the DTO.
-            Id = page.Id,
-            // Maps the Title property from the Page entity to the DTO.
-            Title = page.Title,
-            // Maps the Content property from the Page entity to the DTO.
-            Content = page.Content,
-            // Maps the ParentPageId property from the Page entity to the DTO.
-            ParentPageId = page.ParentPageId,
-            // Assigns the calculated ID of the previous page in the sequence.
-            PreviousSiblingId = previousPageId,
-            // Assigns the calculated ID of the next page in the sequence.
-            NextSiblingId = nextPageId,
-            // Assigns the list of associated questions (as DTOs) to the DTO.
-            AssociatedQuestions = questionDtos,
-        };
 
         // Returns an HTTP 200 OK response with the page details.
         return Ok(pageDetail);
@@ -101,39 +66,10 @@ public class PagesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<PageDetailDTO>> CreatePage(PageCreateRequestDTO createRequest)
     {
-        var newPage = new Page
-        {
-            Title = createRequest.Title,
-            Content = createRequest.Content,
-            ParentPageId = createRequest.ParentPageId,
-            DisplayOrder = createRequest.DisplayOrder,
-            AssociatedQuestions = createRequest
-                .AssociatedQuestions.Select(qDto => new Question
-                {
-                    QuestionText = qDto.QuestionText,
-                    AnswerOptions = qDto
-                        .Options.Select(optDto => new AnswerOption
-                        {
-                            OptionText = optDto.OptionText,
-                            IsCorrect = optDto.IsCorrect,
-                            DisplayOrder = optDto.DisplayOrder,
-                        })
-                        .ToList(),
-                })
-                .ToList(),
-        };
-
-        _context.Pages.Add(newPage);
-        await _context.SaveChangesAsync();
-
-        // Return the created page details, similar to GetPage(id)
-        // This requires mapping the newPage entity back to PageDetailDTO
-        // For simplicity, we'll call GetPage, but ideally, map directly or return a simpler confirmation.
-        return CreatedAtAction(
-            nameof(GetPage),
-            new { id = newPage.Id },
-            MapPageToPageDetailDTO(newPage, null, null)
-        );
+        // Calls the service to create a page.
+        var newPageDto = await _pageService.CreatePageAsync(createRequest);
+        // Assuming CreatePageAsync now correctly returns PageDetailDTO and handles all logic
+        return CreatedAtAction(nameof(GetPage), new { id = newPageDto.Id }, newPageDto);
     }
 
     // PUT: api/pages/{id}
@@ -145,122 +81,20 @@ public class PagesController : ControllerBase
         {
             return BadRequest("Page ID mismatch.");
         }
+        // Calls the service to update the page by id.
+        var success = await _pageService.UpdatePageAsync(id, updateRequest);
 
-        var existingPage = await _context
-            .Pages.Include(p => p.AssociatedQuestions)
-            .ThenInclude(q => q.AnswerOptions)
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        if (existingPage == null)
+        if (!success)
         {
+            // Consider if UpdatePageAsync should distinguish between "not found" and "other error"
+            // For now, assuming false means something went wrong, potentially "not found" or concurrency.
+            // The service layer should log specifics. Here, we might return NotFound or a generic error.
+            // If the service specifically indicates "not found" (e.g., by throwing a specific exception or returning a more detailed result object),
+            // we could return NotFound(). For now, NoContent() if successful, or a problem if not.
             return NotFound();
         }
 
-        // Update scalar properties
-        existingPage.Title = updateRequest.Title;
-        existingPage.Content = updateRequest.Content;
-        existingPage.ParentPageId = updateRequest.ParentPageId;
-        existingPage.DisplayOrder = updateRequest.DisplayOrder;
-
-        // Manage AssociatedQuestions
-        // Remove questions not in the update request or deleted by user
-        var questionsToRemove = existingPage
-            .AssociatedQuestions.Where(eq =>
-                !updateRequest.AssociatedQuestions.Any(uqDto =>
-                    uqDto.Id == eq.QuestionId && uqDto.Id != 0
-                )
-            )
-            .ToList();
-        _context.Questions.RemoveRange(questionsToRemove);
-
-        foreach (var qDto in updateRequest.AssociatedQuestions)
-        {
-            Question? existingQuestion = null;
-            if (qDto.Id != 0) // If Id is provided, try to find existing question
-            {
-                existingQuestion = existingPage.AssociatedQuestions.FirstOrDefault(q =>
-                    q.QuestionId == qDto.Id
-                );
-            }
-
-            if (existingQuestion != null) // Update existing question
-            {
-                existingQuestion.QuestionText = qDto.QuestionText;
-
-                // Manage AnswerOptions for the existing question
-                var optionsToRemove = existingQuestion
-                    .AnswerOptions.Where(eo =>
-                        !qDto.Options.Any(uoDto => uoDto.Id == eo.AnswerOptionId && uoDto.Id != 0)
-                    )
-                    .ToList();
-                _context.AnswerOptions.RemoveRange(optionsToRemove);
-
-                foreach (var optDto in qDto.Options)
-                {
-                    AnswerOption? existingOption = null;
-                    if (optDto.Id != 0)
-                    {
-                        existingOption = existingQuestion.AnswerOptions.FirstOrDefault(o =>
-                            o.AnswerOptionId == optDto.Id
-                        );
-                    }
-
-                    if (existingOption != null) // Update existing option
-                    {
-                        existingOption.OptionText = optDto.OptionText;
-                        existingOption.IsCorrect = optDto.IsCorrect;
-                        existingOption.DisplayOrder = optDto.DisplayOrder;
-                    }
-                    else // Add new option
-                    {
-                        existingQuestion.AnswerOptions.Add(
-                            new AnswerOption
-                            {
-                                OptionText = optDto.OptionText,
-                                IsCorrect = optDto.IsCorrect,
-                                DisplayOrder = optDto.DisplayOrder,
-                                // QuestionId will be set by EF
-                            }
-                        );
-                    }
-                }
-            }
-            else // Add new question
-            {
-                var newQuestion = new Question
-                {
-                    QuestionText = qDto.QuestionText,
-                    AnswerOptions = qDto
-                        .Options.Select(optDto => new AnswerOption
-                        {
-                            OptionText = optDto.OptionText,
-                            IsCorrect = optDto.IsCorrect,
-                            DisplayOrder = optDto.DisplayOrder,
-                        })
-                        .ToList(),
-                    // PageId will be set by EF
-                };
-                existingPage.AssociatedQuestions.Add(newQuestion);
-            }
-        }
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!PageExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return NoContent();
+        return NoContent(); // Standard response for successful PUT update with no content to return
     }
 
     // DELETE: api/pages/{id}
@@ -268,51 +102,15 @@ public class PagesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePage(int id)
     {
-        var page = await _context.Pages.FindAsync(id);
-        if (page == null)
+        // Calls the service to delete the page by id.
+        var success = await _pageService.DeletePageAsync(id);
+
+        if (!success)
         {
+            // Similar to PUT, service should log. Controller returns NotFound if deletion failed (likely due to item not existing).
             return NotFound();
         }
 
-        _context.Pages.Remove(page);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    private bool PageExists(int id)
-    {
-        return _context.Pages.Any(e => e.Id == id);
-    }
-
-    // Helper to map Page to PageDetailDTO (can be expanded or moved to a service)
-    private PageDetailDTO MapPageToPageDetailDTO(Page page, int? prevId, int? nextId)
-    {
-        return new PageDetailDTO
-        {
-            Id = page.Id,
-            Title = page.Title,
-            Content = page.Content,
-            ParentPageId = page.ParentPageId,
-            PreviousSiblingId = prevId, // These would typically be calculated as in GetPage
-            NextSiblingId = nextId, // For CreatedAtAction, they might be null or require re-query
-            AssociatedQuestions =
-                page.AssociatedQuestions?.Select(q => new QuestionDTO
-                    {
-                        Id = q.QuestionId,
-                        QuestionText = q.QuestionText,
-                        Options =
-                            q.AnswerOptions?.OrderBy(o => o.DisplayOrder)
-                                .Select(opt => new AnswerOptionDTO
-                                {
-                                    Id = opt.AnswerOptionId,
-                                    OptionText = opt.OptionText,
-                                    IsCorrect = opt.IsCorrect,
-                                    DisplayOrder = opt.DisplayOrder,
-                                })
-                                .ToList() ?? new List<AnswerOptionDTO>(),
-                    })
-                    .ToList() ?? new List<QuestionDTO>(),
-        };
+        return NoContent(); // Standard response for successful DELETE
     }
 }

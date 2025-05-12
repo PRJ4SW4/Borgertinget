@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ChangeLearningPage.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import { fetchPagesStructure } from "../../services/ApiService";
 import type { PageSummaryDto, PageDetailDto as ApiPageDetailDto, QuestionDto as ApiQuestionDto } from "../../types/pageTypes";
 
 export default function DeleteLearningPage() {
@@ -14,12 +15,16 @@ export default function DeleteLearningPage() {
   const token = localStorage.getItem("jwt");
 
   useEffect(() => {
-    axios
-      .get("/api/pages", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setPages(res.data))
-      .catch(console.error);
+    const loadPages = async () => {
+      try {
+        const data = await fetchPagesStructure();
+        setPages(data);
+      } catch (err) {
+        console.error("Fejl ved hentning af sider:", err);
+        // Optionally, set an error state here to display to the user
+      }
+    };
+    loadPages();
   }, []);
 
   useEffect(() => {

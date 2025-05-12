@@ -81,6 +81,8 @@ public class LearningPageService : ILearningPageService
                         {
                             Id = ao.AnswerOptionId,
                             OptionText = ao.OptionText,
+                            IsCorrect = ao.IsCorrect,
+                            DisplayOrder = ao.DisplayOrder,
                         })
                         .ToList(),
                 })
@@ -138,6 +140,206 @@ public class LearningPageService : ILearningPageService
             orderedPageIds.Add(child.Id);
             // Recursively call this method to fetch and add all descendants of the current child.
             await FetchOrderedDescendantIdsAsync(child.Id, orderedPageIds);
+        }
+    }
+
+    // Asynchronously creates a new learning page.
+    public async Task<PageDetailDTO> CreatePageAsync(PageCreateRequestDTO createRequest)
+    {
+        var newPage = new Page
+        {
+            Title = createRequest.Title,
+            Content = createRequest.Content,
+            ParentPageId = createRequest.ParentPageId,
+            DisplayOrder = createRequest.DisplayOrder,
+            AssociatedQuestions = (
+                createRequest.AssociatedQuestions ?? new List<QuestionCreateOrUpdateDTO>()
+            )
+                .Select(qDto => new Question
+                {
+                    QuestionText = qDto.QuestionText,
+                    AnswerOptions = (qDto.Options ?? new List<AnswerOptionCreateOrUpdateDTO>())
+                        .Select(optDto => new AnswerOption
+                        {
+                            OptionText = optDto.OptionText,
+                            IsCorrect = optDto.IsCorrect,
+                            DisplayOrder = optDto.DisplayOrder,
+                        })
+                        .OrderBy(ao => ao.DisplayOrder)
+                        .ToList(),
+                })
+                .ToList(),
+        };
+
+        _context.Pages.Add(newPage);
+        await _context.SaveChangesAsync();
+
+        // Re-fetch to get all generated IDs and ensure consistency with GetPageDetailAsync formatting.
+        // The null forgiveness operator (!) is used because we expect the page to be found after creation.
+        return (await GetPageDetailAsync(newPage.Id))!;
+    }
+
+    // Asynchronously updates an existing learning page.
+    public async Task<bool> UpdatePageAsync(int pageId, PageUpdateRequestDTO updateRequest)
+    {
+        var existingPage = await _context
+            .Pages.Include(p => p.AssociatedQuestions)
+            .ThenInclude(q => q.AnswerOptions)
+            .FirstOrDefaultAsync(p => p.Id == pageId);
+
+        if (existingPage == null)
+        {
+            _logger.LogWarning("Page with ID {PageId} not found for update.", pageId);
+            return false; // Indicates "not found"
+        }
+
+        // Update scalar properties
+        existingPage.Title = updateRequest.Title;
+        existingPage.Content = updateRequest.Content;
+        existingPage.ParentPageId = updateRequest.ParentPageId;
+        existingPage.DisplayOrder = updateRequest.DisplayOrder;
+
+        var updatedQuestionDtos =
+            updateRequest.AssociatedQuestions ?? new List<QuestionCreateOrUpdateDTO>();
+        var existingQuestions = existingPage.AssociatedQuestions.ToList();
+
+        // Identify questions to remove
+        var questionsToRemove = existingQuestions
+            .Where(eq =>
+                !updatedQuestionDtos.Any(uqDto => uqDto.Id == eq.QuestionId && uqDto.Id != 0)
+            )
+            .ToList();
+
+        if (questionsToRemove.Any())
+        {
+            foreach (var qToRemove in questionsToRemove)
+            {
+                _context.AnswerOptions.RemoveRange(qToRemove.AnswerOptions); // Explicitly remove options
+            }
+            _context.Questions.RemoveRange(questionsToRemove);
+        }
+
+        foreach (var qDto in updatedQuestionDtos)
+        {
+            Question? existingQuestion =
+                (qDto.Id != 0)
+                    ? existingQuestions.FirstOrDefault(q => q.QuestionId == qDto.Id)
+                    : null;
+
+            if (existingQuestion != null) // Update existing question
+            {
+                existingQuestion.QuestionText = qDto.QuestionText;
+                var updatedOptionDtos = qDto.Options ?? new List<AnswerOptionCreateOrUpdateDTO>();
+                var existingOptions = existingQuestion.AnswerOptions.ToList();
+
+                var optionsToRemove = existingOptions
+                    .Where(eo =>
+                        !updatedOptionDtos.Any(uoDto =>
+                            uoDto.Id == eo.AnswerOptionId && uoDto.Id != 0
+                        )
+                    )
+                    .ToList();
+                if (optionsToRemove.Any())
+                {
+                    _context.AnswerOptions.RemoveRange(optionsToRemove);
+                }
+
+                foreach (var optDto in updatedOptionDtos)
+                {
+                    AnswerOption? existingOption =
+                        (optDto.Id != 0)
+                            ? existingOptions.FirstOrDefault(ao => ao.AnswerOptionId == optDto.Id)
+                            : null;
+
+                    if (existingOption != null) // Update existing option
+                    {
+                        existingOption.OptionText = optDto.OptionText;
+                        existingOption.IsCorrect = optDto.IsCorrect;
+                        existingOption.DisplayOrder = optDto.DisplayOrder;
+                    }
+                    else // Add new option
+                    {
+                        var newOption = new AnswerOption
+                        {
+                            OptionText = optDto.OptionText,
+                            IsCorrect = optDto.IsCorrect,
+                            DisplayOrder = optDto.DisplayOrder,
+                            QuestionId = existingQuestion.QuestionId,
+                        };
+                        existingQuestion.AnswerOptions.Add(newOption);
+                    }
+                }
+                existingQuestion.AnswerOptions = existingQuestion
+                    .AnswerOptions.OrderBy(ao => ao.DisplayOrder)
+                    .ToList();
+            }
+            else // Add new question
+            {
+                var newQuestion = new Question
+                {
+                    QuestionText = qDto.QuestionText,
+                    PageId = existingPage.Id,
+                    AnswerOptions = (qDto.Options ?? new List<AnswerOptionCreateOrUpdateDTO>())
+                        .Select(optDto => new AnswerOption
+                        {
+                            OptionText = optDto.OptionText,
+                            IsCorrect = optDto.IsCorrect,
+                            DisplayOrder = optDto.DisplayOrder,
+                        })
+                        .OrderBy(ao => ao.DisplayOrder)
+                        .ToList(),
+                };
+                existingPage.AssociatedQuestions.Add(newQuestion);
+            }
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogError(ex, "Concurrency error while updating page with ID {PageId}.", pageId);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating page with ID {PageId}.", pageId);
+            return false;
+        }
+    }
+
+    // Asynchronously deletes a learning page.
+    public async Task<bool> DeletePageAsync(int pageId)
+    {
+        var pageToDelete = await _context
+            .Pages.Include(p => p.AssociatedQuestions)
+            .ThenInclude(q => q.AnswerOptions)
+            .FirstOrDefaultAsync(p => p.Id == pageId);
+
+        if (pageToDelete == null)
+        {
+            _logger.LogWarning("Page with ID {PageId} not found for deletion.", pageId);
+            return false;
+        }
+
+        foreach (var question in pageToDelete.AssociatedQuestions.ToList())
+        {
+            _context.AnswerOptions.RemoveRange(question.AnswerOptions);
+            _context.Questions.Remove(question);
+        }
+        _context.Pages.Remove(pageToDelete);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting page with ID {PageId}.", pageId);
+            return false;
         }
     }
 }
