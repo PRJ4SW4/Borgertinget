@@ -2,7 +2,7 @@ namespace backend.DTO
 {
     /// DTO der indeholder de nødvendige detaljer om en politiker
     /// specifikt til brug i Polidle-spillet (sammenligning og ledetråde).
-    public class DailyPolticianDto
+    public class DailyPoliticianDto
     {
         /// Unikt ID for politikeren (fra Aktor.Id).
         /// Bruges til at identificere den specifikke politiker.

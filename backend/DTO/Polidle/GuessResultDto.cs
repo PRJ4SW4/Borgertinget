@@ -15,6 +15,6 @@ namespace backend.DTO
         /// Detaljer om den politiker, der blev gættet på.
         /// Bruges til at vise info om gættet i frontend.
         /// Genbruger den eksisterende DailyPolticianDto.
-        public DailyPolticianDto? GuessedPolitician { get; set; }
+        public DailyPoliticianDto? GuessedPolitician { get; set; }
     }
 }
