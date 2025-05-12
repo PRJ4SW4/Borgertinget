@@ -20,14 +20,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using backend.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using backend.utils;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options; // Add this using directive
-using Microsoft.AspNetCore.DataProtection;  // Add this
-using Microsoft.Extensions.Logging; // Add this
+using Microsoft.Extensions.Options; 
+using Microsoft.AspNetCore.DataProtection;  
+using Microsoft.Extensions.Logging; 
+// google stuff
+using System.Web;
+using Microsoft.AspNetCore.Authentication.Google;
 
 
 // for .env secrets
@@ -137,7 +139,19 @@ builder
                 return Task.CompletedTask;
             },
         };
+    })
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    {
+        IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleOAuth");
+        options.ClientId = googleAuthNSection["ClientId"] ?? throw new InvalidOperationException("Google ClientId ikke fundet.");
+        options.ClientSecret = googleAuthNSection["ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret ikke fundet.");
+        options.Events.OnRemoteFailure = context => {
+            context.Response.Redirect("/login?error=" + HttpUtility.UrlEncode(context.Failure?.Message));
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
     });
+
 // Authorization for Admin and User roles
 builder.Services.AddAuthorization(options =>
 {
