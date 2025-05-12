@@ -1,4 +1,5 @@
 using backend.Services;
+using backend.Interfaces.Services;
 using backend.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -30,9 +31,9 @@ namespace backend.Controllers
         /// <param name="search">Valgfri søgestreng til at filtrere politikernavne.</param>
         /// <returns>En liste af PoliticianSummaryDto objekter.</returns>
         [HttpGet("politicians")]
-        [ProducesResponseType(typeof(List<PoliticianSummaryDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<DailyPoliticianDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<PoliticianSummaryDto>>> GetAllPoliticians([FromQuery] string? search = null)
+        public async Task<ActionResult<List<DailyPoliticianDto>>> GetAllPoliticians([FromQuery] string? search = null)
         {
             _logger.LogInformation("Request received for politician summaries with search: '{SearchTerm}'.", search ?? "<null>");
             try
@@ -121,11 +122,11 @@ namespace backend.Controllers
         /// Disse detaljer bruges som referencepunkt for brugerens gæt.
         /// <returns>Et PoliticianDetailsDto objekt med detaljer om dagens politiker.</returns>
         [HttpGet("classic/today")]
-        [ProducesResponseType(typeof(PoliticianDetailsDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(DailyPoliticianDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)] // Hvis ingen selection findes for i dag
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // Hvis data er inkonsistent
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<PoliticianDetailsDto>> GetClassicDetails()
+        public async Task<ActionResult<DailyPoliticianDto>> GetClassicDetails()
         {
              _logger.LogInformation("Request received for today's classic mode politician details.");
             try

@@ -8,8 +8,8 @@ namespace backend.Interfaces.Services
 {
     public interface IPoliticianMapper
     {
-        PoliticianDetailsDto MapToDetailsDto(Aktor aktor, DateOnly referenceDate);
-        List<PoliticianSummaryDto> MapToSummaryDtoList(IEnumerable<Aktor> aktors);
-        PoliticianSummaryDto MapToSummaryDto(Aktor aktor);
+        DailyPoliticianDto MapToDetailsDto(Aktor aktor, DateOnly referenceDate);
+        List<SearchListDto> MapToSummaryDtoList(IEnumerable<Aktor> aktors);
+        SearchListDto MapToSummaryDto(Aktor aktor);
     }
 }

@@ -4,6 +4,7 @@ using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility; // For IDateTimeProvider
 using backend.Models;
+using backend.Data;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -52,7 +53,7 @@ namespace backend.Services
 
         // --- Public Methods ---
 
-        public async Task<List<PoliticianSummaryDto>> GetAllPoliticiansForGuessingAsync(string? search = null)
+        public async Task<List<SearchListDto>> GetAllPoliticiansForGuessingAsync(string? search = null)
         {
             _logger.LogInformation("Fetching politicians for guessing. Search: '{SearchTerm}'", search ?? "<null>");
             var aktors = await _aktorRepository.GetAllForSummaryAsync(search); // Max results håndteres i repo
@@ -94,7 +95,7 @@ namespace backend.Services
              return new PhotoDto { PhotoUrl = selection.SelectedPolitiker.PictureMiRes };
         }
 
-        public async Task<PoliticianDetailsDto> GetClassicDetailsOfTheDayAsync()
+        public async Task<DailyPoliticianDto> GetClassicDetailsOfTheDayAsync()
         {
              _logger.LogDebug("Getting classic details of the day.");
              DateOnly today = _dateTimeProvider.TodayUtc;
@@ -227,7 +228,7 @@ namespace backend.Services
 
         // --- Private Helper Methods ---
 
-        private void CalculateClassicFeedback(GuessResultDto result, PoliticianDetailsDto correctDto, PoliticianDetailsDto guessedDto)
+        private void CalculateClassicFeedback(GuessResultDto result, DailyPoliticianDto correctDto, DailyPoliticianDto guessedDto)
         {
              // Antager at IsCorrectGuess allerede er sat, og at result.Feedback er initialiseret
              if (result.IsCorrectGuess) return; // Ingen grund til feedback hvis gættet er korrekt

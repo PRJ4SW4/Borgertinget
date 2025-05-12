@@ -23,7 +23,7 @@ namespace backend.Services.Mapping
              _dateTimeProvider = dateTimeProvider;
          }
 
-         public PoliticianDetailsDto MapToDetailsDto(Aktor aktor, DateOnly referenceDate) // ReferenceDate kan evt. fjernes hvis IDateTimeProvider altid bruges
+         public DailyPoliticianDto MapToDetailsDto(Aktor aktor, DateOnly referenceDate) // ReferenceDate kan evt. fjernes hvis IDateTimeProvider altid bruges
          {
              if (aktor == null) throw new ArgumentNullException(nameof(aktor));
 
@@ -59,15 +59,15 @@ namespace backend.Services.Mapping
          }
 
          // Overload for nemheds skyld, bruger TodayUtc fra provider
-         public PoliticianDetailsDto MapToDetailsDto(Aktor aktor) => MapToDetailsDto(aktor, _dateTimeProvider.TodayUtc);
+         public DailyPoliticianDto MapToDetailsDto(Aktor aktor) => MapToDetailsDto(aktor, _dateTimeProvider.TodayUtc);
 
-         public List<PoliticianSummaryDto> MapToSummaryDtoList(IEnumerable<Aktor> aktors)
+         public List<SearchListDto> MapToSummaryDtoList(IEnumerable<Aktor> aktors)
          {
               if (aktors == null) return new List<PoliticianSummaryDto>();
               return aktors.Select(MapToSummaryDto).ToList();
          }
 
-         public PoliticianSummaryDto MapToSummaryDto(Aktor aktor)
+         public SearchListDto MapToSummaryDto(Aktor aktor)
          {
               if (aktor == null) throw new ArgumentNullException(nameof(aktor));
               return new PoliticianSummaryDto

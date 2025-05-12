@@ -1,6 +1,7 @@
 using backend.Data;
 using backend.Interfaces.Repositories;
 using backend.Models;
+using backend.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

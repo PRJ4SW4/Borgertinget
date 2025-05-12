@@ -1,5 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using System.Security.Claims; // <<< TILFØJET FOR CLAIMS
 using System.Text;
 using backend.Data;
 using backend.Services;
@@ -20,7 +20,7 @@ using backend.Services.Mapping;
 using backend.Interfaces.Utility;
 using backend.Services.Utility;
 using backend.Jobs;
-using backend.Enums; // Antager enums er her
+using backend.Enums;
 
 // for .env secrets
 DotNetEnv.Env.Load();
@@ -40,18 +40,10 @@ var key = Encoding.UTF8.GetBytes(
 // Authorization for Admin and User roles
 builder.Services.AddAuthorization(options =>
 {
-    // Policy for Admin-rolle. Bruges f.eks. med [Authorize(Roles = "Admin")]
-    // eller [Authorize(Policy = "RequireAdministratorRole")]
-    // Sørg for at din JWT token indeholder en "role" claim med værdien "Admin"
     options.AddPolicy(
         "RequireAdministratorRole",
-        policy => policy.RequireRole("Admin") // Direkte brug af RequireRole
+        policy => policy.RequireRole("Admin")
     );
-    // options.AddPolicy( // Alternativt med ClaimTypes.Role
-    // "RequireAdministratorRole",
-    //     policy => policy.RequireClaim(ClaimTypes.Role, "Admin")
-    // );
-
     options.AddPolicy(
         "UserOrAdmin",
         policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
@@ -83,7 +75,7 @@ builder
             ValidIssuer = jwtSettings["Issuer"],
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(key),
-            RoleClaimType = ClaimTypes.Role, // VIGTIGT for [Authorize(Roles = "...")]
+            RoleClaimType = ClaimTypes.Role,
         };
         options.Events = new JwtBearerEvents
         {
@@ -124,13 +116,13 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Polidle API", Version = "v1" }); // Opdateret titel
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Polidle API", Version = "v1" });
     options.AddSecurityDefinition(
         "Bearer",
         new OpenApiSecurityScheme
         {
             Name = "Authorization",
-            Type = SecuritySchemeType.Http, // Eller SecuritySchemeType.ApiKey hvis token sendes anderledes
+            Type = SecuritySchemeType.Http,
             Scheme = "Bearer",
             BearerFormat = "JWT",
             In = ParameterLocation.Header,
@@ -157,47 +149,30 @@ builder.Services.AddSwaggerGen(options =>
 
 // --- EKSISTERENDE SERVICES ---
 builder.Services.AddScoped<EmailService>();
-builder.Services.AddScoped<HttpService>(); // Bruger du denne generisk, eller er den Twitter-specifik?
+builder.Services.AddScoped<HttpService>();
 builder.Services.AddHostedService<TweetFetchingService>();
-builder.Services.AddHttpClient<TwitterService>(); // HttpClientFactory for TwitterService
-builder.Services.AddHttpClient(); // Generel HttpClientFactory
+builder.Services.AddHttpClient<TwitterService>();
+builder.Services.AddHttpClient();
 
 // For altinget scraping
 builder.Services.AddScoped<AltingetScraperService>();
 builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 
-
 // *******************************************************************
 // *** NYE DEPENDENCY INJECTION REGISTRERINGER FOR POLIDLE & UTILS ***
 // *******************************************************************
-
-// Utilities (typisk Singleton, da de er stateless)
 builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
-
-// Repositories (Scoped, da de bruger Scoped DbContext)
 builder.Services.AddScoped<IAktorRepository, AktorRepository>();
 builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>();
 builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository>();
-// Tilføj andre repositories her hvis du laver flere (f.eks. IPartyRepository)
-
-// Mappers og Algoritmer (Scoped er et sikkert valg, kan være Transient hvis ingen state)
 builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
 builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
-
-// Kerneservices (Scoped)
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
-
-// Baggrundsjobs (Hosted Services)
 builder.Services.AddHostedService<DailySelectionJob>();
-
-// Hvis du har DailySelectionJobSettings og vil injecte den via IOptions:
-// builder.Services.Configure<DailySelectionJobSettings>(builder.Configuration.GetSection("DailySelectionJob"));
-
 // *******************************************************************
 // *** SLUT PÅ NYE DI REGISTRERINGER                             ***
 // *******************************************************************
-
 
 // CORS
 builder.Services.AddCors(options =>
@@ -206,51 +181,72 @@ builder.Services.AddCors(options =>
         "AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173") // Din frontend URL
+            policy.WithOrigins("http://localhost:5173")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials(); // Vigtigt for SignalR med cookies/auth
+                  .AllowCredentials();
         }
     );
 });
 
 builder.Services.AddControllers();
-// Fjern .AddJsonOptions hvis du ikke har specifikke problemer med cirkulære referencer,
-// da System.Text.Json som standard håndterer dette ok i .NET 6+ for simple tilfælde.
-// Hvis du *har* brug for det:
-// .AddJsonOptions(options =>
-// {
-//     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles; // IgnoreCycles er ofte bedre end Preserve
-// });
-
 
 var app = builder.Build();
 
-app.UseStaticFiles(); // For servering af f.eks. billeder fra wwwroot
+app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDeveloperExceptionPage(); // Giver mere detaljerede fejl i udvikling
+    app.UseDeveloperExceptionPage();
+
+    // ***********************************************************************
+    // *** START: Dummy Auth Middleware KUN FOR DEVELOPMENT ENVIRONMENT    ***
+    // ***********************************************************************
+    app.Use(async (context, next) =>
+    {
+        // Tjekker kun om der *ikke* allerede er en autentificeret bruger.
+        // Hvis du ALTID vil være dummy-admin i dev, kan du fjerne denne ydre 'if'.
+        // Dette tillader dig stadig at teste det rigtige login flow i dev, hvis du ønsker.
+        if (!context.User.Identity?.IsAuthenticated ?? true)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, "DummyDevAdmin"),       // Brugernavn for dummy admin
+                new Claim(ClaimTypes.NameIdentifier, "dummy-admin-id-123"), // Et unikt ID
+                new Claim(ClaimTypes.Role, "Admin"),              // Giver Admin rollen
+                // Du kan tilføje flere claims her, f.eks. en email:
+                // new Claim(ClaimTypes.Email, "devadmin@example.com")
+            };
+            var identity = new ClaimsIdentity(claims, "DevelopmentDummyAuth"); // "DevelopmentDummyAuth" er bare et navn
+            context.User = new ClaimsPrincipal(identity);
+
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>(); // Få en logger instans
+            logger.LogWarning("DEVELOPMENT MODE: Bypassing JWT. User context populated with DummyDevAdmin (Role: Admin).");
+        }
+        await next.Invoke();
+    });
+    // ***********************************************************************
+    // *** SLUT: Dummy Auth Middleware KUN FOR DEVELOPMENT ENVIRONMENT     ***
+    // ***********************************************************************
 }
 else
 {
-    // Tilføj produktions-error handling her (f.eks. app.UseExceptionHandler("/Error"))
-    app.UseHsts(); // Anbefales for produktion
+    app.UseExceptionHandler("/Error"); // Sørg for at have en Error-handling side/endpoint
+    app.UseHsts();
 }
 
-// HTTPS Redirection - vigtigt for produktion
-// app.UseHttpsRedirection(); // Aktiver denne hvis du har HTTPS sat op
+// app.UseHttpsRedirection(); // Aktiver når du har HTTPS sat op
 
 app.UseCors("AllowReactApp");
 
-app.UseRouting(); // Skal komme før Authentication og Authorization
+app.UseRouting(); // Skal være før Authentication og Authorization
 
-app.UseAuthentication(); // VIGTIGT: Skal komme FØR UseAuthorization
-app.UseAuthorization();
+app.UseAuthentication(); // Din rigtige JWT auth middleware
+app.UseAuthorization();  // Din rigtige authorization middleware
 
 app.MapControllers();
-app.MapHub<FeedHub>("/feedHub"); // Sørg for at din Hub route matcher det, du tjekker i JWT Events
+app.MapHub<FeedHub>("/feedHub");
 
 app.Run();

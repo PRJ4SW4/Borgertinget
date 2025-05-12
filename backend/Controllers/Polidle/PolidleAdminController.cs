@@ -1,4 +1,5 @@
 using backend.Services;
+using backend.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization; // <<< TILFØJET for Authorize
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

@@ -2,6 +2,7 @@ using backend.Interfaces.Repositories; // Hvis den skal bruge tracker repo
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility;
 using backend.Models;
+using backend.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
