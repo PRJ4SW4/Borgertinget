@@ -1,0 +1,35 @@
+/* src/pages/Polidle/CitatMode.module.css */
+
+.pageContainer {
+  /* Kan arve eller have unikke ting her */
+}
+
+/* Styles specifikt for Citat visning, hvis de ikke allerede er i sharedStyles */
+.quoteDisplayContainer {
+  margin: 20px auto;
+  padding: 20px;
+  max-width: 700px;
+  background-color: #f9f9f9;
+  border-left: 5px solid #e31836; /* Tema-farve kant */
+  text-align: center; /* Centrerer citatet hvis det er kort */
+}
+
+.quoteText {
+  font-size: 1.5em; /* Større skrift for citatet */
+  font-style: italic;
+  color: #333;
+  line-height: 1.6;
+}
+
+.quoteError {
+  /* Til fejlbesked for citat-hentning */
+  color: orange;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+/* Gættehistorik for Citat Mode (hvis den skal styles anderledes end sharedStyles.citatGuessHistory) */
+/* Ellers kan du fjerne denne og bruge den delte */
+.citatModeGuessHistory {
+  /* specifikke styles for citat historik her */
+}
