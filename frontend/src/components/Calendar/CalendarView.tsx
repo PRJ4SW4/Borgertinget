@@ -91,7 +91,6 @@ function CalendarView() {
 
   return (
     <div className="calendar-list-container">
-      <h1>Kalender</h1>
       {/* Iterate through each date group */}
       {dateKeys.map((dateKey) => (
         <div key={dateKey} className="date-group">

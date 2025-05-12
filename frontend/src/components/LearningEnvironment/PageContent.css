@@ -57,16 +57,24 @@
     cursor: not-allowed;       /* Indicate non-interactive */
   }
 
-  /* Style the optional overall container */
-  .all-questions-container {
-    margin-top: 3rem; /* Space above the first question */
-  }
+/* Style the optional overall container */
+.all-questions-container {
+  margin-top: 3rem; /* Space above the first question */
+}
 
-  /* Ensure the last question section doesn't have extra bottom margin */
-  .all-questions-container .question-section:last-child {
-    margin-bottom: 0;
-  }
+/* Ensure the last question section doesn't have extra bottom margin */
+.all-questions-container .question-section:last-child {
+  margin-bottom: 0;
+}
 
+.question-section {
+  margin-top: 3rem; /* Space above the question section */
+  margin-bottom: 2rem; /* Add space between multiple question sections */
+  padding: 1.5rem;
+  background-color: #f1f3f5; /* Light background for the section */
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+}
 
   .question-section {
     margin-top: 3rem; /* Space above the question section */

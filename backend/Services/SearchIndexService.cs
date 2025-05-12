@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using backend.Data; // Your DbContext
 using backend.Models; // Your models including Aktor, Flashcard, SearchDocument
-using backend.Models.LearningEnvironment;
+using backend.Models.Flashcards;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection; // For GetService
 using Microsoft.Extensions.Hosting; // For IHostApplicationLifetime or similar context
@@ -169,7 +169,7 @@ namespace backend.Services
 
             return new SearchDocument
             {
-                Id = $"aktor-{aktor.Id}", // Unique ID for OpenSearch
+                Id = $"aktor-{aktor.PoliticianId}", // Unique ID for OpenSearch
                 DataType = "Aktor",
                 Title = aktor.navn, // Use full name as the primary title
                 Content = string.Join(

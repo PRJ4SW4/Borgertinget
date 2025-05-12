@@ -2,12 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { IAktor } from '../types/Aktor';
 import "./PoliticianPage.css";
+// Consider adding a default image import if you need one for onError
+// import DefaultPic from "../images/defaultPic.jpg";
+
+//Af Jakob, dette er til subscribe knappen
+import SubscribeButton from '../components/FeedComponents/SubscribeButton';
+import { getSubscriptions } from '../services/tweetService';
 
 const PoliticianPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [politician, setPolitician] = useState<IAktor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  //Af Jakob, dette er til subscribe knappen
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [twitterId, setTwitterId] = useState<number | null>(null);
+ 
 
   useEffect(() => {
     const fetchPolitician = async () => {
@@ -61,6 +72,41 @@ const PoliticianPage: React.FC = () => {
     fetchPolitician();
   }, [id]);
 
+
+  // Af Jakob, dette er til subscribe knappen
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      if (politician && politician.id) { // KORREKT: aktørId → id
+        try {
+          // Hent brugerens eksisterende abonnementer
+          const subscriptions = await getSubscriptions();
+          
+          // Find Twitter ID via lookup-API'et (behold aktorId som parameter i URL)
+          const lookupResponse = await fetch(`http://localhost:5218/api/subscription/lookup/politicianTwitterId?aktorId=${politician.id}`, { // KORREKT: aktørId → id
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+            }
+          });
+
+          if (lookupResponse.ok) {
+            const lookupData = await lookupResponse.json();
+            setTwitterId(lookupData.politicianTwitterId);
+            
+            // Tjek om politikeren allerede følges
+            setIsSubscribed(subscriptions.some(sub => sub.id === lookupData.politicianTwitterId));
+          } else {
+            console.error('Kunne ikke finde Twitter ID for denne politiker');
+          }
+        } catch (error) {
+          console.error('Fejl ved tjek af abonnementsstatus:', error);
+        }
+      }
+    };
+    
+    checkSubscriptionStatus();
+  }, [politician]);
+
+
   if (loading) return <div className="loading-message">Henter politiker detaljer...</div>;
   if (error) return <div className="error-message">Fejl: {error} <Link to="/">Tilbage til forsiden</Link></div>;
   if (!politician) return <div className="info-message">Politikerdata er ikke tilgængelig. <Link to="/">Tilbage til forsiden</Link></div>;
@@ -85,18 +131,29 @@ const PoliticianPage: React.FC = () => {
             className="info-box-photo"
             onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                 const imgElement = e.target as HTMLImageElement;
-                console.error(`Kunne ikke loade billede: ${politician.pictureMiRes}`);
-                
-                
+                console.error(`Kunne ikke loade billede: ${politician.pictureMiRes}`); // Danish
                 imgElement.style.display = 'none'; // Simple hide on error
             }}
           />
         ) : (
-           // TODO set default pic
            <div className="info-box-photo-placeholder">Intet billede</div> // Danish
         )}
         <h4>Navn</h4>
         <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : (politician.navn || 'Ukendt')}</p>
+
+
+
+        {/*Subscribe*/}
+        {twitterId !== null && (
+          <div className="subscription-container">
+            <SubscribeButton
+              politicianTwitterId={twitterId}
+              initialIsSubscribed={isSubscribed}
+              onSubscriptionChange={(newStatus) => setIsSubscribed(newStatus)}
+            />
+          </div>
+        )}
+
         <h4>Parti</h4>
         <p>
           {politician.party ? (
@@ -135,7 +192,7 @@ const PoliticianPage: React.FC = () => {
 
       {/* Other Details Outside the Box */}
       <article className="politician-details">
-
+        
         <section className="detail-section">
             <h3>Grundlæggende Information</h3> 
             <p><strong>Født:</strong> {politician.born || 'Ikke tilgængelig'}</p> 
