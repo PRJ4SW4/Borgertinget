@@ -101,6 +101,10 @@ public class PagesController : ControllerBase
                         Id = opt.AnswerOptionId,
                         // Maps the OptionText property from the AnswerOption entity to the DTO.
                         OptionText = opt.OptionText,
+                        // Maps the IsCorrect property from the AnswerOption entity to the DTO.
+                        IsCorrect = opt.IsCorrect,
+                        // Maps the DisplayOrder property from the AnswerOption entity to the DTO.
+                        DisplayOrder = opt.DisplayOrder,
                     })
                     // Converts the resulting IEnumerable<AnswerOptionDto> to a List.
                     .ToList(),
@@ -233,37 +237,166 @@ public class PagesController : ControllerBase
     // POST: api/pages
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<Page>> CreatePage(Page newPage)
+    public async Task<ActionResult<PageDetailDTO>> CreatePage(PageCreateRequestDTO createRequest)
     {
+        var newPage = new Page
+        {
+            Title = createRequest.Title,
+            Content = createRequest.Content,
+            ParentPageId = createRequest.ParentPageId,
+            DisplayOrder = createRequest.DisplayOrder,
+            AssociatedQuestions = createRequest
+                .AssociatedQuestions.Select(qDto => new Question
+                {
+                    QuestionText = qDto.QuestionText,
+                    AnswerOptions = qDto
+                        .Options.Select(optDto => new AnswerOption
+                        {
+                            OptionText = optDto.OptionText,
+                            IsCorrect = optDto.IsCorrect,
+                            DisplayOrder = optDto.DisplayOrder,
+                        })
+                        .ToList(),
+                })
+                .ToList(),
+        };
+
         _context.Pages.Add(newPage);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetPage), new { id = newPage.Id }, newPage);
+        // Return the created page details, similar to GetPage(id)
+        // This requires mapping the newPage entity back to PageDetailDTO
+        // For simplicity, we'll call GetPage, but ideally, map directly or return a simpler confirmation.
+        return CreatedAtAction(
+            nameof(GetPage),
+            new { id = newPage.Id },
+            MapPageToPageDetailDTO(newPage, null, null)
+        );
     }
 
     // PUT: api/pages/{id}
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdatePage(int id, Page updatedPage)
+    public async Task<IActionResult> UpdatePage(int id, PageUpdateRequestDTO updateRequest)
     {
-        if (id != updatedPage.Id)
+        if (id != updateRequest.Id)
         {
             return BadRequest("Page ID mismatch.");
         }
 
-        var existingPage = await _context.Pages.FindAsync(id);
+        var existingPage = await _context
+            .Pages.Include(p => p.AssociatedQuestions)
+            .ThenInclude(q => q.AnswerOptions)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (existingPage == null)
         {
             return NotFound();
         }
 
-        // Update the fields
-        existingPage.Title = updatedPage.Title;
-        existingPage.Content = updatedPage.Content;
-        existingPage.ParentPageId = updatedPage.ParentPageId;
-        existingPage.DisplayOrder = updatedPage.DisplayOrder;
+        // Update scalar properties
+        existingPage.Title = updateRequest.Title;
+        existingPage.Content = updateRequest.Content;
+        existingPage.ParentPageId = updateRequest.ParentPageId;
+        existingPage.DisplayOrder = updateRequest.DisplayOrder;
 
-        await _context.SaveChangesAsync();
+        // Manage AssociatedQuestions
+        // Remove questions not in the update request or deleted by user
+        var questionsToRemove = existingPage
+            .AssociatedQuestions.Where(eq =>
+                !updateRequest.AssociatedQuestions.Any(uqDto =>
+                    uqDto.Id == eq.QuestionId && uqDto.Id != 0
+                )
+            )
+            .ToList();
+        _context.Questions.RemoveRange(questionsToRemove);
+
+        foreach (var qDto in updateRequest.AssociatedQuestions)
+        {
+            Question? existingQuestion = null;
+            if (qDto.Id != 0) // If Id is provided, try to find existing question
+            {
+                existingQuestion = existingPage.AssociatedQuestions.FirstOrDefault(q =>
+                    q.QuestionId == qDto.Id
+                );
+            }
+
+            if (existingQuestion != null) // Update existing question
+            {
+                existingQuestion.QuestionText = qDto.QuestionText;
+
+                // Manage AnswerOptions for the existing question
+                var optionsToRemove = existingQuestion
+                    .AnswerOptions.Where(eo =>
+                        !qDto.Options.Any(uoDto => uoDto.Id == eo.AnswerOptionId && uoDto.Id != 0)
+                    )
+                    .ToList();
+                _context.AnswerOptions.RemoveRange(optionsToRemove);
+
+                foreach (var optDto in qDto.Options)
+                {
+                    AnswerOption? existingOption = null;
+                    if (optDto.Id != 0)
+                    {
+                        existingOption = existingQuestion.AnswerOptions.FirstOrDefault(o =>
+                            o.AnswerOptionId == optDto.Id
+                        );
+                    }
+
+                    if (existingOption != null) // Update existing option
+                    {
+                        existingOption.OptionText = optDto.OptionText;
+                        existingOption.IsCorrect = optDto.IsCorrect;
+                        existingOption.DisplayOrder = optDto.DisplayOrder;
+                    }
+                    else // Add new option
+                    {
+                        existingQuestion.AnswerOptions.Add(
+                            new AnswerOption
+                            {
+                                OptionText = optDto.OptionText,
+                                IsCorrect = optDto.IsCorrect,
+                                DisplayOrder = optDto.DisplayOrder,
+                                // QuestionId will be set by EF
+                            }
+                        );
+                    }
+                }
+            }
+            else // Add new question
+            {
+                var newQuestion = new Question
+                {
+                    QuestionText = qDto.QuestionText,
+                    AnswerOptions = qDto
+                        .Options.Select(optDto => new AnswerOption
+                        {
+                            OptionText = optDto.OptionText,
+                            IsCorrect = optDto.IsCorrect,
+                            DisplayOrder = optDto.DisplayOrder,
+                        })
+                        .ToList(),
+                    // PageId will be set by EF
+                };
+                existingPage.AssociatedQuestions.Add(newQuestion);
+            }
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!PageExists(id))
+            {
+                return NotFound();
+            }
+            else
+            {
+                throw;
+            }
+        }
 
         return NoContent();
     }
@@ -283,5 +416,41 @@ public class PagesController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    private bool PageExists(int id)
+    {
+        return _context.Pages.Any(e => e.Id == id);
+    }
+
+    // Helper to map Page to PageDetailDTO (can be expanded or moved to a service)
+    private PageDetailDTO MapPageToPageDetailDTO(Page page, int? prevId, int? nextId)
+    {
+        return new PageDetailDTO
+        {
+            Id = page.Id,
+            Title = page.Title,
+            Content = page.Content,
+            ParentPageId = page.ParentPageId,
+            PreviousSiblingId = prevId, // These would typically be calculated as in GetPage
+            NextSiblingId = nextId, // For CreatedAtAction, they might be null or require re-query
+            AssociatedQuestions =
+                page.AssociatedQuestions?.Select(q => new QuestionDTO
+                    {
+                        Id = q.QuestionId,
+                        QuestionText = q.QuestionText,
+                        Options =
+                            q.AnswerOptions?.OrderBy(o => o.DisplayOrder)
+                                .Select(opt => new AnswerOptionDTO
+                                {
+                                    Id = opt.AnswerOptionId,
+                                    OptionText = opt.OptionText,
+                                    IsCorrect = opt.IsCorrect,
+                                    DisplayOrder = opt.DisplayOrder,
+                                })
+                                .ToList() ?? new List<AnswerOptionDTO>(),
+                    })
+                    .ToList() ?? new List<QuestionDTO>(),
+        };
     }
 }

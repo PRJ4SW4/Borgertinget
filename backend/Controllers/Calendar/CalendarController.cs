@@ -26,7 +26,7 @@ public class CalendarController : ControllerBase
 
     // Constructor for the CalendarController, injecting required services and dependencies.
     public CalendarController(
-        IAltingetScraperService scraperService, // Changed to interface
+        AltingetScraperService scraperService, // Changed to interface
         DataContext context,
         ILogger<CalendarController> logger
     )

@@ -24,6 +24,13 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Ensures padding doesn't affect overall width */
+  min-height: 100px; /* Minimum height for text areas */
 }
 
 /* Sections within form */
@@ -112,4 +119,211 @@ button:disabled,
   width: 70px;
   height: 70px;
   margin-bottom: 1rem;
+}
+
+/* Styles for question and answer admin sections */
+.questions-admin-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.questions-admin-section h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: white; /* Added to match h1 style in container */
+}
+
+.question-admin-block {
+  background-color: #c99b9b;
+  border-radius: 5px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Styles for read-only question display in DeleteLearningPage */
+.question-admin-block.read-only {
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
+  color: #343a40; /* Darker text for better readability on light background */
+}
+
+.question-admin-block.read-only .page-label strong {
+  color: #212529; /* Ensure strong text is dark */
+}
+
+.question-admin-block .page-label {
+  /* General label styling within question block */
+  color: #333; /* Changed from white to a dark gray for better contrast */
+  margin-bottom: 0.5rem; /* Consistent spacing */
+}
+
+.question-admin-block.read-only .page-label {
+  color: #343a40;
+}
+
+.question-admin-block h4 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: #333; /* Changed from white to a dark gray */
+}
+
+.question-admin-block.read-only h4 {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.3rem;
+  color: #495057;
+}
+
+.question-admin-block.read-only ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin: 0;
+}
+
+.question-admin-block.read-only ul li {
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.question-admin-block.read-only .correct-indicator {
+  color: green;
+  font-weight: bold;
+}
+
+.question-admin-block.read-only .no-options-text {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #6c757d;
+}
+
+.answer-option-admin-block {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Spacing between elements */
+  margin-bottom: 0.75rem;
+  padding-left: 1rem; /* Indent answer options */
+}
+
+.answer-option-admin-block input[type="text"] {
+  flex-grow: 1; /* Allow text input to take available space */
+}
+
+.correct-answer-label {
+  display: flex;
+  align-items: center; /* Key for vertical centering of flex items */
+  gap: 0.5rem; /* Spacing between checkbox and text span */
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.correct-answer-label input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  width: 1.3em; /* Define explicit size */
+  height: 1.3em; /* Define explicit size */
+  border: 1px solid #6c757d;
+  border-radius: 3px;
+  background-color: #fff;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0; /* Prevent checkbox from shrinking */
+}
+
+.correct-answer-label input[type="checkbox"]:checked {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.correct-answer-label input[type="checkbox"]:checked::before {
+  content: "✔";
+  font-size: 1em; /* Adjust size of checkmark relative to checkbox font-size */
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 1; /* Critical for centering the checkmark character */
+}
+
+.correct-answer-label span {
+  line-height: 1.3em; /* Match the height of the checkbox */
+  display: inline-block; /* Ensures line-height contributes to the element's box height */
+  color: #333; /* Changed from white to a dark gray for better contrast */
+}
+
+.add-btn,
+.remove-btn {
+  padding: 0.4em 0.8em;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  background-color: #950018e5;
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.add-btn:hover {
+  background-color: #7b0015e5;
+}
+
+/* Specific style for the main delete action button */
+.delete-action-btn {
+  background-color: #991b1b; /* Dark red */
+}
+.delete-action-btn:hover {
+  background-color: #7a1515; /* Darker red on hover */
+}
+
+.question-controls-bottom {
+  display: flex;
+  justify-content: flex-start; /* Align buttons to the start */
+  gap: 0.5rem; /* Add gap between buttons if they are in the same container */
+  align-items: center;
+  margin-top: 1rem; /* Space above this button group */
+}
+
+.option-management-controls {
+  display: flex;
+  gap: 0.5rem; /* Space between "Tilføj Svarsmulighed" and "Fjern Sidste Svar" */
+  margin-top: 0.75rem; /* Space above this group */
+  margin-bottom: 0.75rem; /* Space below this group before "Fjern Spørgsmål" */
+}
+
+.question-remove-btn {
+  /* No longer needs block display or specific top margin if handled by flex container */
+}
+
+.add-question-btn {
+  /* Styles for the main "Tilføj Spørgsmål" button */
+  margin-bottom: 1.5rem; /* Increased spacing below this button */
+}
+
+.save-page-btn {
+  /* Styles for the main "Gem Side" / "Gem Ændringer" button */
+  /* margin-top is implicitly handled by add-question-btn's margin-bottom */
+}
+
+.page-textarea {
+  /* Specific class for textareas if needed for sizing */
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: vertical; /* Allow vertical resizing */
+}
+
+/* Ensure inputs within forms also get consistent styling if not already covered by .page-input */
+.question-admin-block .page-input,
+.answer-option-admin-block .page-input {
+  /* Assuming .page-input already has good base styling */
+  /* Add any overrides if necessary */
+  margin-bottom: 0.5rem; /* Consistent spacing */
 }

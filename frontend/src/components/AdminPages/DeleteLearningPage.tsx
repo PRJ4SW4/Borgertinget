@@ -3,26 +3,12 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ChangeLearningPage.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
-
-interface PageSummaryDto {
-  id: number;
-  title: string;
-  parentPageId: number | null;
-  displayOrder: number;
-  hasChildren: boolean;
-}
-
-interface PageDetailDto {
-  id: number;
-  title: string;
-  content: string;
-  parentPageId: number | null;
-}
+import type { PageSummaryDto, PageDetailDto as ApiPageDetailDto, QuestionDto as ApiQuestionDto } from "../../types/pageTypes";
 
 export default function DeleteLearningPage() {
   const [pages, setPages] = useState<PageSummaryDto[]>([]);
   const [selectedPageId, setSelectedPageId] = useState<number | null>(null);
-  const [pageDetails, setPageDetails] = useState<PageDetailDto | null>(null);
+  const [pageDetails, setPageDetails] = useState<ApiPageDetailDto | null>(null);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("jwt");
@@ -46,9 +32,9 @@ export default function DeleteLearningPage() {
       .get(`/api/pages/${selectedPageId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setPageDetails(res.data))
+      .then((res) => setPageDetails(res.data as ApiPageDetailDto))
       .catch(console.error);
-  }, [selectedPageId]);
+  }, [selectedPageId, token]);
 
   const handleDelete = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,11 +91,38 @@ export default function DeleteLearningPage() {
             <label htmlFor="page-content" className="page-label">
               Indhold
             </label>
-            <textarea id="page-content" value={pageDetails.content} disabled rows={6} className="page-input" />
+            <textarea id="page-content" value={pageDetails.content} disabled rows={6} className="page-input page-textarea" />
           </div>
 
+          {pageDetails.associatedQuestions && pageDetails.associatedQuestions.length > 0 && (
+            <div className="questions-admin-section">
+              <h2>Tilknyttede Spørgsmål (vil også blive slettet)</h2>
+              {pageDetails.associatedQuestions.map((question: ApiQuestionDto) => (
+                <div key={question.id} className="question-admin-block read-only">
+                  <p className="page-label">
+                    <strong>Spørgsmål:</strong> {question.questionText}
+                  </p>
+                  {question.options && question.options.length > 0 && (
+                    <div>
+                      <h4>Svarsmuligheder:</h4>
+                      <ul>
+                        {question.options.map((option) => (
+                          <li key={option.id}>
+                            {option.optionText}
+                            {(option as any).isCorrect && <span className="correct-indicator"> (Korrekt)</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {(!question.options || question.options.length === 0) && <p className="no-options-text">Ingen svarsmuligheder tilknyttet.</p>}
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="page-buttons">
-            <button type="submit" className="page-btn" style={{ backgroundColor: "#991b1b" }}>
+            <button type="submit" className="page-btn delete-action-btn">
               Slet Side
             </button>
           </div>

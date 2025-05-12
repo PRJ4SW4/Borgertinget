@@ -3,20 +3,28 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ChangeLearningPage.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import type {
+  PageSummaryDto,
+  PageDetailDto as ApiPageDetailDto,
+  QuestionDto as ApiQuestionDto,
+  AnswerOptionDto as ApiAnswerOptionDto,
+} from "../../types/pageTypes";
 
-interface PageSummaryDto {
+interface AnswerOptionFormState {
   id: number;
-  title: string;
-  parentPageId: number | null;
+  optionText: string;
+  isCorrect: boolean;
   displayOrder: number;
-  hasChildren: boolean;
 }
 
-interface PageDetailDto {
+interface QuestionFormState {
   id: number;
-  title: string;
-  content: string;
-  parentPageId: number | null;
+  questionText: string;
+  options: AnswerOptionFormState[];
+}
+
+interface PageDetailFormState extends Omit<ApiPageDetailDto, "associatedQuestions"> {
+  associatedQuestions: QuestionFormState[];
 }
 
 export default function EditLearningPage() {
@@ -25,38 +33,130 @@ export default function EditLearningPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [parentPageId, setParentPageId] = useState<number | null>(null);
+  const [displayOrder, setDisplayOrder] = useState(0);
+  const [questions, setQuestions] = useState<QuestionFormState[]>([]);
   const navigate = useNavigate();
-
   const token = localStorage.getItem("jwt");
+  const [nextQuestionTempId, setNextQuestionTempId] = useState(-1);
+  const [nextOptionTempId, setNextOptionTempId] = useState(-1);
 
   useEffect(() => {
     axios
       .get("/api/pages", {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setPages(res.data))
+      .then((res) => setPages(res.data as PageSummaryDto[]))
       .catch(console.error);
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    if (!selectedPageId) return;
+    if (!selectedPageId) {
+      setTitle("");
+      setContent("");
+      setParentPageId(null);
+      setDisplayOrder(0);
+      setQuestions([]);
+      return;
+    }
     axios
       .get(`/api/pages/${selectedPageId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        const page: PageDetailDto = res.data;
+        const page: ApiPageDetailDto = res.data;
         setTitle(page.title);
         setContent(page.content);
         setParentPageId(page.parentPageId);
+        const summary = pages.find((p) => p.id === selectedPageId);
+        setDisplayOrder(summary?.displayOrder || 0);
+        const formQuestions =
+          page.associatedQuestions?.map((qApi) => ({
+            id: qApi.id,
+            questionText: qApi.questionText,
+            options:
+              qApi.options.map((optApi) => ({
+                id: optApi.id,
+                optionText: optApi.optionText,
+                isCorrect: optApi.isCorrect,
+                displayOrder: optApi.displayOrder,
+              })) || [],
+          })) || [];
+        setQuestions(formQuestions);
       })
       .catch(console.error);
-  }, [selectedPageId]);
+  }, [selectedPageId, token, pages]);
+
+  const handleAddQuestion = () => {
+    setQuestions([
+      ...questions,
+      {
+        id: nextQuestionTempId,
+        questionText: "",
+        options: [
+          { id: nextOptionTempId, optionText: "", isCorrect: false, displayOrder: 0 },
+          { id: nextOptionTempId - 1, optionText: "", isCorrect: false, displayOrder: 1 },
+        ],
+      },
+    ]);
+    setNextQuestionTempId((prev) => prev - 1);
+    setNextOptionTempId((prev) => prev - 2);
+  };
+
+  const handleQuestionTextChange = (qIndex: number, text: string) => {
+    const newQuestions = questions.map((q, i) => (i === qIndex ? { ...q, questionText: text } : q));
+    setQuestions(newQuestions);
+  };
+
+  const handleRemoveQuestion = (qIndex: number) => {
+    setQuestions(questions.filter((_, index) => index !== qIndex));
+  };
+
+  const handleAddOption = (qIndex: number) => {
+    const newQuestions = [...questions];
+    newQuestions[qIndex].options.push({
+      id: nextOptionTempId,
+      optionText: "",
+      isCorrect: false,
+      displayOrder: newQuestions[qIndex].options.length,
+    });
+    setQuestions(newQuestions);
+    setNextOptionTempId((prev) => prev - 1);
+  };
+
+  const handleOptionTextChange = (qIndex: number, oIndex: number, text: string) => {
+    const newQuestions = [...questions];
+    newQuestions[qIndex].options[oIndex].optionText = text;
+    setQuestions(newQuestions);
+  };
+
+  const handleOptionCorrectChange = (qIndex: number, oIndex: number, checked: boolean) => {
+    const newQuestions = [...questions];
+    newQuestions[qIndex].options[oIndex].isCorrect = checked;
+    setQuestions(newQuestions);
+  };
+
+  const handleRemoveLastOption = (qIndex: number) => {
+    const newQuestions = [...questions];
+    if (newQuestions[qIndex].options.length > 0) {
+      newQuestions[qIndex].options.pop();
+      setQuestions(newQuestions);
+    } else {
+      alert("Der er ingen svarmuligheder at fjerne.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!selectedPageId) return;
+
+    const questionsPayload = questions.map((q) => ({
+      ...q,
+      id: q.id < 0 ? 0 : q.id,
+      options: q.options.map((opt) => ({
+        ...opt,
+        id: opt.id < 0 ? 0 : opt.id,
+      })),
+    }));
 
     try {
       await axios.put(
@@ -66,7 +166,8 @@ export default function EditLearningPage() {
           title,
           content,
           parentPageId,
-          displayOrder: 1, // Can be made editable if needed
+          displayOrder,
+          associatedQuestions: questionsPayload,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -105,10 +206,10 @@ export default function EditLearningPage() {
           <label htmlFor="titleInput" className="page-label">
             Titel <span style={{ color: "red" }}>*</span>
           </label>
-          <input id="titleInput" type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titel" className="page-title" />
+          <input id="titleInput" type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titel" className="page-input" />
 
           <label htmlFor="contentInput" className="page-label">
-            Indhold <span style={{ color: "red" }}>*</span>
+            Indhold (Markdown)
           </label>
           <textarea
             id="contentInput"
@@ -116,11 +217,11 @@ export default function EditLearningPage() {
             onChange={(e) => setContent(e.target.value)}
             rows={6}
             placeholder="Markdown indhold"
-            className="page-form"
+            className="page-form page-textarea"
           />
 
           <label htmlFor="parentPageSelect" className="page-label">
-            Overordnet side 
+            Overordnet side
           </label>
           <select
             id="parentPageSelect"
@@ -137,7 +238,67 @@ export default function EditLearningPage() {
               ))}
           </select>
 
-          <button type="submit" className="page-btn">
+          <label htmlFor="displayOrderInput" className="page-label">
+            Visningsrækkefølge
+          </label>
+          <input
+            id="displayOrderInput"
+            type="number"
+            value={displayOrder}
+            onChange={(e) => setDisplayOrder(Number(e.target.value))}
+            className="page-input"
+          />
+
+          <div className="questions-admin-section">
+            <h2>Spørgsmål tilknyttet siden</h2>
+            {questions.map((q, qIndex) => (
+              <div key={q.id} className="question-admin-block">
+                <label htmlFor={`question-text-${q.id}`} className="page-label">
+                  Spørgsmålstekst
+                </label>
+                <textarea
+                  id={`question-text-${q.id}`}
+                  value={q.questionText}
+                  onChange={(e) => handleQuestionTextChange(qIndex, e.target.value)}
+                  placeholder="Indtast spørgsmål"
+                  className="page-input page-textarea"
+                  rows={2}
+                />
+                <h4>Svarsmuligheder</h4>
+                {q.options.map((opt, oIndex) => (
+                  <div key={opt.id} className="answer-option-admin-block">
+                    <input
+                      type="text"
+                      value={opt.optionText}
+                      onChange={(e) => handleOptionTextChange(qIndex, oIndex, e.target.value)}
+                      placeholder="Svarsmulighed"
+                      className="page-input"
+                    />
+                    <label className="correct-answer-label">
+                      <input type="checkbox" checked={opt.isCorrect} onChange={(e) => handleOptionCorrectChange(qIndex, oIndex, e.target.checked)} />
+                      <span>Korrekt?</span>
+                    </label>
+                  </div>
+                ))}
+                <div className="option-management-controls">
+                  <button type="button" onClick={() => handleAddOption(qIndex)} className="add-btn">
+                    Tilføj Svarsmulighed
+                  </button>
+                  <button type="button" onClick={() => handleRemoveLastOption(qIndex)} className="remove-btn">
+                    Fjern Sidste Svar
+                  </button>
+                </div>
+                <button type="button" onClick={() => handleRemoveQuestion(qIndex)} className="remove-btn question-remove-btn">
+                  Fjern Spørgsmål
+                </button>
+              </div>
+            ))}
+            <button type="button" onClick={handleAddQuestion} className="add-btn add-question-btn">
+              Tilføj Spørgsmål
+            </button>
+          </div>
+
+          <button type="submit" className="page-btn save-page-btn">
             Gem Ændringer
           </button>
         </form>
