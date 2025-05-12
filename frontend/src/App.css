@@ -3,19 +3,18 @@
 /* --- IMPORT POPPINS FONT --- */
 /* Imports the Poppins font family from Google Fonts. */
 /* Specifies weights 400 (regular), 500 (medium), and 700 (bold). */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap");
 
 /* --- Apply Poppins Font Globally --- */
 /* Styles applied to 'body' are inherited by most elements. */
 body {
   margin: 0; /* Resets default browser margin. */
-  font-family: 'Poppins', sans-serif; /* Sets Poppins as the default font. */
+  font-family: "Poppins", sans-serif; /* Sets Poppins as the default font. */
   font-weight: 400; /* Sets default font weight to regular. */
   line-height: 1.5; /* Sets standard line spacing. */
   /* Default text and background colors. */
-   color: #213547; /* Dark greyish-blue text */
-   background-color: #ffffff; /* White background */
+  color: #213547; /* Dark greyish-blue text */
+  background-color: #ffffff; /* White background */
 }
 
 /* --- Default Element Styles --- */
