@@ -9,6 +9,8 @@ using backend.Services.AutomationServices;
 using backend.Services.AutomationServices.HtmlFetching;
 using backend.Services.AutomationServices.Parsing;
 using backend.Services.AutomationServices.Repositories;
+// Learning Environment Services
+using backend.Services.LearningEnvironmentServices;
 // JWT Stuff
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -195,6 +197,10 @@ builder.Services.AddScoped<IHtmlFetcher, AltingetHtmlFetcher>();
 builder.Services.AddScoped<IEventDataParser, AltingetEventDataParser>();
 builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
 builder.Services.AddScoped<IAutomationService, AltingetScraperService>();
+
+// Learning Environment Services
+builder.Services.AddScoped<IAnswerService, AnswerService>();
+builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 
 var app = builder.Build();
 
