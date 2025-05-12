@@ -36,8 +36,8 @@ export const checkAnswer =
   return await response.json() as AnswerCheckResponse;
 };
 
-export const fetchPagesStructure = async(): Promise<PageSummaryDto[]> => {
-  const response = await fetch(`${API_BASE_URL}/pages`);
+export const fetchPagesStructure = async (): Promise<PageSummaryDto[]> => {
+  const response = await fetch(`${API_BASE_URL}/pages/structure`);
   if (!response.ok) {
     throw new Error(`Failed to fetch page structure: ${response.statusText}`);
   }

@@ -32,52 +32,11 @@ public class ScheduledAltingetScrapeService : BackgroundService
         {
             try
             {
-                // --- Calculate Delay until next 4:00 AM Copenhagen time ---
-                TimeZoneInfo copenhagenZone = FindTimeZone(); // Helper to get timezone reliably
-                DateTimeOffset nowUtc = DateTimeOffset.UtcNow;
-                DateTimeOffset nowCopenhagen = TimeZoneInfo.ConvertTime(nowUtc, copenhagenZone);
+                TimeSpan delay = CalculateNextRunDelay();
+                _logger.LogInformation("Next Altinget scrape will be in {Delay}.", delay);
 
-                // Target time is 4:00 AM on the current local date
-                DateTime targetTimeToday = nowCopenhagen.Date.AddHours(4);
-
-                // Determine the next run time (either 4 AM today or 4 AM tomorrow)
-                DateTime nextRunTimeLocal;
-                if (nowCopenhagen.TimeOfDay >= TimeSpan.FromHours(4))
-                {
-                    // It's 4 AM or later today, schedule for 4 AM tomorrow
-                    nextRunTimeLocal = targetTimeToday.AddDays(1);
-                }
-                else
-                {
-                    // It's before 4 AM today, schedule for 4 AM today
-                    nextRunTimeLocal = targetTimeToday;
-                }
-
-                // Convert the scheduled local run time into a DateTimeOffset using the correct zone offset
-                // This correctly handles potential DST transitions near 4 AM
-                DateTimeOffset nextRunTimeZoned = new DateTimeOffset(
-                    nextRunTimeLocal,
-                    copenhagenZone.GetUtcOffset(nextRunTimeLocal)
-                );
-
-                // Calculate the delay from the current UTC time until the target UTC time
-                TimeSpan delay = nextRunTimeZoned - nowUtc;
-
-                if (delay < TimeSpan.Zero)
-                {
-                    // Should not happen with the logic above, but safety check
-                    delay = TimeSpan.Zero;
-                }
-
-                _logger.LogInformation(
-                    "Next Altinget scrape scheduled for: {TargetRunTime} Copenhagen time ({TargetRunTimeUtc} UTC). Waiting for {Delay}.",
-                    nextRunTimeLocal.ToString("yyyy-MM-dd HH:mm:ss"),
-                    nextRunTimeZoned.ToString("yyyy-MM-dd HH:mm:ss"),
-                    delay
-                );
-
-                // Wait for the calculated delay, honoring the cancellation token
-                await Task.Delay(delay, stoppingToken);
+                // Wait for the calculated delay
+                await WaitForNextScheduledRunAsync(delay, stoppingToken);
 
                 // --- Time to run the task ---
                 _logger.LogInformation("Running scheduled Altinget scrape...");
@@ -85,12 +44,12 @@ public class ScheduledAltingetScrapeService : BackgroundService
                 // Create a new DI scope to resolve scoped services (DataContext, AltingetScraperService)
                 using (var scope = _scopeFactory.CreateScope())
                 {
-                    var scraperService =
-                        scope.ServiceProvider.GetRequiredService<IAltingetScraperService>(); // Changed to interface
+                    var automationService =
+                        scope.ServiceProvider.GetRequiredService<IAutomationService>();
                     try
                     {
                         // Execute the automation task
-                        int count = await scraperService.RunAutomation();
+                        int count = await automationService.RunAutomation();
                         _logger.LogInformation(
                             "Scheduled Altinget scrape finished. Processed {Count} events.",
                             count
@@ -101,7 +60,7 @@ public class ScheduledAltingetScrapeService : BackgroundService
                         // Log errors specifically from the RunAutomation task
                         _logger.LogError(
                             ex,
-                            "Error occurred during the execution of AltingetScraperService.RunAutomation."
+                            "Error occurred during the execution of the automation task via IAutomationService."
                         );
                     }
                 }
@@ -138,7 +97,68 @@ public class ScheduledAltingetScrapeService : BackgroundService
         _logger.LogInformation("Scheduled Altinget Scrape Service has stopped.");
     }
 
+    // Method to calculate the next run delay
+    // This is separated for clarity and easier diagramming
+    private TimeSpan CalculateNextRunDelay()
+    {
+        // --- Calculate Delay until next 4:00 AM Copenhagen time ---
+        TimeZoneInfo copenhagenZone = FindTimeZone(); // Helper to get timezone reliably
+        DateTimeOffset nowUtc = DateTimeOffset.UtcNow;
+        DateTimeOffset nowCopenhagen = TimeZoneInfo.ConvertTime(nowUtc, copenhagenZone);
+
+        // Target time is 4:00 AM on the current local date
+        DateTime targetTimeToday = nowCopenhagen.Date.AddHours(4);
+
+        // Determine the next run time (either 4 AM today or 4 AM tomorrow)
+        DateTime nextRunTimeLocal;
+        if (nowCopenhagen.TimeOfDay >= TimeSpan.FromHours(4))
+        {
+            // It's 4 AM or later today, schedule for 4 AM tomorrow
+            nextRunTimeLocal = targetTimeToday.AddDays(1);
+        }
+        else
+        {
+            // It's before 4 AM today, schedule for 4 AM today
+            nextRunTimeLocal = targetTimeToday;
+        }
+
+        // Convert the scheduled local run time into a DateTimeOffset using the correct zone offset
+        // This correctly handles potential DST transitions near 4 AM
+        DateTimeOffset nextRunTimeZoned = new DateTimeOffset(
+            nextRunTimeLocal,
+            copenhagenZone.GetUtcOffset(nextRunTimeLocal)
+        );
+
+        // Calculate the delay from the current UTC time until the target UTC time
+        TimeSpan delay = nextRunTimeZoned - nowUtc;
+
+        if (delay < TimeSpan.Zero)
+        {
+            // Should not happen with the logic above, but safety check
+            _logger.LogWarning(
+                "Calculated delay was negative, setting to zero. Next run will be immediate."
+            );
+            delay = TimeSpan.Zero;
+        }
+
+        _logger.LogInformation(
+            "Next Altinget scrape calculated for: {TargetRunTime} Copenhagen time ({TargetRunTimeUtc} UTC).",
+            nextRunTimeLocal.ToString("yyyy-MM-dd HH:mm:ss"),
+            nextRunTimeZoned.ToString("yyyy-MM-dd HH:mm:ss")
+        );
+        return delay;
+    }
+
+    // --- Time Handling ---
+    // This method is used to wait for the next scheduled run
+    private async Task WaitForNextScheduledRunAsync(TimeSpan delay, CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Waiting for {Delay} until the next scheduled run.", delay);
+        await Task.Delay(delay, stoppingToken);
+    }
+
     // Helper to find the timezone reliably on different OS
+    // This makes sure it will work on both Linux, MacOS and Windows
     private TimeZoneInfo FindTimeZone()
     {
         try

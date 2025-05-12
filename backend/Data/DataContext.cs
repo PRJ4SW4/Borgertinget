@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic; // Required
 using System.Linq;
 using System.Text.Json; // Required
 using backend.Models; // Sørg for at FakePolitiker, FakeParti og PolidleGamemodeTracker er i dette namespace

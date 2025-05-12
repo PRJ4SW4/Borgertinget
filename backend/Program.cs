@@ -2,9 +2,18 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using backend.Data;
-using backend.Hubs; // <--- TILFØJ DENNE LINJE
+using backend.Hubs;
 using backend.Services;
+// For Altinget Scraping
 using backend.Services.AutomationServices;
+using backend.Services.AutomationServices.HtmlFetching;
+using backend.Services.AutomationServices.Parsing;
+using backend.Services.AutomationServices.Repositories;
+// Flashcard Services
+using backend.Services.Flashcards;
+// Learning Environment Services
+using backend.Services.LearningEnvironmentServices;
+// JWT Stuff
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore; // Inkluderer MigrateAsync()
 using Microsoft.Extensions.Logging; // Inkluderer ILogger
@@ -207,8 +216,11 @@ builder.Services.AddHttpClient<TwitterService>();
 //oda.ft crawler
 builder.Services.AddScoped<HttpService>();
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
+builder.Services.AddHostedService<TweetFetchingService>(); 
+builder.Services.AddHttpClient<TwitterService>();
 
-// CORS (Cross-Origin Resource Sharing) konfiguration
+
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
@@ -224,7 +236,7 @@ builder.Services.AddCors(options =>
     );
 });
 
-builder.Services.AddHttpClient(); // til OAuth
+builder.Services.AddHttpClient(); // General HttpClient factory registration (Used by OAuth and AltingetFetcher
 
 // note af Jakob, put option id virkede med det her der er uddokumenteret, men da jeg havde det til, så virkede feed og partier ikke, jeg har ikke den post til pools på min git, derfor håber jeg det virker uden dette,
 
@@ -241,9 +253,18 @@ builder.Services.AddHostedService<DailySelectionJob>(); //* Bruges til udvælgel
 builder.Services.AddScoped<SearchIndexingService>();
 
 // For altinget scraping
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<AltingetScraperService>();
 builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
+builder.Services.AddScoped<IHtmlFetcher, AltingetHtmlFetcher>();
+builder.Services.AddScoped<IEventDataParser, AltingetEventDataParser>();
+builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
+builder.Services.AddScoped<IAutomationService, AltingetScraperService>();
+
+// Learning Environment Services
+builder.Services.AddScoped<IAnswerService, AnswerService>();
+builder.Services.AddScoped<ILearningPageService, LearningPageService>();
+
+// Flashcard Services
+builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddHostedService<TestScheduledIndexService>();
 
 builder.Services.AddScoped<AdministratorService>();
