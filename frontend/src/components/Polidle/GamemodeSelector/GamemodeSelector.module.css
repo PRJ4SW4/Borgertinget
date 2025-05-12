@@ -1,0 +1,33 @@
+.gameSelector {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  width: 20%; /* Meget smal bredde - afhænger af kontekst */
+  margin: 20px auto;
+}
+
+.gameSelectorButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #ccc;
+  color: #333;
+  text-decoration: none;
+  font-size: 1.5em;
+  margin: 0 10px;
+}
+
+.gameSelectorButton:hover {
+  background-color: #ddd;
+}
+
+.gameSelectorButton.active {
+  background-color: red; /* Meget kraftig aktiv farve */
+  color: white;
+}
