@@ -14,6 +14,10 @@ using backend.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using backend.utils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options; // Add this using directive
+using Microsoft.AspNetCore.DataProtection;  // Add this
+using Microsoft.Extensions.Logging; // Add this
 
 
 // for .env secrets
@@ -38,17 +42,27 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services
     .AddIdentity<User, IdentityRole<int>>(options => {
+        options.SignIn.RequireConfirmedEmail = true;
+
+        options.Tokens.ProviderMap.Add(
+            "CustomEmailConfirmation",
+            new TokenProviderDescriptor(typeof(EmailConfirmationTokenProvider<User>))
+        );
+        options.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+
         options.Password.RequireDigit = true;
         options.Password.RequiredLength = 8;
         options.Password.RequireNonAlphanumeric = false;
         options.Password.RequireUppercase = true;
         options.Password.RequireLowercase = true;
         options.User.RequireUniqueEmail = true;
-        options.SignIn.RequireConfirmedEmail = true;
     })
     .AddEntityFrameworkStores<DataContext>()
     .AddDefaultTokenProviders()
-    .AddErrorDescriber<CostumErrorDescriber>();
+    .AddErrorDescriber<CostumErrorDescriber>()
+    .AddRoleManager<RoleManager<IdentityRole<int>>>();
+
+builder.Services.AddTransient<EmailConfirmationTokenProvider<User>>();
 
 // Auth + JWT
 builder
@@ -80,13 +94,13 @@ builder
         {
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine("🚫 TOKEN VALIDATION FAILED:");
+                Console.WriteLine(" TOKEN VALIDATION FAILED:");
                 Console.WriteLine(context.Exception.ToString());
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
-                Console.WriteLine("✅ TOKEN VALIDATED:");
+                Console.WriteLine(" TOKEN VALIDATED:");
                 if (context.Principal?.Identity != null)
                 {
                     Console.WriteLine("User: " + context.Principal.Identity?.Name);

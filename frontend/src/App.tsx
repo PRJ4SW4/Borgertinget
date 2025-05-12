@@ -20,13 +20,22 @@ import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a s
 import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
 import LandingPage from "./pages/LandingPage/LandingPage";
 import FeedPage from './pages/FeedPage';
+import EmailVerification from "./utils/useEmailVerification"; // Handles email verification logic.
 // Navbar and Footer are rendered via MainLayout.
-
 // The main application component.
 function App() {
+  
   // State hook for the JWT authentication token.
   // Initializes state from localStorage to persist login status.
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
+  const handleSetToken = (newToken: string | null) => {
+    setToken(newToken);
+    if (newToken) {
+      localStorage.setItem("jwt", newToken);
+    } else {
+      localStorage.removeItem("jwt");
+    }
+  };
 
   // Effect hook to synchronize token state with localStorage changes across tabs/windows.
   useEffect(() => {
@@ -60,9 +69,10 @@ function App() {
 
       {/* --- Public Routes (No MainLayout, No login required) --- */}
       {/* Login page route. */}
-      <Route path="/login" element={<Login setToken={setToken} />} />
+      <Route path="/login" element={<Login setToken={handleSetToken} />} />
       {/* Post-login success/callback route. */}
-      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />}/>
+      <Route path="/login-success" element={<></>}/>
+      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={(message) => {}}/>} />
 
 
       {/* --- Protected Routes using MainLayout --- */}

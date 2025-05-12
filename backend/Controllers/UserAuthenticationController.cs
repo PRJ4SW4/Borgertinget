@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Generic;
 using System.Web;
 using backend.utils;
+using CoreTweet.Rest;
 
 namespace backend.Controllers
 {
@@ -32,20 +33,22 @@ namespace backend.Controllers
         private readonly IHttpClientFactory _httpClientFactory; 
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        //private readonly IUrlHelper _urlHelper;
+        private readonly ILogger<UsersController> _logger;
 
         public UsersController(
             IConfiguration config,
             EmailService emailService,
             IHttpClientFactory httpClientFactory,
             UserManager<User> userManager,
-            SignInManager<User> signInManager)
+            SignInManager<User> signInManager,
+            ILogger<UsersController> logger)
         {
             _config = config;
             _emailService = emailService;
             _httpClientFactory = httpClientFactory; 
             _userManager = userManager;
             _signInManager = signInManager;
+            _logger = logger;
         }
 
         // GET: api/users
@@ -69,12 +72,13 @@ namespace backend.Controllers
             var result = await _userManager.CreateAsync(user, dto.Password);
             
             if (result.Succeeded) {
-                var roleResult = await _userManager.AddToRoleAsync(user, "User");
+                // var roleResult = await _userManager.AddToRoleAsync(user, "User");
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var encodedToken = HttpUtility.UrlEncode(token);
-                var frontendBaseUrl = _config["FrontendBaseUrl"];
+                _logger.LogInformation($"Token: {token}");
+                var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+                _logger.LogInformation($"Encoded Token: {encodedToken}");
 
-                var verificationLink = $"{frontendBaseUrl}/verify-email?userId={user.Id}&token={encodedToken}";
+                var verificationLink = $"http://localhost:5173/verify?userId={user.Id}&token={encodedToken}";
 
                 var subject = "Bekræft din e-mailadresse";
                 var message = $@"
@@ -90,13 +94,15 @@ namespace backend.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Fejl ved afsendelse af verification email til {user.Email}: {ex.Message}");
+                    _logger.LogError(ex, $"Fejl ved afsendelse af bekræftelsesmail til {user.Email}: {ex.Message}");
+                    return StatusCode(500, new { message = "Fejl ved afsendelse af bekræftelsesmail. Prøv venligst igen senere." } );
                 }
                 return Ok(new { message = "Registrering succesfuld! Tjek din email for at bekræfte din konto." });
             }
             else 
             {
                 var errors = result.Errors.Select(e => e.Description);
+                _logger.LogError($"Brugerregistrering fejlede: {string.Join(", ", errors)}");
                 return BadRequest(new { errors });
             }
         }
@@ -104,28 +110,41 @@ namespace backend.Controllers
         [HttpGet("verify")]
         public async Task<IActionResult> VerifyEmail([FromQuery] int userId, [FromQuery] string token)
         {
+            _logger.LogInformation($"Token: {token}");
             if (string.IsNullOrEmpty(token)) {
-                  return BadRequest("Token mangler.");
+                _logger.LogError("Token mangler.");
+                return BadRequest("Token mangler.");
             }
 
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
+                _logger.LogError($"Bruger med ID {userId} blev ikke fundet.");
                 return BadRequest("Ugyldigt bruger ID.");
             }
 
-            var result = await _userManager.ConfirmEmailAsync(user, token);
-
-            if(result.Succeeded)
+            try
             {
-                return Ok(new { message = "Email verificeret! Du kan nu logge ind." });
+                var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
+                var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
+                _logger.LogInformation($"Decoderet token: {decodedToken}");
+            
+                var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+                if(result.Succeeded)
+                {
+                    return Ok(new { message = "Din emailadresse er bekræftet. Du kan nu logge ind." });
+                }
+                else 
+                {
+                    Console.WriteLine($"Email verification failed for user {userId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    return BadRequest("Ugyldigt eller udløbet verifikationslink");
+                }
             }
-            else 
+            catch (Exception ex)
             {
-                Console.WriteLine($"Email verification failed for user {userId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                return BadRequest("Ugyldigt eller udløbet verifikationslink");
+                _logger.LogWarning(ex, "Fejl ved afkodning af token");
+                return BadRequest(new {message = "Ugyldigt token format"});
             }
-
         }
 
 
