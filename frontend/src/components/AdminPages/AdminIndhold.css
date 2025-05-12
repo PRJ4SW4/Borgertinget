@@ -15,15 +15,18 @@
 }
 
 .button-group {
+  display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .Button {
+  display: block;
   width: 300px;
-  height: 45px;
+  height: auto !important;
+  max-height: none !important;
   border-radius: 8px;
-  padding: 8px 8px;
+  padding: 12px 16px;
   background: #950018e5;
   box-shadow: 0px 4px 4px 0px #00000040;
   color: white;
@@ -32,6 +35,11 @@
   border: none;
   cursor: pointer;
   transition: background 0.3s;
+  white-space: normal;
+  word-wrap: break-word;
+  text-align: center;
+  line-height: 1.4;
+  overflow: visible !important;
 }
 
 .Button:hover {

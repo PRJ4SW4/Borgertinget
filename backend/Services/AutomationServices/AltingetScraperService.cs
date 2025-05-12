@@ -45,7 +45,7 @@ public class ScrapedEventData
 
 // This service is responsible for scraping event data from the Altinget calendar,
 // synchronizing it with the database, and deleting past events.
-public class AltingetScraperService : IAutomationService
+public class AltingetScraperService : IAltingetScraperService, IAutomationService
 {
     private readonly DataContext _context; // Database context for accessing and modifying data.
     private readonly IHttpClientFactory _httpClientFactory; // Factory for creating HTTP clients.
@@ -68,7 +68,7 @@ public class AltingetScraperService : IAutomationService
     }
 
     // Scrapes and returns raw data including SourceUrl
-    internal async Task<List<ScrapedEventData>> ScrapeEventsAsyncInternal()
+    public async Task<List<ScrapedEventData>> ScrapeEventsAsyncInternal()
     {
         var eventsList = new List<ScrapedEventData>(); // Initialize the list to store scraped events.
         var httpClient = _httpClientFactory.CreateClient(); // Create a new HTTP client using the factory.

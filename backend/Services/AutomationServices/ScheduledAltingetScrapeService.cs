@@ -86,7 +86,7 @@ public class ScheduledAltingetScrapeService : BackgroundService
                 using (var scope = _scopeFactory.CreateScope())
                 {
                     var scraperService =
-                        scope.ServiceProvider.GetRequiredService<AltingetScraperService>();
+                        scope.ServiceProvider.GetRequiredService<IAltingetScraperService>(); // Changed to interface
                     try
                     {
                         // Execute the automation task

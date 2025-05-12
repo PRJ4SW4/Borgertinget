@@ -20,13 +20,13 @@ using Microsoft.Extensions.Logging;
 public class CalendarController : ControllerBase
 {
     // Private fields to hold injected services and dependencies.
-    private readonly AltingetScraperService _scraperService;
+    private readonly IAltingetScraperService _scraperService; // Changed to interface
     private readonly DataContext _context;
     private readonly ILogger<CalendarController> _logger;
 
     // Constructor for the CalendarController, injecting required services and dependencies.
     public CalendarController(
-        AltingetScraperService scraperService,
+        IAltingetScraperService scraperService, // Changed to interface
         DataContext context,
         ILogger<CalendarController> logger
     )
