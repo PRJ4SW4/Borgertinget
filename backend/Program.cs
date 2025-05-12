@@ -13,6 +13,7 @@ using Microsoft.OpenApi.Models;
 using backend.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using backend.utils;
 
 
 // for .env secrets
@@ -39,14 +40,15 @@ builder.Services
     .AddIdentity<User, IdentityRole<int>>(options => {
         options.Password.RequireDigit = true;
         options.Password.RequiredLength = 8;
-        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequireNonAlphanumeric = false;
         options.Password.RequireUppercase = true;
         options.Password.RequireLowercase = true;
         options.User.RequireUniqueEmail = true;
         options.SignIn.RequireConfirmedEmail = true;
     })
     .AddEntityFrameworkStores<DataContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddErrorDescriber<CostumErrorDescriber>();
 
 // Auth + JWT
 builder

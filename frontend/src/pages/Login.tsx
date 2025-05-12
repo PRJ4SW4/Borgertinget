@@ -75,20 +75,29 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
             setStatusMessage(responseData.error); // Fanger backend-fejlbesked
             setShowPopup(true);
           } else if (responseData?.errors) {
-            const firstKey = Object.keys(responseData.errors)[0];
-            const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
+            if (Array.isArray(responseData.errors)) {
+              setStatusMessage(responseData.errors[0]); // Fanger den første fejlmeddelelse
+              setShowPopup(true);
+            } else if (typeof responseData.errors === "object") {
+              const firstKey = Object.keys(responseData.errors)[0];
+              const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
 
-            setStatusMessage(firstError); // Fanger backend-fejlbesked
-            setShowPopup(true);
-          } else {
+              setStatusMessage(firstError); // Fanger backend-fejlbesked
+              setShowPopup(true);
+            } else {
             console.log("Unexpected Axios error shape:", error.response?.data);
             setStatusMessage("Noget gik galt. Prøv igen.");
             setShowPopup(true);
           }
-      } else {
-        console.log("No connection or unknown error:", error);
-        setStatusMessage("Ingen forbindelse til serveren.");
-        setShowPopup(true);
+        } else {
+          console.log("No connection or unknown error:", error);
+          setStatusMessage("Ingen forbindelse til serveren.");
+          setShowPopup(true);
+        }
+    }  else {
+          console.log("No connection or unknown error:", error);
+          setStatusMessage("Ingen forbindelse til serveren.");
+          setShowPopup(true);
       }
     }
   };

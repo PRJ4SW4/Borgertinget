@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Generic;
 using System.Web;
+using backend.utils;
 
 namespace backend.Controllers
 {
@@ -59,49 +60,18 @@ namespace backend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserDto dto)
         {
-            // 1. Check om brugernavn eller email allerede findes
-            var existingUserName = await _userManager.Users.AnyAsync(u => u.UserName == dto.Username);
-
-            var existingEmail = await _userManager.Users.AnyAsync(u => u.Email == dto.Email);
-
-            var existingEmailAndUserName = await _userManager.Users.AnyAsync(u =>
-                u.Email == dto.Email && u.UserName == dto.Username
-            );
-
-            if (existingEmailAndUserName)
-            
-                return BadRequest(new { error = "Brugernavn og email er allerede i brug." });
-
-            if (existingUserName)
-                return BadRequest(new { error = "Brugernavn er allerede i brug." });
-
-            if (existingEmail)
-                return BadRequest(new { error = "Email er allerede i brug." });
-
-            Console.WriteLine("1");
-            // Opret user-objekt
             var user = new User
             {
                 UserName = dto.Username,
                 Email = dto.Email,
             };
 
-            // 2. Hash password med BCrypt
-            // var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
-            // 3. Opret bruger-objekt
-            // var verificationToken = Guid.NewGuid().ToString();
-
-
             var result = await _userManager.CreateAsync(user, dto.Password);
             
-            Console.WriteLine("2");
-
             if (result.Succeeded) {
                 var roleResult = await _userManager.AddToRoleAsync(user, "User");
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var encodedToken = HttpUtility.UrlEncode(token);
-            Console.WriteLine("3");
                 var frontendBaseUrl = _config["FrontendBaseUrl"];
 
                 var verificationLink = $"{frontendBaseUrl}/verify-email?userId={user.Id}&token={encodedToken}";
@@ -117,7 +87,6 @@ namespace backend.Controllers
                 try
                 {
                     await _emailService.SendEmailAsync(user.Email, subject, message);
-                    Console.WriteLine("4");
                 }
                 catch (Exception ex)
                 {
@@ -130,25 +99,6 @@ namespace backend.Controllers
                 var errors = result.Errors.Select(e => e.Description);
                 return BadRequest(new { errors });
             }
-
-            //     var verificationLink = _urlHelper.Action(
-            //     nameof(VerifyEmail),
-            //     "Users",
-            //     new { userId = user.Id, token = encodedToken },
-            //     Request.Scheme);
-
-            //     var subject = "Bekræft din e-mailadresse";
-            //     var message = $"Klik på linket for at bekræfte din konto: <a href='{verificationLink}'>Bekræft e-mail</a>";
-            //     await _emailService.SendEmailAsync(user.Email, subject, message);
-                
-            //     return Ok(new { message = "Registrering succesfuld!" });
-                
-            // }
-            // // _emailService.SendVerificationEmail(user.Email, verificationLink);
-            // else
-            // {
-            //     return BadRequest(result.Errors);
-            // }
         }
 
         [HttpGet("verify")]
@@ -197,22 +147,20 @@ namespace backend.Controllers
             
             if (user == null)
                 return BadRequest(new { error = "Bruger findes ikke." });
-
-            // Er email bekræftet?
-            if (!await _userManager.IsEmailConfirmedAsync(user))
-            {
-                return BadRequest(new { error = "Email er ikke verificeret."});
-            }
-
-            var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, lockoutOnFailure: false);
+            
+            var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
 
             if(result.Succeeded) {
-                var token = GenerateJwtToken(user); // Du skal implementere denne metode
+                var token = GenerateJwtToken(user);
                 return Ok(new { token });
             }
-            else
+            else if (result.IsNotAllowed)
             {
-                return BadRequest(new { error = "Forkert adgangskode."});
+                return BadRequest(new { error = "Din emailadresse er ikke blevet bekræftet. Tjek din indbakke for at bekræfte."});
+            }
+            else 
+            {
+                return BadRequest(new { error = "Forkert adgangskode." });
             }
         }
 
