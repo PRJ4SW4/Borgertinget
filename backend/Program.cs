@@ -9,12 +9,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using backend.Hubs;                
+using backend.Hubs;
+
+// --- Nye using statements for DI ---
+using backend.Interfaces.Repositories;
+using backend.Persistence.Repositories;
+using backend.Interfaces.Services;
+using backend.Services.Selection;
+using backend.Services.Mapping;
+using backend.Interfaces.Utility;
+using backend.Services.Utility;
+using backend.Jobs;
+using backend.Enums; // Antager enums er her
 
 // for .env secrets
 DotNetEnv.Env.Load();
-         
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,10 +40,18 @@ var key = Encoding.UTF8.GetBytes(
 // Authorization for Admin and User roles
 builder.Services.AddAuthorization(options =>
 {
+    // Policy for Admin-rolle. Bruges f.eks. med [Authorize(Roles = "Admin")]
+    // eller [Authorize(Policy = "RequireAdministratorRole")]
+    // Sørg for at din JWT token indeholder en "role" claim med værdien "Admin"
     options.AddPolicy(
         "RequireAdministratorRole",
-        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
+        policy => policy.RequireRole("Admin") // Direkte brug af RequireRole
     );
+    // options.AddPolicy( // Alternativt med ClaimTypes.Role
+    // "RequireAdministratorRole",
+    //     policy => policy.RequireClaim(ClaimTypes.Role, "Admin")
+    // );
+
     options.AddPolicy(
         "UserOrAdmin",
         policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
@@ -55,7 +72,7 @@ builder
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false;
+        options.RequireHttpsMetadata = false; // Sæt til true i produktion
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -66,11 +83,8 @@ builder
             ValidIssuer = jwtSettings["Issuer"],
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(key),
-            // THIS LINE ensures ASP.NET picks up "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-            // as the user's role claim.
-            RoleClaimType = ClaimTypes.Role,
+            RoleClaimType = ClaimTypes.Role, // VIGTIGT for [Authorize(Roles = "...")]
         };
-        // 💥 Indsæt event hooks til fejllogning
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -85,27 +99,23 @@ builder
                 if (context.Principal?.Identity != null)
                 {
                     Console.WriteLine("User: " + context.Principal.Identity?.Name);
-                    return Task.CompletedTask;
                 } else {
                     Console.WriteLine("User information not available.");
                 }
                 return Task.CompletedTask;
             },
-             OnMessageReceived = context =>
-    {
-        // Tjek om tokenet findes i 'access_token' query parameteren
-        var accessToken = context.Request.Query["access_token"];
-
-        // Tjek om requesten er til din SignalR Hub sti
-        var path = context.HttpContext.Request.Path;
-        if (!string.IsNullOrEmpty(accessToken) &&
-            (path.StartsWithSegments("/feedHub"))) // <-- Match din Hub URL
-        {
-            Console.WriteLine("SIGNALR DEBUG: Setting token from query string."); // <-- ADD LOG
-            context.Token = accessToken;
-        }
-        return Task.CompletedTask;
-    }
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/feedHub")))
+                {
+                    Console.WriteLine("SIGNALR DEBUG: Setting token from query string.");
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -113,26 +123,20 @@ builder
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
-
-
-
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
-
-    // Tilføj JWT auth i Swagger
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Polidle API", Version = "v1" }); // Opdateret titel
     options.AddSecurityDefinition(
         "Bearer",
         new OpenApiSecurityScheme
         {
             Name = "Authorization",
-            Type = SecuritySchemeType.Http,
+            Type = SecuritySchemeType.Http, // Eller SecuritySchemeType.ApiKey hvis token sendes anderledes
             Scheme = "Bearer",
             BearerFormat = "JWT",
             In = ParameterLocation.Header,
             Description = "Indtast JWT token i formatet: Bearer {token}",
         }
     );
-
     options.AddSecurityRequirement(
         new OpenApiSecurityRequirement
         {
@@ -151,14 +155,48 @@ builder.Services.AddSwaggerGen(options =>
     );
 });
 
-// Tilføj EmailService
+// --- EKSISTERENDE SERVICES ---
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<HttpService>(); // Bruger du denne generisk, eller er den Twitter-specifik?
+builder.Services.AddHostedService<TweetFetchingService>();
+builder.Services.AddHttpClient<TwitterService>(); // HttpClientFactory for TwitterService
+builder.Services.AddHttpClient(); // Generel HttpClientFactory
 
-//oda.ft crawler
-builder.Services.AddScoped<HttpService>();
+// For altinget scraping
+builder.Services.AddScoped<AltingetScraperService>();
+builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 
-builder.Services.AddHostedService<TweetFetchingService>(); 
-builder.Services.AddHttpClient<TwitterService>();
+
+// *******************************************************************
+// *** NYE DEPENDENCY INJECTION REGISTRERINGER FOR POLIDLE & UTILS ***
+// *******************************************************************
+
+// Utilities (typisk Singleton, da de er stateless)
+builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
+
+// Repositories (Scoped, da de bruger Scoped DbContext)
+builder.Services.AddScoped<IAktorRepository, AktorRepository>();
+builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>();
+builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository>();
+// Tilføj andre repositories her hvis du laver flere (f.eks. IPartyRepository)
+
+// Mappers og Algoritmer (Scoped er et sikkert valg, kan være Transient hvis ingen state)
+builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
+builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
+
+// Kerneservices (Scoped)
+builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
+
+// Baggrundsjobs (Hosted Services)
+builder.Services.AddHostedService<DailySelectionJob>();
+
+// Hvis du har DailySelectionJobSettings og vil injecte den via IOptions:
+// builder.Services.Configure<DailySelectionJobSettings>(builder.Configuration.GetSection("DailySelectionJob"));
+
+// *******************************************************************
+// *** SLUT PÅ NYE DI REGISTRERINGER                             ***
+// *******************************************************************
 
 
 // CORS
@@ -168,47 +206,51 @@ builder.Services.AddCors(options =>
         "AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()
-            .AllowAnyHeader()                   
-            .AllowAnyMethod()                  
-            .AllowCredentials();  
+            policy.WithOrigins("http://localhost:5173") // Din frontend URL
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // Vigtigt for SignalR med cookies/auth
         }
     );
 });
 
-builder.Services.AddHttpClient(); // til OAuth
+builder.Services.AddControllers();
+// Fjern .AddJsonOptions hvis du ikke har specifikke problemer med cirkulære referencer,
+// da System.Text.Json som standard håndterer dette ok i .NET 6+ for simple tilfælde.
+// Hvis du *har* brug for det:
+// .AddJsonOptions(options =>
+// {
+//     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles; // IgnoreCycles er ofte bedre end Preserve
+// });
 
-// note af Jakob, put option id virkede med det her der er uddokumenteret, men da jeg havde det til, så virkede feed og partier ikke, jeg har ikke den post til pools på min git, derfor håber jeg det virker uden dette,
- 
-
-builder.Services.AddControllers();/* .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    });*/
-
-// For altinget scraping
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<AltingetScraperService>();
-builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 
 var app = builder.Build();
 
-// For static images from wwwroot folder
-app.UseStaticFiles();
+app.UseStaticFiles(); // For servering af f.eks. billeder fra wwwroot
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage(); // Giver mere detaljerede fejl i udvikling
 }
+else
+{
+    // Tilføj produktions-error handling her (f.eks. app.UseExceptionHandler("/Error"))
+    app.UseHsts(); // Anbefales for produktion
+}
+
+// HTTPS Redirection - vigtigt for produktion
+// app.UseHttpsRedirection(); // Aktiver denne hvis du har HTTPS sat op
 
 app.UseCors("AllowReactApp");
 
-app.UseAuthentication();
+app.UseRouting(); // Skal komme før Authentication og Authorization
+
+app.UseAuthentication(); // VIGTIGT: Skal komme FØR UseAuthorization
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<FeedHub>("/feedHub"); // Sørg for at din Hub route matcher det, du tjekker i JWT Events
 
-
-app.MapHub<FeedHub>("/feedHub");
 app.Run();

@@ -1,0 +1,111 @@
+// Fil: Services/Mapping/PoliticianMapper.cs
+using backend.DTO;
+using backend.Interfaces.Services;
+using backend.Interfaces.Utility; // For IDateTimeProvider
+using backend.Models;
+using Microsoft.Extensions.Logging; // For logging
+using System;
+using System.Collections.Generic;
+using System.Globalization; // For CultureInfo
+using System.Linq;
+
+namespace backend.Services.Mapping
+{
+    public class PoliticianMapper : IPoliticianMapper
+    {
+         private readonly ILogger<PoliticianMapper> _logger;
+         private readonly IDateTimeProvider _dateTimeProvider; // Til at få dags dato for alder
+
+
+         public PoliticianMapper(ILogger<PoliticianMapper> logger, IDateTimeProvider dateTimeProvider)
+         {
+             _logger = logger;
+             _dateTimeProvider = dateTimeProvider;
+         }
+
+         public PoliticianDetailsDto MapToDetailsDto(Aktor aktor, DateOnly referenceDate) // ReferenceDate kan evt. fjernes hvis IDateTimeProvider altid bruges
+         {
+             if (aktor == null) throw new ArgumentNullException(nameof(aktor));
+
+             // Her sker simplificering/mapping - SKAL VEDLIGEHOLDES!
+             string? region = aktor.Constituencies?.FirstOrDefault(); // Tag første valgkreds
+             string? uddannelse = aktor.Educations?.FirstOrDefault() ?? aktor.EducationStatistic; // Tag første udd. eller statistik
+
+             // Hent parti navn
+             // string partiNavn = aktor.Party?.Name ?? "Ukendt Parti"; // Hvis Party er navigation property
+              string partiNavn = aktor.Party ?? "Ukendt Parti"; // Hvis Party er string property
+
+
+             int age = CalculateAge(aktor.Born, _dateTimeProvider.TodayUtc); // Brug IDateTimeProvider
+
+
+             var dto = new PoliticianDetailsDto
+             {
+                 Id = aktor.Id,
+                 PolitikerNavn = aktor.navn ?? "N/A",
+                 PictureUrl = aktor.PictureMiRes,
+                 Køn = aktor.Sex,
+                 Parti = partiNavn,
+                 PartyShortname = aktor.PartyShortname, // Tilføjet hvis DTO'en har det
+                 Age = age,
+                 Region = region,
+                 Uddannelse = uddannelse,
+                 Born = aktor.Born // Tilføjet hvis DTO'en har det
+                 // CurrentTitle = aktor.FunctionFormattedTitle // Tilføjet hvis DTO'en har det
+             };
+
+             _logger.LogDebug("Mapped Aktor {AktorId} to PoliticianDetailsDto.", aktor.Id);
+             return dto;
+         }
+
+         // Overload for nemheds skyld, bruger TodayUtc fra provider
+         public PoliticianDetailsDto MapToDetailsDto(Aktor aktor) => MapToDetailsDto(aktor, _dateTimeProvider.TodayUtc);
+
+         public List<PoliticianSummaryDto> MapToSummaryDtoList(IEnumerable<Aktor> aktors)
+         {
+              if (aktors == null) return new List<PoliticianSummaryDto>();
+              return aktors.Select(MapToSummaryDto).ToList();
+         }
+
+         public PoliticianSummaryDto MapToSummaryDto(Aktor aktor)
+         {
+              if (aktor == null) throw new ArgumentNullException(nameof(aktor));
+              return new PoliticianSummaryDto
+              {
+                  Id = aktor.Id,
+                  PolitikerNavn = aktor.navn ?? "N/A",
+                  PictureUrl = aktor.PictureMiRes // Antager DTO bruger PictureUrl
+              };
+         }
+
+          // --- Privat Age Calculation ---
+          // (Kan også flyttes til en statisk DateUtils klasse)
+          private int CalculateAge(string? dateOfBirthString, DateOnly referenceDate)
+          {
+              if (string.IsNullOrEmpty(dateOfBirthString)) return 0; // Eller kast fejl?
+
+              try
+              {
+                  // Forsøg at parse strengen. Antag UTC hvis ingen offset.
+                  if (DateTime.TryParse(dateOfBirthString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AllowWhiteSpaces, out var dob))
+                  {
+                      DateOnly dateOfBirth = DateOnly.FromDateTime(dob);
+                      int age = referenceDate.Year - dateOfBirth.Year;
+                      if (referenceDate.DayOfYear < dateOfBirth.DayOfYear) { age--; }
+                      return Math.Max(0, age);
+                  }
+                  else
+                  {
+                      _logger.LogWarning("Could not parse DateOfBirth string '{DateOfBirthString}'. Returning age 0.", dateOfBirthString);
+                      return 0;
+                  }
+              }
+              catch (Exception ex)
+              {
+                  _logger.LogError(ex, "Error calculating age from Born='{DateOfBirthString}'. Returning age 0.", dateOfBirthString);
+                  return 0;
+                  // Kast evt. videre som InvalidOperationException hvis alder er kritisk for DTO'en
+              }
+          }
+    }
+}
