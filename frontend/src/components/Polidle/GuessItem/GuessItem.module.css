@@ -1,0 +1,28 @@
+/* I GuessItem.css eller tilsvarende */
+.guess-item {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+}
+.guess-data {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-size: 1em;
+  border: 1px solid #ddd;
+  position: relative;
+  color: black;
+}
+.correct {
+  background-color: lightgreen;
+}
+.incorrect {
+  background-color: lightcoral;
+}
+.guess-data.higher,
+.guess-data.lower {
+  background-color: lightcoral;
+} /* Bemærk: Samme farve som incorrect pt. */
+.arrow {
+  color: black;
+  /* ... */
+}

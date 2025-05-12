@@ -1,0 +1,62 @@
+.guess-list {
+  border-collapse: collapse; /* Anvendes typisk på <table>, ikke <div> */
+}
+.header {
+  display: flex;
+  background-color: #f0f0f0;
+}
+.category {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+
+.guess-list-container {
+  /* Ingen specifik styling nødvendig her, medmindre du vil have border osv. */
+  width: 100%; /* Tag fuld bredde af forælder */
+  margin-top: 20px; /* Lidt plads over listen */
+}
+
+.guess-list-header {
+  display: flex;
+  background-color: #f0f0f0;
+  border-bottom: 2px solid #e0e0e0; /* Tydeligere adskillelse */
+  border-top-left-radius: 5px; /* Afrundede hjørner for header */
+  border-top-right-radius: 5px;
+}
+
+.category-header {
+  /* Ændret fra .category */
+  flex: 1;
+  padding: 12px 10px; /* Justeret padding */
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1em; /* Lidt mindre for at give plads */
+  color: #333;
+  text-transform: uppercase; /* Gør headertekst til store bogstaver */
+  letter-spacing: 0.5px;
+}
+
+.guess-list-items {
+  /* Container for selve GuessItem rækkerne */
+}
+
+.guess-list-empty {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  border: 1px dashed #ddd;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.guess-item-error {
+  padding: 10px;
+  text-align: center;
+  color: red;
+  background-color: #ffeeee;
+  border: 1px solid red;
+}
