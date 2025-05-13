@@ -1,126 +1,285 @@
-// src/pages/PartyPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { IAktor } from '../types/Aktor';
-import "./PartyPage.css"
+import { IParty } from '../types/Party';
+import PartyInfoCard from '../components/Party/PartyInfoCard';
+import "./PartyPage.css"; // Ensure this CSS file is imported
 import DefaultPic from "../images/defaultPic.jpg";
+// --- Logo Map ---
+import socialdemokratietLogo from '../images/PartyLogos/socialdemokratiet.webp';
+import venstreLogo from '../images/PartyLogos/Venstre.png';
+import moderaterneLogo from '../images/PartyLogos/Moderaterne.png';
+import alternativetLogo from '../images/PartyLogos/alternativet.png';
+import borgernesLogo from '../images/PartyLogos/borgernesParti.jpg';
+import centrumLogo from '../images/PartyLogos/centrumDemokraterne.png';
+import danmarksLogo from '../images/PartyLogos/danmarksDemokraterne.jpg';
+import DFLogo from '../images/PartyLogos/DanskFolkeparti.png';
+import enhedslistenLogo from '../images/PartyLogos/enhedslisten.jpg';
+import inuitLogo from '../images/PartyLogos/InuitAtaqatigiit.png';
+import javnaLogo from '../images/PartyLogos/Javnaðarflokkurin.png';
+import konsvertiveLogo from '../images/PartyLogos/konservative.png';
+import kristeligtLogo from '../images/PartyLogos/KristeligFolkeparti.png';
+import LALogo from '../images/PartyLogos/LiberalAlliance.png';
+import naleraq from '../images/PartyLogos/NaleraqLogo.svg';
+import radikale from '../images/PartyLogos/radikaleVenstre.png';
+import sambands from '../images/PartyLogos/sambandspartiet.png';
+import SF from '../images/PartyLogos/SocialistiskeFolkeparti.png';
+
+const partyLogoMap: { [key: string]: string } = {
+  "Socialdemokratiet": socialdemokratietLogo,
+  "Venstre": venstreLogo,
+  "Moderaterne": moderaterneLogo,
+  "Alternativet": alternativetLogo,
+  "Borgernes Parti": borgernesLogo,
+  "Centrum-Demokraterne": centrumLogo,
+  "Danmarksdemokraterne": danmarksLogo,
+  "Dansk Folkeparti": DFLogo,
+  "Det Konservative Folkeparti": konsvertiveLogo,
+  "Enhedslisten": enhedslistenLogo,
+  "Inuit Ataqatigiit": inuitLogo,
+  "Javnaðarflokkurin": javnaLogo,
+  "Kristeligt Folkeparti": kristeligtLogo,
+  "Liberal Alliance": LALogo,
+  "Naleraq": naleraq,
+  "Radikale Venstre": radikale,
+  "Sambandsflokkurin": sambands,
+  "Socialistisk Folkeparti": SF
+};
+// --- End Logo Map ---
+
 
 const PartyPage: React.FC = () => {
   const { partyName } = useParams<{ partyName: string }>();
-  const [politicians, setPoliticians] = useState<IAktor[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  // Calculate displayPartyName outside useEffect, derived from partyName
-  const displayPartyName = partyName ? decodeURIComponent(partyName) : 'Unknown Party';
-  const defaultImageUrl = DefaultPic;
 
+  // State variables
+  const [partyDetails, setPartyDetails] = useState<IParty | null>(null);
+  const [members, setMembers] = useState<IAktor[]>([]);
+  const [loadingParty, setLoadingParty] = useState<boolean>(true);
+  const [loadingMembers, setLoadingMembers] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // --- State for role holders ---
+  const [chairman, setChairman] = useState<IAktor | null>(null);
+  const [viceChairman, setViceChairman] = useState<IAktor | null>(null);
+  const [secretary, setSecretary] = useState<IAktor | null>(null);
+  const [spokesperson, setSpokesperson] = useState<IAktor | null>(null);
+  const [groupLeader, setGroupLeader] = useState<IAktor | null>(null);
+
+
+  const displayPartyName = partyName ? decodeURIComponent(partyName) : 'Ukendt Parti';
+  const defaultPoliticianImageUrl = DefaultPic;
+
+  // --- Helper function to fetch Aktor details by ID ---
+  const fetchAktorById = async (id: number | null): Promise<IAktor | null> => {
+    if (!id) return null;
+    try {
+      const response = await fetch(`http://localhost:5218/api/Aktor/${id}`);
+      if (!response.ok) {
+        console.error(`Failed to fetch Aktor with ID ${id}: ${response.status}`);
+        return null;
+      }
+      return await response.json() as IAktor;
+    } catch (err) {
+      console.error(`Error fetching Aktor with ID ${id}:`, err);
+      return null;
+    }
+  };
+
+  // Effect to fetch party details, role holders, and then members
   useEffect(() => {
-    const fetchPartyPoliticians = async () => {
-      // Early exit if partyName is somehow missing (though useParams usually ensures it's string | undefined)
+    const fetchPartyAndMembers = async () => {
       if (!partyName) {
-        setError("Partinavn mangler i URL."); // Changed error message to Danish
-        setLoading(false);
+        setError("Partinavn mangler i URL.");
+        setLoadingParty(false);
         return;
       }
 
-      setLoading(true);
+      // Reset states
+      setLoadingParty(true);
+      setLoadingMembers(false);
       setError(null);
-      setPoliticians([]);
+      setPartyDetails(null);
+      setMembers([]);
+      setChairman(null);
+      setViceChairman(null);
+      setSecretary(null);
+      setSpokesperson(null);
+      setGroupLeader(null);
 
+
+      // --- Step 1: Fetch Party Details ---
       try {
-        const apiUrl = `http://localhost:5218/api/Aktor/GetParty/${encodeURIComponent(partyName)}`;
-        const response = await fetch(apiUrl);
+        const partyApiUrl = `http://localhost:5218/api/Party/Party/${encodeURIComponent(partyName)}`;
+        const partyResponse = await fetch(partyApiUrl);
 
-        if (!response.ok) {
-          // Handle 404 specifically maybe (or just let it result in empty data)
-          if (response.status === 404) {
-             // It's okay for a party to have no members, or the endpoint might 404.
-             // We'll handle this by checking politicians.length later.
-             // No explicit error needed here unless the API guarantees non-404 for valid parties.
+        if (!partyResponse.ok) {
+          if (partyResponse.status === 404) {
+             throw new Error(`Partiet "${displayPartyName}" blev ikke fundet.`);
           } else {
-             // Handle other HTTP errors
-             let errorMsg = `HTTP error ${response.status}: ${response.statusText}`;
-             // Try to get a more specific error from the response body
-             try {
-                const errorBody = await response.json();
-                errorMsg = errorBody.message || errorBody.title || errorMsg;
-             } catch { // <-- Fix 1 & 2: Use _e and add comment
-                /* Intentional: Ignore error parsing the error body, already have status text */
-             }
-             throw new Error(errorMsg); // Throw the consolidated error message
+             let errorMsg = `HTTP error ${partyResponse.status}: ${partyResponse.statusText}`;
+             try { const errorBody = await partyResponse.json(); errorMsg = errorBody.message || errorBody.title || errorMsg; } catch { /* Ignore */ }
+             throw new Error(errorMsg);
           }
         }
 
-        // Only parse JSON if response is OK or a non-error status we want to handle (like 404 potentially returning empty array)
-        // If you expect 404 to *not* return JSON, adjust logic here. Assuming 404 might return `[]` or throw above.
-        const data: IAktor[] = response.ok ? await response.json() : []; // Safely parse or default to empty array
-        setPoliticians(data);
+        const fetchedPartyData: IParty = await partyResponse.json();
+        setPartyDetails(fetchedPartyData);
 
-      } catch (err: unknown) { // <-- Fix 3: Use unknown instead of any
-        console.error("Fetch error:", err);
-        // Type checking before accessing properties
-        let message = `Kunne ikke hente data for partiet ${displayPartyName}`; // Default message (Danish)
-        if (err instanceof Error) {
-            message = err.message; // Use message property if it's an Error
-        } else if (typeof err === 'string') {
-            message = err; // Use the error directly if it's a string
+        // --- Step 2: Fetch Role Holder Details (concurrently) ---
+        if (fetchedPartyData) {
+          const rolePromises = [
+            fetchAktorById(fetchedPartyData.chairmanId),
+            fetchAktorById(fetchedPartyData.viceChairmanId),
+            fetchAktorById(fetchedPartyData.secretaryId),
+            fetchAktorById(fetchedPartyData.spokesmanId)
+            // Add fetches for group leader etc. if IDs become available in IParty
+            // e.g., fetchAktorById(fetchedPartyData.groupLeaderId),
+          ];
+
+          const [
+            fetchedChairman,
+            fetchedViceChairman,
+            fetchedSecretary,
+            fetchedSpokesperson
+            // ...destructure other results here: fetchedGroupLeader, fetchedDeputyGroupLeader
+          ] = await Promise.all(rolePromises);
+
+          setChairman(fetchedChairman);
+          setViceChairman(fetchedViceChairman);
+          setSecretary(fetchedSecretary);
+          setSpokesperson(fetchedSpokesperson);
+          // setGroupLeader(fetchedGroupLeader);
+          // setDeputyGroupLeader(fetchedDeputyGroupLeader);
         }
+
+
+        // --- Step 3: Fetch Member Details ---
+        if (fetchedPartyData && fetchedPartyData.memberIds && fetchedPartyData.memberIds.length > 0) {
+          setLoadingMembers(true);
+          const memberFetchPromises = fetchedPartyData.memberIds.map(id => fetchAktorById(id)); // Reuse helper
+          const memberResults = await Promise.all(memberFetchPromises);
+          const validMembers = memberResults.filter(member => member !== null) as IAktor[];
+          setMembers(validMembers);
+        }
+
+      } catch (err: unknown) {
+        console.error("Fetch error:", err);
+        let message = `Kunne ikke hente data for partiet ${displayPartyName}`;
+        if (err instanceof Error) message = err.message;
+        else if (typeof err === 'string') message = err;
         setError(message);
       } finally {
-        setLoading(false);
+        setLoadingParty(false);
+        setLoadingMembers(false);
       }
     };
 
-    fetchPartyPoliticians();
-    // --- Fix 4: Add displayPartyName to dependency array ---
-  }, [partyName, displayPartyName]); // <--- Added displayPartyName here
+    fetchPartyAndMembers();
 
-  // --- Render logic remains the same ---
-  if (loading) return <div className="loading-message">Loader politikere for {displayPartyName}...</div>;
-  // Update error message link text to Danish
-  if (error) return <div className="error-message">Error: {error} <Link to="/">Tilbage til forsiden</Link></div>;
+  }, [partyName, displayPartyName]);
+
+  // --- Render Logic ---
+  const isLoading = loadingParty; // Base loading on party details primarily
+
+  if (isLoading) return <div className="loading-message">Henter data for {displayPartyName}...</div>;
+  if (error) return <div className="error-message">Fejl: {error} <Link to="/parties">Tilbage til partioversigt</Link></div>;
+  if (!partyDetails) return <div className="info-message">Kunne ikke finde partiinformation.</div>;
+
+  // Helper to get logo URL
+  const getLogoUrl = (name: string | null): string | undefined => {
+      return name ? partyLogoMap[name] : undefined;
+  }
 
   return (
     <div className="party-page">
-      <nav>
-         {/* Update link text to Danish */}
-         <Link to="/partier">← Tilbage til partioversigt</Link>
+      <nav className="party-page-nav">
+        <Link to="/parties">← Tilbage til partioversigt</Link>
       </nav>
-      <h1>{displayPartyName}</h1>
-      <h3>Medlemmer</h3>
 
-      {politicians.length > 0 ? (
-        <ul className="party-member-list">
-          {politicians.map((politician) => (
-            <li key={politician.id}>
-              <Link to={`/politician/${politician.id}`} className="party-member-link">
-                <img
-                  src={politician.pictureMiRes || defaultImageUrl}
-                  alt={`Portræt af ${politician.navn}`} // Updated alt text to Danish
-                  className="party-member-photo"
-                  onError={(e) => {
-                    const imgElement = e.target as HTMLImageElement;
-                    // Prevent infinite loop if default image itself fails
-                    if (imgElement.src !== defaultImageUrl) { // Simpler check if defaultImageUrl is absolute/relative path
-                        console.warn(`Kunne ikke loade billede: ${politician.pictureMiRes}. Bruger standardbillede.`); // Danish
-                        imgElement.src = defaultImageUrl;
-                    } else {
-                        console.error(`Kunne ikke loade standardbillede: ${defaultImageUrl}`); // Danish
-                        imgElement.style.display = 'none'; // Hide broken image space
-                    }
-                  }}
-                />
-                <span className="party-member-name">{politician.navn}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="info-message">
-           {/* Updated message to Danish */}
-          {error ? `Fejl under hentning af data.` : `Ingen politikere fundet for partiet "${displayPartyName}".`}
-        </p>
-      )}
+       {/* --- NEW: Main Content Area (Flex Container) --- */}
+      <div className="party-main-content">
+
+          {/* --- Left Column: Details Sections --- */}
+          <div className="party-details-column">
+              {/* Optional: Add overall party title here if needed */}
+              {/* <h1>{partyDetails.partyName || displayPartyName}</h1> */}
+
+              {partyDetails.partyProgram && (
+                 <section className="party-details-section">
+                     <h3>Partiprogram</h3>
+                     <p className="party-details-content">{partyDetails.partyProgram}</p>
+                 </section>
+              )}
+               {partyDetails.politics && (
+                 <section className="party-details-section">
+                     <h3>Politik</h3>
+                     <p className="party-details-content">{partyDetails.politics}</p>
+                 </section>
+              )}
+               {partyDetails.history && (
+                 <section className="party-details-section">
+                     <h3>Historie</h3>
+                     <p className="party-details-content">{partyDetails.history}</p>
+                 </section>
+              )}
+          </div>
+          {/* --- End Left Column --- */}
+
+          {/* --- Right Column: Info Card --- */}
+          <div className="party-infobox-column">
+              <PartyInfoCard
+                partyName={partyDetails.partyName || displayPartyName}
+                slogan={undefined} // Add slogan from partyDetails if/when available
+                logoUrl={getLogoUrl(partyDetails.partyName)}
+                defaultLogo={DefaultPic} // Use the imported default politician pic as fallback
+                chairmanName={chairman?.navn}
+                viceChairmanName={viceChairman?.navn}
+                secretaryName={secretary?.navn}
+                politicalSpokespersonName={spokesperson?.navn}
+                groupLeaderName={groupLeader?.navn} // Pass / Pass fetched or null
+              />
+          </div>
+          {/* --- End Right Column --- */}
+
+      </div>
+      {/* --- End Main Content Area --- */}
+
+
+      {/* --- Member List (Below the columns) --- */}
+      <section className="party-members-section">
+         <h3>Medlemmer</h3>
+         {loadingMembers ? (
+            <div className="loading-message">Henter medlemmer...</div>
+         ) : members.length > 0 ? (
+           <ul className="party-member-list">
+             {members.map((politician) => (
+               <li key={politician.id}>
+                 <Link to={`/politician/${politician.id}`} className="party-member-link">
+                   <img
+                     src={politician.pictureMiRes || defaultPoliticianImageUrl}
+                     alt={`Portræt af ${politician.navn}`}
+                     className="party-member-photo"
+                     onError={(e) => {
+                       const imgElement = e.target as HTMLImageElement;
+                       if (imgElement.src !== defaultPoliticianImageUrl) {
+                         imgElement.src = defaultPoliticianImageUrl;
+                       } else {
+                         imgElement.style.display = 'none';
+                       }
+                     }}
+                   />
+                   <span className="party-member-name">{politician.navn}</span>
+                 </Link>
+               </li>
+             ))}
+           </ul>
+         ) : (
+           <p className="info-message">
+             Ingen medlemmer fundet for partiet "{displayPartyName}".
+             {(partyDetails.memberIds === null || partyDetails.memberIds.length === 0) && " (Ingen medlems-ID'er registreret)"}
+           </p>
+         )}
+      </section>
     </div>
   );
 };

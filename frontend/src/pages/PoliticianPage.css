@@ -1,5 +1,6 @@
 .politician-page{
     padding: 1rem; /* Add some overall padding */ 
+    background-color: #aeaeaee3;
 }
 .info-box {
     background-color: #f0f0f0; /* Light gray background */
@@ -32,16 +33,7 @@
     position: relative;
   } */
   
-  /* Remove or comment out old absolute positioning styles for the large photo */
-  .politician-photo-large {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
+
   
   /* Adjust the main details area padding if needed (remove old padding-right) */
   .politician-details {

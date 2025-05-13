@@ -1,11 +1,12 @@
-// src/pages/PartiesPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Import Link for navigation
-import "./PartiesPage.css"
+import { Link } from 'react-router-dom';
+import { IParty } from '../types/Party'; // Import the IParty interface
+import "./PartiesPage.css";
 
-import socialdemokratietLogo from '../images/PartyLogos/socialdemokratiet.webp'; // Example
-import venstreLogo from '../images/PartyLogos/Venstre.png';             // Example
-import moderaterneLogo from '../images/PartyLogos/Moderaterne.png';  
+// --- Import Logos (keep this section as is) ---
+import socialdemokratietLogo from '../images/PartyLogos/socialdemokratiet.webp';
+import venstreLogo from '../images/PartyLogos/Venstre.png';
+import moderaterneLogo from '../images/PartyLogos/Moderaterne.png';
 import alternativetLogo from '../images/PartyLogos/alternativet.png';
 import borgernesLogo from '../images/PartyLogos/borgernesParti.jpg';
 import centrumLogo from '../images/PartyLogos/centrumDemokraterne.png';
@@ -21,13 +22,16 @@ import naleraq from '../images/PartyLogos/NaleraqLogo.svg';
 import radikale from '../images/PartyLogos/radikaleVenstre.png';
 import sambands from '../images/PartyLogos/sambandspartiet.png';
 import SF from '../images/PartyLogos/SocialistiskeFolkeparti.png';
+// --- End Logo Imports ---
+
+// --- Logo Map (keep this section as is, ensuring keys match partyName from API) ---
 const partyLogoMap: { [key: string]: string } = {
   "Socialdemokratiet": socialdemokratietLogo,
-  "Venstre": venstreLogo, // Use the full name if that's what the API returns
+  "Venstre": venstreLogo,
   "Moderaterne": moderaterneLogo,
   "Alternativet": alternativetLogo,
-  "Borgernes Parti": borgernesLogo,
-  "Centrum-Demokraterne": centrumLogo,
+  "Borgernes Parti": borgernesLogo, // Check if this name exists in your DB
+  "Centrum-Demokraterne": centrumLogo, // Check if this name exists
   "Danmarksdemokraterne": danmarksLogo,
   "Dansk Folkeparti": DFLogo,
   "Det Konservative Folkeparti": konsvertiveLogo,
@@ -39,56 +43,52 @@ const partyLogoMap: { [key: string]: string } = {
   "Naleraq": naleraq,
   "Radikale Venstre": radikale,
   "Sambandsflokkurin": sambands,
-  "Socialistisk Folkeparti": SF,
-  // ... add mappings for other parties ...
-  // Parties not listed here will use the defaultLogo
+  "Socialistisk Folkeparti": SF
 };
+// --- End Logo Map ---
+
 
 const PartiesPage: React.FC = () => {
-  const [parties, setParties] = useState<string[]>([]);
+  // *** Change state to hold IParty objects ***
+  const [parties, setParties] = useState<IParty[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-
-
   useEffect(() => {
-    // Fetch the list of unique party names when the component mounts
     const fetchParties = async () => {
       setLoading(true);
       setError(null);
-      setParties([]); // Clear previous results
+      setParties([]);
 
       try {
-        // Use the new backend endpoint api/Aktor/GetParties
-        const apiUrl = `http://localhost:5218/api/Aktor/GetParties`;
+        // *** Change API endpoint ***
+        const apiUrl = `http://localhost:5218/api/Party/Parties`; // Use the new Party endpoint
+        console.log(`Workspaceing parties from: ${apiUrl}`); // Debug log
         const response = await fetch(apiUrl);
 
         if (!response.ok) {
           let errorMsg = `HTTP error ${response.status}: ${response.statusText}`;
-          // Try to parse a more specific error message from the response body
           try {
              const errorBody = await response.json();
-             // Use error message from body if available, otherwise keep the status text
              errorMsg = errorBody.message || errorBody.title || errorMsg;
-          } catch { // <-- Fix 1 & 2: Use _e and add comment
-            /* Intentional: Ignore error parsing the error body, already have status text */
-          }
-          throw new Error(errorMsg); // Throw the consolidated error message
+          } catch { /* Ignore */ }
+          throw new Error(errorMsg);
         }
 
-        const data: string[] = await response.json();
-        setParties(data);
+        // *** Change data type ***
+        const data: IParty[] = await response.json();
+        // Filter out any parties without a name, just in case
+        setParties(data.filter(p => p.partyName));
+        console.log("Parties fetched:", data); // Debug log
 
-      } catch (err: unknown) { // <-- Fix 3: Use unknown instead of any
+      } catch (err: unknown) {
         console.error("Fetch error:", err);
-        // Type checking before accessing properties
-        let message = 'Failed to fetch list of parties'; // Default message
+        let message = 'Kunne ikke hente partiliste'; // Default message
         if (err instanceof Error) {
-            message = err.message; // Use message property if it's an Error
+            message = err.message;
         } else if (typeof err === 'string') {
-            message = err; // Use the error directly if it's a string
+            message = err;
         }
-        // You could add more checks here for other error types if needed
         setError(message);
       } finally {
         setLoading(false);
@@ -96,19 +96,17 @@ const PartiesPage: React.FC = () => {
     };
 
     fetchParties();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []); // Empty dependency array, fetch only once on mount
 
-  // --- Render loading state ---
+  // --- Loading and Error states remain the same ---
   if (loading) {
-    return <div className="loading-message">Loading partier...</div>;
+    return <div className="loading-message">Henter partier...</div>;
   }
-
-  // --- Render error state ---
   if (error) {
-    return <div className="error-message">Error: {error} <Link to="/">Tilbage</Link></div>;
+    return <div className="error-message">Fejl: {error} <Link to="/">Tilbage</Link></div>;
   }
 
-  // --- Render parties list ---
+  // --- Update Render Logic ---
   return (
     <div className="parties-page">
       <nav>
@@ -117,25 +115,31 @@ const PartiesPage: React.FC = () => {
       <h2>Partier</h2>
 
       {parties.length > 0 ? (
-        // --- Use a different class for the grid container ---
         <ul className="parties-grid-list">
-          {parties.map((partyName) => {
-            // --- Step 3: Get the correct logo source ---
-            const logoSrc = partyLogoMap[partyName];
+          {/* *** Update map function *** */}
+          {parties.map((party) => {
+            // Ensure partyName is not null before using it
+            const partyName = party.partyName || 'Ukendt Parti';
+            const logoSrc = partyLogoMap[partyName]; // Lookup logo using partyName
+
+            // Handle cases where partyName might be null for the link
+            if (!party.partyName) {
+                console.warn(`Party with ID ${party.partyId} has a null name.`);
+                return null; // Skip rendering this party if name is essential
+            }
 
             return (
-              <li key={partyName}>
-                 {/* --- Link wraps the grid item content --- */}
-                <Link to={`/party/${encodeURIComponent(partyName)}`} className="party-grid-link">
-                   {/* --- Display Logo --- */}
+              // *** Use partyId for the key ***
+              <li key={party.partyId}>
+                {/* *** Link still uses partyName for the route param *** */}
+                <Link to={`/party/${encodeURIComponent(party.partyName)}`} className="party-grid-link">
                   <img
-                    src={logoSrc}
+                    src={logoSrc} // Use looked-up logo
                     alt={`${partyName} logo`}
                     className="party-grid-logo"
-                    // Basic onError to hide if even default fails
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none';}}
                   />
-                  {/* --- Display Party Name --- */}
+                  {/* *** Display partyName *** */}
                   <span className="party-grid-name">{partyName}</span>
                 </Link>
               </li>
