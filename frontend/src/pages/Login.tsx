@@ -116,22 +116,8 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   };
 
   const handleGoogleLogin = () => {
-    // const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
-
-    // const clientId = '16121037113-cioi5949kloah9uac0c4laqknumogptc.apps.googleusercontent.com';
-
+    
     const backendGoogleSigninPath = 'http://localhost:5218/api/Users/login-google';
-
-    // const options = {
-    //   client_id: clientId,
-    //   redirect_uri: backendGoogleSigninPath,
-    //   response_type: 'code',
-    //   scope: 'openid profile email', 
-    //   // state: 'tilfaeldig-sikkerheds-streng' // Implementeres senere for CSRF-beskyttelse
-    // };
-
-    // const queryString = new URLSearchParams(options).toString();
-    // const authUrl = `${googleAuthUrl}?${queryString}`;
 
     console.log("Frontend: Omdirigerer til backend for  Google login:", backendGoogleSigninPath); 
     window.location.href = backendGoogleSigninPath;
