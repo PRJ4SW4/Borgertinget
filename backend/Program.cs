@@ -2,8 +2,18 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using backend.Data;
+using backend.Hubs;
 using backend.Services;
+// For Altinget Scraping
 using backend.Services.AutomationServices;
+using backend.Services.AutomationServices.HtmlFetching;
+using backend.Services.AutomationServices.Parsing;
+using backend.Services.AutomationServices.Repositories;
+// Flashcard Services
+using backend.Services.Flashcards;
+// Learning Environment Services
+using backend.Services.LearningEnvironmentServices;
+// JWT Stuff
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
@@ -117,26 +127,27 @@ builder
                 {
                     Console.WriteLine("User: " + context.Principal.Identity?.Name);
                     return Task.CompletedTask;
-                } else {
+                }
+                else
+                {
                     Console.WriteLine("User information not available.");
                 }
                 return Task.CompletedTask;
             },
-             OnMessageReceived = context =>
-    {
-        // Tjek om tokenet findes i 'access_token' query parameteren
-        var accessToken = context.Request.Query["access_token"];
+            OnMessageReceived = context =>
+            {
+                // Tjek om tokenet findes i 'access_token' query parameteren
+                var accessToken = context.Request.Query["access_token"];
 
-        // Tjek om requesten er til din SignalR Hub sti
-        var path = context.HttpContext.Request.Path;
-        if (!string.IsNullOrEmpty(accessToken) &&
-            (path.StartsWithSegments("/feedHub"))) // <-- Match din Hub URL
-        {
-            Console.WriteLine("SIGNALR DEBUG: Setting token from query string."); // <-- ADD LOG
-            context.Token = accessToken;
-        }
-        return Task.CompletedTask;
-    }
+                // Tjek om requesten er til din SignalR Hub sti
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/feedHub"))) // <-- Match din Hub URL
+                {
+                    Console.WriteLine("SIGNALR DEBUG: Setting token from query string."); // <-- ADD LOG
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
         };
     });
 
@@ -144,9 +155,6 @@ builder
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
-
-
-
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
 
@@ -187,7 +195,8 @@ builder.Services.AddScoped<EmailService>();
 
 //oda.ft crawler
 builder.Services.AddScoped<HttpService>();
-builder.Services.AddHostedService<TweetFetchingService>(); 
+
+builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHttpClient<TwitterService>();
 
 builder.Services.AddHttpClient();
@@ -199,20 +208,23 @@ builder.Services.AddCors(options =>
         "AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()
-            .AllowAnyHeader()                   
-            .AllowAnyMethod()                  
-            .AllowCredentials();  
+            policy
+                .WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
         }
     );
 });
 
-builder.Services.AddHttpClient(); // til OAuth
+builder.Services.AddHttpClient(); // General HttpClient factory registration (Used by OAuth and AltingetFetcher
 
 // note af Jakob, put option id virkede med det her der er uddokumenteret, men da jeg havde det til, så virkede feed og partier ikke, jeg har ikke den post til pools på min git, derfor håber jeg det virker uden dette,
- 
 
-builder.Services.AddControllers();/* .AddJsonOptions(options =>
+
+builder.Services.AddControllers(); /* .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     });*/
@@ -220,10 +232,19 @@ builder.Services.AddControllers();/* .AddJsonOptions(options =>
 builder.Services.AddScoped<SearchIndexingService>();
 
 // For altinget scraping
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<AltingetScraperService>();
 builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
-builder.Services.AddHostedService<TestScheduledIndexService>();
+builder.Services.AddScoped<IHtmlFetcher, AltingetHtmlFetcher>();
+builder.Services.AddScoped<IEventDataParser, AltingetEventDataParser>();
+builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
+builder.Services.AddScoped<IAutomationService, AltingetScraperService>();
+
+// Learning Environment Services
+builder.Services.AddScoped<IAnswerService, AnswerService>();
+builder.Services.AddScoped<ILearningPageService, LearningPageService>();
+
+// Flashcard Services
+builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+builder.Services.AddHostedService<TestScheduledIndexService>(); //Fjern Test fra TestScheduledIndexServe
 
 
 var app = builder.Build();
@@ -271,7 +292,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 
 app.MapHub<FeedHub>("/feedHub");
 app.Run();
