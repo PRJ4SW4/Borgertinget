@@ -25,6 +25,14 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using backend.utils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options; // Add this using directive
+using Microsoft.AspNetCore.DataProtection;  // Add this
+using Microsoft.Extensions.Logging; // Add this
+
 using OpenSearch.Client;
 using OpenSearch.Net;
 

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic; // Required
 using System.Linq;
 using System.Text.Json; // Required
-using System.Text.Json; // Required
 using backend.DTO.Calendar;
 using backend.DTO.LearningEnvironment;
 using backend.Models;
@@ -14,7 +13,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.ChangeTracking; // For ValueComparer
 
 namespace backend.Data
 {

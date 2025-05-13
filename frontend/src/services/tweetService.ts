@@ -3,10 +3,7 @@ import {
     TweetDto,
     PoliticianInfoDto,
     PollDetailsDto,
-    
 } from '../types/tweetTypes'; 
-
-
 
 interface PaginatedFeedResponse {
     tweets: TweetDto[]; 
@@ -14,21 +11,25 @@ interface PaginatedFeedResponse {
     latestPolls: PollDetailsDto[]
 }
 
-
-
 const API_BASE_URL = 'http://localhost:5218';
 
 export { API_BASE_URL }; 
 
-const getAuthHeaders = (): Headers => {
+const getAuthHeaders = (includeContentType = true): Headers => {
     const token = localStorage.getItem('jwt');
     const headers = new Headers();
     headers.set('Accept', 'application/json');
-    headers.set('Content-Type', 'application/json'); 
+    
+    if (includeContentType) {
+        headers.set('Content-Type', 'application/json'); 
+    }
+    
     if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
+        // Remove any quotes that might be wrapping the token
+        const cleanToken = token.replace(/^["'](.*)["']$/, '$1');
+        headers.set('Authorization', `Bearer ${cleanToken}`);
     } else {
-         console.warn('JWT token not found for request.');
+        console.warn('JWT token not found for request.');
     }
     return headers;
 }
@@ -38,10 +39,8 @@ export const getFeed = async (
     pageSize: number = 5,
     politicianId: number | null = null
 ): Promise<PaginatedFeedResponse> => {
-
-  const headers = getAuthHeaders();
- 
-  headers.delete('Content-Type');
+  // For GET requests, we don't need Content-Type
+  const headers = getAuthHeaders(false);
 
   try {
     let apiUrl = `${API_BASE_URL}/api/feed?page=${page}&pageSize=${pageSize}`;
@@ -72,10 +71,8 @@ export const getFeed = async (
   }
 };
 
-
 export const getSubscriptions = async (): Promise<PoliticianInfoDto[]> => {
-    const headers = getAuthHeaders();
-    headers.delete('Content-Type'); 
+    const headers = getAuthHeaders(false); // GET request, no content-type needed
     if (!headers.has('Authorization')) { return []; }
 
     try {
@@ -85,7 +82,6 @@ export const getSubscriptions = async (): Promise<PoliticianInfoDto[]> => {
         return await response.json() as PoliticianInfoDto[];
     } catch (error) { console.error('Error in getSubscriptions:', error); throw error; }
 };
-
 
 export const submitVote = async (pollId: number, optionId: number): Promise<void> => {
     const headers = getAuthHeaders();
@@ -129,12 +125,12 @@ export const submitVote = async (pollId: number, optionId: number): Promise<void
 };
 
 export const subscribe = async (politicianId: number): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/api/subscription`, {
+  // Use getAuthHeaders for consistency!
+  const headers = getAuthHeaders(true); // Need content-type for POST with body
+  
+  const response = await fetch(`${API_BASE_URL}/api/subscription`, { 
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-    },
+    headers: headers,
     body: JSON.stringify({ politicianId })
   });
 
@@ -145,11 +141,12 @@ export const subscribe = async (politicianId: number): Promise<void> => {
 };
 
 export const unsubscribe = async (politicianId: number): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/api/subscription/${politicianId}`, {
+  // Use getAuthHeaders for consistency!
+  const headers = getAuthHeaders(false); // DELETE request, no content-type needed
+  
+  const response = await fetch(`${API_BASE_URL}/api/subscription/${politicianId}`, { // Make plural consistent
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-    }
+    headers: headers
   });
 
   if (!response.ok) {
