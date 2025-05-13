@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Web;
 using backend.utils;
 using CoreTweet.Rest;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication; 
 using Microsoft.AspNetCore.Authentication.Google;
@@ -35,7 +36,6 @@ namespace backend.Controllers
         //private readonly DataContext _context;
         private readonly IConfiguration _config;
         private readonly EmailService _emailService;
-        //private readonly IHttpClientFactory _httpClientFactory; 
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<UsersController> _logger;
@@ -43,14 +43,12 @@ namespace backend.Controllers
         public UsersController(
             IConfiguration config,
             EmailService emailService,
-            //IHttpClientFactory httpClientFactory,
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             ILogger<UsersController> logger)
         {
             _config = config;
             _emailService = emailService;
-            //_httpClientFactory = httpClientFactory; 
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
@@ -79,9 +77,7 @@ namespace backend.Controllers
             if (result.Succeeded) {
                 // var roleResult = await _userManager.AddToRoleAsync(user, "User");
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                _logger.LogInformation($"Token: {token}");
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-                _logger.LogInformation($"Encoded Token: {encodedToken}");
 
                 var verificationLink = $"http://localhost:5173/verify?userId={user.Id}&token={encodedToken}";
 
@@ -99,7 +95,7 @@ namespace backend.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Fejl ved afsendelse af bekræftelsesmail til {user.Email}: {ex.Message}");
+                    _logger.LogError(ex, $"Fejl ved afsendelse af bekræftelsesmail: {ex.Message}");
                     return StatusCode(500, new { message = "Fejl ved afsendelse af bekræftelsesmail. Prøv venligst igen senere." } );
                 }
                 return Ok(new { message = "Registrering succesfuld! Tjek din email for at bekræfte din konto." });
@@ -115,7 +111,6 @@ namespace backend.Controllers
         [HttpGet("verify")]
         public async Task<IActionResult> VerifyEmail([FromQuery] int userId, [FromQuery] string token)
         {
-            _logger.LogInformation($"Token: {token}");
             if (string.IsNullOrEmpty(token)) {
                 _logger.LogError("Token mangler.");
                 return BadRequest("Token mangler.");
@@ -132,7 +127,6 @@ namespace backend.Controllers
             {
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
-                _logger.LogInformation($"Decoderet token: {decodedToken}");
             
                 var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
                 if(result.Succeeded)
@@ -158,7 +152,7 @@ namespace backend.Controllers
         {
             string loginInput = dto.EmailOrUsername.ToLower();
             User? user;
-
+            
             // Find bruger ud fra E-mail eller brugernavn
             if (loginInput.Contains('@'))
             {
@@ -170,12 +164,12 @@ namespace backend.Controllers
             }
             
             if (user == null)
-                return BadRequest(new { error = "Bruger findes ikke." });
-            
+                return BadRequest(new { error = "Bruger findes ikke" });
+
             var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
 
             if(result.Succeeded) {
-                var token = GenerateJwtToken(user);
+                var token = await GenerateJwtToken(user);
                 return Ok(new { token });
             }
             else if (result.IsNotAllowed)
