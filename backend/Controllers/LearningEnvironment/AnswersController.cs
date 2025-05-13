@@ -1,24 +1,21 @@
-// /backend/Controllers/LearningEnvironment/AnswersController.cs
-namespace backend.Controllers;
-
 using System.Threading.Tasks;
-using backend.Data;
 using backend.DTO.LearningEnvironment;
+using backend.Models.LearningEnvironment;
+using backend.Services.LearningEnvironmentServices;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 [Route("api/[controller]")]
 [ApiController]
 public class AnswersController : ControllerBase
 {
-    // A private readonly field to hold the DataContext instance, enabling database interactions.
-    private readonly DataContext _context;
+    // A private readonly field to hold the IAnswerService instance.
+    private readonly IAnswerService _answerService;
 
-    // Constructor for the AnswersController, injecting the DataContext via dependency injection.
-    public AnswersController(DataContext context)
+    // Constructor for the AnswersController, injecting the IAnswerService via dependency injection.
+    public AnswersController(IAnswerService answerService)
     {
-        // Assigns the injected DataContext instance to the private field for use within the controller.
-        _context = context;
+        // Assigns the injected IAnswerService instance to the private field.
+        _answerService = answerService;
     }
 
     // Defines an HTTP POST endpoint at "api/answers/check" for checking user-submitted answers.
@@ -27,26 +24,17 @@ public class AnswersController : ControllerBase
         AnswerCheckRequestDTO request
     )
     {
-        // Asynchronously retrieves the selected answer option from the database based on the provided AnswerOptionId.
-        var selectedOption = await _context.AnswerOptions.FirstOrDefaultAsync(opt =>
-            opt.AnswerOptionId == request.SelectedAnswerOptionId
-        );
+        // Calls the service to check the answer.
+        var response = await _answerService.CheckAnswerAsync(request);
 
-        // Validates that the selected answer option exists and belongs to the question specified in the request.
-        if (selectedOption == null || selectedOption.QuestionId != request.QuestionId)
+        // If the service returns null, it indicates invalid input.
+        if (response == null)
         {
-            // Returns an HTTP 400 Bad Request response if the selected option is invalid or doesn't match the question.
+            // Returns an HTTP 400 Bad Request response.
             return BadRequest("Invalid answer option or question ID mismatch.");
         }
 
-        // Creates a new AnswerCheckResponseDTO to encapsulate the result of the answer check.
-        var response = new AnswerCheckResponseDTO
-        {
-            // Sets the IsCorrect property of the response DTO based on the IsCorrect property of the selected answer option.
-            IsCorrect = selectedOption.IsCorrect,
-        };
-
-        // Returns an HTTP 200 OK response containing the AnswerCheckResponseDTO, indicating whether the answer was correct.
+        // Returns an HTTP 200 OK response containing the AnswerCheckResponseDTO.
         return Ok(response);
     }
 }

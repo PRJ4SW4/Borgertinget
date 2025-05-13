@@ -1,6 +1,9 @@
 using MailKit.Net.Smtp;
-using MailKit.Security;
+using Microsoft.Extensions.Configuration;
 using MimeKit;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using System.Web;
 
 namespace backend.Services
 {
@@ -8,56 +11,46 @@ namespace backend.Services
     {
 
         private readonly IConfiguration _config;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IConfiguration config)
+        public EmailService(IConfiguration config, ILogger<EmailService> logger)
         {
+            _logger = logger;
             _config = config;
-
         }
 
-        public void SendVerificationEmail(string toEmail, string verificationLink)
+        public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage)
         {
-            var fromName = _config["Email:FromName"];
-            var fromEmail = _config["Email:From"];
-            var smtpServer = _config["Email:SmtpServer"];
-            var smtpPortString = (_config["Email:SmtpPort"]);
-            var appPassword = _config["Email:AppPassword"];
+            var emailSettings = _config.GetSection("Email");
 
-            if (string.IsNullOrEmpty(fromName) || string.IsNullOrEmpty(fromEmail) || string.IsNullOrEmpty(smtpServer) || string.IsNullOrEmpty(smtpPortString) || string.IsNullOrEmpty(appPassword))
-            {
-                Console.WriteLine("Advarsel: En eller flere påkrævede email-konfigurationer mangler.");
-                // Consider throwing an exception or logging more details depending on your error handling strategy
-                return;
-            }
+            var host = emailSettings["SmtpServer"];
+            var port = int.Parse(emailSettings["SmtpPort"]);
+            var username = emailSettings["Username"];
+            var password = emailSettings["Password"];
+            var fromEmail = emailSettings["FromEmail"];
+            var fromName = emailSettings["FromName"];
 
-            if (!int.TryParse(smtpPortString, out int smtpPort))
-            {
-                Console.WriteLine($"Advarsel: Ugyldig SMTP-port konfigureret: '{smtpPortString}'.");
-                // Consider throwing an exception or using a default port
-                return;
-            }
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(fromName, fromEmail));
-            message.To.Add(MailboxAddress.Parse(toEmail));
-            message.Subject = "Bekræft din email";
+            message.To.Add(new MailboxAddress("", toEmail)); // Modtagernavn kan være tomt
+            message.Subject = subject;
 
-            message.Body = new TextPart("plain")
-            {
-                Text = $"Klik på linket for at bekræfte din konto: {verificationLink}"
-            };
+            var bodyBuilder = new BodyBuilder();
+            bodyBuilder.HtmlBody = htmlMessage;
+            message.Body = bodyBuilder.ToMessageBody();
 
-            using var client = new SmtpClient();
+            using (var client = new SmtpClient())
             try
             {
-                client.Connect(smtpServer, smtpPort, SecureSocketOptions.StartTls);
-                client.Authenticate(fromEmail, appPassword);
-                client.Send(message);
-                client.Disconnect(true);
+                await client.ConnectAsync(host, port, MailKit.Security.SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(username, password);
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fejl ved afsendelse af email: {ex.Message}");
-                // Consider logging the full exception for debugging
+                _logger.LogError(ex, $"Error sending email. Error: {ex.Message}");
+                throw;
             }
         }
     }

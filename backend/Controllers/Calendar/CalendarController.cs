@@ -19,43 +19,23 @@ using Microsoft.Extensions.Logging;
 public class CalendarController : ControllerBase
 {
     // Private fields to hold injected services and dependencies.
-    private readonly AltingetScraperService _scraperService;
+    private readonly IAutomationService _automationService;
     private readonly DataContext _context;
     private readonly ILogger<CalendarController> _logger;
 
     // Constructor for the CalendarController, injecting required services and dependencies.
     public CalendarController(
-        AltingetScraperService scraperService,
+        IAutomationService automationService,
         DataContext context,
         ILogger<CalendarController> logger
     )
     {
-        // Assigns the injected AltingetScraperService instance to the private field.
-        _scraperService = scraperService;
+        // Assigns the injected IAutomationService instance to the private field.
+        _automationService = automationService;
         // Assigns the injected DataContext instance to the private field.
         _context = context;
         // Assigns the injected ILogger instance to the private field.
         _logger = logger;
-    }
-
-    // Defines an HTTP GET endpoint for triggering the Altinget scrape immediately.
-    [HttpGet("scrape-altinget-now")]
-    public async Task<ActionResult<List<ScrapedEventData>>> TriggerAltingetScrape()
-    {
-        try
-        {
-            // Calls the ScrapeEventsAsyncInternal method of the AltingetScraperService to perform the scrape.
-            List<ScrapedEventData> events = await _scraperService.ScrapeEventsAsyncInternal();
-            // Returns an HTTP 200 OK response containing the list of scraped events.
-            return Ok(events);
-        }
-        catch (Exception ex)
-        {
-            // Logs any errors that occur during the scrape process.
-            _logger.LogError(ex, "Error triggering raw scrape via API.");
-            // Returns an HTTP 500 Internal Server Error response with a descriptive error message.
-            return StatusCode(500, $"An error occurred while scraping data: {ex.Message}");
-        }
     }
 
     // Defines an HTTP POST endpoint for running the Altinget scrape automation.
@@ -64,8 +44,8 @@ public class CalendarController : ControllerBase
     {
         try
         {
-            // Calls the RunAutomation method of the AltingetScraperService to execute the automation process.
-            int count = await _scraperService.RunAutomation();
+            // Calls the RunAutomation method of the Automation Service to execute the automation process.
+            int count = await _automationService.RunAutomation();
             // Checks if the automation ran successfully.
             if (count >= 0)
             {
