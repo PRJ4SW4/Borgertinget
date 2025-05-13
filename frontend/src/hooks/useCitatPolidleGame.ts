@@ -7,7 +7,7 @@ import {
   QuoteDto as ApiQuoteDto,
   DailyPoliticianDto, // Til historik
 } from "../types/PolidleTypes";
-import { fetchQuoteOfTheDay, submitGuess } from "../services/polidleApiService";
+import { fetchQuoteOfTheDay, submitGuess } from "../services/PolidleApiService";
 
 // Definer typen for historik-items her, da den er specifik for denne hook/gamemode
 interface CitatGuessHistoryItemInternal {
@@ -45,10 +45,13 @@ export const useCitatPolidleGame = (): UseCitatPolidleGameReturn => {
     try {
       const data: ApiQuoteDto = await fetchQuoteOfTheDay();
       setQuote(data.quoteText);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Fetch quote error in hook:", error);
-      setQuoteError(error.message || "Ukendt fejl ved hentning af citat.");
-      setQuote(null); // Sørg for at rydde citat ved fejl
+      if (error instanceof Error) {
+        setQuoteError(error.message);
+      } else {
+        setQuoteError("Ukendt fejl ved hentning af citat.");
+      }
     } finally {
       setIsLoadingQuote(false);
     }
@@ -91,9 +94,13 @@ export const useCitatPolidleGame = (): UseCitatPolidleGameReturn => {
           throw new Error("Manglende politiker detaljer i svar fra backend.");
         }
         return resultData;
-      } catch (error: any) {
+      } catch (error) {
         console.error("Guess API error in hook (Citat):", error);
-        setGuessError(error.message || "Ukendt fejl under afsendelse af gæt.");
+        if (error instanceof Error) {
+          setGuessError(error.message);
+        } else {
+          setGuessError("Ukendt fejl under afsendelse af gæt.");
+        }
         return null;
       } finally {
         setIsGuessing(false);

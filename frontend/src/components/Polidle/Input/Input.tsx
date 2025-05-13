@@ -1,27 +1,24 @@
 // src/components/Polidle/Input/Input.tsx
 import React from "react";
-import "./Input.module.css"; // Din eksisterende styling for .input-field
+import "./Input.module.css";
 
-// Udvid standard HTML input attributter for fuld fleksibilitet og type-sikkerhed
-interface GenericInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
-  // Vi kan stadig definere custom props her, hvis de IKKE er standard HTML attributter.
-  // F.eks. hvis du ville have en 'variant' prop til forskellige udseender:
-  // variant?: 'primary' | 'search' | 'error';
-  // Men for nu er standardattributterne dækkende.
-}
+// Brug en type alias i stedet for et tomt interface
+type GenericInputProps = React.InputHTMLAttributes<HTMLInputElement>;
+// Hvis du *senere* vil tilføje custom props, kan du skifte tilbage til interface:
+// interface GenericInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+//   customProp?: string;
+// }
 
 const Input: React.FC<GenericInputProps> = ({
-  className = "", // Tillad ekstern className og hav en default
-  type = "text", // Default type til "text"
-  ...rest // Samler alle andre props (value, onChange, placeholder, disabled, osv.)
+  className = "",
+  type = "text",
+  ...rest
 }) => {
   return (
     <input
       type={type}
-      // Kombinerer den faste .input-field klasse med eventuelle eksterne klasser
       className={`input-field ${className}`.trim()}
-      {...rest} // Spreder alle props videre til det native input-element
+      {...rest}
     />
   );
 };
