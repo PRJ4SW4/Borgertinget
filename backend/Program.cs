@@ -206,25 +206,20 @@ if (app.Environment.IsDevelopment())
     // ***********************************************************************
     app.Use(async (context, next) =>
     {
-        // Tjekker kun om der *ikke* allerede er en autentificeret bruger.
-        // Hvis du ALTID vil være dummy-admin i dev, kan du fjerne denne ydre 'if'.
-        // Dette tillader dig stadig at teste det rigtige login flow i dev, hvis du ønsker.
-        if (!context.User.Identity?.IsAuthenticated ?? true)
-        {
+        // ALTID i development, sæt dummy admin:
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, "DummyDevAdmin"),       // Brugernavn for dummy admin
                 new Claim(ClaimTypes.NameIdentifier, "dummy-admin-id-123"), // Et unikt ID
                 new Claim(ClaimTypes.Role, "Admin"),              // Giver Admin rollen
-                // Du kan tilføje flere claims her, f.eks. en email:
-                // new Claim(ClaimTypes.Email, "devadmin@example.com")
+                new Claim(ClaimTypes.Email, "devadmin@example.com"),
             };
             var identity = new ClaimsIdentity(claims, "DevelopmentDummyAuth"); // "DevelopmentDummyAuth" er bare et navn
             context.User = new ClaimsPrincipal(identity);
 
             var logger = context.RequestServices.GetRequiredService<ILogger<Program>>(); // Få en logger instans
             logger.LogWarning("DEVELOPMENT MODE: Bypassing JWT. User context populated with DummyDevAdmin (Role: Admin).");
-        }
+
         await next.Invoke();
     });
     // ***********************************************************************

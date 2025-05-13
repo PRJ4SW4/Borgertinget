@@ -117,7 +117,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Aktor");
+                    b.ToTable("Aktor", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
@@ -153,7 +153,7 @@ namespace backend.Migrations
                     b.HasIndex("SourceUrl")
                         .IsUnique();
 
-                    b.ToTable("CalendarEvents");
+                    b.ToTable("CalendarEvents", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -194,7 +194,7 @@ namespace backend.Migrations
 
                     b.HasIndex("CollectionId");
 
-                    b.ToTable("Flashcards");
+                    b.ToTable("Flashcards", (string)null);
 
                     b.HasData(
                         new
@@ -270,7 +270,7 @@ namespace backend.Migrations
 
                     b.HasKey("CollectionId");
 
-                    b.ToTable("FlashcardCollections");
+                    b.ToTable("FlashcardCollections", (string)null);
 
                     b.HasData(
                         new
@@ -312,7 +312,7 @@ namespace backend.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("AnswerOptions");
+                    b.ToTable("AnswerOptions", (string)null);
 
                     b.HasData(
                         new
@@ -440,7 +440,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ParentPageId");
 
-                    b.ToTable("Pages");
+                    b.ToTable("Pages", (string)null);
 
                     b.HasData(
                         new
@@ -503,7 +503,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
 
                     b.HasData(
                         new
@@ -563,7 +563,7 @@ namespace backend.Migrations
                     b.HasIndex("TwitterUserId")
                         .IsUnique();
 
-                    b.ToTable("PoliticianTwitterIds");
+                    b.ToTable("PoliticianTwitterIds", (string)null);
 
                     b.HasData(
                         new
@@ -615,7 +615,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PoliticianTwitterId");
 
-                    b.ToTable("Polls");
+                    b.ToTable("Polls", (string)null);
 
                     b.HasData(
                         new
@@ -657,7 +657,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PollId");
 
-                    b.ToTable("PollOptions");
+                    b.ToTable("PollOptions", (string)null);
 
                     b.HasData(
                         new
@@ -731,7 +731,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Subscriptions");
+                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Tweet", b =>
@@ -773,7 +773,7 @@ namespace backend.Migrations
                     b.HasIndex("PoliticianTwitterId", "TwitterTweetId")
                         .IsUnique();
 
-                    b.ToTable("Tweets");
+                    b.ToTable("Tweets", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
@@ -808,7 +808,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.UserVote", b =>
@@ -837,7 +837,7 @@ namespace backend.Migrations
                     b.HasIndex("UserId", "PollId")
                         .IsUnique();
 
-                    b.ToTable("UserVotes");
+                    b.ToTable("UserVotes", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>

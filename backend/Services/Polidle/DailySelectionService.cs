@@ -97,7 +97,7 @@ namespace backend.Services
              if (selection?.SelectedPolitiker == null) {
                   bool exists = selection != null; // Fandtes selectionen, men ikke politikeren?
                   if (!exists) throw new KeyNotFoundException($"Ingen DailySelection fundet for Foto d. {today}.");
-                  else throw new KeyNotFoundException($"Tilhørende Aktor for Foto d. {today} (ID: {selection.SelectedPolitikerID}) blev ikke fundet/kunne ikke loades.");
+                  else throw new KeyNotFoundException($"Tilhørende Aktor for Foto d. {today} (ID: {selection?.SelectedPolitikerID}) blev ikke fundet/kunne ikke loades.");
              }
 
              if (string.IsNullOrWhiteSpace(selection.SelectedPolitiker.PictureMiRes)) {
@@ -117,7 +117,7 @@ namespace backend.Services
              if (selection?.SelectedPolitiker == null) {
                  bool exists = selection != null;
                  if (!exists) throw new KeyNotFoundException($"Ingen DailySelection fundet for Classic d. {today}.");
-                 else throw new KeyNotFoundException($"Tilhørende Aktor for Classic d. {today} (ID: {selection.SelectedPolitikerID}) blev ikke fundet/kunne ikke loades.");
+                 else throw new KeyNotFoundException($"Tilhørende Aktor for Classic d. {today} (ID: {selection?.SelectedPolitikerID}) blev ikke fundet/kunne ikke loades.");
              }
 
              return _mapper.MapToDetailsDto(selection.SelectedPolitiker); // Mapper klarer alder etc.
