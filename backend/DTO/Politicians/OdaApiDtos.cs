@@ -1,4 +1,3 @@
-// DTO/FT/OdaApiDtos.cs (New or existing file)
 using System.Text.Json.Serialization;
 
 namespace backend.DTO.FT
@@ -23,7 +22,7 @@ namespace backend.DTO.FT
         public DateTime? slutdato { get; set; }
     }
 
-    // Generic wrapper for OData paged responses
+    // Generic wrapper for OData paged responses, easy extract nextLink
     public class ODataResponse<T>
     {
         [JsonPropertyName("value")]
@@ -35,7 +34,7 @@ namespace backend.DTO.FT
 
     public class AktorDetailDto
     {
-        // Include all fields from Aktor EXCEPT 'biografi'
+        // send whole parsed aktor
         public int Id { get; set; }
         public string? fornavn { get; set; }
         public string? efternavn { get; set; }
@@ -53,9 +52,10 @@ namespace backend.DTO.FT
         public string? FunctionStartDate { get; set; }
         public string? PositionsOfTrust { get; set; }
         public string? Email { get; set; }
-        public string? Ministertitel { get; set; } // Include the minister title
+        public string? Ministertitel { get; set; }
 
-        // Collections (assuming these are stored as strings or lists in your Aktor model)
+        // Collections (assuming these are stored as strings or lists in your Aktor model) bliver serialized fra list<string> til string i db, og deserialized når vi henter fra db
+        // Kan ses i Data/DataContext.cs under onModelCreate 
         public List<string>? Ministers { get; set; }
         public List<string>? Spokesmen { get; set; }
         public List<string>? ParliamentaryPositionsOfTrust { get; set; }
@@ -65,7 +65,7 @@ namespace backend.DTO.FT
         public List<string>? Occupations { get; set; }
         public List<string>? PublicationTitles { get; set; }
 
-        // Optional: Helper method for mapping (can also be done inline)
+        //Helper method for mapping 
         public static AktorDetailDto FromAktor(Models.Aktor aktor)
         {
             return new AktorDetailDto

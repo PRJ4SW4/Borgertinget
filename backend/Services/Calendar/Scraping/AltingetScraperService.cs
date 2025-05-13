@@ -1,5 +1,4 @@
-// /backend/Services/AutomationServices/AltingetScraperService.cs
-namespace backend.Services.AutomationServices;
+namespace backend.Services.Calendar.Scraping;
 
 using System;
 using System.Collections.Generic;
@@ -7,13 +6,14 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Models.Calendar;
-using backend.Services.AutomationServices.HtmlFetching;
-using backend.Services.AutomationServices.Parsing;
-using backend.Services.AutomationServices.Repositories;
+using backend.Repositories.Calendar;
+using backend.Services.Calendar.HtmlFetching;
+using backend.Services.Calendar.Parsing;
+using backend.Services.Calendar.Scraping;
 using Microsoft.Extensions.Logging;
 
 // This service is responsible for orchestrating the scraping of event data from the Altinget calendar.
-public class AltingetScraperService : IAutomationService
+public class AltingetScraperService : IScraperService
 {
     private readonly IHtmlFetcher _htmlFetcher; // Service for fetching HTML content.
     private readonly IEventDataParser _eventDataParser; // Service for parsing HTML into event data.
@@ -62,7 +62,7 @@ public class AltingetScraperService : IAutomationService
     }
 
     // --- RunAutomation with Database Sync & Deletion of Past Events ---
-    public async Task<int> RunAutomation()
+    public async Task<int> RunScraper()
     {
         _logger.LogInformation("Starting Altinget scrape and sync automation..."); // Log the start of the automation process.
         int addedCount = 0; // Counter for newly added events.

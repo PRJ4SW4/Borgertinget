@@ -46,12 +46,10 @@ namespace backend.Services
                 await client.AuthenticateAsync(username, password);
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
-
-                _logger.LogInformation($"Email sent to {toEmail} with subject: {subject}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error sending email to {toEmail} with subject: {subject}. Error: {ex.Message}");
+                _logger.LogError(ex, $"Error sending email. Error: {ex.Message}");
                 throw;
             }
         }

@@ -249,7 +249,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Aktor");
+                    b.ToTable("Aktor", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
@@ -285,7 +285,7 @@ namespace backend.Migrations
                     b.HasIndex("SourceUrl")
                         .IsUnique();
 
-                    b.ToTable("CalendarEvents");
+                    b.ToTable("CalendarEvents", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -326,7 +326,7 @@ namespace backend.Migrations
 
                     b.HasIndex("CollectionId");
 
-                    b.ToTable("Flashcards");
+                    b.ToTable("Flashcards", (string)null);
 
                     b.HasData(
                         new
@@ -402,7 +402,7 @@ namespace backend.Migrations
 
                     b.HasKey("CollectionId");
 
-                    b.ToTable("FlashcardCollections");
+                    b.ToTable("FlashcardCollections", (string)null);
 
                     b.HasData(
                         new
@@ -444,7 +444,7 @@ namespace backend.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("AnswerOptions");
+                    b.ToTable("AnswerOptions", (string)null);
 
                     b.HasData(
                         new
@@ -572,7 +572,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ParentPageId");
 
-                    b.ToTable("Pages");
+                    b.ToTable("Pages", (string)null);
 
                     b.HasData(
                         new
@@ -635,7 +635,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
 
                     b.HasData(
                         new
@@ -662,6 +662,60 @@ namespace backend.Migrations
                             PageId = 5,
                             QuestionText = "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?"
                         });
+                });
+
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.Property<int>("partyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
+
+                    b.Property<int?>("chairmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("history")
+                        .HasColumnType("text");
+
+                    b.Property<string>("memberIds")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyProgram")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyShortName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("politics")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("secretaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("spokesmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("stats")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("viceChairmanId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("partyId");
+
+                    b.HasIndex("chairmanId");
+
+                    b.HasIndex("secretaryId");
+
+                    b.HasIndex("spokesmanId");
+
+                    b.HasIndex("viceChairmanId");
+
+                    b.ToTable("Party", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
@@ -695,7 +749,7 @@ namespace backend.Migrations
                     b.HasIndex("TwitterUserId")
                         .IsUnique();
 
-                    b.ToTable("PoliticianTwitterIds");
+                    b.ToTable("PoliticianTwitterIds", (string)null);
 
                     b.HasData(
                         new
@@ -747,7 +801,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PoliticianTwitterId");
 
-                    b.ToTable("Polls");
+                    b.ToTable("Polls", (string)null);
 
                     b.HasData(
                         new
@@ -789,7 +843,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PollId");
 
-                    b.ToTable("PollOptions");
+                    b.ToTable("PollOptions", (string)null);
 
                     b.HasData(
                         new
@@ -863,7 +917,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Subscriptions");
+                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Tweet", b =>
@@ -905,7 +959,7 @@ namespace backend.Migrations
                     b.HasIndex("PoliticianTwitterId", "TwitterTweetId")
                         .IsUnique();
 
-                    b.ToTable("Tweets");
+                    b.ToTable("Tweets", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
@@ -1005,7 +1059,58 @@ namespace backend.Migrations
                     b.HasIndex("UserId", "PollId")
                         .IsUnique();
 
-                    b.ToTable("UserVotes");
+                    b.ToTable("UserVotes", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
+                {
+                    b.HasOne("backend.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
+                {
+                    b.HasOne("backend.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
+                {
+                    b.HasOne("backend.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -1100,6 +1205,34 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "chairman")
+                        .WithMany()
+                        .HasForeignKey("chairmanId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("backend.Models.Aktor", "secretary")
+                        .WithMany()
+                        .HasForeignKey("secretaryId");
+
+                    b.HasOne("backend.Models.Aktor", "spokesman")
+                        .WithMany()
+                        .HasForeignKey("spokesmanId");
+
+                    b.HasOne("backend.Models.Aktor", "viceChairman")
+                        .WithMany()
+                        .HasForeignKey("viceChairmanId");
+
+                    b.Navigation("chairman");
+
+                    b.Navigation("secretary");
+
+                    b.Navigation("spokesman");
+
+                    b.Navigation("viceChairman");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
