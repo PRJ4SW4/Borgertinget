@@ -1,5 +1,4 @@
-// /backend/Services/AutomationServices/ScheduledAltingetScrapeService.cs
-namespace backend.Services.AutomationServices;
+namespace backend.Services.Calendar.Scraping;
 
 using System;
 using System.Threading;
@@ -8,14 +7,14 @@ using Microsoft.Extensions.DependencyInjection; // Required for IServiceScopeFac
 using Microsoft.Extensions.Hosting; // Required for BackgroundService
 using Microsoft.Extensions.Logging; // Required for ILogger
 
-public class ScheduledAltingetScrapeService : BackgroundService
+public class AltingetScraperServiceScheduler : BackgroundService
 {
-    private readonly ILogger<ScheduledAltingetScrapeService> _logger;
+    private readonly ILogger<AltingetScraperServiceScheduler> _logger;
     private readonly IServiceScopeFactory _scopeFactory; // Factory to create scopes for scoped services like DbContext
 
     // Inject logger and scope factory
-    public ScheduledAltingetScrapeService(
-        ILogger<ScheduledAltingetScrapeService> logger,
+    public AltingetScraperServiceScheduler(
+        ILogger<AltingetScraperServiceScheduler> logger,
         IServiceScopeFactory scopeFactory
     )
     {
@@ -44,12 +43,12 @@ public class ScheduledAltingetScrapeService : BackgroundService
                 // Create a new DI scope to resolve scoped services (DataContext, AltingetScraperService)
                 using (var scope = _scopeFactory.CreateScope())
                 {
-                    var automationService =
-                        scope.ServiceProvider.GetRequiredService<IAutomationService>();
+                    var scraperService =
+                        scope.ServiceProvider.GetRequiredService<IScraperService>();
                     try
                     {
                         // Execute the automation task
-                        int count = await automationService.RunAutomation();
+                        int count = await scraperService.RunScraper();
                         _logger.LogInformation(
                             "Scheduled Altinget scrape finished. Processed {Count} events.",
                             count

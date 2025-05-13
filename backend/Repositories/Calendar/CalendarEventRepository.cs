@@ -1,4 +1,4 @@
-namespace backend.Services.AutomationServices.Repositories;
+namespace backend.Repositories.Calendar;
 
 using System;
 using System.Collections.Generic;
@@ -97,5 +97,14 @@ public class CalendarEventRepository : ICalendarEventRepository
         int changes = await _context.SaveChangesAsync(); // Save changes to the database.
         _logger.LogDebug("Persisted {DbChanges} changes to the database.", changes);
         return changes;
+    }
+
+    // Retrieves all CalendarEvents.
+    public async Task<IEnumerable<CalendarEvent>> GetAllEventsAsync()
+    {
+        _logger.LogInformation("Fetching all calendar events from database.");
+        var events = await _context.CalendarEvents.OrderBy(e => e.StartDateTimeUtc).ToListAsync();
+        _logger.LogInformation("Found {EventCount} total events.", events.Count);
+        return events;
     }
 }

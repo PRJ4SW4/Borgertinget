@@ -1,4 +1,4 @@
-namespace backend.Services.AutomationServices.Repositories;
+namespace backend.Repositories.Calendar;
 
 using System;
 using System.Collections.Generic;
@@ -31,4 +31,8 @@ public interface ICalendarEventRepository
     // Persists all pending changes to the data store.
     // Returns the number of state entries written to the database.
     Task<int> SaveChangesAsync();
+
+    // Method to retrieve all CalendarEvents from the data store.
+    // This method is asynchronous and returns a collection of CalendarEvent objects.
+    Task<IEnumerable<CalendarEvent>> GetAllEventsAsync();
 }
