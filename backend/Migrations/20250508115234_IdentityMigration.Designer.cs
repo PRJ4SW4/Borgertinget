@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -12,9 +13,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250508115234_IdentityMigration")]
+    partial class IdentityMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -157,7 +160,7 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Aktor", b =>
                 {
-                    b.Property<int>("PoliticianId")
+                    b.Property<int>("Id")
                         .HasColumnType("integer");
 
                     b.Property<string>("Born")
@@ -247,9 +250,9 @@ namespace backend.Migrations
                     b.Property<int?>("typeid")
                         .HasColumnType("integer");
 
-                    b.HasKey("PoliticianId");
+                    b.HasKey("Id");
 
-                    b.ToTable("Aktor", (string)null);
+                    b.ToTable("Aktor");
                 });
 
             modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
@@ -285,7 +288,7 @@ namespace backend.Migrations
                     b.HasIndex("SourceUrl")
                         .IsUnique();
 
-                    b.ToTable("CalendarEvents", (string)null);
+                    b.ToTable("CalendarEvents");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -326,7 +329,7 @@ namespace backend.Migrations
 
                     b.HasIndex("CollectionId");
 
-                    b.ToTable("Flashcards", (string)null);
+                    b.ToTable("Flashcards");
 
                     b.HasData(
                         new
@@ -402,7 +405,7 @@ namespace backend.Migrations
 
                     b.HasKey("CollectionId");
 
-                    b.ToTable("FlashcardCollections", (string)null);
+                    b.ToTable("FlashcardCollections");
 
                     b.HasData(
                         new
@@ -444,7 +447,7 @@ namespace backend.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("AnswerOptions", (string)null);
+                    b.ToTable("AnswerOptions");
 
                     b.HasData(
                         new
@@ -572,7 +575,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ParentPageId");
 
-                    b.ToTable("Pages", (string)null);
+                    b.ToTable("Pages");
 
                     b.HasData(
                         new
@@ -635,7 +638,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("Questions", (string)null);
+                    b.ToTable("Questions");
 
                     b.HasData(
                         new
@@ -662,60 +665,6 @@ namespace backend.Migrations
                             PageId = 5,
                             QuestionText = "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?"
                         });
-                });
-
-            modelBuilder.Entity("backend.Models.Party", b =>
-                {
-                    b.Property<int>("partyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
-
-                    b.Property<int?>("chairmanId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("history")
-                        .HasColumnType("text");
-
-                    b.Property<string>("memberIds")
-                        .HasColumnType("text");
-
-                    b.Property<string>("partyName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("partyProgram")
-                        .HasColumnType("text");
-
-                    b.Property<string>("partyShortName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("politics")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("secretaryId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("spokesmanId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("stats")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("viceChairmanId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("partyId");
-
-                    b.HasIndex("chairmanId");
-
-                    b.HasIndex("secretaryId");
-
-                    b.HasIndex("spokesmanId");
-
-                    b.HasIndex("viceChairmanId");
-
-                    b.ToTable("Party");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
@@ -749,7 +698,7 @@ namespace backend.Migrations
                     b.HasIndex("TwitterUserId")
                         .IsUnique();
 
-                    b.ToTable("PoliticianTwitterIds", (string)null);
+                    b.ToTable("PoliticianTwitterIds");
 
                     b.HasData(
                         new
@@ -801,7 +750,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PoliticianTwitterId");
 
-                    b.ToTable("Polls", (string)null);
+                    b.ToTable("Polls");
 
                     b.HasData(
                         new
@@ -843,7 +792,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PollId");
 
-                    b.ToTable("PollOptions", (string)null);
+                    b.ToTable("PollOptions");
 
                     b.HasData(
                         new
@@ -917,7 +866,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Subscriptions", (string)null);
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("backend.Models.Tweet", b =>
@@ -959,7 +908,7 @@ namespace backend.Migrations
                     b.HasIndex("PoliticianTwitterId", "TwitterTweetId")
                         .IsUnique();
 
-                    b.ToTable("Tweets", (string)null);
+                    b.ToTable("Tweets");
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
@@ -1059,7 +1008,7 @@ namespace backend.Migrations
                     b.HasIndex("UserId", "PollId")
                         .IsUnique();
 
-                    b.ToTable("UserVotes", (string)null);
+                    b.ToTable("UserVotes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -1154,34 +1103,6 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
-                });
-
-            modelBuilder.Entity("backend.Models.Party", b =>
-                {
-                    b.HasOne("backend.Models.Aktor", "chairman")
-                        .WithMany()
-                        .HasForeignKey("chairmanId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("backend.Models.Aktor", "secretary")
-                        .WithMany()
-                        .HasForeignKey("secretaryId");
-
-                    b.HasOne("backend.Models.Aktor", "spokesman")
-                        .WithMany()
-                        .HasForeignKey("spokesmanId");
-
-                    b.HasOne("backend.Models.Aktor", "viceChairman")
-                        .WithMany()
-                        .HasForeignKey("viceChairmanId");
-
-                    b.Navigation("chairman");
-
-                    b.Navigation("secretary");
-
-                    b.Navigation("spokesman");
-
-                    b.Navigation("viceChairman");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>

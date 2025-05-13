@@ -10,20 +10,20 @@ using backend.Models;
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking; // For ValueComparer
 
 namespace backend.Data
 {
-    public class DataContext : DbContext
+    public class DataContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         public DataContext(DbContextOptions<DataContext> options)
             : base(options) { }
 
         // --- DbSets ---
-        public DbSet<User> Users { get; set; } = null!;
-
         // --- Learning Environment Setup ---
         public DbSet<Page> Pages { get; set; } = null!;
         public DbSet<Question> Questions { get; set; } = null!;
@@ -295,13 +295,14 @@ namespace backend.Data
                 entity.Property(t => t.Text).IsRequired();
             });
 
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity
-                    .HasMany(u => u.Subscriptions)
-                    .WithOne(s => s.User)
-                    .HasForeignKey(s => s.UserId);
-            });
+
+            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
+            modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
+            modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
+            modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");
+            modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
+            modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
 
             modelBuilder.Entity<Subscription>(entity =>
             {
