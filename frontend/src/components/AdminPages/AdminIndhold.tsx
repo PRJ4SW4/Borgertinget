@@ -64,7 +64,7 @@ export default function AdminIndhold() {
     setActorsUpdateSuccess(false);
 
     try {
-      await axios.post("/api/calendar/run-altinget-automation", null, {
+      await axios.post("/api/calendar/run-calendar-scraper", null, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

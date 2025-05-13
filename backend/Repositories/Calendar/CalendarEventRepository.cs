@@ -73,6 +73,18 @@ public class CalendarEventRepository : ICalendarEventRepository
         );
     }
 
+    // Retrieves a specific CalendarEvent by its ID.
+    public async Task<CalendarEvent?> GetEventByIdAsync(int id) // Added nullable return type
+    {
+        _logger.LogDebug("Fetching calendar event by ID: {EventId}", id);
+        var calendarEvent = await _context.CalendarEvents.FindAsync(id);
+        if (calendarEvent == null)
+        {
+            _logger.LogWarning("Calendar event with ID: {EventId} not found.", id);
+        }
+        return calendarEvent;
+    }
+
     // Updates an existing CalendarEvent.
     public void UpdateEvent(CalendarEvent existingEvent)
     {
@@ -89,6 +101,13 @@ public class CalendarEventRepository : ICalendarEventRepository
     {
         _context.CalendarEvents.RemoveRange(eventsToDelete); // Mark for deletion.
         _logger.LogDebug("Marked {Count} calendar events for deletion.", eventsToDelete.Count());
+    }
+
+    // Marks a single CalendarEvent for deletion.
+    public void DeleteEvent(CalendarEvent eventToDelete)
+    {
+        _context.CalendarEvents.Remove(eventToDelete);
+        _logger.LogDebug("Marked calendar event for deletion: ID={EventId}", eventToDelete.Id);
     }
 
     // Persists all pending changes.

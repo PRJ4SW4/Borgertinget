@@ -17,6 +17,7 @@ namespace backend.Models
         public string? PartyShortname { get; set; }
         public string? PictureUrl { get; set; }
         public string? MinisterTitle { get; set; }
+
         // Add other relevant Aktor fields you want to search or display directly...
         public List<string>? Constituencies { get; set; } // Example list field
 
@@ -32,19 +33,19 @@ namespace backend.Models
         // Suggestion field for autocomplete (optional but recommended)
         // public CompletionField Suggest { get; set; }
 
-        public string? partyName {get; set;} = string.Empty;
-        
-        public string? partyShortNameFromParty {get; set;} = string.Empty;
+        public string? partyName { get; set; } = string.Empty;
 
-        public string? partyProgram {get; set;} = string.Empty;
+        public string? partyShortNameFromParty { get; set; } = string.Empty;
 
-        public string? politics {get; set;} = string.Empty ;
+        public string? partyProgram { get; set; } = string.Empty;
 
-        public string? history {get; set;} = string.Empty;
+        public string? politics { get; set; } = string.Empty;
+
+        public string? history { get; set; } = string.Empty;
 
         //Page specific
 
-        public string? pageTitle {get; set;} = string.Empty;
-        public string? pageContent {get; set;} = string.Empty;
+        public string? pageTitle { get; set; } = string.Empty;
+        public string? pageContent { get; set; } = string.Empty;
     }
 }

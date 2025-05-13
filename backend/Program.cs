@@ -15,20 +15,9 @@ using backend.Services.LearningEnvironment;
 using backend.Services.Search;
 using backend.utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.DataProtection; // Add this
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.EntityFrameworkCore; // Inkluderer MigrateAsync()
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging; // Inkluderer ILogger
-using Microsoft.Extensions.Options; // Add this using directive
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -320,6 +309,7 @@ builder.Services.AddRouting();
 builder.Services.AddHostedService<TestScheduledIndexService>();
 
 builder.Services.AddScoped<AdministratorService>();
+
 // Search Services
 builder.Services.AddHostedService<ScheduledIndexService>();
 

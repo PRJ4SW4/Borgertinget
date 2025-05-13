@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using backend.DTO.Calendar;
 using backend.Services.Calendar;
 using backend.Services.Calendar.Scraping;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -82,7 +83,6 @@ public class CalendarController : ControllerBase
             return StatusCode(500, "An internal error occurred while fetching events.");
         }
     }
-    } 
 
     #region Admin Endpoints Post/Put/Delete
 
@@ -94,7 +94,7 @@ public class CalendarController : ControllerBase
     )
     {
         // Logs an information message indicating that the attempt to create a new calendar event has started.
-        _logger.LogInformation("Attempting to create a new calendar event.");
+        _logger.LogInformation("Attempting to create a new calendar event via service.");
 
         if (string.IsNullOrEmpty(calendarEventDto.SourceUrl))
         {
@@ -104,29 +104,7 @@ public class CalendarController : ControllerBase
 
         try
         {
-            // Creates a new CalendarEvent entity from the provided DTO.
-            var calendarEvent = new CalendarEvent
-            {
-                Title = calendarEventDto.Title,
-                StartDateTimeUtc = calendarEventDto.StartDateTimeUtc,
-                Location = calendarEventDto.Location,
-                SourceUrl = calendarEventDto.SourceUrl, // Already checked for null/empty
-            };
-
-            // Adds the new CalendarEvent entity to the database context.
-            _context.CalendarEvents.Add(calendarEvent);
-            // Saves the changes to the database.
-            await _context.SaveChangesAsync();
-
-            // Maps the created CalendarEvent entity back to a DTO for the response.
-            var createdEventDto = new CalendarEventDTO
-            {
-                Id = calendarEvent.Id,
-                Title = calendarEvent.Title,
-                StartDateTimeUtc = calendarEvent.StartDateTimeUtc,
-                Location = calendarEvent.Location,
-                SourceUrl = calendarEvent.SourceUrl,
-            };
+            var createdEventDto = await _calendarService.CreateEventAsync(calendarEventDto);
 
             // Returns an HTTP 201 Created response with the created event DTO.
             return CreatedAtAction(
@@ -138,7 +116,10 @@ public class CalendarController : ControllerBase
         catch (Exception ex)
         {
             // Logs any errors that occur during the creation process.
-            _logger.LogError(ex, "An error occurred while creating a new calendar event.");
+            _logger.LogError(
+                ex,
+                "An error occurred while creating a new calendar event via service."
+            );
             // Returns an HTTP 500 Internal Server Error response with a generic error message.
             return StatusCode(500, "An internal error occurred while creating the event.");
         }
@@ -152,7 +133,7 @@ public class CalendarController : ControllerBase
         [FromBody] CalendarEventDTO calendarEventDto
     )
     {
-        _logger.LogInformation($"Attempting to update calendar event with ID: {id}.");
+        _logger.LogInformation($"Attempting to update calendar event with ID: {id} via service.");
 
         if (id != calendarEventDto.Id)
         {
@@ -166,37 +147,37 @@ public class CalendarController : ControllerBase
             return BadRequest("SourceUrl is required.");
         }
 
-        var calendarEvent = await _context.CalendarEvents.FindAsync(id);
-
-        if (calendarEvent == null)
-        {
-            _logger.LogWarning($"Calendar event with ID: {id} not found for update.");
-            return NotFound();
-        }
-
-        calendarEvent.Title = calendarEventDto.Title;
-        calendarEvent.StartDateTimeUtc = calendarEventDto.StartDateTimeUtc;
-        calendarEvent.Location = calendarEventDto.Location;
-        calendarEvent.SourceUrl = calendarEventDto.SourceUrl; // Already checked for null/empty
-        // LastScrapedUtc is not updated here as this is a manual override/edit
-
         try
         {
-            await _context.SaveChangesAsync();
-            _logger.LogInformation($"Successfully updated calendar event with ID: {id}.");
+            var success = await _calendarService.UpdateEventAsync(id, calendarEventDto);
+
+            if (!success)
+            {
+                _logger.LogWarning(
+                    $"Calendar event with ID: {id} not found for update via service, or update failed."
+                );
+                return NotFound(); // Or appropriate error if update failed for other reasons
+            }
+
+            _logger.LogInformation(
+                $"Successfully updated calendar event with ID: {id} via service."
+            );
             return NoContent(); // Or return Ok(calendarEventDto) if you want to return the updated object
         }
         catch (DbUpdateConcurrencyException ex)
         {
             _logger.LogError(
                 ex,
-                $"A concurrency error occurred while updating calendar event with ID: {id}."
+                $"A concurrency error occurred while updating calendar event with ID: {id} via service."
             );
             return StatusCode(500, "A concurrency error occurred while updating the event.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"An error occurred while updating calendar event with ID: {id}.");
+            _logger.LogError(
+                ex,
+                $"An error occurred while updating calendar event with ID: {id} via service."
+            );
             return StatusCode(500, "An internal error occurred while updating the event.");
         }
     }
@@ -206,27 +187,31 @@ public class CalendarController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteEvent(int id)
     {
-        _logger.LogInformation($"Attempting to delete calendar event with ID: {id}.");
-
-        var calendarEvent = await _context.CalendarEvents.FindAsync(id);
-
-        if (calendarEvent == null)
-        {
-            _logger.LogWarning($"Calendar event with ID: {id} not found for deletion.");
-            return NotFound();
-        }
-
-        _context.CalendarEvents.Remove(calendarEvent);
+        _logger.LogInformation($"Attempting to delete calendar event with ID: {id} via service.");
 
         try
         {
-            await _context.SaveChangesAsync();
-            _logger.LogInformation($"Successfully deleted calendar event with ID: {id}.");
+            var success = await _calendarService.DeleteEventAsync(id);
+
+            if (!success)
+            {
+                _logger.LogWarning(
+                    $"Calendar event with ID: {id} not found for deletion via service, or delete failed."
+                );
+                return NotFound();
+            }
+
+            _logger.LogInformation(
+                $"Successfully deleted calendar event with ID: {id} via service."
+            );
             return NoContent();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"An error occurred while deleting calendar event with ID: {id}.");
+            _logger.LogError(
+                ex,
+                $"An error occurred while deleting calendar event with ID: {id} via service."
+            );
             return StatusCode(500, "An internal error occurred while deleting the event.");
         }
     }
