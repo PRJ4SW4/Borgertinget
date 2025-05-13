@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250508115234_IdentityMigration")]
-    partial class IdentityMigration
+    [Migration("20250513101002_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -667,6 +667,60 @@ namespace backend.Migrations
                         });
                 });
 
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.Property<int>("partyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
+
+                    b.Property<int?>("chairmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("history")
+                        .HasColumnType("text");
+
+                    b.Property<string>("memberIds")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyProgram")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyShortName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("politics")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("secretaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("spokesmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("stats")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("viceChairmanId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("partyId");
+
+                    b.HasIndex("chairmanId");
+
+                    b.HasIndex("secretaryId");
+
+                    b.HasIndex("spokesmanId");
+
+                    b.HasIndex("viceChairmanId");
+
+                    b.ToTable("Party");
+                });
+
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
                     b.Property<int>("Id")
@@ -699,29 +753,6 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("PoliticianTwitterIds");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Statsministeriet",
-                            TwitterHandle = "Statsmin",
-                            TwitterUserId = "806068174567460864"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Venstre, Danmarks Liberale Parti",
-                            TwitterHandle = "venstredk",
-                            TwitterUserId = "123868861"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Troels Lund Poulsen",
-                            TwitterHandle = "troelslundp",
-                            TwitterUserId = "2965907578"
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.Poll", b =>
@@ -751,22 +782,6 @@ namespace backend.Migrations
                     b.HasIndex("PoliticianTwitterId");
 
                     b.ToTable("Polls");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PoliticianTwitterId = 1,
-                            Question = "Hvad synes du om den nye bro?"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 4, 28, 14, 30, 0, 0, DateTimeKind.Utc),
-                            PoliticianTwitterId = 1,
-                            Question = "Skal Danmark øge investeringer i vedvarende energi?"
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.PollOption", b =>
@@ -793,57 +808,6 @@ namespace backend.Migrations
                     b.HasIndex("PollId");
 
                     b.ToTable("PollOptions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            OptionText = "Den er fantastisk!",
-                            PollId = 1,
-                            Votes = 5
-                        },
-                        new
-                        {
-                            Id = 2,
-                            OptionText = "Den er ok, men dyr.",
-                            PollId = 1,
-                            Votes = 12
-                        },
-                        new
-                        {
-                            Id = 3,
-                            OptionText = "Den er unødvendig.",
-                            PollId = 1,
-                            Votes = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            OptionText = "Ja, meget mere end nu",
-                            PollId = 2,
-                            Votes = 42
-                        },
-                        new
-                        {
-                            Id = 5,
-                            OptionText = "Ja, lidt mere",
-                            PollId = 2,
-                            Votes = 28
-                        },
-                        new
-                        {
-                            Id = 6,
-                            OptionText = "Nej, det nuværende niveau er passende",
-                            PollId = 2,
-                            Votes = 15
-                        },
-                        new
-                        {
-                            Id = 7,
-                            OptionText = "Nej, vi bør investere mindre",
-                            PollId = 2,
-                            Votes = 8
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.Subscription", b =>
@@ -1103,6 +1067,34 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "chairman")
+                        .WithMany()
+                        .HasForeignKey("chairmanId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("backend.Models.Aktor", "secretary")
+                        .WithMany()
+                        .HasForeignKey("secretaryId");
+
+                    b.HasOne("backend.Models.Aktor", "spokesman")
+                        .WithMany()
+                        .HasForeignKey("spokesmanId");
+
+                    b.HasOne("backend.Models.Aktor", "viceChairman")
+                        .WithMany()
+                        .HasForeignKey("viceChairmanId");
+
+                    b.Navigation("chairman");
+
+                    b.Navigation("secretary");
+
+                    b.Navigation("spokesman");
+
+                    b.Navigation("viceChairman");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
