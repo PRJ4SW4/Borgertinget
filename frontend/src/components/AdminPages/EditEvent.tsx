@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
 import axios from "axios";
+import BackButton from "../Button/backbutton"; // Import the BackButton component
 import "./ChangeEvent.css"; // Use the new CSS file
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 
@@ -14,6 +15,7 @@ interface CalendarEventDTO {
 
 export default function EditEvent() {
   const navigate = useNavigate();
+  const location = useLocation(); // Get the current location
   const [events, setEvents] = useState<CalendarEventDTO[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [currentEvent, setCurrentEvent] = useState<CalendarEventDTO | null>(null);
@@ -155,13 +157,28 @@ export default function EditEvent() {
     }
   };
 
+  // Prepare the match prop for the BackButton component
+  const matchProp = { path: location.pathname };
+
   return (
     <div className="container">
-      <div>
+      <div style={{ position: "relative" }}>
+        {" "}
+        {/* Added for positioning context */}
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        {/* Place BackButton here, it will need CSS for exact positioning */}
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          {/* Adjust top/left as needed */}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
-      <h1 className="event-title">Rediger Begivenhed</h1>
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
+        <h1 className="event-title" style={{ marginLeft: "10px", marginBottom: "0" }}>
+          Rediger Begivenhed
+        </h1>
+      </div>
       <p className="event-subtitle">Vælg en begivenhed for at redigere dens detaljer.</p>
 
       <div className="event-section">

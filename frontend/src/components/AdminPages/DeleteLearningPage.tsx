@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import "./ChangeLearningPage.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import BackButton from "../Button/backbutton";
 import { fetchPagesStructure } from "../../services/ApiService";
 import type { PageSummaryDto, PageDetailDto as ApiPageDetailDto, QuestionDto as ApiQuestionDto } from "../../types/pageTypes";
 
@@ -11,6 +12,9 @@ export default function DeleteLearningPage() {
   const [selectedPageId, setSelectedPageId] = useState<number | null>(null);
   const [pageDetails, setPageDetails] = useState<ApiPageDetailDto | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const matchProp = { path: location.pathname }; // For BackButton
 
   const token = localStorage.getItem("jwt");
 
@@ -62,8 +66,13 @@ export default function DeleteLearningPage() {
 
   return (
     <div className="container">
-      <div>
+      <div style={{ position: "relative" }}>
+        {" "}
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
       <h1>Slet Læringsside</h1>

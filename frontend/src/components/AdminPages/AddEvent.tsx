@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import "./ChangeEvent.css"; // Use the new CSS file
+import "./ChangeEvent.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import BackButton from "../Button/backbutton";
 
 interface CalendarEventData {
   title: string;
@@ -13,6 +14,7 @@ interface CalendarEventData {
 
 export default function AddEvent() {
   const navigate = useNavigate();
+  const location = useLocation(); // Added
   const [eventData, setEventData] = useState<CalendarEventData>({
     title: "",
     startDateTimeUtc: "",
@@ -22,6 +24,8 @@ export default function AddEvent() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+
+  const matchProp = { path: location.pathname }; // Added
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -49,16 +53,9 @@ export default function AddEvent() {
       return;
     }
 
-    // Ensure datetime is in ISO 8601 format if using datetime-local input
-    // The HTML datetime-local input typically provides a format like "YYYY-MM-DDTHH:mm"
-    // We need to ensure it's compatible with what the backend expects for DateTimeOffset.
-    // Appending ':00Z' or ensuring the correct offset is included might be necessary
-    // depending on backend parsing. For simplicity, we assume the direct value works
-    // or needs to be adjusted to a full ISO 8601 string with timezone.
-    // For UTC, "Z" should be appended.
     let isoDateTime = eventData.startDateTimeUtc;
     if (isoDateTime && !isoDateTime.endsWith("Z") && isoDateTime.includes("T")) {
-      isoDateTime += ":00Z"; // Assuming seconds are 00 and it's UTC
+      isoDateTime += ":00Z";
     }
 
     try {
@@ -71,7 +68,7 @@ export default function AddEvent() {
       );
       setMessage("Begivenhed oprettet succesfuldt!");
       setIsError(false);
-      setEventData({ title: "", startDateTimeUtc: "", location: "", sourceUrl: "" }); // Reset form
+      setEventData({ title: "", startDateTimeUtc: "", location: "", sourceUrl: "" });
       navigate("/admin/Indhold");
     } catch (error) {
       console.error("Fejl ved oprettelse af begivenhed:", error);
@@ -88,8 +85,15 @@ export default function AddEvent() {
 
   return (
     <div className="container">
-      <div>
+      <div style={{ position: "relative" }}>
+        {" "}
+        {/* Added for positioning context */}
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          {/* Adjust top/left as needed */}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
       <h1 className="event-title">Tilføj Ny Begivenhed</h1>
@@ -119,7 +123,7 @@ export default function AddEvent() {
           <input
             id="startDateTimeUtc"
             name="startDateTimeUtc"
-            type="datetime-local" // Provides a date and time picker
+            type="datetime-local"
             value={eventData.startDateTimeUtc}
             onChange={handleChange}
             className="event-input"

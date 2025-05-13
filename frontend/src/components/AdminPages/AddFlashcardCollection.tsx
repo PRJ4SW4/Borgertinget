@@ -1,11 +1,14 @@
 import { useState } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 import { FlashcardDto, FlashcardCollectionDetailDto } from "../../types/flashcardTypes";
 import "./AddFlashcardCollection.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import BackButton from "../Button/backbutton"; // Import BackButton
 
 export default function CreateFlashcardCollection() {
   const [title, setTitle] = useState<string>("");
+  const location = useLocation();
   const [description, setDescription] = useState<string>("");
   const [flashcards, setFlashcards] = useState<FlashcardDto[]>([
     {
@@ -18,6 +21,7 @@ export default function CreateFlashcardCollection() {
       backImagePath: null,
     },
   ]);
+  const matchProp = { path: location.pathname };
 
   const handleAddFlashcard = (imageFront: boolean, imageBack: boolean = false) => {
     const newCard: FlashcardDto = {
@@ -108,8 +112,15 @@ export default function CreateFlashcardCollection() {
 
   return (
     <div className="create-container">
-      <div>
-        <img src={BorgertingetIcon} className="Borgertinget-Icon"></img>
+      <div style={{ position: "relative" }}>
+        {" "}
+        {/* Added for positioning context */}
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          {/* Adjust top/left as needed */}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
 
       <div className="top-red-line"></div>

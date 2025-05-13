@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import "./ChangeEvent.css"; // Use the new CSS file
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import BackButton from "../Button/backbutton";
 
 interface CalendarEventDTO {
   id: number;
@@ -14,12 +15,15 @@ interface CalendarEventDTO {
 
 export default function DeleteEvent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [events, setEvents] = useState<CalendarEventDTO[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [currentEvent, setCurrentEvent] = useState<CalendarEventDTO | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+
+  const matchProp = { path: location.pathname }; // For BackButton
 
   // Fetch all events for the dropdown
   useEffect(() => {
@@ -104,8 +108,13 @@ export default function DeleteEvent() {
 
   return (
     <div className="container">
-      <div>
+      <div style={{ position: "relative" }}>
+        {" "}
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
       <h1 className="event-title">Slet Begivenhed</h1>

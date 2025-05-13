@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { fetchPagesStructure } from "../../services/ApiService";
 import type { PageSummaryDto } from "../../types/pageTypes";
-import "./ChangeLearningPage.css"; // Updated CSS import
+import "./ChangeLearningPage.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import BackButton from "../Button/backbutton";
 
 // Frontend state types for question/answer editing
 interface AnswerOptionFormState {
@@ -26,11 +27,13 @@ export default function AddLearningPage() {
   const [pages, setPages] = useState<PageSummaryDto[]>([]);
   const [questions, setQuestions] = useState<QuestionFormState[]>([]);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // For generating unique client-side IDs for new items
   const [nextQuestionTempId, setNextQuestionTempId] = useState(-1);
   const [nextOptionTempId, setNextOptionTempId] = useState(-1);
 
+  const matchProp = { path: location.pathname }; // For BackButton
   useEffect(() => {
     const loadPages = async () => {
       try {
@@ -161,8 +164,15 @@ export default function AddLearningPage() {
 
   return (
     <div className="container">
-      <div>
+      <div style={{ position: "relative" }}>
+        {" "}
+        {/* Added for positioning context */}
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          {/* Adjust top/left as needed */}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
       <h1>Opret Læringsside</h1>

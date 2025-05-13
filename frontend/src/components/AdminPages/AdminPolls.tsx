@@ -1,13 +1,21 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 import "./AdminPolls.css";
+import BackButton from "../Button/backbutton";
 
 export default function AdminPolls() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const matchProp = { path: location.pathname };
   return (
     <div className="container">
-      <div>
-        <img src={BorgertingetIcon} className="Borgertinget-Icon"></img>
+      <div style={{ position: "relative" }}>
+        {" "}
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
 

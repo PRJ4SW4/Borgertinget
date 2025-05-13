@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import "./EditCitatMode.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import BackButton from "../Button/backbutton";
 import { EditQuoteDTO } from "../../types/polidleTypes";
 
 export default function EditCitatMode() {
   const [quotes, setQuotes] = useState<EditQuoteDTO[]>([]);
   const [selectedQuote, setSelectedQuote] = useState<EditQuoteDTO | null>(null);
   const [newText, setNewText] = useState<string>("");
+  const location = useLocation();
+
+  const matchProp = { path: location.pathname };
 
   // Load all Quotes
   useEffect(() => {
@@ -73,8 +78,13 @@ export default function EditCitatMode() {
 
   return (
     <div className="container">
-      <div>
-        <img src={BorgertingetIcon} className="Borgertinget-Icon"></img>
+      <div style={{ position: "relative" }}>
+        {" "}
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
 

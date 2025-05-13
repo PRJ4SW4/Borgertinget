@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 import { FlashcardCollectionDetailDto } from "../../types/flashcardTypes";
 import "./DeleteFlashcardCollection.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import BackButton from "../Button/backbutton";
 
 export default function DeleteFlashcardCollection() {
   const [titles, setTitles] = useState<string[]>([]);
+  const location = useLocation();
+
+  const matchProp = { path: location.pathname };
 
   // Load all titles
   useEffect(() => {
@@ -57,8 +62,13 @@ export default function DeleteFlashcardCollection() {
 
   return (
     <div className="container">
-      <div>
-        <img src={BorgertingetIcon} className="Borgertinget-Icon" />
+      <div style={{ position: "relative" }}>
+        {" "}
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
       <h1>Slet Flashcard Serie</h1>

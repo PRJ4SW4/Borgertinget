@@ -1,12 +1,16 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 import "./AdminBruger.css";
+import BackButton from "../Button/backbutton";
 
 export default function AdminBruger() {
   const [oldUsername, setOldUsername] = useState<string>("");
   const [newUsername, setNewUsername] = useState<string>("");
+  const location = useLocation();
 
+  const matchProp = { path: location.pathname };
   const editUsername = async () => {
     if (!oldUsername.trim() || !newUsername.trim()) {
       alert("Udfyld både det gamle og det nye brugernavn.");
@@ -52,8 +56,13 @@ export default function AdminBruger() {
 
   return (
     <div className="admin-bruger-container">
-      <div>
-        <img src={BorgertingetIcon} className="Borgertinget-Icon"></img>
+      <div style={{ position: "relative" }}>
+        {" "}
+        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
 

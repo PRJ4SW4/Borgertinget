@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import "./ChangeInhold.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import BackButton from "../Button/backbutton";
 
 interface Party {
   partyId: number;
@@ -19,6 +21,9 @@ export default function RedigerInhold() {
     history: "",
     politics: "",
   });
+  const location = useLocation();
+
+  const matchProp = { path: location.pathname };
 
   useEffect(() => {
     async function fetchParties() {
@@ -81,8 +86,13 @@ export default function RedigerInhold() {
 
   return (
     <div className="container">
-      <div>
+      <div style={{ position: "relative" }}>
+        {" "}
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
 

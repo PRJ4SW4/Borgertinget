@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
+import BackButton from "../Button/backbutton";
 import type { PageSummaryDto, PageDetailDto as ApiPageDetailDto } from "../../types/pageTypes";
 import { fetchPagesStructure } from "../../services/ApiService";
 import "./ChangeLearningPage.css";
@@ -28,9 +29,12 @@ export default function EditLearningPage() {
   const [displayOrder, setDisplayOrder] = useState(0);
   const [questions, setQuestions] = useState<QuestionFormState[]>([]);
   const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem("jwt");
   const [nextQuestionTempId, setNextQuestionTempId] = useState(-1);
   const [nextOptionTempId, setNextOptionTempId] = useState(-1);
+
+  const matchProp = { path: location.pathname };
 
   useEffect(() => {
     const loadPages = async () => {
@@ -179,8 +183,13 @@ export default function EditLearningPage() {
 
   return (
     <div className="container">
-      <div>
+      <div style={{ position: "relative" }}>
+        {" "}
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
       <h1>Rediger Læringsside</h1>

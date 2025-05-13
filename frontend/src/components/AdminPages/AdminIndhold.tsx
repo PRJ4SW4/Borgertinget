@@ -1,11 +1,13 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 import "./AdminIndhold.css";
 import { useState } from "react";
+import BackButton from "../Button/backbutton";
 
 export default function AdminIndhold() {
   const navigate = useNavigate();
+  const location = useLocation();
   // State for fetching actors
   const [actorsLoading, setActorsLoading] = useState(false);
   const [actorsMessage, setActorsMessage] = useState("");
@@ -16,6 +18,7 @@ export default function AdminIndhold() {
   const [eventsMessage, setEventsMessage] = useState("");
   const [eventsUpdateSuccess, setEventsUpdateSuccess] = useState(false);
 
+  const matchProp = { path: location.pathname };
   const handleFetchActors = async () => {
     const token = localStorage.getItem("jwt");
     if (!token) {
@@ -78,8 +81,13 @@ export default function AdminIndhold() {
 
   return (
     <div className="container">
-      <div>
+      <div style={{ position: "relative" }}>
+        {" "}
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+          {" "}
+          <BackButton match={matchProp} destination="admin" />
+        </div>
       </div>
       <div className="top-red-line"></div>
 
