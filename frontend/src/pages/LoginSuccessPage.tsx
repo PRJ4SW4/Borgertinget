@@ -17,7 +17,7 @@ const LoginSuccessPage: React.FC<LoginSuccessPageProps> = ({ setToken }) => {
       console.log("Modtaget token fra Google login:", token); // Til debugging
       localStorage.setItem('jwt', token);
       setToken(token);
-      navigate('/', { replace: true });
+      navigate('/HomePage', { replace: true });
     } else {
       console.error("Intet token fundet i URL efter Google login.");
       navigate('/login'); // Eller vis en fejlside

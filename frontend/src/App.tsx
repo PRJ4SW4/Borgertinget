@@ -71,7 +71,7 @@ function App() {
       {/* Login page route. */}
       <Route path="/login" element={<Login setToken={handleSetToken} />} />
       {/* Post-login success/callback route. */}
-      <Route path="/login-success" element={<></>}/>
+      <Route path="/login-success" element={<LoginSuccessPage setToken={handleSetToken} />} /> 
       <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={(message) => {}}/>} />
 
 

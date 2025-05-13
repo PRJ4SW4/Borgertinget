@@ -99,7 +99,8 @@ builder
             IssuerSigningKey = new SymmetricSecurityKey(key),
             // THIS LINE ensures ASP.NET picks up "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
             // as the user's role claim.
-            RoleClaimType = ClaimTypes.Role
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.Name
         };
         // Indsæt event hooks til fejllogning
         options.Events = new JwtBearerEvents
@@ -145,12 +146,40 @@ builder
         IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleOAuth");
         options.ClientId = googleAuthNSection["ClientId"] ?? throw new InvalidOperationException("Google ClientId ikke fundet.");
         options.ClientSecret = googleAuthNSection["ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret ikke fundet.");
-        options.Events.OnRemoteFailure = context => {
-            context.Response.Redirect("/login?error=" + HttpUtility.UrlEncode(context.Failure?.Message));
-            context.HandleResponse();
+        options.CallbackPath = "/signin-google"; 
+        options.Events.OnTicketReceived = ctx => 
+        {
             return Task.CompletedTask;
         };
-    });
+        options.Events.OnRemoteFailure = context => {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError("Google Remote Failure: {FailureMessage}", context.Failure?.Message);
+            context.Response.Redirect("/error?message=" + HttpUtility.UrlEncode("Google login fejlede."));
+            context.HandleResponse(); // Stop videre behandling
+            return Task.CompletedTask;
+        };
+    });//.AddCookie(IdentityConstants.ExternalScheme);
+
+// ASP.NET Core Identity bruger cookies til at håndtere det *eksterne login flow* i led af Oauth.
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5); 
+    options.SlidingExpiration = true;
+
+    // Forhindr Identity i at redirecte API-kald til login-sider
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
 
 // Authorization for Admin and User roles
 builder.Services.AddAuthorization(options =>
@@ -210,8 +239,8 @@ builder.Services.AddScoped<EmailService>();
 //oda.ft crawler
 builder.Services.AddScoped<HttpService>();
 
-builder.Services.AddHostedService<TweetFetchingService>();
-builder.Services.AddHttpClient<TwitterService>();
+// builder.Services.AddHostedService<TweetFetchingService>();
+//builder.Services.AddHttpClient<TwitterService>();
 
 // CORS
 builder.Services.AddCors(options =>
