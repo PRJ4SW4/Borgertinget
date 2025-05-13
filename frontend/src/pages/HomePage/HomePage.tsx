@@ -69,6 +69,8 @@ const HomePage: React.FC = () => {
         return `/flashcards`; // Fallback or a general flashcards page
       case 'party':
         return `/party/${result.partyName}`
+      case 'page':
+        return `/learning/${actualId}`
       // Add more cases for other dataTypes if needed
       default:
         return '#'; // Default fallback link
@@ -83,6 +85,8 @@ const HomePage: React.FC = () => {
         return 'Flashcard';
       case 'party':
         return 'Parti';
+      case 'page':
+        return 'Læringsside';
       // more cases (learning env)
       default:
         return dataType;
@@ -124,7 +128,7 @@ const HomePage: React.FC = () => {
                         {getDataTypeDisplayName(result.dataType)}
                       </span>
                       <span className="result-title">
-                        { result.aktorName || result.frontText || result.title || result.backText || 'Ukendt Titel'}
+                        { result.aktorName || result.frontText || result.title || result.pageTitle || result.backText || 'Ukendt Titel'}
                       </span>
                       {/* Optionally display a snippet of content */}
                       {/* {result.content && <p className="result-content-snippet">{result.content.substring(0, 100)}...</p>} */}

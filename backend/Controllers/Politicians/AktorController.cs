@@ -220,8 +220,6 @@ public class AktorController : ControllerBase{
         int totalAddedCount = 0;
         int totalUpdatedCount = 0;
         int totalDeletedCount = 0;
-        int totalPartiesAdded = 0;
-        int totalMembersAddedToParties = 0;
         string? nextPolitikerLink = initialPolitikerApiUrl + "&$format=json"; // Start withpoliticians URL
 
         var processedParties = new Dictionary<string, Party>();

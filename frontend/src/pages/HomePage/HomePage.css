@@ -167,6 +167,10 @@
 .result-type-badge.type-parti {
   background-color: #ffA500; /* Green for Flashcard */
 }
+
+.result-type-badge.type-læringsside {
+  background-color: #a800eac1;
+}
 /* Add more specific type styles as needed */
 
 .result-title {

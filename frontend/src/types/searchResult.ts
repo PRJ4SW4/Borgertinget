@@ -26,5 +26,8 @@ export interface SearchDocument {
   politics: string | null;
   history: string | null;
 
+  pageTitle?: string | null;
+  pageContent?: string | null;
+
 
 }

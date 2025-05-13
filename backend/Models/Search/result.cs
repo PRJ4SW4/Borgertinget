@@ -41,5 +41,10 @@ namespace backend.Models
         public string? politics {get; set;} = string.Empty ;
 
         public string? history {get; set;} = string.Empty;
+
+        //Page specific
+
+        public string? pageTitle {get; set;} = string.Empty;
+        public string? pageContent {get; set;} = string.Empty;
     }
 }

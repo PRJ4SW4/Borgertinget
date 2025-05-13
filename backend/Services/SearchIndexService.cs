@@ -8,6 +8,7 @@ using backend.Data; // Your DbContext
 using backend.Models; // Your models including Aktor, Flashcard, SearchDocument
 using backend.Models.Flashcards;
 using Microsoft.EntityFrameworkCore;
+using backend.Models.LearningEnvironment;
 using Microsoft.Extensions.DependencyInjection; // For GetService
 using Microsoft.Extensions.Hosting; // For IHostApplicationLifetime or similar context
 using Microsoft.Extensions.Logging;
@@ -52,6 +53,7 @@ namespace backend.Services
             int aktorCount = 0;
             int flashcardCount = 0;
             int partyCount = 0;
+            int pagesCount = 0;
             const int batchSize = 1000; // Adjust batch size as needed
 
             try
@@ -135,6 +137,23 @@ namespace backend.Services
                     }
                 }
                 _logger.LogInformation("Finished mapping Parties");
+
+                //Index Learning env
+                _logger.LogInformation("Fetching pages");
+                var pages = await _dbContext.Pages.AsNoTracking().ToListAsync();
+
+                foreach(var page in pages){
+                    var searchDoc = MapPageToSearchDocument(page);
+                    operations.Add(
+                        new BulkIndexOperation<SearchDocument>(searchDoc) {Id = searchDoc.Id}
+                    );
+                    pagesCount++;
+                    if (operations.Count >= batchSize){
+                        await SendBulkRequestAsync(operations, cancellationToken);
+                        operations.Clear();
+                    }
+                }
+                _logger.LogInformation("Finished mapping pages");
 
                 // Send any remaining documents
                 if (operations.Count > 0)
@@ -260,6 +279,20 @@ namespace backend.Services
                 partyProgram = party.partyProgram,
                 politics = party.politics,
                 history = party.history,
+            };
+        }
+        private SearchDocument MapPageToSearchDocument(Page page){
+            var contentParts = new List<string?> {page.Title, page.Content};
+            string? title = page.Title;
+            return new SearchDocument{
+                Id = $"page-{page.Id}",
+                DataType = "Page",
+                Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
+                Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
+                LastUpdated = DateTime.UtcNow,
+
+                pageTitle = page.Title,
+                pageContent = page.Content,
             };
         }
 
