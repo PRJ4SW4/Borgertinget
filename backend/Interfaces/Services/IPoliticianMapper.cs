@@ -11,5 +11,6 @@ namespace backend.Interfaces.Services
         DailyPoliticianDto MapToDetailsDto(Aktor aktor, DateOnly referenceDate);
         List<SearchListDto> MapToSummaryDtoList(IEnumerable<Aktor> aktors);
         SearchListDto MapToSummaryDto(Aktor aktor);
+        DailyPoliticianDto MapToDetailsDto(Aktor aktor);
     }
 }

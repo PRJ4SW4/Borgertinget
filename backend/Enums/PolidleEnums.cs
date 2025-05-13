@@ -18,3 +18,4 @@ public enum FeedbackType
     Lavere     // Den korrekte værdi er lavere (bruges til Alder)
     // Overvej 'Delvis' for f.eks. region/parti hvis det giver mening
 }
+

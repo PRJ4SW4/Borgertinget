@@ -6,8 +6,11 @@ using Microsoft.Extensions.Configuration; // Til konfiguration
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using backend.Services;
+using System.Globalization;
+using backend.Interfaces.Services;
 using backend.Interfaces.Utility; // For IDateTimeProvider
+using backend.Interfaces.Repositories;
+using backend.Enums;
 
 namespace backend.Jobs
 {

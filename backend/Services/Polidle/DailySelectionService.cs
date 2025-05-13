@@ -5,6 +5,7 @@ using backend.Interfaces.Services;
 using backend.Interfaces.Utility; // For IDateTimeProvider
 using backend.Models;
 using backend.Data;
+using backend.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,14 @@ namespace backend.Services
     public class DailySelectionService : IDailySelectionService
     {
         // --- Konstanter ---
-        private static class FeedbackKeys { /* ... som før ... */ } // Eller definer dem globalt
+        private static class FeedbackKeys
+        {
+            public const string Party = "Parti";
+            public const string Gender = "Køn";
+            public const string Region = "Region";
+            public const string Education = "Uddannelse";
+            public const string Age = "Alder";
+        }
 
         // --- Dependencies ---
         private readonly IAktorRepository _aktorRepository;
@@ -27,6 +35,7 @@ namespace backend.Services
         private readonly IPoliticianMapper _mapper;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly ILogger<DailySelectionService> _logger;
+        private readonly IRandomProvider _randomProvider;
         private readonly DataContext _context; // Stadig nødvendig for Transaktion / Unit of Work
 
 
@@ -38,7 +47,9 @@ namespace backend.Services
             IPoliticianMapper mapper,
             IDateTimeProvider dateTimeProvider,
             ILogger<DailySelectionService> logger,
-            DataContext context // Til transaktion
+            IRandomProvider randomProvider,
+            DataContext context // Til transaktion,
+            
             )
         {
             _aktorRepository = aktorRepository ?? throw new ArgumentNullException(nameof(aktorRepository));
@@ -49,6 +60,7 @@ namespace backend.Services
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _context = context ?? throw new ArgumentNullException(nameof(context)); // Til transaktion
+            _randomProvider = randomProvider ?? throw new ArgumentNullException(nameof(randomProvider));
         }
 
         // --- Public Methods ---

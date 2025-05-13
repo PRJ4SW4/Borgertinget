@@ -24,7 +24,7 @@ namespace backend.Persistence.Repositories
         public async Task<GamemodeTracker?> FindByAktorAndModeAsync(int aktorId, GamemodeTypes gameMode)
         {
             return await _context.GamemodeTrackers
-                .FirstOrDefaultAsync(gt => gt.AktorId == aktorId && gt.GameMode == gameMode);
+                .FirstOrDefaultAsync(gt => gt.PolitikerId  == aktorId && gt.GameMode == gameMode);
         }
 
         public async Task AddAsync(GamemodeTracker tracker)
@@ -63,7 +63,7 @@ namespace backend.Persistence.Repositories
                  // Opret ny
                   var newTracker = new GamemodeTracker
                   {
-                      AktorId = aktor.Id,
+                      PolitikerId  = aktor.Id,
                       GameMode = gameMode,
                       LastSelectedDate = selectionDate,
                       AlgoWeight = null

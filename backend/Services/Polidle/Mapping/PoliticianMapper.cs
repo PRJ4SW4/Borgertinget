@@ -39,19 +39,16 @@ namespace backend.Services.Mapping
              int age = CalculateAge(aktor.Born, _dateTimeProvider.TodayUtc); // Brug IDateTimeProvider
 
 
-             var dto = new PoliticianDetailsDto
+             var dto = new DailyPoliticianDto
              {
                  Id = aktor.Id,
                  PolitikerNavn = aktor.navn ?? "N/A",
                  PictureUrl = aktor.PictureMiRes,
                  Køn = aktor.Sex,
                  Parti = partiNavn,
-                 PartyShortname = aktor.PartyShortname, // Tilføjet hvis DTO'en har det
                  Age = age,
                  Region = region,
                  Uddannelse = uddannelse,
-                 Born = aktor.Born // Tilføjet hvis DTO'en har det
-                 // CurrentTitle = aktor.FunctionFormattedTitle // Tilføjet hvis DTO'en har det
              };
 
              _logger.LogDebug("Mapped Aktor {AktorId} to PoliticianDetailsDto.", aktor.Id);
@@ -63,14 +60,14 @@ namespace backend.Services.Mapping
 
          public List<SearchListDto> MapToSummaryDtoList(IEnumerable<Aktor> aktors)
          {
-              if (aktors == null) return new List<PoliticianSummaryDto>();
+              if (aktors == null) return new List<SearchListDto>();
               return aktors.Select(MapToSummaryDto).ToList();
          }
 
          public SearchListDto MapToSummaryDto(Aktor aktor)
          {
               if (aktor == null) throw new ArgumentNullException(nameof(aktor));
-              return new PoliticianSummaryDto
+              return new SearchListDto
               {
                   Id = aktor.Id,
                   PolitikerNavn = aktor.navn ?? "N/A",
