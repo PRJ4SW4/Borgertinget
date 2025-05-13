@@ -186,7 +186,8 @@ namespace backend.Controllers
         [HttpGet("login-google")] 
         public IActionResult LoginWithGoogle([FromQuery] string? clientReturnUrl = null)
         {
-            _logger.LogInformation("Start Google login process. Ønsket frontend returnUrl for efterfølgende redirect: {ClientReturnUrl}", clientReturnUrl ?? "/");
+            var sanitizedClientReturnUrl = (clientReturnUrl ?? "/").Replace("\n", "").Replace("\r", "");
+            _logger.LogInformation("Start Google login process. Ønsket frontend returnUrl for efterfølgende redirect: {ClientReturnUrl}", sanitizedClientReturnUrl);
 
             // Den URL, som SignInManager gemmer i AuthenticationProperties, for at vide hvor OnTicketReceived skal sende os hen.
             // Denne URL (vores HandleGoogleCallback) vil så modtage den oprindelige clientReturnUrl som et query parameter.
