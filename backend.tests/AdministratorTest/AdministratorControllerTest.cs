@@ -207,7 +207,7 @@ namespace Tests.Controllers
         public async Task UpdateFlashcardCollection_NullDto_ReturnsBadRequest()
         {
             // Act
-            var result = await _controller.UpdateFlashcardCollection(1, null);
+            var result = await _controller.UpdateFlashcardCollection(1, null!);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
@@ -275,7 +275,7 @@ namespace Tests.Controllers
         public async Task GetUsernameID_NullUsername_ReturnsBadRequest()
         {
             // Act
-            var result = await _controller.GetUsernameID(null);
+            var result = await _controller.GetUsernameID(null!);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
@@ -308,7 +308,7 @@ namespace Tests.Controllers
         public async Task PutNewUserName_NullDto_ReturnsBadRequest()
         {
             // Act
-            var result = await _controller.PutNewUserName(5, null);
+            var result = await _controller.PutNewUserName(5, null!);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
@@ -369,7 +369,6 @@ namespace Tests.Controllers
             // Act
             var result = await _controller.GetQuoteById(2);
 
-
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
             var ok = result as OkObjectResult;
@@ -397,7 +396,8 @@ namespace Tests.Controllers
         [Test]
         public async Task EditQuote_ValidInput_ReturnsOk()
         {
-            var result = await _controller.EditQuote(3, "Vi må stå sammen");
+            var dto = new EditQuoteDTO { QuoteId = 3, QuoteText = "Vi må stå sammen" };
+            var result = await _controller.EditQuote(dto);
 
             await _service.Received(1).EditQuoteAsync(3, "Vi må stå sammen");
 
@@ -411,7 +411,8 @@ namespace Tests.Controllers
         {
             _service.EditQuoteAsync(4, "Fejl i citat").Throws(new Exception("database error"));
 
-            var result = await _controller.EditQuote(4, "Fejl i citat");
+            var dto = new EditQuoteDTO { QuoteId = 3, QuoteText = "Fejl i citat" };
+            var result = await _controller.EditQuote(dto);
 
             Assert.That(result, Is.TypeOf<ObjectResult>());
             var obj = result as ObjectResult;

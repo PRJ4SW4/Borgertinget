@@ -19,7 +19,7 @@ namespace Tests.Controllers
     {
         private DataContext _context;
         private CalendarController _uut;
-        private IAltingetScraperService _mockScraperService; // Changed to interface for NSubstitute
+        private IAutomationService _mockScraperService; // Changed to interface for NSubstitute
         private ILogger<CalendarController> _mockLogger;
 
         [SetUp]
@@ -32,7 +32,7 @@ namespace Tests.Controllers
             _context = new DataContext(options);
             _context.Database.EnsureCreated();
 
-            _mockScraperService = Substitute.For<IAltingetScraperService>();
+            _mockScraperService = Substitute.For<IAutomationService>();
             _mockLogger = Substitute.For<ILogger<CalendarController>>();
 
             _uut = new CalendarController(_mockScraperService, _context, _mockLogger);
@@ -153,8 +153,8 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
-            Assert.That(badRequestResult.StatusCode, Is.EqualTo(400));
-            Assert.That(badRequestResult.Value, Is.EqualTo("ID in URL and body must match."));
+            Assert.That(badRequestResult?.StatusCode, Is.EqualTo(400));
+            Assert.That(badRequestResult?.Value, Is.EqualTo("ID in URL and body must match."));
         }
 
         [Test]
@@ -174,8 +174,8 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
-            Assert.That(badRequestResult.StatusCode, Is.EqualTo(400));
-            Assert.That(badRequestResult.Value, Is.EqualTo("SourceUrl is required."));
+            Assert.That(badRequestResult?.StatusCode, Is.EqualTo(400));
+            Assert.That(badRequestResult?.Value, Is.EqualTo("SourceUrl is required."));
         }
 
         [Test]

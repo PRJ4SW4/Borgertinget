@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using backend.Data;
 using backend.Hubs;
-using backend.Hubs;
 using backend.Models;
 using backend.Services;
 // For Altinget Scraping
@@ -24,7 +23,6 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore; // Inkluderer MigrateAsync()
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging; // Inkluderer ILogger
-using Microsoft.Extensions.Logging; // Add this
 using Microsoft.Extensions.Options; // Add this using directive
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
