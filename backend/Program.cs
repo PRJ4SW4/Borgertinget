@@ -3,36 +3,34 @@ using System.Security.Claims;
 using System.Text;
 using backend.Data;
 using backend.Hubs;
+using backend.Models;
 using backend.Repositories.Calendar;
 using backend.Services;
-using backend.Models;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
 using backend.Services.LearningEnvironment;
+using backend.Services.Search;
+using backend.utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using backend.Hubs;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using backend.utils;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options; // Add this using directive
-using Microsoft.AspNetCore.DataProtection;  // Add this
-using Microsoft.Extensions.Logging; // Add this
-
 using OpenSearch.Client;
 using OpenSearch.Net;
-using backend.Hubs;                
 
 // for .env secrets
 DotNetEnv.Env.Load();
-         
+
 var builder = WebApplication.CreateBuilder(args);
 
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
@@ -40,21 +38,14 @@ if (string.IsNullOrEmpty(openSearchUrl))
 {
     // Handle missing configuration - throw an error or default
     openSearchUrl = "http://localhost:9200"; // Default if not configured
-    Console.WriteLine("Warning: OpenSearch URL not configured in appsettings.json. Using default: http://localhost:9200");
+    Console.WriteLine(
+        "Warning: OpenSearch URL not configured in appsettings.json. Using default: http://localhost:9200"
+    );
 }
-
-// Add credentials if needed (example using Basic Auth - get from config)
-// var openSearchUser = builder.Configuration["OpenSearch:Username"];
-// var openSearchPassword = builder.Configuration["OpenSearch:Password"];
 
 // Configure the connection settings
 var settings = new ConnectionSettings(new Uri(openSearchUrl))
-    // Optional: Set a default index if most operations target one index
-    // .DefaultIndex("your-default-index-name")
-    // Optional: Add authentication if required
-    // .BasicAuthentication(openSearchUser, openSearchPassword)
-    // Optional: Disable SSL verification for local dev (NOT recommended for production)
-    .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // Use ONLY for dev/testing
+    .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // ONLY for dev/testing
     .PrettyJson(); // Makes debugging easier by formatting JSON requests/responses
 
 // Register IOpenSearchClient as a singleton (recommended by the library)
@@ -81,8 +72,9 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-builder.Services
-    .AddIdentity<User, IdentityRole<int>>(options => {
+builder
+    .Services.AddIdentity<User, IdentityRole<int>>(options =>
+    {
         options.SignIn.RequireConfirmedEmail = true;
 
         options.Tokens.ProviderMap.Add(
@@ -128,7 +120,7 @@ builder
             IssuerSigningKey = new SymmetricSecurityKey(key),
             // THIS LINE ensures ASP.NET picks up "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
             // as the user's role claim.
-            RoleClaimType = ClaimTypes.Role
+            RoleClaimType = ClaimTypes.Role,
         };
         // Indsæt event hooks til fejllogning
         options.Events = new JwtBearerEvents
@@ -169,17 +161,12 @@ builder
             },
         };
     });
+
 // Authorization for Admin and User roles
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(
-        "RequireAdministratorRole",
-        policy => policy.RequireRole("Admin")
-    );
-    options.AddPolicy(
-        "UserOrAdmin",
-        policy => policy.RequireRole("User", "Admin")
-    );
+    options.AddPolicy("RequireAdministratorRole", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
 });
 
 // Swagger
@@ -259,6 +246,7 @@ builder.Services.AddControllers(); /* .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     });*/
+
 //Search indexing service
 builder.Services.AddScoped<SearchIndexingService>();
 
@@ -281,11 +269,11 @@ builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
 builder.Services.AddRouting();
-builder.Services.AddHostedService<TestScheduledIndexService>(); //Fjern Test fra TestScheduledIndexServe
 
+// Search Services
+builder.Services.AddHostedService<ScheduledIndexService>();
 
 var app = builder.Build();
-
 
 using (var scope = app.Services.CreateScope())
 {
@@ -303,20 +291,22 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Triggering initial background indexing task...");
         var indexingService = services.GetRequiredService<SearchIndexingService>();
         // --- End trigger initial indexing ---
-
     }
     catch (Exception ex)
     {
-        logger.LogCritical(ex, "An error occurred during application startup while setting up OpenSearch.");
+        logger.LogCritical(
+            ex,
+            "An error occurred during application startup while setting up OpenSearch."
+        );
         // Optionally prevent the application from starting if setup fails
         // throw;
     }
 }
 
 app.UseRouting();
+
 // For static images from wwwroot folder
 app.UseStaticFiles();
-
 
 if (app.Environment.IsDevelopment())
 {
