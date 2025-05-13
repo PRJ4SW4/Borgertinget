@@ -22,7 +22,6 @@ using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility;
 using backend.Jobs;
-using backend.Models;
 using backend.Services;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
@@ -35,10 +34,13 @@ using backend.utils;
 using backend.Persistence.Repositories;
 
 // Automation / Scraping Services
+/*
+! ERROR: Path cannot find these namespaces
 using backend.Services.AutomationServices;
 using backend.Services.AutomationServices.HtmlFetching;
 using backend.Services.AutomationServices.Parsing;
 using backend.Services.AutomationServices.Repositories;
+*/
 
 // Flashcard Services
 using backend.Services.Flashcards;
@@ -289,7 +291,7 @@ builder.Services.AddScoped<SearchIndexingService>();
 
 builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
 //builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
-builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+builder.Services.AddSingleton<backend.Interfaces.Utility.IDateTimeProvider, backend.Services.Utility.DateTimeProvider>();
 builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
 
 // For altinget scraping
