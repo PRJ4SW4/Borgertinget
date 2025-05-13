@@ -14,7 +14,6 @@ import Login from "./pages/Login";
 import HomePage from "./pages/HomePage/HomePage";
 import PageContent from './components/LearningEnvironment/PageContent'; // Renders content within LearningLayout.
 import CalendarView from './components/Calendar/CalendarView';
-import LoginSuccessPage from './pages/LoginSuccessPage';
 import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
 import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
 import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
@@ -72,7 +71,7 @@ function App() {
       <Route path="/login" element={<Login setToken={handleSetToken} />} />
       {/* Post-login success/callback route. */}
       <Route path="/login-success" element={<></>}/>
-      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={(message) => {}}/>} />
+      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={() => {}}/>} />
 
 
       {/* --- Protected Routes using MainLayout --- */}

@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback, useLayoutEffect} from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Login.css";
 import loginImage from "../images/LoginImage.png";
-import { set } from "date-fns";
 interface LoginProps {
   setToken: (token: string | null) => void;
 }
