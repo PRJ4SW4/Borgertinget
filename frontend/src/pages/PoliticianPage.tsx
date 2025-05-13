@@ -1,4 +1,3 @@
-// src/pages/PoliticianPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { IAktor } from '../types/Aktor';
@@ -23,16 +22,15 @@ const PoliticianPage: React.FC = () => {
 
   useEffect(() => {
     const fetchPolitician = async () => {
-      // Validate ID early
       if (!id || isNaN(Number(id))) { // Check if id exists and is a number
-        setError("Ugyldigt politiker-ID i URL."); // Danish error message
+        setError("Ugyldigt politiker-ID i URL."); 
         setLoading(false);
         return;
       }
-
+      // Clear previous data
       setLoading(true);
       setError(null);
-      setPolitician(null); // Clear previous data
+      setPolitician(null); 
 
       try {
         const apiUrl = `http://localhost:5218/api/Aktor/${id}`;
@@ -40,17 +38,13 @@ const PoliticianPage: React.FC = () => {
 
         if (!response.ok) {
           if (response.status === 404) {
-            // Throw specific error for 404
-            throw new Error(`Politiker med ID ${id} blev ikke fundet.`); // Danish
+            throw new Error(`Politiker med ID ${id} blev ikke fundet.`);
           } else {
-            // Handle other HTTP errors
             let errorMsg = `HTTP error ${response.status}: ${response.statusText}`;
-            // Try to get a more specific error from the response body
             try {
               const errorBody = await response.json();
               errorMsg = errorBody.message || errorBody.title || errorMsg;
-            } catch  { // <-- Fix 1 & 2: Use _e and add comment
-              /* Intentional: Ignore error parsing the error body, already have status text */
+            } catch  { //Deliberately empty
             }
             throw new Error(errorMsg); // Throw the consolidated error message
           }
@@ -60,10 +54,9 @@ const PoliticianPage: React.FC = () => {
         const data: IAktor = await response.json();
         setPolitician(data);
 
-      } catch (err: unknown) { // <-- Fix 3: Use unknown instead of any
+      } catch (err: unknown) {
         console.error("Fetch error:", err);
-        // Type checking before accessing properties
-        let message = `Kunne ikke hente data for politiker ${id}`; // Default message (Danish)
+        let message = `Kunne ikke hente data for politiker ${id}`;
         if (err instanceof Error) {
             message = err.message; // Use message property if it's an Error
         } else if (typeof err === 'string') {
@@ -77,7 +70,7 @@ const PoliticianPage: React.FC = () => {
     };
 
     fetchPolitician();
-  }, [id]); // Dependency array is correct, only depends on id
+  }, [id]);
 
 
   // Af Jakob, dette er til subscribe knappen
@@ -114,20 +107,18 @@ const PoliticianPage: React.FC = () => {
   }, [politician]);
 
 
-  // --- Render logic (update link texts to Danish) ---
   if (loading) return <div className="loading-message">Henter politiker detaljer...</div>;
   if (error) return <div className="error-message">Fejl: {error} <Link to="/">Tilbage til forsiden</Link></div>;
   if (!politician) return <div className="info-message">Politikerdata er ikke tilgængelig. <Link to="/">Tilbage til forsiden</Link></div>;
 
-  // --- Politician details rendering logic (update link texts and potentially onError for image) ---
   return (
     <div className="politician-page">
       <nav>
-          {/* Determine back link based on party info or default */}
+          {}
           {politician.party ? (
              <Link to={`/party/${encodeURIComponent(politician.party)}`}>← Tilbage til {politician.party}</Link>
           ) : (
-             <Link to="/partier">← Tilbage til partioversigt</Link> // Fallback to general parties list
+             <Link to="/parties">← Tilbage til partioversigt</Link> // Fallback to general parties list
           )}
       </nav>
 
@@ -148,7 +139,6 @@ const PoliticianPage: React.FC = () => {
            <div className="info-box-photo-placeholder">Intet billede</div> // Danish
         )}
         <h4>Navn</h4>
-        {/* Use politician's name or fallback */}
         <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : (politician.navn || 'Ukendt')}</p>
 
 
@@ -189,28 +179,30 @@ const PoliticianPage: React.FC = () => {
 
         {politician.constituencies && politician.constituencies.length > 0 && (
            <>
-             <h4>Embede / Valgkreds</h4> {/* More specific title */}
+             <h4>Embede / Valgkreds</h4>
              <ul>
                {politician.constituencies.map((con, index) => <li key={`con-${index}`}>{con}</li>)}
              </ul>
            </>
          )}
-      </div> {/* END: Info Box */}
+      </div> 
+{/* END: Info Box */}
 
+      
 
       {/* Other Details Outside the Box */}
       <article className="politician-details">
         
         <section className="detail-section">
-            <h3>Grundlæggende Information</h3> {/* Danish */}
-            <p><strong>Født:</strong> {politician.born || 'Ikke tilgængelig'}</p> {/* Danish */}
-            <p><strong>Titel:</strong> {politician.functionFormattedTitle || 'Ikke tilgængelig'}</p> {/* Danish */}
+            <h3>Grundlæggende Information</h3> 
+            <p><strong>Født:</strong> {politician.born || 'Ikke tilgængelig'}</p> 
+            <p><strong>Titel:</strong> {politician.functionFormattedTitle || 'Ikke tilgængelig'}</p> 
         </section>
 
         {/* Display other lists NOT in the info-box */}
         {politician.publicationTitles && politician.publicationTitles.length > 0 && (
           <section className="detail-section">
-            <h3>Publikationer (Titler)</h3> {/* Danish */}
+            <h3>Forfatterskab</h3>
             <ul>
               {politician.publicationTitles.map((title, index) => <li key={`pub-${index}`}>{title}</li>)}
             </ul>
@@ -218,7 +210,7 @@ const PoliticianPage: React.FC = () => {
         )}
         {politician.nominations && politician.nominations.length > 0 && (
            <section className="detail-section">
-               <h3>Nomineringer</h3> {/* Danish */}
+               <h3>Kandidaturer</h3> 
                <ul>
                    {politician.nominations.map((nom, index) => <li key={`nom-${index}`}>{nom}</li>)}
                </ul>
@@ -226,13 +218,18 @@ const PoliticianPage: React.FC = () => {
          )}
         {politician.occupations && politician.occupations.length > 0 && (
           <section className="detail-section">
-            <h3>Beskæftigelse</h3> {/* Danish */}
+            <h3>Beskæftigelse</h3> 
             <ul>
               {politician.occupations.map((occ, index) => <li key={`occ-${index}`}>{occ}</li>)}
             </ul>
           </section>
         )}
-         {/* Add Minister Posts / Spokesperson Roles / Positions of Trust if needed */}
+         {politician.ministertitel && (
+        <>
+          <h3>Nuværende minister post</h3>
+          <p>{politician.ministertitel}</p>
+        </>
+      )}
          {politician.ministers && politician.ministers.length > 0 && (
            <section className="detail-section">
                <h3>Ministerposter</h3>
@@ -247,10 +244,11 @@ const PoliticianPage: React.FC = () => {
          )}
           {politician.positionsOfTrust && politician.positionsOfTrust.length > 0 && (
            <section className="detail-section">
-               <h3>Tillidshverv (Eksternt)</h3>
+               <h3>Tillidshverv (ikke-parliamentarisk)</h3>
                <ul>{politician.positionsOfTrust.map((trust, index) => <li key={`trust-${index}`}>{trust}</li>)}</ul>
            </section>
          )}
+         
           {politician.parliamentaryPositionsOfTrust && politician.parliamentaryPositionsOfTrust.length > 0 && (
            <section className="detail-section">
                <h3>Tillidshverv (Parlamentarisk)</h3>
@@ -258,7 +256,7 @@ const PoliticianPage: React.FC = () => {
            </section>
          )}
 
-      </article> {/* End Other Details */}
+      </article> 
     </div>
   );
 };

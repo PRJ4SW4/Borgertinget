@@ -5,6 +5,7 @@ using backend.Data;
 using backend.Hubs;
 using backend.Repositories.Calendar;
 using backend.Services;
+using backend.Models;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
@@ -16,11 +17,54 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using backend.Hubs;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using backend.utils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options; // Add this using directive
+using Microsoft.AspNetCore.DataProtection;  // Add this
+using Microsoft.Extensions.Logging; // Add this
+
+using OpenSearch.Client;
+using OpenSearch.Net;
+using backend.Hubs;                
 
 // for .env secrets
 DotNetEnv.Env.Load();
-
+         
 var builder = WebApplication.CreateBuilder(args);
+
+var openSearchUrl = builder.Configuration["OpenSearch:Url"];
+if (string.IsNullOrEmpty(openSearchUrl))
+{
+    // Handle missing configuration - throw an error or default
+    openSearchUrl = "http://localhost:9200"; // Default if not configured
+    Console.WriteLine("Warning: OpenSearch URL not configured in appsettings.json. Using default: http://localhost:9200");
+}
+
+// Add credentials if needed (example using Basic Auth - get from config)
+// var openSearchUser = builder.Configuration["OpenSearch:Username"];
+// var openSearchPassword = builder.Configuration["OpenSearch:Password"];
+
+// Configure the connection settings
+var settings = new ConnectionSettings(new Uri(openSearchUrl))
+    // Optional: Set a default index if most operations target one index
+    // .DefaultIndex("your-default-index-name")
+    // Optional: Add authentication if required
+    // .BasicAuthentication(openSearchUser, openSearchPassword)
+    // Optional: Disable SSL verification for local dev (NOT recommended for production)
+    .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // Use ONLY for dev/testing
+    .PrettyJson(); // Makes debugging easier by formatting JSON requests/responses
+
+// Register IOpenSearchClient as a singleton (recommended by the library)
+builder.Services.AddSingleton<IOpenSearchClient>(new OpenSearchClient(settings));
+
+// --- ADD OPENSEARCH CONFIGURATION AND REGISTRATION END ---
+
+
+// Enable detailed error messages for JWT validation
+IdentityModelEventSource.ShowPII = true;
 
 // Enable detailed error messages for JWT validation
 IdentityModelEventSource.ShowPII = true;
@@ -32,23 +76,34 @@ var key = Encoding.UTF8.GetBytes(
     jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key mangler")
 );
 
-// Authorization for Admin and User roles
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(
-        "RequireAdministratorRole",
-        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
-    );
-    options.AddPolicy(
-        "UserOrAdmin",
-        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
-    );
-});
-
 // EF Core
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+builder.Services
+    .AddIdentity<User, IdentityRole<int>>(options => {
+        options.SignIn.RequireConfirmedEmail = true;
+
+        options.Tokens.ProviderMap.Add(
+            "CustomEmailConfirmation",
+            new TokenProviderDescriptor(typeof(EmailConfirmationTokenProvider<User>))
+        );
+        options.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<DataContext>()
+    .AddDefaultTokenProviders()
+    .AddErrorDescriber<CostumErrorDescriber>()
+    .AddRoleManager<RoleManager<IdentityRole<int>>>();
+
+builder.Services.AddTransient<EmailConfirmationTokenProvider<User>>();
 
 // Auth + JWT
 builder
@@ -56,6 +111,7 @@ builder
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
@@ -72,20 +128,20 @@ builder
             IssuerSigningKey = new SymmetricSecurityKey(key),
             // THIS LINE ensures ASP.NET picks up "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
             // as the user's role claim.
-            RoleClaimType = ClaimTypes.Role,
+            RoleClaimType = ClaimTypes.Role
         };
-        // 💥 Indsæt event hooks til fejllogning
+        // Indsæt event hooks til fejllogning
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine("🚫 TOKEN VALIDATION FAILED:");
+                Console.WriteLine(" TOKEN VALIDATION FAILED:");
                 Console.WriteLine(context.Exception.ToString());
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
-                Console.WriteLine("✅ TOKEN VALIDATED:");
+                Console.WriteLine(" TOKEN VALIDATED:");
                 if (context.Principal?.Identity != null)
                 {
                     Console.WriteLine("User: " + context.Principal.Identity?.Name);
@@ -113,6 +169,18 @@ builder
             },
         };
     });
+// Authorization for Admin and User roles
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        "RequireAdministratorRole",
+        policy => policy.RequireRole("Admin")
+    );
+    options.AddPolicy(
+        "UserOrAdmin",
+        policy => policy.RequireRole("User", "Admin")
+    );
+});
 
 // Swagger
 builder.Services.AddSignalR();
@@ -162,6 +230,8 @@ builder.Services.AddScoped<HttpService>();
 builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHttpClient<TwitterService>();
 
+builder.Services.AddHttpClient();
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -189,6 +259,11 @@ builder.Services.AddControllers(); /* .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     });*/
+//Search indexing service
+builder.Services.AddScoped<SearchIndexingService>();
+
+builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
 
 // For altinget scraping
 builder.Services.AddHostedService<AltingetScraperServiceScheduler>();
@@ -205,10 +280,43 @@ builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 // Flashcard Services
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
+builder.Services.AddRouting();
+builder.Services.AddHostedService<TestScheduledIndexService>(); //Fjern Test fra TestScheduledIndexServe
+
+
 var app = builder.Build();
 
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>(); // Or specific category
+
+    try
+    {
+        logger.LogInformation("Ensuring OpenSearch index exists before starting...");
+        // Ensure SearchIndexSetup class exists or move this logic inline
+        await SearchIndexSetup.EnsureIndexExistsWithMapping(services);
+        logger.LogInformation("Index check/creation complete.");
+
+        // --- Trigger initial indexing ---
+        logger.LogInformation("Triggering initial background indexing task...");
+        var indexingService = services.GetRequiredService<SearchIndexingService>();
+        // --- End trigger initial indexing ---
+
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "An error occurred during application startup while setting up OpenSearch.");
+        // Optionally prevent the application from starting if setup fails
+        // throw;
+    }
+}
+
+app.UseRouting();
 // For static images from wwwroot folder
 app.UseStaticFiles();
+
 
 if (app.Environment.IsDevelopment())
 {

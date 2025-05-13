@@ -87,7 +87,7 @@ const FeedPage: React.FC = () => {
             }
         };
         fetchFeedData();
-    }, [page, selectedPoliticianId]);
+    }, [page, selectedPoliticianId, hasMore]);
 
     useEffect(() => {
         const hubUrl = `${API_BASE_URL}/feedHub`;
