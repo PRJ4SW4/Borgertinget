@@ -239,8 +239,8 @@ builder.Services.AddScoped<EmailService>();
 //oda.ft crawler
 builder.Services.AddScoped<HttpService>();
 
-// builder.Services.AddHostedService<TweetFetchingService>();
-//builder.Services.AddHttpClient<TwitterService>();
+builder.Services.AddHostedService<TweetFetchingService>();
+builder.Services.AddHttpClient<TwitterService>();
 
 // CORS
 builder.Services.AddCors(options =>
