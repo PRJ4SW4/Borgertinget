@@ -1,33 +1,45 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims; // <<< TILFØJET FOR CLAIMS
+using System.Security.Claims;
 using System.Text;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
 using backend.Data;
+using backend.Enums;
 using backend.Hubs;
-using backend.Services;
+using backend.Interfaces.Repositories;
+using backend.Interfaces.Services;
+using backend.Interfaces.Utility;
+using backend.Jobs;
 using backend.Models;
-// For Altinget Scraping
+using backend.Services;
+using backend.Services.Selection;
+using backend.Services.Mapping;
+using backend.Services.Utility;
+using backend.utils;
+using backend.Persistence.Repositories;
+
+// Automation / Scraping Services
 using backend.Services.AutomationServices;
 using backend.Services.AutomationServices.HtmlFetching;
 using backend.Services.AutomationServices.Parsing;
 using backend.Services.AutomationServices.Repositories;
+
 // Flashcard Services
 using backend.Services.Flashcards;
+
 // Learning Environment Services
 using backend.Services.LearningEnvironmentServices;
-// JWT Stuff
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using backend.Hubs;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using backend.utils;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options; // Add this using directive
-using Microsoft.AspNetCore.DataProtection;  // Add this
-using Microsoft.Extensions.Logging; // Add this
+
 
 
 // for .env secrets
@@ -205,6 +217,7 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<HttpService>();
 
 builder.Services.AddHostedService<TweetFetchingService>();
+builder.Services.AddHostedService<DailySelectionJob>();
 builder.Services.AddHttpClient<TwitterService>();
 
 
@@ -237,7 +250,9 @@ builder.Services.AddControllers(); /* .AddJsonOptions(options =>
     });*/
 
 builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
-builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
+//builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
+builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
 
 // For altinget scraping
 builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
@@ -252,6 +267,14 @@ builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 
 // Flashcard Services
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+
+// Polidle
+builder.Services.AddScoped<IAktorRepository, AktorRepository>();
+builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>();
+builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository>();
+builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
+builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
+builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 
 builder.Services.AddRouting();
 

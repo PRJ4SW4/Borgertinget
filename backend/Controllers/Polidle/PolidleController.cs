@@ -31,9 +31,9 @@ namespace backend.Controllers
         /// <param name="search">Valgfri søgestreng til at filtrere politikernavne.</param>
         /// <returns>En liste af PoliticianSummaryDto objekter.</returns>
         [HttpGet("politicians")]
-        [ProducesResponseType(typeof(List<DailyPoliticianDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<SearchListDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<DailyPoliticianDto>>> GetAllPoliticians([FromQuery] string? search = null)
+        public async Task<ActionResult<List<SearchListDto>>> GetAllPoliticians([FromQuery] string? search = null)
         {
             _logger.LogInformation("Request received for politician summaries with search: '{SearchTerm}'.", search ?? "<null>");
             try
