@@ -72,7 +72,7 @@ function App() {
       <Route path="/login" element={<Login setToken={handleSetToken} />} />
       {/* Post-login success/callback route. */}
       <Route path="/login-success" element={<LoginSuccessPage setToken={handleSetToken} />} /> 
-      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={(message) => {}}/>} />
+      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={(message) => { console.error("Email verification error:", message); }}/>} />
 
 
       {/* --- Protected Routes using MainLayout --- */}
