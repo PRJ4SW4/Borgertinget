@@ -4,19 +4,24 @@ using System.Text;
 using backend.Data;
 using backend.Hubs;
 using backend.Models;
+using backend.Repositories.Calendar;
 using backend.Services;
-// For Altinget Scraping
-using backend.Services.AutomationServices;
-using backend.Services.AutomationServices.HtmlFetching;
-using backend.Services.AutomationServices.Parsing;
-using backend.Services.AutomationServices.Repositories;
-// Flashcard Services
+using backend.Services.Calendar;
+using backend.Services.Calendar.HtmlFetching;
+using backend.Services.Calendar.Parsing;
+using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
-// Learning Environment Services
-using backend.Services.LearningEnvironmentServices;
+using backend.Services.LearningEnvironment;
+using backend.Services.Search;
 using backend.utils;
-// JWT Stuff
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.DataProtection; // Add this
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -45,18 +50,9 @@ if (string.IsNullOrEmpty(openSearchUrl))
     );
 }
 
-// Add credentials if needed (example using Basic Auth - get from config)
-// var openSearchUser = builder.Configuration["OpenSearch:Username"];
-// var openSearchPassword = builder.Configuration["OpenSearch:Password"];
-
 // Configure the connection settings
 var settings = new ConnectionSettings(new Uri(openSearchUrl))
-    // Optional: Set a default index if most operations target one index
-    // .DefaultIndex("your-default-index-name")
-    // Optional: Add authentication if required
-    // .BasicAuthentication(openSearchUser, openSearchPassword)
-    // Optional: Disable SSL verification for local dev (NOT recommended for production)
-    .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // Use ONLY for dev/testing
+    .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // ONLY for dev/testing
     .PrettyJson(); // Makes debugging easier by formatting JSON requests/responses
 
 // Register IOpenSearchClient as a singleton (recommended by the library)
@@ -306,11 +302,12 @@ builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgæng
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
 
 // For altinget scraping
-builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
+builder.Services.AddHostedService<AltingetScraperServiceScheduler>();
 builder.Services.AddScoped<IHtmlFetcher, AltingetHtmlFetcher>();
 builder.Services.AddScoped<IEventDataParser, AltingetEventDataParser>();
 builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
-builder.Services.AddScoped<IAutomationService, AltingetScraperService>();
+builder.Services.AddScoped<IScraperService, AltingetScraperService>();
+builder.Services.AddScoped<ICalendarService, CalendarService>();
 
 // Learning Environment Services
 builder.Services.AddScoped<IAnswerService, AnswerService>();
@@ -323,6 +320,8 @@ builder.Services.AddRouting();
 builder.Services.AddHostedService<TestScheduledIndexService>();
 
 builder.Services.AddScoped<AdministratorService>();
+// Search Services
+builder.Services.AddHostedService<ScheduledIndexService>();
 
 // -----------------------------------------
 // Byg WebApplication objektet

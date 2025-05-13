@@ -1,4 +1,4 @@
-namespace backend.Services.AutomationServices.Parsing;
+namespace backend.Services.Calendar.Parsing;
 
 using System.Collections.Generic;
 using backend.Models.Calendar; // For ScrapedEventData

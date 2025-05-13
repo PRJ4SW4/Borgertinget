@@ -32,13 +32,11 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<IActionResult> Subscribe([FromBody] SubscribeDto subscribeDto)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
+            // Change from "userId" to standard claims
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId)) 
+            { 
+                return Unauthorized("Kunne ikke identificere brugeren."); 
             }
 
             int politicianTwitterId = subscribeDto.PoliticianId;
@@ -86,13 +84,11 @@ namespace backend.Controllers
         [HttpDelete("{politicianTwitterId}")]
         public async Task<IActionResult> Unsubscribe(int politicianTwitterId)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
+            // Change from "userId" to standard claims
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId)) 
+            { 
+                return Unauthorized("Kunne ikke identificere brugeren."); 
             }
 
             var subscription = await _context.Subscriptions.FirstOrDefaultAsync(s =>

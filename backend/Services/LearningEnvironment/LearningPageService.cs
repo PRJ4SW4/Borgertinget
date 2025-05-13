@@ -1,4 +1,4 @@
-namespace backend.Services.LearningEnvironmentServices;
+namespace backend.Services.LearningEnvironment;
 
 using System;
 using System.Collections.Generic;

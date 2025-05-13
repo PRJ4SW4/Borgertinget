@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using backend.DTO.LearningEnvironment;
 using backend.Models.LearningEnvironment;
-using backend.Services.LearningEnvironmentServices;
+using backend.Services.LearningEnvironment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
