@@ -249,7 +249,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Aktor", (string)null);
+                    b.ToTable("Aktor");
                 });
 
             modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
@@ -285,7 +285,7 @@ namespace backend.Migrations
                     b.HasIndex("SourceUrl")
                         .IsUnique();
 
-                    b.ToTable("CalendarEvents", (string)null);
+                    b.ToTable("CalendarEvents");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -326,7 +326,7 @@ namespace backend.Migrations
 
                     b.HasIndex("CollectionId");
 
-                    b.ToTable("Flashcards", (string)null);
+                    b.ToTable("Flashcards");
 
                     b.HasData(
                         new
@@ -402,7 +402,7 @@ namespace backend.Migrations
 
                     b.HasKey("CollectionId");
 
-                    b.ToTable("FlashcardCollections", (string)null);
+                    b.ToTable("FlashcardCollections");
 
                     b.HasData(
                         new
@@ -444,7 +444,7 @@ namespace backend.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("AnswerOptions", (string)null);
+                    b.ToTable("AnswerOptions");
 
                     b.HasData(
                         new
@@ -572,7 +572,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ParentPageId");
 
-                    b.ToTable("Pages", (string)null);
+                    b.ToTable("Pages");
 
                     b.HasData(
                         new
@@ -635,7 +635,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PageId");
 
-                    b.ToTable("Questions", (string)null);
+                    b.ToTable("Questions");
 
                     b.HasData(
                         new
@@ -715,7 +715,7 @@ namespace backend.Migrations
 
                     b.HasIndex("viceChairmanId");
 
-                    b.ToTable("Party", (string)null);
+                    b.ToTable("Party");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
@@ -749,7 +749,7 @@ namespace backend.Migrations
                     b.HasIndex("TwitterUserId")
                         .IsUnique();
 
-                    b.ToTable("PoliticianTwitterIds", (string)null);
+                    b.ToTable("PoliticianTwitterIds");
 
                     b.HasData(
                         new
@@ -801,7 +801,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PoliticianTwitterId");
 
-                    b.ToTable("Polls", (string)null);
+                    b.ToTable("Polls");
 
                     b.HasData(
                         new
@@ -843,7 +843,7 @@ namespace backend.Migrations
 
                     b.HasIndex("PollId");
 
-                    b.ToTable("PollOptions", (string)null);
+                    b.ToTable("PollOptions");
 
                     b.HasData(
                         new
@@ -917,7 +917,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Subscriptions", (string)null);
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("backend.Models.Tweet", b =>
@@ -959,7 +959,7 @@ namespace backend.Migrations
                     b.HasIndex("PoliticianTwitterId", "TwitterTweetId")
                         .IsUnique();
 
-                    b.ToTable("Tweets", (string)null);
+                    b.ToTable("Tweets");
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
@@ -1059,58 +1059,7 @@ namespace backend.Migrations
                     b.HasIndex("UserId", "PollId")
                         .IsUnique();
 
-                    b.ToTable("UserVotes", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
-                {
-                    b.HasOne("backend.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
-                {
-                    b.HasOne("backend.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
-                {
-                    b.HasOne("backend.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.ToTable("UserVotes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

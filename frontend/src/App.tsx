@@ -20,6 +20,7 @@ import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
 import LandingPage from "./pages/LandingPage/LandingPage";
 import FeedPage from './pages/FeedPage';
 import EmailVerification from "./utils/useEmailVerification"; // Handles email verification logic.
+import LoginSuccessPage from "./pages/LoginSuccessPage"; // Handles post-login redirection.
 // Navbar and Footer are rendered via MainLayout.
 // The main application component.
 function App() {
