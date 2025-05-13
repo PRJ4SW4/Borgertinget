@@ -205,9 +205,8 @@ namespace backend.Controllers
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
 
-            if (result.Succeeded)
-            {
-                var token = GenerateJwtToken(user);
+            if(result.Succeeded) {
+                var token = await GenerateJwtToken(user);
                 return Ok(new { token });
             }
             else if (result.IsNotAllowed)

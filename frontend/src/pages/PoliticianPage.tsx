@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { IAktor } from "../types/Aktor";
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { IAktor } from '../types/Aktor';
 import "./PoliticianPage.css";
 // Consider adding a default image import if you need one for onError
 // import DefaultPic from "../images/defaultPic.jpg";
@@ -63,14 +63,15 @@ const PoliticianPage: React.FC = () => {
 
   useEffect(() => {
     const fetchPolitician = async () => {
-      if (!id || isNaN(Number(id))) {
-        setError("Ugyldigt politiker-ID i URL.");
+      if (!id || isNaN(Number(id))) { // Check if id exists and is a number
+        setError("Ugyldigt politiker-ID i URL."); 
         setLoading(false);
         return;
       }
+      // Clear previous data
       setLoading(true);
       setError(null);
-      setPolitician(null);
+      setPolitician(null); 
 
       try {
         const apiUrl = `http://localhost:5218/api/Aktor/${id}`;
@@ -84,19 +85,23 @@ const PoliticianPage: React.FC = () => {
             try {
               const errorBody = await response.json();
               errorMsg = errorBody.message || errorBody.title || errorMsg;
-            } catch {
-              /* Ignore */
+            } catch  { //Deliberately empty
             }
             throw new Error(errorMsg);
           }
         }
         const data: IAktor = await response.json();
         setPolitician(data);
+
       } catch (err: unknown) {
         console.error("Fetch error:", err);
         let message = `Kunne ikke hente data for politiker ${id}`;
-        if (err instanceof Error) message = err.message;
-        else if (typeof err === "string") message = err;
+        if (err instanceof Error) {
+            message = err.message; // Use message property if it's an Error
+        } else if (typeof err === 'string') {
+            message = err; // Use the error directly if it's a string
+        }
+        // Set the extracted or default error message
         setError(message);
       } finally {
         setLoading(false);
@@ -104,7 +109,8 @@ const PoliticianPage: React.FC = () => {
     };
 
     fetchPolitician();
-  }, [id]); // Dependency array is correct, only depends on id
+  }, [id]);
+
 
   // Af Jakob, dette er til subscribe knappen
   useEffect(() => {
@@ -156,32 +162,15 @@ const PoliticianPage: React.FC = () => {
       </div>
     );
 
-  // --- Calculate Age ---
-  const age = calculateAge(politician.born);
-  const formattedBornDate = formatBirthDate(politician.born);
-
-  // --- Image Error Handler ---
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const imgElement = e.target as HTMLImageElement;
-    if (imgElement.src !== defaultImageUrl) {
-      console.warn(`Kunne ikke loade billede: ${politician.pictureMiRes}. Bruger standardbillede.`);
-      imgElement.src = defaultImageUrl; // Use the imported default image
-    } else {
-      console.error(`Kunne ikke loade standardbillede: ${defaultImageUrl}`);
-      imgElement.style.display = "none"; // Hide if default also fails
-    }
-  };
-
-  // --- Render Component ---
   return (
     <div className="politician-page">
-      {/* Navigation remains outside the main layout */}
-      <nav className="politician-page-nav">
-        {politician.party ? (
-          <Link to={`/party/${encodeURIComponent(politician.party)}`}>← Tilbage til {politician.party}</Link>
-        ) : (
-          <Link to="/parties">← Tilbage til partioversigt</Link>
-        )}
+      <nav>
+          {}
+          {politician.party ? (
+             <Link to={`/party/${encodeURIComponent(politician.party)}`}>← Tilbage til {politician.party}</Link>
+          ) : (
+             <Link to="/parties">← Tilbage til partioversigt</Link> // Fallback to general parties list
+          )}
       </nav>
       {/* Gray Information Box */}
       <div className="info-box">
@@ -200,8 +189,20 @@ const PoliticianPage: React.FC = () => {
           <div className="info-box-photo-placeholder">Intet billede</div> // Danish
         )}
         <h4>Navn</h4>
-        {/* Use politician's name or fallback */}
-        <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : politician.navn || "Ukendt"}</p>
+        <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : (politician.navn || 'Ukendt')}</p>
+
+
+
+        {/*Subscribe*/}
+        {twitterId !== null && (
+          <div className="subscription-container">
+            <SubscribeButton
+              politicianTwitterId={twitterId}
+              initialIsSubscribed={isSubscribed}
+              onSubscriptionChange={(newStatus) => setIsSubscribed(newStatus)}
+            />
+          </div>
+        )}
 
         <h4>Parti</h4>
         <p>
@@ -227,29 +228,24 @@ const PoliticianPage: React.FC = () => {
         )}
 
         {politician.constituencies && politician.constituencies.length > 0 && (
-          <>
-            <h4>Embede / Valgkreds</h4> {/* More specific title */}
-            <ul>
-              {politician.constituencies.map((con, index) => (
-                <li key={`con-${index}`}>{con}</li>
-              ))}
-            </ul>
-          </>
-        )}
-      </div>{" "}
-      {/* END: Info Box */}
+           <>
+             <h4>Embede / Valgkreds</h4>
+             <ul>
+               {politician.constituencies.map((con, index) => <li key={`con-${index}`}>{con}</li>)}
+             </ul>
+           </>
+         )}
+      </div> 
+{/* END: Info Box */}
+
+      
+
       {/* Other Details Outside the Box */}
       <article className="politician-details">
         <section className="detail-section">
-          <h3>Grundlæggende Information</h3> {/* Danish */}
-          <p>
-            <strong>Født:</strong> {politician.born || "Ikke tilgængelig"}
-          </p>{" "}
-          {/* Danish */}
-          <p>
-            <strong>Titel:</strong> {politician.functionFormattedTitle || "Ikke tilgængelig"}
-          </p>{" "}
-          {/* Danish */}
+            <h3>Grundlæggende Information</h3> 
+            <p><strong>Født:</strong> {politician.born || 'Ikke tilgængelig'}</p> 
+            <p><strong>Titel:</strong> {politician.functionFormattedTitle || 'Ikke tilgængelig'}</p> 
         </section>
 
         {/* Display other lists NOT in the info-box */}
@@ -305,7 +301,7 @@ const PoliticianPage: React.FC = () => {
         )}
         {politician.parliamentaryPositionsOfTrust && politician.parliamentaryPositionsOfTrust.length > 0 && (
           <section className="detail-section">
-            <h3>Tillidshverv (Parlamentarisk)</h3>
+            <h3>Forfatterskab</h3>
             <ul>
               {politician.parliamentaryPositionsOfTrust.map((ptrust, index) => (
                 <li key={`ptrust-${index}`}>{ptrust}</li>
@@ -329,18 +325,16 @@ const PoliticianPage: React.FC = () => {
           </section>
         )}
         {politician.nominations && politician.nominations.length > 0 && (
-          <section className="detail-section">
-            <h3>Kandidaturer</h3>
-            <ul>
-              {politician.nominations.map((nom, index) => (
-                <li key={`nom-${index}`}>{nom}</li>
-              ))}
-            </ul>
-          </section>
-        )}
+           <section className="detail-section">
+               <h3>Kandidaturer</h3> 
+               <ul>
+                   {politician.nominations.map((nom, index) => <li key={`nom-${index}`}>{nom}</li>)}
+               </ul>
+           </section>
+         )}
         {politician.occupations && politician.occupations.length > 0 && (
           <section className="detail-section">
-            <h3>Beskæftigelse</h3>
+            <h3>Beskæftigelse</h3> 
             <ul>
               {politician.occupations.map((occ, index) => (
                 <li key={`occ-${index}`}>{occ}</li>
@@ -348,75 +342,39 @@ const PoliticianPage: React.FC = () => {
             </ul>
           </section>
         )}
-        {politician.publicationTitles && politician.publicationTitles.length > 0 && (
-          <section className="detail-section">
-            <h3>Forfatterskab</h3>
-            <ul>
-              {politician.publicationTitles.map((title, index) => (
-                <li key={`pub-${index}`}>{title}</li>
-              ))}
-            </ul>
-          </section>
-        )}
-        {/* Add other sections as needed */}
+         {politician.ministertitel && (
+        <>
+          <h3>Nuværende minister post</h3>
+          <p>{politician.ministertitel}</p>
+        </>
+      )}
+         {politician.ministers && politician.ministers.length > 0 && (
+           <section className="detail-section">
+               <h3>Ministerposter</h3>
+               <ul>{politician.ministers.map((min, index) => <li key={`min-${index}`}>{min}</li>)}</ul>
+           </section>
+         )}
+          {politician.spokesmen && politician.spokesmen.length > 0 && (
+           <section className="detail-section">
+               <h3>Ordførerskaber</h3>
+               <ul>{politician.spokesmen.map((spk, index) => <li key={`spk-${index}`}>{spk}</li>)}</ul>
+           </section>
+         )}
+          {politician.positionsOfTrust && politician.positionsOfTrust.length > 0 && (
+           <section className="detail-section">
+               <h3>Tillidshverv (ikke-parliamentarisk)</h3>
+               <ul>{politician.positionsOfTrust.map((trust, index) => <li key={`trust-${index}`}>{trust}</li>)}</ul>
+           </section>
+         )}
+         
+          {politician.parliamentaryPositionsOfTrust && politician.parliamentaryPositionsOfTrust.length > 0 && (
+           <section className="detail-section">
+               <h3>Tillidshverv (Parlamentarisk)</h3>
+               <ul>{politician.parliamentaryPositionsOfTrust.map((ptrust, index) => <li key={`ptrust-${index}`}>{ptrust}</li>)}</ul>
+           </section>
+         )}
 
-        {/* --- End Left Column --- */}
-
-        {/* --- Right Column: Info Box --- */}
-        <div className="politician-infobox-column">
-          <div className="info-box">
-            {/* Image */}
-            <div className="info-box-image-container">
-              <img
-                src={politician.pictureMiRes || defaultImageUrl}
-                alt={`Portræt af ${politician.navn || "Politiker"}`}
-                className="info-box-photo"
-                onError={handleImageError}
-              />
-            </div>
-            {/*Subscribe*/}
-            {twitterId !== null && (
-              <div className="subscription-container">
-                <SubscribeButton
-                  politicianTwitterId={twitterId}
-                  initialIsSubscribed={isSubscribed}
-                  onSubscriptionChange={(newStatus) => setIsSubscribed(newStatus)}
-                />
-              </div>
-            )}
-            {/* Details */}
-            <h3>{politician.navn || "Ukendt Navn"}</h3>
-            <p className="info-box-role">
-              {politician.functionFormattedTitle || "Medlem af Folketinget"}
-              {politician.party && `, `}
-              {politician.party && <Link to={`/party/${encodeURIComponent(politician.party)}`}>{politician.party}</Link>}
-              {politician.ministertitel && ` (${politician.ministertitel})`}
-            </p>
-            <hr className="info-box-divider" />
-            {/* Use helper function for info items */}
-            {renderInfoItem("Adresse", "[Ikke tilgængelig]")} {/* Placeholder */}
-            {renderInfoItem("Alder + føds", `${formattedBornDate}${age !== null ? ` - ${age} år` : ""}`)}
-            {renderInfoItem("Tlf", "[Ikke tilgængelig]")} {/* Placeholder */}
-            {renderInfoItem("Email", politician.email ? <a href={`mailto:${politician.email}`}>{politician.email}</a> : "Ikke tilgængelig")}
-            {renderInfoItem("Hjemmeside", "[Ikke tilgængelig]")} {/* Placeholder - need to parse from bio or add field */}
-            {/* Add Education and Constituency lists if desired in info box */}
-            {politician.educations && politician.educations.length > 0 && (
-              <>
-                <hr className="info-box-divider" />
-                <h4>Uddannelse</h4>
-                <ul className="info-box-list">
-                  {politician.educations.map((edu, index) => (
-                    <li key={`edu-${index}`}>{edu}</li>
-                  ))}
-                </ul>
-              </>
-            )}
-            {/* {politician.constituencies && politician.constituencies.length > 0 && ( ... )} */}
-          </div>
-        </div>
-        {/* --- End Right Column --- */}
-      </article>
-      {/* --- End Main Content Area --- */}
+      </article> 
     </div>
   );
 };

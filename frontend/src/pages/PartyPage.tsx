@@ -64,7 +64,6 @@ const PartyPage: React.FC = () => {
   const [secretary, setSecretary] = useState<IAktor | null>(null);
   const [spokesperson, setSpokesperson] = useState<IAktor | null>(null);
   const [groupLeader, setGroupLeader] = useState<IAktor | null>(null);
-  const [deputyGroupLeader, setDeputyGroupLeader] = useState<IAktor | null>(null);
 
 
   const displayPartyName = partyName ? decodeURIComponent(partyName) : 'Ukendt Parti';
@@ -106,7 +105,6 @@ const PartyPage: React.FC = () => {
       setSecretary(null);
       setSpokesperson(null);
       setGroupLeader(null);
-      setDeputyGroupLeader(null);
 
 
       // --- Step 1: Fetch Party Details ---

@@ -1,250 +1,59 @@
-/* src/pages/PoliticianPage.css */
-
-/* Overall page container */
-.politician-page {
-  padding: 15px;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: Arial, sans-serif;
+.politician-page{
+    padding: 1rem; /* Add some overall padding */ 
+    background-color: #aeaeaee3;
 }
-
-/* Navigation link styling */
-.politician-page-nav {
-  margin-bottom: 25px; /* More space below nav */
-  font-size: 0.9em;
-}
-
-.politician-page-nav a {
-  color: #0056b3; /* Link color */
-  text-decoration: none;
-}
-
-.politician-page-nav a:hover {
-  text-decoration: underline;
-}
-
-/* --- TWO-COLUMN LAYOUT --- */
-
-.politician-main-content {
-  display: flex;
-  flex-wrap: wrap; /* Wrap columns on smaller screens */
-  gap: 30px; /* Space between columns */
-}
-
-/* Left column for main details */
-.politician-details-column {
-  flex: 3; /* Takes up more space */
-  min-width: 300px; /* Ensures readability before wrapping */
-  order: 1;
-}
-
-/* Right column for the info box */
-.politician-infobox-column {
-  flex: 1; /* Takes up less space */
-  min-width: 280px;
-  order: 2;
-}
-
-/* --- Header within Left Column --- */
-.politician-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #800000; /* Maroon bottom border */
-}
-
-.politician-header h1 {
-  color: #333;
-  margin: 0;
-  font-size: 2em;
-}
-
-.subscribe-button {
-  background-color: #6c757d; /* Grey button */
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: background-color 0.2s ease;
-}
-
-.subscribe-button:hover {
-  background-color: #5a6268;
-}
-
-/* --- Styling for Detail Sections in Left Column --- */
-.detail-section {
-  margin-bottom: 25px;
-}
-
-.detail-section h3 {
-  color: #800000; /* Maroon heading */
-  font-size: 1.4em;
-  margin-top: 0;
-  margin-bottom: 10px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #ddd; /* Light separator */
-}
-
-.detail-section p,
-.detail-section ul {
-  color: #444;
-  line-height: 1.6;
-  font-size: 0.95em;
-  margin-top: 0;
-}
-
-.detail-section ul {
-  list-style: disc; /* Use standard bullet points */
-  padding-left: 25px; /* Indent list */
-  margin-bottom: 0;
-}
-
-.detail-section li {
-  margin-bottom: 5px;
-}
-
-.detail-content-placeholder {
-  color: #666;
-  font-style: italic;
-}
-
-/* --- Styling for the Info Box (Right Column) --- */
 .info-box {
-  background-color: #f0f0f0; /* Light grey background */
-  border: 1px solid #dcdcdc;
-  border-radius: 5px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
+    background-color: #f0f0f0; /* Light gray background */
+    border-radius: 8px;       /* Optional rounded corners */
+    padding: 15px 20px;       /* Internal spacing (top/bottom, left/right) */
+    margin-bottom: 20px;    /* Space below the box */
+    color: black;
+    /* You might want to limit its width or align it */
+    max-width: 400px;
+    /* float: right; */ /* Example: float right */
+    /* margin-left: 20px; */ /* Example: margin if floating */
+  }
+  
+  /* Style for the photo specifically inside the info box */
+  .info-box-photo {
+    /* Circular styling */
+    width: 200px;    /* Adjust size */
+    height: 200px;   /* Adjust size */
+    border-radius: 50%;
+    object-fit: cover;
+    display: block; /* Make it a block element for margins */
+    margin-bottom: 15px; /* Space below the photo */
+    /* Optional: Center photo within the box */
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Ensure the relative positioning for the page is removed if no longer needed */
+  /* .politician-page {
+    position: relative;
+  } */
+  
 
-.info-box-image-container {
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-.info-box-photo {
-  width: 150px; /* Adjust size as needed */
-  height: 180px;
-  object-fit: cover;
-  border-radius: 50%; /* Circular image */
-  border: 3px solid #fff; /* White border around image */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-color: #ccc; /* Fallback background */
-}
-
-.info-box-photo-placeholder { /* Style for when no image is available */
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background-color: #e0e0e0;
-  color: #888;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9em;
-  margin: 0 auto 15px auto;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-
-.info-box h3 { /* Politician Name */
-  text-align: center;
-  margin-top: 0;
-  margin-bottom: 5px;
-  font-size: 1.4em;
-  color: #333;
-}
-
-.info-box-role { /* Role/Party line */
-  text-align: center;
-  font-size: 0.95em;
-  color: #555;
-  margin-bottom: 15px;
-}
-
-.info-box-role a {
-    color: #0056b3;
-    text-decoration: none;
-}
-.info-box-role a:hover {
-    text-decoration: underline;
-}
-
-.info-box-divider {
-  border: none;
-  border-top: 1px solid #ccc;
-  margin: 15px 0;
-}
-
-.info-box-item {
-  display: flex;
-  margin-bottom: 8px;
-  font-size: 0.9em;
-}
-
-.info-box-label {
-  font-weight: bold;
-  color: #444;
-  width: 90px; /* Fixed width for labels */
-  flex-shrink: 0;
-}
-
-.info-box-value {
-  color: #666;
-  word-break: break-word; /* Allow long values like emails to wrap */
-}
-
-.info-box-value a {
-  color: #0056b3;
-  text-decoration: none;
-}
-.info-box-value a:hover {
-  text-decoration: underline;
-}
-
-.info-box-list {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 5px;
-    font-size: 0.9em;
-    color: #666;
-}
-.info-box-list li {
-    margin-bottom: 4px;
-}
-
-
-/* --- Loading/Error Messages --- */
-.loading-message,
-.error-message,
-.info-message {
-  text-align: center;
-  padding: 20px;
-  margin-top: 20px;
-  font-size: 1.1em;
-}
-
-.error-message {
-  color: #d9534f;
-  background-color: #f2dede;
-  border: 1px solid #ebccd1;
-  border-radius: 4px;
-}
-
-.info-message {
-  color: #888;
-}
-
-/* --- Responsive Stacking --- */
-@media (max-width: 768px) {
-  .politician-main-content {
-    flex-direction: column;
+  
+  /* Adjust the main details area padding if needed (remove old padding-right) */
+  .politician-details {
+    /* padding-right: 130px; */ /* Remove this if it was added for absolute positioning */
+  }
+  
+  /* Basic styling for headings/paragraphs within the box */
+  .info-box h4 {
+      margin-top: 10px;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #ddd; /* Optional separator */
+      padding-bottom: 3px;
+  }
+  .info-box h4:first-of-type {
+      margin-top: 0; /* Remove top margin for the first heading */
+  }
+  
+  .info-box p {
+      margin: 5px 0;
+      font-size: 0.9rem;
   }
   .politician-details-column,
   .politician-infobox-column {

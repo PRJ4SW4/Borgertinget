@@ -5,8 +5,17 @@ using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
+using backend.Services;
+using backend.Models; 
+using backend.Data;
+using backend.DTO.FT;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 namespace backend.Controllers;
+
 
 [ApiController]
 [Route("api/[controller]")]
@@ -297,16 +306,14 @@ public class AktorController : ControllerBase
                         {
                             var bioDetails = BioParser.ParseBiografiXml(aktorDto.biografi);
                             string? apiStatus = bioDetails.GetValueOrDefault("Status") as string;
-                            string? partyNameFromBio =
-                                bioDetails.GetValueOrDefault("Party") as string;
-                            string? partyShortnameFromBio =
-                                bioDetails.GetValueOrDefault("PartyShortname") as string;
+                            string? partyNameFromBio = bioDetails.GetValueOrDefault("Party") as string;
+                            string? partyShortnameFromBio = bioDetails.GetValueOrDefault("PartyShortname") as string;
 
-                            var existingAktor = await _context.Aktor.FirstOrDefaultAsync(a =>
-                                a.Id == aktorDto.Id
-                            );
-                            Aktor? currentAktor = null; // Initialize to nullable Aktor
 
+                            var existingAktor = await _context.Aktor
+                                                        .FirstOrDefaultAsync(a => a.Id == aktorDto.Id);
+                            Aktor currentAktor;
+                            
                             if (apiStatus == "1") // Active Politician
                             {
                                 string? ministerTitle = null;
@@ -437,27 +444,55 @@ public class AktorController : ControllerBase
                                         );
                                     }
                                 }
+                                if (!string.IsNullOrWhiteSpace(partyNameFromBio)){
+                                    Party? partyEnt;
+                                    if (!processedParties.TryGetValue(partyNameFromBio, out partyEnt)){
+                                        partyEnt = await _context.Party.FirstOrDefaultAsync(p => p.partyName == partyNameFromBio);
+
+                                        if (partyEnt == null){
+                                            partyEnt = new Party{
+                                                partyName = partyNameFromBio,
+                                                partyShortName = partyShortnameFromBio,
+                                                memberIds = new List<int>()
+                                            };
+                                            _context.Party.Add(partyEnt);
+                                            processedParties[partyNameFromBio] = partyEnt;
+                                            pagePartiesAdded++;
+                                        }
+                                        else {
+                                            partyEnt.memberIds ??= new List<int>();
+                                            processedParties[partyNameFromBio] = partyEnt;
+                                        }
+                                    }
+                                    if (partyEnt.memberIds == null){
+                                        partyEnt.memberIds = new List<int>();
+                                    }
+                                    if (!partyEnt.memberIds.Contains(currentAktor.Id)){
+                                        partyEnt.memberIds.Add(currentAktor.Id);
+                                        pageMembersAddedToparties++;
+                                        _logger.LogDebug("Adding Aktor ID: {AktorId} to MemberIds of Party: {partyName}", currentAktor.Id, partyEnt.partyName);
+                                    } else {
+                                        _logger.LogWarning("Aktor ID: {Id} has no party name in biography.", currentAktor.Id);
+                                    }
+                                }
                             }
                             else // Inactive Politician
                             {
                                 if (existingAktor != null) // DELETE Aktor
-                                {
-                                    // Also need to remove the AktorId from any Party.MemberIds lists
-                                    var partiesContainingAktor = await _context
-                                        .Party.Where(p =>
-                                            p.memberIds != null
-                                            && p.memberIds.Contains(existingAktor.Id)
-                                        )
-                                        .ToListAsync();
-
-                                    foreach (var party in partiesContainingAktor)
                                     {
-                                        party.memberIds?.Remove(existingAktor.Id);
-                                        _context.Entry(party).State = EntityState.Modified; // Mark as modified
-                                    }
+                                        // Also need to remove the AktorId from any Party.MemberIds lists
+                                        var partiesContainingAktor = await _context.Party
+                                            .Where(p => p.memberIds != null && p.memberIds.Contains(existingAktor.Id))
+                                            .ToListAsync();
 
-                                    _context.Aktor.Remove(existingAktor);
-                                }
+                                        foreach(var party in partiesContainingAktor)
+                                        {
+                                            party.memberIds?.Remove(existingAktor.Id);
+                                            _context.Entry(party).State = EntityState.Modified; // Mark as modified
+                                        }
+
+                                        _context.Aktor.Remove(existingAktor);
+                                    }
                             }
                         }
 
@@ -564,6 +599,7 @@ public class AktorController : ControllerBase
         aktor.fornavn = dto.fornavn;
         aktor.efternavn = dto.efternavn;
         aktor.biografi = dto.biografi;
+
         // Ensure DateTimeKind is set to Utc if values exist
         aktor.startdato = dto.startdato.HasValue
             ? DateTime.SpecifyKind(dto.startdato.Value, DateTimeKind.Utc)
@@ -586,23 +622,14 @@ public class AktorController : ControllerBase
         aktor.PositionsOfTrust = bioDetails.GetValueOrDefault("PositionsOfTrust") as string;
 
         // Map Lists (handle potential nulls from GetValueOrDefault)
-        aktor.ParliamentaryPositionsOfTrust =
-            bioDetails.GetValueOrDefault("ParliamentaryPositionsOfTrust") as List<string>
-            ?? new List<string>();
-        aktor.Constituencies =
-            bioDetails.GetValueOrDefault("Constituencies") as List<string> ?? new List<string>();
-        aktor.Nominations =
-            bioDetails.GetValueOrDefault("Nominations") as List<string> ?? new List<string>();
-        aktor.Educations =
-            bioDetails.GetValueOrDefault("Educations") as List<string> ?? new List<string>();
-        aktor.Occupations =
-            bioDetails.GetValueOrDefault("Occupations") as List<string> ?? new List<string>();
-        aktor.PublicationTitles =
-            bioDetails.GetValueOrDefault("PublicationTitles") as List<string> ?? new List<string>();
-        aktor.Ministers =
-            bioDetails.GetValueOrDefault("Ministers") as List<string> ?? new List<string>();
-        aktor.Spokesmen =
-            bioDetails.GetValueOrDefault("Spokesmen") as List<string> ?? new List<string>();
+        aktor.ParliamentaryPositionsOfTrust = bioDetails.GetValueOrDefault("ParliamentaryPositionsOfTrust") as List<string> ?? new List<string>();
+        aktor.Constituencies = bioDetails.GetValueOrDefault("Constituencies") as List<string> ?? new List<string>();
+        aktor.Nominations = bioDetails.GetValueOrDefault("Nominations") as List<string> ?? new List<string>();
+        aktor.Educations = bioDetails.GetValueOrDefault("Educations") as List<string> ?? new List<string>();
+        aktor.Occupations = bioDetails.GetValueOrDefault("Occupations") as List<string> ?? new List<string>();
+        aktor.PublicationTitles = bioDetails.GetValueOrDefault("PublicationTitles") as List<string> ?? new List<string>();
+        aktor.Ministers = bioDetails.GetValueOrDefault("Ministers") as List<string> ?? new List<string>();
+        aktor.Spokesmen = bioDetails.GetValueOrDefault("Spokesmen") as List<string> ?? new List<string>();
         aktor.MinisterTitel = ministerTitle;
 
         return aktor;

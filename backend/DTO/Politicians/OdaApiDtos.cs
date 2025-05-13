@@ -55,7 +55,7 @@ namespace backend.DTO.FT
         public string? Ministertitel { get; set; }
 
         // Collections (assuming these are stored as strings or lists in your Aktor model) bliver serialized fra list<string> til string i db, og deserialized når vi henter fra db
-        // Kan ses i Data/DataContext.cs under onModelCreate
+        // Kan ses i Data/DataContext.cs under onModelCreate 
         public List<string>? Ministers { get; set; }
         public List<string>? Spokesmen { get; set; }
         public List<string>? ParliamentaryPositionsOfTrust { get; set; }
@@ -65,7 +65,7 @@ namespace backend.DTO.FT
         public List<string>? Occupations { get; set; }
         public List<string>? PublicationTitles { get; set; }
 
-        //Helper method for mapping
+        //Helper method for mapping 
         public static AktorDetailDto FromAktor(Models.Aktor aktor)
         {
             return new AktorDetailDto

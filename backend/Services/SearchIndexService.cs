@@ -6,12 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using backend.Data; // Your DbContext
 using backend.Models; // Your models including Aktor, Flashcard, SearchDocument
-using backend.Models.Flashcards; // For logging
-using backend.Models.LearningEnvironment;
+using backend.Models.Flashcards;
 using Microsoft.EntityFrameworkCore;
+using backend.Models.LearningEnvironment;
 using Microsoft.Extensions.DependencyInjection; // For GetService
 using Microsoft.Extensions.Hosting; // For IHostApplicationLifetime or similar context
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging;
 using Npgsql; // Or your DB provider if not using Npgsql directly here
 using OpenSearch.Client;
@@ -53,6 +52,8 @@ namespace backend.Services
             var operations = new List<IBulkOperation>();
             int aktorCount = 0;
             int flashcardCount = 0;
+            int partyCount = 0;
+            int pagesCount = 0;
             const int batchSize = 1000; // Adjust batch size as needed
 
             try
@@ -117,6 +118,43 @@ namespace backend.Services
                 }
                 _logger.LogInformation("Finished mapping Flashcards.");
 
+                // Index Party
+                _logger.LogInformation("Fetching Parties");
+                var parties = await _dbContext.Party.AsNoTracking().ToListAsync();
+
+                foreach ( var party in parties){
+                    var searchDoc = MapPartyToSearchDocument(party);
+                    operations.Add(
+                        new BulkIndexOperation<SearchDocument>(searchDoc) {Id = searchDoc.Id}
+                    );
+                    partyCount++;
+                    if (operations.Count >= batchSize){
+                        await SendBulkRequestAsync(operations, cancellationToken);
+                        operations.Clear();
+                        _logger.LogInformation(
+                            "Indexed batch of {BatchSize} documents...", batchSize
+                        );
+                    }
+                }
+                _logger.LogInformation("Finished mapping Parties");
+
+                //Index Learning env
+                _logger.LogInformation("Fetching pages");
+                var pages = await _dbContext.Pages.AsNoTracking().ToListAsync();
+
+                foreach(var page in pages){
+                    var searchDoc = MapPageToSearchDocument(page);
+                    operations.Add(
+                        new BulkIndexOperation<SearchDocument>(searchDoc) {Id = searchDoc.Id}
+                    );
+                    pagesCount++;
+                    if (operations.Count >= batchSize){
+                        await SendBulkRequestAsync(operations, cancellationToken);
+                        operations.Clear();
+                    }
+                }
+                _logger.LogInformation("Finished mapping pages");
+
                 // Send any remaining documents
                 if (operations.Count > 0)
                 {
@@ -128,9 +166,10 @@ namespace backend.Services
                 }
 
                 _logger.LogInformation(
-                    "Finished indexing. Total Aktors: {AktorCount}, Total Flashcards: {FlashcardCount}",
+                    "Finished indexing. Total Aktors: {AktorCount}, Total Flashcards: {FlashcardCount}, Total Parties: {partyCount}",
                     aktorCount,
-                    flashcardCount
+                    flashcardCount,
+                    partyCount
                 );
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -152,18 +191,22 @@ namespace backend.Services
             // Combine relevant text fields for searchable content
             var contentParts = new List<string?>
             {
+                aktor.navn,
                 aktor.Party,
                 aktor.PartyShortname,
                 aktor.MinisterTitel,
                 aktor.FunctionFormattedTitle,
                 aktor.PositionsOfTrust,
+                aktor.Sex,
+                aktor.Born,
                 // Add other text fields you want searchable here
             };
             contentParts.AddRange(aktor.Spokesmen ?? Enumerable.Empty<string>());
             contentParts.AddRange(aktor.Ministers ?? Enumerable.Empty<string>());
-            contentParts.AddRange(
-                aktor.ParliamentaryPositionsOfTrust ?? Enumerable.Empty<string>()
-            );
+            contentParts.AddRange(aktor.ParliamentaryPositionsOfTrust ?? Enumerable.Empty<string>());
+            contentParts.AddRange(aktor.Constituencies ?? Enumerable.Empty<string>());
+            contentParts.AddRange(aktor.Educations ?? Enumerable.Empty<string>()); // Add educations
+            contentParts.AddRange(aktor.Occupations ?? Enumerable.Empty<string>()); // Add occupations
 
             return new SearchDocument
             {
@@ -180,7 +223,6 @@ namespace backend.Services
                 AktorName = aktor.navn,
                 Party = aktor.Party,
                 PartyShortname = aktor.PartyShortname,
-                PictureUrl = aktor.PictureMiRes,
                 MinisterTitle = aktor.MinisterTitel,
                 Constituencies = aktor.Constituencies,
                 // Map other Aktor fields as needed
@@ -218,6 +260,39 @@ namespace backend.Services
                 FrontImagePath = flashcard.FrontImagePath,
                 BackImagePath = flashcard.BackImagePath,
                 // No Aktor specific fields populated here
+            };
+        }
+        private SearchDocument MapPartyToSearchDocument(Party party){
+            var contentParts = new List<string?> {party.history, party.politics, party.partyProgram};
+            string? title = party.partyName;
+            return new SearchDocument{
+                Id = $"party-{party.partyId}",
+                DataType = "Party",
+                Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
+                Content = string.Join(" | ",
+                                        contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
+                LastUpdated = DateTime.UtcNow,
+
+                //Party Specific
+                partyName = party.partyName,
+                partyShortNameFromParty = party.partyShortName,
+                partyProgram = party.partyProgram,
+                politics = party.politics,
+                history = party.history,
+            };
+        }
+        private SearchDocument MapPageToSearchDocument(Page page){
+            var contentParts = new List<string?> {page.Title, page.Content};
+            string? title = page.Title;
+            return new SearchDocument{
+                Id = $"page-{page.Id}",
+                DataType = "Page",
+                Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
+                Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
+                LastUpdated = DateTime.UtcNow,
+
+                pageTitle = page.Title,
+                pageContent = page.Content,
             };
         }
 

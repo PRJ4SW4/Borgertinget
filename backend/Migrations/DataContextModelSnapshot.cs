@@ -301,7 +301,7 @@ namespace backend.Migrations
                     b.HasIndex("SourceUrl")
                         .IsUnique();
 
-                    b.ToTable("CalendarEvents");
+                    b.ToTable("CalendarEvents" , (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.DailySelection", b =>
@@ -785,8 +785,8 @@ namespace backend.Migrations
                     b.Property<string>("history")
                         .HasColumnType("text");
 
-                    b.PrimitiveCollection<List<int>>("memberIds")
-                        .HasColumnType("integer[]");
+                    b.Property<string>("memberIds")
+                        .HasColumnType("text");
 
                     b.Property<string>("partyName")
                         .HasColumnType("text");
@@ -806,8 +806,8 @@ namespace backend.Migrations
                     b.Property<int?>("spokesmanId")
                         .HasColumnType("integer");
 
-                    b.PrimitiveCollection<List<string>>("stats")
-                        .HasColumnType("text[]");
+                    b.Property<string>("stats")
+                        .HasColumnType("text");
 
                     b.Property<int?>("viceChairmanId")
                         .HasColumnType("integer");
@@ -1331,7 +1331,8 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Models.Aktor", "chairman")
                         .WithMany()
-                        .HasForeignKey("chairmanId");
+                        .HasForeignKey("chairmanId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("backend.Models.Aktor", "secretary")
                         .WithMany()
@@ -1354,7 +1355,7 @@ namespace backend.Migrations
                     b.Navigation("viceChairman");
                 });
 
-            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
+                modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
                 {
                     b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
                         .WithMany("GameTrackings")

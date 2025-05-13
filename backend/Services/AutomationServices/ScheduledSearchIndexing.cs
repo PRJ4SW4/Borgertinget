@@ -142,7 +142,7 @@ namespace backend.Services.AutomationServices // Adjust namespace if needed
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Unexpected error in Scheduled Index Service loop.");
-                    await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken); // Wait before retrying
+                    await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken); // Wait before retrying
                 }
             } // End while loop
 
@@ -237,7 +237,7 @@ namespace backend.Services.AutomationServices // Adjust namespace if needed
                     */
 
                     // INSTEAD, use a short fixed delay for testing:
-                    delay = TimeSpan.FromSeconds(300000); // Run approximately every 15 seconds
+                    delay = TimeSpan.FromSeconds(15); // Run approximately every 15 seconds
                     _logger.LogInformation(
                         "TEST MODE: Indexing will run after a {Delay} delay.",
                         delay

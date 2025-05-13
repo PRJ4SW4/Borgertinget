@@ -77,9 +77,17 @@ ul.sub-menu {
     font-weight: bold;
   }
 
+  /* --- Appearance --- */
+  background-color: #f0f0f0; /* Example background */
+  padding: 0 20px; /* Padding left/right, no top/bottom needed if height is fixed */
+  border-bottom: 1px solid #ccc; /* Border at the bottom */
 
- /* Ensure it stays above other content */
-
+  /* --- Positioning --- */
+  position: sticky; /* Stick to the top on scroll */
+  top: 0;
+  left: 0; /* Ensure it sticks flush to the left */
+  z-index: 1000; /* Ensure it stays above other content */
+}
 
 /* Logo section */
 .navbarLogo {
