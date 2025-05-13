@@ -74,9 +74,7 @@ namespace backend.Controllers
             if (result.Succeeded) {
                 // var roleResult = await _userManager.AddToRoleAsync(user, "User");
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                _logger.LogInformation($"Token: {token}");
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-                _logger.LogInformation($"Encoded Token: {encodedToken}");
 
                 var verificationLink = $"http://localhost:5173/verify?userId={user.Id}&token={encodedToken}";
 
@@ -94,7 +92,7 @@ namespace backend.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Fejl ved afsendelse af bekræftelsesmail til {user.Email}: {ex.Message}");
+                    _logger.LogError(ex, $"Fejl ved afsendelse af bekræftelsesmail: {ex.Message}");
                     return StatusCode(500, new { message = "Fejl ved afsendelse af bekræftelsesmail. Prøv venligst igen senere." } );
                 }
                 return Ok(new { message = "Registrering succesfuld! Tjek din email for at bekræfte din konto." });
@@ -110,7 +108,6 @@ namespace backend.Controllers
         [HttpGet("verify")]
         public async Task<IActionResult> VerifyEmail([FromQuery] int userId, [FromQuery] string token)
         {
-            _logger.LogInformation($"Token: {token}");
             if (string.IsNullOrEmpty(token)) {
                 _logger.LogError("Token mangler.");
                 return BadRequest("Token mangler.");
@@ -127,7 +124,6 @@ namespace backend.Controllers
             {
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
-                _logger.LogInformation($"Decoderet token: {decodedToken}");
             
                 var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
                 if(result.Succeeded)
