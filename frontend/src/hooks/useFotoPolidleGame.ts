@@ -7,7 +7,7 @@ import {
   PhotoDto as ApiPhotoDto,
   DailyPoliticianDto,
 } from "../types/PolidleTypes";
-import { fetchPhotoOfTheDay, submitGuess } from "../services/polidleApiService";
+import { fetchPhotoOfTheDay, submitGuess } from "../services/PolidleApiService";
 
 const INITIAL_BLUR_LEVEL = 15; // Start blur-værdi (pixels)
 const BLUR_REDUCTION_PER_GUESS = 3; // Hvor meget blur reduceres pr. forkert gæt
@@ -54,9 +54,13 @@ export const useFotoPolidleGame = (): UseFotoPolidleGameReturn => {
       if (!data.photoUrl) {
         setPhotoError("Ingen billed-URL modtaget fra serveren.");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Fetch photo error in hook:", error);
-      setPhotoError(error.message || "Ukendt fejl ved hentning af foto.");
+      if (error instanceof Error) {
+        setPhotoError(error.message);
+      } else {
+        setPhotoError("Ukendt fejl ved hentning af foto.");
+      }
     } finally {
       setIsLoadingPhoto(false);
     }
@@ -101,9 +105,13 @@ export const useFotoPolidleGame = (): UseFotoPolidleGameReturn => {
           throw new Error("Manglende politiker detaljer i svar fra backend.");
         }
         return resultData;
-      } catch (error: any) {
+      } catch (error) {
         console.error("Guess API error in hook (Foto):", error);
-        setGuessError(error.message || "Ukendt fejl under afsendelse af gæt.");
+        if (error instanceof Error) {
+          setGuessError(error.message);
+        } else {
+          setGuessError("Ukendt fejl under afsendelse af gæt.");
+        }
         return null;
       } finally {
         setIsGuessing(false);

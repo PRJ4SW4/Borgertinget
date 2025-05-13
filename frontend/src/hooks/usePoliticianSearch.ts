@@ -1,7 +1,7 @@
 // src/hooks/usePoliticianSearch.ts
 import { useState, useEffect, useRef, useCallback } from "react";
 import { SearchListDto } from "../types/PolidleTypes"; // << VIGTIGT: Sørg for korrekt sti
-import { fetchPoliticiansForSearch } from "../services/polidleApiService"; // << VIGTIGT: Sørg for korrekt sti
+import { fetchPoliticiansForSearch } from "../services/PolidleApiService"; // << VIGTIGT: Sørg for korrekt sti
 
 interface UsePoliticianSearchReturn {
   searchText: string;
@@ -56,9 +56,13 @@ export const usePoliticianSearch = (
         } else {
           setSearchResults([]);
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error("Search fetch error in hook:", error);
-        setSearchError(error.message || "Fejl ved søgning af politikere.");
+        if (error instanceof Error) {
+          setSearchError(error.message);
+        } else {
+          setSearchError("Fejl ved søgning af politikere.");
+        }
         setSearchResults([]);
       } finally {
         setIsSearching(false);

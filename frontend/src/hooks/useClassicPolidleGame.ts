@@ -5,7 +5,7 @@ import {
   GuessResultDto,
   GamemodeTypes,
 } from "../types/PolidleTypes"; // << VIGTIGT: Sørg for korrekt sti
-import { submitGuess } from "../services/polidleApiService"; // << VIGTIGT: Sørg for korrekt sti
+import { submitGuess } from "../services/PolidleApiService"; // << VIGTIGT: Sørg for korrekt sti
 
 interface UseClassicPolidleGameReturn {
   guessResults: GuessResultDto[];
@@ -45,9 +45,13 @@ export const useClassicPolidleGame = (): UseClassicPolidleGameReturn => {
           // setTimeout(() => alert("Tillykke, du gættede rigtigt!"), 100); // Eksempel
         }
         return resultData;
-      } catch (error: any) {
+      } catch (error) {
         console.error("Guess API error in hook:", error);
-        setGuessError(error.message || "Ukendt fejl under afsendelse af gæt.");
+        if (error instanceof Error) {
+          setGuessError(error.message);
+        } else {
+          setGuessError("Ukendt fejl under afsendelse af gæt.");
+        }
         return null;
       } finally {
         setIsGuessing(false);
