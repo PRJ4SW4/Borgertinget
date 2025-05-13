@@ -326,28 +326,33 @@ namespace backend.Controllers
                 _logger.LogInformation($"Eksternt login linket for bruger: {appUser.UserName}"); //
             }
             
+            // Ryd den midlertidige eksterne cookie
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             var localJwtToken = await GenerateJwtToken(appUser); 
-            _logger.LogInformation($"JWT genereret for bruger: {appUser.UserName}"); //
+            _logger.LogInformation($"JWT genereret for bruger: {appUser.UserName}");
 
-            string frontendBaseUrl = _config["FrontendBaseUrl"] ?? "http://localhost:5173"; 
-            string successRedirectPath = "/login-success"; 
+            string frontendBaseUrl = _config["FrontendBaseUrl"] ?? "http://localhost:5173";
+            string loginSuccessPathOnFrontend = "/login-success"; 
 
-            string redirectTarget;
-            if (!string.IsNullOrEmpty(returnUrl) /*&& IsLocalUrl(returnUrl)*/) 
+            var queryParams = new Dictionary<string, string?>
             {
-                redirectTarget = $"{frontendBaseUrl}{returnUrl}";
-            }
-            else
+                { "token", localJwtToken } 
+            };
+
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith("/")) // Simpel validering
             {
-                redirectTarget = $"{frontendBaseUrl}{successRedirectPath}";
+                queryParams.Add("originalReturnUrl", returnUrl); 
+            }
+            else if (!string.IsNullOrEmpty(returnUrl))
+            {
+                _logger.LogWarning("Ignorerer ugyldig returnUrl ('{OriginalReturnUrl}') modtaget i HandleGoogleCallback for redirect til LoginSuccessPage.", returnUrl);
             }
 
-            string finalFrontendRedirectUrl = QueryHelpers.AddQueryString(redirectTarget, "token", HttpUtility.UrlEncode(localJwtToken));
+            string urlForLoginSuccessPage = QueryHelpers.AddQueryString($"{frontendBaseUrl}{loginSuccessPathOnFrontend}", queryParams);
 
-            _logger.LogInformation($"Redirecter til frontend: {finalFrontendRedirectUrl}");
-            return Redirect(finalFrontendRedirectUrl);
+            _logger.LogInformation("Redirecter til frontend's LoginSuccessPage: {FinalUrl}", urlForLoginSuccessPage);
+            return Redirect(urlForLoginSuccessPage);
         }
 
         private async Task<string> GenerateJwtToken(User user)
