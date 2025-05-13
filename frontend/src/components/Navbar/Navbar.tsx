@@ -30,7 +30,7 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
     // Optional chaining () prevents errors if setToken is not passed.
     setToken?.(null);
     // Redirects the user to the login page after logout actions.
-    navigate('/landingpage');
+    navigate("/landingpage");
   };
 
   // --- JWT Role Checking ---
@@ -40,7 +40,7 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
-      const roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+      const roles = payload["role"]; 
       isAdmin = Array.isArray(roles) ? roles.includes("Admin") : roles === "Admin";
     } catch (err) {
       console.error("Invalid token", err);

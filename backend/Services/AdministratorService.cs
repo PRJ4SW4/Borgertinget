@@ -222,6 +222,7 @@ namespace backend.Services
 
             // Update username
             user.UserName = dto.UserName;
+            user.NormalizedUserName = dto.UserName.ToUpper();
 
             // Save changes to the Db
             _context.SaveChanges();

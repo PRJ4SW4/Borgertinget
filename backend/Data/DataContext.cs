@@ -6,15 +6,15 @@ using backend.Models; // Sørg for at FakePolitiker, FakeParti og PolidleGamemod
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
+using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking; // For ValueComparer
 
 namespace backend.Data
 {
-    public class DataContext : IdentityDbContext<User, IdentityRole<int>, int>
+    public class DataContext : IdentityDbContext<User, IdentityRole<int>, int> // Automatically includes a DbSet<User> called Users
     {
         public DataContext(DbContextOptions<DataContext> options)
             : base(options) { }
@@ -109,6 +109,13 @@ namespace backend.Data
                     v =>
                         JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
                         ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1!.SequenceEqual(c2!),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    )
                 );
 
             // Configure Nominations
@@ -120,6 +127,13 @@ namespace backend.Data
                     v =>
                         JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
                         ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1!.SequenceEqual(c2!),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    )
                 );
 
             // Add similar .HasConversion calls for Educations and Occupations
@@ -131,6 +145,13 @@ namespace backend.Data
                     v =>
                         JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
                         ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1!.SequenceEqual(c2!),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    )
                 );
 
             modelBuilder
@@ -141,6 +162,13 @@ namespace backend.Data
                     v =>
                         JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
                         ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1!.SequenceEqual(c2!),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    )
                 );
 
             modelBuilder
@@ -151,6 +179,13 @@ namespace backend.Data
                     v =>
                         JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
                         ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1!.SequenceEqual(c2!),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    )
                 );
             modelBuilder
                 .Entity<Aktor>()
@@ -160,6 +195,13 @@ namespace backend.Data
                     v =>
                         JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
                         ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1!.SequenceEqual(c2!),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    )
                 );
             modelBuilder
                 .Entity<Aktor>()
@@ -169,6 +211,13 @@ namespace backend.Data
                     v =>
                         JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
                         ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1!.SequenceEqual(c2!),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    )
                 );
 
             #region Polidle
@@ -342,9 +391,26 @@ namespace backend.Data
                 entity.Property(t => t.Text).IsRequired();
             });
 
-
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
+            modelBuilder
+                .Entity<IdentityRole<int>>()
+                .HasData(
+                    new IdentityRole<int>
+                    {
+                        Id = 1,
+                        Name = "Admin",
+                        NormalizedName = "ADMIN",
+                        ConcurrencyStamp = "92399EC2-C4C4-4E0C-B9C1-A45A2A17A52C", // Static GUID
+                    },
+                    new IdentityRole<int>
+                    {
+                        Id = 2,
+                        Name = "User",
+                        NormalizedName = "USER",
+                        ConcurrencyStamp = "A7D8F9A0-E1B2-4C3D-8E4F-5A6B7C8D9E0F", // Static GUID
+                    }
+                );
             modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
             modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
             modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");

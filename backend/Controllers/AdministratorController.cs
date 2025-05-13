@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 public class AdministratorController : ControllerBase
 {
     private readonly IAdministratorService _service;
@@ -260,17 +261,17 @@ public class AdministratorController : ControllerBase
 
     // PUT a quoteText
     [HttpPut("EditQuote")]
-    public async Task<IActionResult> EditQuote(int quoteId, string quoteText)
+    public async Task<IActionResult> EditQuote([FromBody] EditQuoteDTO dto)
     {
         try
         {
-            await _service.EditQuoteAsync(quoteId, quoteText);
+            await _service.EditQuoteAsync(dto.QuoteId, dto.QuoteText);
 
             return Ok("Quote edited");
         }
         catch
         {
-            return StatusCode(500, $"An error occured while editing quote with id: {quoteId}");
+            return StatusCode(500, $"An error occured while editing quote with id: {dto.QuoteId}");
         }
     }
 
@@ -279,7 +280,6 @@ public class AdministratorController : ControllerBase
     #region Politician
 
     [HttpGet("lookup/aktorId")]
-    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<object>> GetAktorIdByTwitterId([FromQuery] int twitterId)
     {
         if (twitterId <= 0)

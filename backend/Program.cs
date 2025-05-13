@@ -3,8 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using backend.Data;
 using backend.Hubs;
-using backend.Services;
+using backend.Hubs;
 using backend.Models;
+using backend.Services;
 // For Altinget Scraping
 using backend.Services.AutomationServices;
 using backend.Services.AutomationServices.HtmlFetching;
@@ -14,22 +15,20 @@ using backend.Services.AutomationServices.Repositories;
 using backend.Services.Flashcards;
 // Learning Environment Services
 using backend.Services.LearningEnvironmentServices;
+using backend.utils;
 // JWT Stuff
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection; // Add this
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore; // Inkluderer MigrateAsync()
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging; // Inkluderer ILogger
+using Microsoft.Extensions.Logging; // Add this
+using Microsoft.Extensions.Options; // Add this using directive
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using backend.Hubs;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using backend.utils;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options; // Add this using directive
-using Microsoft.AspNetCore.DataProtection;  // Add this
-using Microsoft.Extensions.Logging; // Add this
-
 using OpenSearch.Client;
 using OpenSearch.Net;
 
@@ -84,25 +83,30 @@ var key = Encoding.UTF8.GetBytes(
 // Authorization Policies
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(
-        "RequireAdministratorRole",
-        policy => policy.RequireRole(ClaimTypes.Role, "Admin") // Bruger standard role claim type
-    );
+    options.AddPolicy("RequireAdministratorRole", policy => policy.RequireRole("Admin"));
     options.AddPolicy(
         "UserOrAdmin",
-        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin") // Bruger standard role claim type
+        policy =>
+            policy.RequireAssertion(context =>
+                context.User.HasClaim(c => c.Type == "role" && c.Value == "User")
+                || context.User.HasClaim(c => c.Type == "role" && c.Value == "Admin")
+            )
     );
 });
 
 // EF Core Database Context
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException(
-                "Connection string 'DefaultConnection' not found.")
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' not found."
+            )
+    )
 );
 
-builder.Services
-    .AddIdentity<User, IdentityRole<int>>(options => {
+builder
+    .Services.AddIdentity<User, IdentityRole<int>>(options =>
+    {
         options.SignIn.RequireConfirmedEmail = true;
 
         options.Tokens.ProviderMap.Add(
@@ -147,7 +151,7 @@ builder
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ClockSkew = TimeSpan.Zero, // Vær præcis med token udløb
-            RoleClaimType = ClaimTypes.Role, // Specificerer hvilket claim der indeholder roller
+            RoleClaimType = ClaimTypes.Role,
         };
         // Indsæt event hooks til fejllogning
         options.Events = new JwtBearerEvents
@@ -161,15 +165,19 @@ builder
             },
             OnTokenValidated = context =>
             {
-                Console.WriteLine(" TOKEN VALIDATED:");
+                Console.WriteLine("✅ TOKEN VALIDATED:");
                 if (context.Principal?.Identity != null)
                 {
-                    Console.WriteLine("User: " + context.Principal.Identity?.Name);
-                    return Task.CompletedTask;
+                    Console.WriteLine($"User: {context.Principal.Identity.Name}");
+                    Console.WriteLine("Claims:");
+                    foreach (var claim in context.Principal.Claims)
+                    {
+                        Console.WriteLine($"  {claim.Type}: {claim.Value}");
+                    }
                 }
                 else
                 {
-                    Console.WriteLine("User information not available.");
+                    Console.WriteLine("User information not available in token.");
                 }
                 return Task.CompletedTask;
             },
@@ -191,8 +199,16 @@ builder
             {
                 // Log når adgang nægtes (f.eks. 403 Forbidden)
                 Console.WriteLine(
-                    $"🚫 FORBIDDEN: User {context.Principal?.Identity?.Name} does not have required permissions."
+                    $"🚫 FORBIDDEN: User {context.Principal?.Identity?.Name} does not have required permissions for the resource."
                 );
+                if (context.Principal != null)
+                {
+                    Console.WriteLine("User Claims at time of Forbidden:");
+                    foreach (var claim in context.Principal.Claims)
+                    {
+                        Console.WriteLine($"  {claim.Type}: {claim.Value}");
+                    }
+                }
                 return Task.CompletedTask;
             },
         };
@@ -248,9 +264,8 @@ builder.Services.AddHttpClient<TwitterService>();
 //oda.ft crawler
 builder.Services.AddScoped<HttpService>();
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
-builder.Services.AddHostedService<TweetFetchingService>(); 
+builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHttpClient<TwitterService>();
-
 
 // CORS
 builder.Services.AddCors(options =>

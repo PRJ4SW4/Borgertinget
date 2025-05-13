@@ -38,7 +38,6 @@ interface Politician {
 export default function EditPoll() {
   const [polls, setPolls] = useState<PollSummary[]>([]);
   const [selectedPollId, setSelectedPollId] = useState<number | null>(null);
-  const [feedText, setFeedText] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);
@@ -125,8 +124,6 @@ export default function EditPoll() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const pollData: PollDetails = response.data;
-
-        setFeedText(""); // optional
         setQuestions([
           {
             id: pollData.id,
@@ -139,7 +136,6 @@ export default function EditPoll() {
         ]);
         setEndDate(pollData.endedAt ? pollData.endedAt.split("T")[0] : null);
 
-        
         if (pollData.politicianId) {
           const token = localStorage.getItem("jwt");
           try {

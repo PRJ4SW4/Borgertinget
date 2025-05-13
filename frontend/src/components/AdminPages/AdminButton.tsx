@@ -42,10 +42,7 @@ export default function AdminButton() {
   }
 
   return (
-    <button
-      className="Button"
-      onClick={() => navigate("/admin")}
-    >
+    <button className="Button" onClick={() => navigate("/admin")}>
       Admin Panel
     </button>
   );

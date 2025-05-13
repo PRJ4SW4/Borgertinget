@@ -30,7 +30,8 @@ namespace backend.Controllers
         [HttpGet("subscriptions")]
         public async Task<ActionResult<List<PoliticianInfoDto>>> GetMySubscriptions()
         {
-            var userIdString = User.FindFirstValue("userId");
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ;
             if (
                 string.IsNullOrEmpty(userIdString)
                 || !int.TryParse(userIdString, out int currentUserId)
@@ -75,7 +76,8 @@ namespace backend.Controllers
         )
         {
             // først findes brugeren user id fra jwt fra token, samme stil, som før i "GetMySubscriptions" endpointet
-            var userIdString = User.FindFirstValue("userId");
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ;
             if (
                 string.IsNullOrEmpty(userIdString)
                 || !int.TryParse(userIdString, out int currentUserId)

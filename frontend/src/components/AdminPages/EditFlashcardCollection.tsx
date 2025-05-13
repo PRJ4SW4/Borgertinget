@@ -13,7 +13,11 @@ export default function EditFlashcardCollection() {
   useEffect(() => {
     const fetchTitles = async () => {
       try {
-        const res = await axios.get<string[]>("/api/administrator/GetAllFlashcardCollectionTitles");
+        const res = await axios.get<string[]>("/api/administrator/GetAllFlashcardCollectionTitles", {
+          headers: { 
+            "Content-Type": "application/json", 
+            Authorization: `Bearer ${localStorage.getItem("jwt")}` },
+        });
         setTitles(res.data);
       } catch (err) {
         console.error(err);
@@ -27,7 +31,12 @@ export default function EditFlashcardCollection() {
   const fetchCollection = async (title: string) => {
     try {
       const res = await axios.get<FlashcardCollectionDetailDto>(
-        `/api/administrator/GetFlashcardCollectionByTitle?title=${encodeURIComponent(title)}`
+        `/api/administrator/GetFlashcardCollectionByTitle?title=${encodeURIComponent(title)}`,
+        {
+          headers: { 
+            "Content-Type": "application/json", 
+            Authorization: `Bearer ${localStorage.getItem("jwt")}` },
+        }
       );
       setCollection(res.data);
       setSelectedTitle(title);
@@ -53,7 +62,7 @@ export default function EditFlashcardCollection() {
 
     try {
       await axios.put(`/api/administrator/UpdateFlashcardCollection/${collection.collectionId}`, collection, {
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("jwt")}` },
       });
       alert("Flashcard serien er redigeret!");
     } catch (err) {
@@ -69,7 +78,7 @@ export default function EditFlashcardCollection() {
 
     try {
       const res = await axios.post("/api/administrator/UploadImage", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("jwt")}` },
       });
       return res.data.imagePath;
     } catch (err) {

@@ -31,7 +31,6 @@ export default function DeletePoll() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);
-  const [twitterId, setTwitterId] = useState<number | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -191,25 +190,12 @@ export default function DeletePoll() {
               <label className="page-label" htmlFor="questionInput">
                 Spørgsmål
               </label>
-              <input
-                type="text"
-                value={q.question}
-                disabled
-                className="page-input"
-                id="questionInput"
-                placeholder={`Skriv spørgsmålet her...`}
-              />
+              <input type="text" value={q.question} disabled className="page-input" id="questionInput" placeholder={`Skriv spørgsmålet her...`} />
 
               <div className="page-option-group">
                 {q.options.map((option, oIndex) => (
                   <div key={option.id || oIndex} className="page-option">
-                    <input
-                      type="text"
-                      value={option.optionText}
-                      disabled
-                      className="page-input"
-                      placeholder={`Svarmulighed ${oIndex + 1}`}
-                    />
+                    <input type="text" value={option.optionText} disabled className="page-input" placeholder={`Svarmulighed ${oIndex + 1}`} />
                   </div>
                 ))}
               </div>

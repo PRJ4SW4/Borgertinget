@@ -48,7 +48,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
         Password: loginPassword,
       });
 
-      const token = response.data.token;
+      const token = response.data.token.result;
       localStorage.setItem("jwt", token);
       setToken(token);
       navigate("/");
@@ -80,23 +80,23 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
       setShowPopup(true);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-          const responseData = error.response?.data;
-          console.log("Response Data:", responseData); // Log responseData
-          console.log("Error:", error); // Log error
-          if (responseData?.error) {
-            setStatusMessage(responseData.error); // Fanger backend-fejlbesked
-            setShowPopup(true);
-          } else if (responseData?.errors) {
-            const firstKey = Object.keys(responseData.errors)[0];
-            const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
+        const responseData = error.response?.data;
+        console.log("Response Data:", responseData); // Log responseData
+        console.log("Error:", error); // Log error
+        if (responseData?.error) {
+          setStatusMessage(responseData.error); // Fanger backend-fejlbesked
+          setShowPopup(true);
+        } else if (responseData?.errors) {
+          const firstKey = Object.keys(responseData.errors)[0];
+          const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
 
-            setStatusMessage(firstError); // Fanger backend-fejlbesked
-            setShowPopup(true);
-          } else {
-            console.log("Unexpected Axios error shape:", error.response?.data);
-            setStatusMessage("Noget gik galt. Prøv igen.");
-            setShowPopup(true);
-          }
+          setStatusMessage(firstError); // Fanger backend-fejlbesked
+          setShowPopup(true);
+        } else {
+          console.log("Unexpected Axios error shape:", error.response?.data);
+          setStatusMessage("Noget gik galt. Prøv igen.");
+          setShowPopup(true);
+        }
       } else {
         console.log("No connection or unknown error:", error);
         setStatusMessage("Ingen forbindelse til serveren.");
@@ -115,14 +115,14 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     const options = {
       client_id: clientId,
       redirect_uri: redirectUri,
-      response_type: 'code',
-      scope: 'openid profile email', // Standard scopes til login
+      response_type: "code",
+      scope: "openid profile email", // Standard scopes til login
       // state: 'tilfaeldig-sikkerheds-streng' // Implementeres senere for CSRF-beskyttelse
     };
 
     const queryString = new URLSearchParams(options).toString();
 
-    console.log("Redirecting to Google:", `${googleAuthUrl}?${queryString}`); 
+    console.log("Redirecting to Google:", `${googleAuthUrl}?${queryString}`);
     window.location.href = `${googleAuthUrl}?${queryString}`;
   };
 

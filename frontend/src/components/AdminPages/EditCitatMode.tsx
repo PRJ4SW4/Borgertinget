@@ -13,7 +13,12 @@ export default function EditCitatMode() {
   useEffect(() => {
     const fetchAllQuotes = async () => {
       try {
-        const res = await axios.get<EditQuoteDTO[]>("/api/administrator/GetAllQuotes");
+        const res = await axios.get<EditQuoteDTO[]>("/api/administrator/GetAllQuotes", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("jwt")}`,
+          },
+        });
         setQuotes(res.data);
       } catch (err) {
         console.error(err);
@@ -26,7 +31,12 @@ export default function EditCitatMode() {
   // Fetch Quote when a Quote is clicked
   const fetchQuote = async (quoteId: number) => {
     try {
-      const res = await axios.get<EditQuoteDTO>(`/api/administrator/GetQuoteById?quoteId=${quoteId}`);
+      const res = await axios.get<EditQuoteDTO>(`/api/administrator/GetQuoteById?quoteId=${quoteId}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwt")}`,
+        },
+      });
       setSelectedQuote(res.data);
       setNewText(res.data.quoteText);
     } catch (err) {
@@ -39,12 +49,15 @@ export default function EditCitatMode() {
     if (!selectedQuote) return;
 
     await axios.put(
-      `/api/administrator/EditQuote`, // Action name
-      {}, // No body
+      "/api/administrator/EditQuote",
       {
-        params: {
-          quoteId: selectedQuote.quoteId,
-          quoteText: newText,
+        quoteId: selectedQuote.quoteId,
+        quoteText: newText,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwt")}`,
         },
       }
     );

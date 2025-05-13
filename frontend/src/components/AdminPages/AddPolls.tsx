@@ -15,7 +15,6 @@ interface Question {
 }
 
 export default function AddPolls() {
-  const [feedText, setFeedText] = useState("");
   const [questions, setQuestions] = useState<Question[]>([{ question: "", options: ["", ""] }]);
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);

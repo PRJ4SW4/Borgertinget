@@ -61,12 +61,6 @@ export default function AdminIndhold() {
     setActorsUpdateSuccess(false);
 
     try {
-      // First call to scrape events
-      await axios.get("/api/calendar/scrape-altinget-now", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // Second call to run automation
       await axios.post("/api/calendar/run-altinget-automation", null, {
         headers: { Authorization: `Bearer ${token}` },
       });

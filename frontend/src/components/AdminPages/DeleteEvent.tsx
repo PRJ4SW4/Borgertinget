@@ -151,11 +151,7 @@ export default function DeleteEvent() {
       {message && <p style={{ color: isError ? "red" : "green", fontWeight: "bold", marginTop: "1rem" }}>{message}</p>}
 
       <div className="event-buttons" style={{ marginTop: "2rem" }}>
-        <button
-          onClick={handleDelete}
-          className="event-submit-btn"
-          disabled={loading || !selectedEventId}
-        >
+        <button onClick={handleDelete} className="event-submit-btn" disabled={loading || !selectedEventId}>
           {loading ? "Sletter..." : "Slet Begivenhed"}
         </button>
         <button type="button" className="event-remove-btn" onClick={() => navigate("/admin/Indhold")} style={{ backgroundColor: "#6c757d" }}>
