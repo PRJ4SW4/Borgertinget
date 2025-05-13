@@ -1,4 +1,4 @@
-namespace backend.Services.AutomationServices.HtmlFetching;
+namespace backend.Services.Calendar.HtmlFetching;
 
 // Defines a contract for services that can fetch HTML content from a specified URL.
 public interface IHtmlFetcher

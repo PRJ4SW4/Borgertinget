@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace backend.Services.AutomationServices // Adjust namespace if needed
+namespace backend.Services.Search // Adjust namespace if needed
 {
     public class ScheduledIndexService : BackgroundService
     {
