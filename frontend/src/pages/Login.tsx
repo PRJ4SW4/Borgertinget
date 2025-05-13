@@ -1,10 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Login.css";
 import loginImage from "../images/LoginImage.png";
-import useEmailVerification from "../utils/useEmailVerification";
-
 interface LoginProps {
   setToken: (token: string | null) => void;
 }
@@ -20,12 +18,30 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [startSlide, setStartSlide] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleVerificationMessage = useCallback(() => {
+    const params = new URLSearchParams(location.search);
+    const message = params.get("message");
+    const status = params.get("status");
+    if (message && status) {
+      setStatusMessage(message);
+      setStatusHeader(status === "success" ? "Succes" : "Fejl");
+      setShowPopup(true);
+      // Remove the parameters from the URL.  Important to do this *after*
+      //  you've read the parameters.
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [location.search]); // location.search is the dependency
+
+  useEffect(() => {
+    handleVerificationMessage();
+  }, [handleVerificationMessage]); // Call it in the useEffect
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatusHeader("Fejl");
     setStatusMessage(null);
-
     try {
       const response = await axios.post("http://localhost:5218/api/users/login", {
         EmailOrUsername: loginUsername,
@@ -64,23 +80,23 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
       setShowPopup(true);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const responseData = error.response?.data;
-        console.log("Response Data:", responseData); // Log responseData
-        console.log("Error:", error); // Log error
-        if (responseData?.error) {
-          setStatusMessage(responseData.error); // Fanger backend-fejlbesked
-          setShowPopup(true);
-        } else if (responseData?.errors) {
-          const firstKey = Object.keys(responseData.errors)[0];
-          const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
+          const responseData = error.response?.data;
+          console.log("Response Data:", responseData); // Log responseData
+          console.log("Error:", error); // Log error
+          if (responseData?.error) {
+            setStatusMessage(responseData.error); // Fanger backend-fejlbesked
+            setShowPopup(true);
+          } else if (responseData?.errors) {
+            const firstKey = Object.keys(responseData.errors)[0];
+            const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
 
-          setStatusMessage(firstError); // Fanger backend-fejlbesked
-          setShowPopup(true);
-        } else {
-          console.log("Unexpected Axios error shape:", error.response?.data);
-          setStatusMessage("Noget gik galt. Prøv igen.");
-          setShowPopup(true);
-        }
+            setStatusMessage(firstError); // Fanger backend-fejlbesked
+            setShowPopup(true);
+          } else {
+            console.log("Unexpected Axios error shape:", error.response?.data);
+            setStatusMessage("Noget gik galt. Prøv igen.");
+            setShowPopup(true);
+          }
       } else {
         console.log("No connection or unknown error:", error);
         setStatusMessage("Ingen forbindelse til serveren.");
@@ -99,30 +115,16 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     const options = {
       client_id: clientId,
       redirect_uri: redirectUri,
-      response_type: "code",
-      scope: "openid profile email", // Standard scopes til login
+      response_type: 'code',
+      scope: 'openid profile email', // Standard scopes til login
       // state: 'tilfaeldig-sikkerheds-streng' // Implementeres senere for CSRF-beskyttelse
     };
 
     const queryString = new URLSearchParams(options).toString();
 
-    // Omdirigerer brugerens browser
-    console.log("Redirecting to Google:", `${googleAuthUrl}?${queryString}`); // God til debugging
+    console.log("Redirecting to Google:", `${googleAuthUrl}?${queryString}`); 
     window.location.href = `${googleAuthUrl}?${queryString}`;
   };
-
-  useEmailVerification(
-    (message) => {
-      setStatusMessage(message);
-      setStatusHeader("Verificeret");
-      setShowPopup(true);
-    },
-    (errMessage) => {
-      setStatusMessage(errMessage);
-      setStatusHeader("Fejl");
-      setShowPopup(true);
-    }
-  );
 
   return (
     <div className="outer-wrapper">

@@ -13,12 +13,12 @@ import Login from "./pages/Login";
 import HomePage from "./pages/HomePage/HomePage";
 import PageContent from "./components/LearningEnvironment/PageContent"; // Renders content within LearningLayout.
 import CalendarView from "./components/Calendar/CalendarView";
-import LoginSuccessPage from "./pages/LoginSuccessPage";
 import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
 import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
 import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
 import LandingPage from "./pages/LandingPage/LandingPage";
 import FeedPage from "./pages/FeedPage";
+import EmailVerification from "./utils/useEmailVerification"; // Handles email verification logic.
 // Admin Pages
 import CreateFlashcardCollection from "./components/AdminPages/AddFlashcardCollection";
 import AdminPage from "./components/AdminPages/AdminPage";
@@ -46,13 +46,20 @@ import CitatMode from "./pages/Polidle/CitatMode";
 import FotoBlurMode from "./pages/Polidle/FotoBlurMode";
 
 // Navbar and Footer are rendered via MainLayout.
-
 // The main application component.
 
 function App() {
   // State hook for the JWT authentication token.
   // Initializes state from localStorage to persist login status.
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
+  const handleSetToken = (newToken: string | null) => {
+    setToken(newToken);
+    if (newToken) {
+      localStorage.setItem("jwt", newToken);
+    } else {
+      localStorage.removeItem("jwt");
+    }
+  };
 
   // Effect hook to synchronize token state with localStorage changes across tabs/windows.
   useEffect(() => {
@@ -84,9 +91,12 @@ function App() {
       </Route>
       {/* --- Public Routes (No MainLayout, No login required) --- */}
       {/* Login page route. */}
-      <Route path="/login" element={<Login setToken={setToken} />} />
+      <Route path="/login" element={<Login setToken={handleSetToken} />} />
       {/* Post-login success/callback route. */}
-      <Route path="/login-success" element={<LoginSuccessPage setToken={setToken} />} />
+      <Route path="/login-success" element={<></>}/>
+      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={() => {}}/>} />
+
+
       {/* --- Protected Routes using MainLayout --- */}
       {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}
       {/* All nested routes inherit the layout and protection. */}

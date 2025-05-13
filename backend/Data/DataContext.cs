@@ -6,20 +6,20 @@ using backend.Models; // Sørg for at FakePolitiker, FakeParti og PolidleGamemod
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking; // For ValueComparer
 
 namespace backend.Data
 {
-    public class DataContext : DbContext
+    public class DataContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         public DataContext(DbContextOptions<DataContext> options)
             : base(options) { }
 
         // --- DbSets ---
-        public DbSet<User> Users { get; set; } = null!;
-
         // --- Learning Environment Setup ---
         public DbSet<Page> Pages { get; set; } = null!;
         public DbSet<Question> Questions { get; set; } = null!;
@@ -334,6 +334,40 @@ namespace backend.Data
                     }
                 );
             });
+
+            modelBuilder.Entity<Tweet>(entity =>
+            {
+                entity.HasIndex(t => new { t.PoliticianTwitterId, t.TwitterTweetId }).IsUnique();
+                entity.Property(t => t.TwitterTweetId).IsRequired();
+                entity.Property(t => t.Text).IsRequired();
+            });
+
+
+            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
+            modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
+            modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
+            modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");
+            modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
+            modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
+
+            modelBuilder.Entity<Subscription>(entity =>
+            {
+                entity.HasIndex(s => s.UserId);
+                entity.HasIndex(s => s.PoliticianTwitterId);
+            });
+
+            modelBuilder.Entity<Poll>(entityPoll =>
+            {
+                entityPoll
+                    .HasOne(poll => poll.Politician)
+                    .WithMany(politician => politician.Polls)
+                    .HasForeignKey(poll => poll.PoliticianTwitterId);
+            });
+
+            modelBuilder.Entity<UserVote>().HasIndex(uv => new { uv.UserId, uv.PollId }).IsUnique();
+
+            // --- SEED DATA ---
 
             // --- Learning Environment Seeding ---
 

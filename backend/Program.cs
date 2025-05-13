@@ -4,6 +4,7 @@ using System.Text;
 using backend.Data;
 using backend.Hubs;
 using backend.Services;
+using backend.Models;
 // For Altinget Scraping
 using backend.Services.AutomationServices;
 using backend.Services.AutomationServices.HtmlFetching;
@@ -20,6 +21,15 @@ using Microsoft.Extensions.Logging; // Inkluderer ILogger
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using backend.Hubs;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using backend.utils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options; // Add this using directive
+using Microsoft.AspNetCore.DataProtection;  // Add this
+using Microsoft.Extensions.Logging; // Add this
+
 using OpenSearch.Client;
 using OpenSearch.Net;
 
@@ -86,13 +96,34 @@ builder.Services.AddAuthorization(options =>
 
 // EF Core Database Context
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException(
-                "Connection string 'DefaultConnection' not found."
-            )
-    )
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' not found.")
 );
+
+builder.Services
+    .AddIdentity<User, IdentityRole<int>>(options => {
+        options.SignIn.RequireConfirmedEmail = true;
+
+        options.Tokens.ProviderMap.Add(
+            "CustomEmailConfirmation",
+            new TokenProviderDescriptor(typeof(EmailConfirmationTokenProvider<User>))
+        );
+        options.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<DataContext>()
+    .AddDefaultTokenProviders()
+    .AddErrorDescriber<CostumErrorDescriber>()
+    .AddRoleManager<RoleManager<IdentityRole<int>>>();
+
+builder.Services.AddTransient<EmailConfirmationTokenProvider<User>>();
 
 // Authentication med JWT Bearer
 builder
@@ -100,6 +131,7 @@ builder
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
@@ -117,7 +149,7 @@ builder
             ClockSkew = TimeSpan.Zero, // Vær præcis med token udløb
             RoleClaimType = ClaimTypes.Role, // Specificerer hvilket claim der indeholder roller
         };
-        // Event hooks til debugging/logging af token validering
+        // Indsæt event hooks til fejllogning
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -129,7 +161,7 @@ builder
             },
             OnTokenValidated = context =>
             {
-                Console.WriteLine("✅ TOKEN VALIDATED:");
+                Console.WriteLine(" TOKEN VALIDATED:");
                 if (context.Principal?.Identity != null)
                 {
                     Console.WriteLine("User: " + context.Principal.Identity?.Name);
@@ -252,6 +284,12 @@ builder.Services.AddHostedService<DailySelectionJob>(); //* Bruges til udvælgel
 //Search indexing service
 builder.Services.AddScoped<SearchIndexingService>();
 
+builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
+
+builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
+
 // For altinget scraping
 builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
 builder.Services.AddScoped<IHtmlFetcher, AltingetHtmlFetcher>();
@@ -265,6 +303,8 @@ builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 
 // Flashcard Services
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+
+builder.Services.AddRouting();
 builder.Services.AddHostedService<TestScheduledIndexService>();
 
 builder.Services.AddScoped<AdministratorService>();
