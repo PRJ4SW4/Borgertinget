@@ -34,7 +34,7 @@ const GAMEMODES_HUB_CONFIG: HubGamemodeInfo[] = [
   },
   {
     id: GamemodeTypes.Foto, // Bruger enum
-    name: "Foto Sløret", // Opdateret navn
+    name: "Foto", // Opdateret navn
     path: "/FotoBlurMode", // Sørg for denne route eksisterer i App.tsx
     symbol: "📸️",
     description: "Gæt hvem der gemmer sig bag det slørede billede.",

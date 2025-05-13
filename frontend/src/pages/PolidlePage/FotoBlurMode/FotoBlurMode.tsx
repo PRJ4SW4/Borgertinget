@@ -59,7 +59,7 @@ const FotoBlurMode: React.FC = () => {
     <div
       className={`${pageStyles.pageContainer} ${sharedStyles.gamePageContainer}`}
     >
-      <h1 className={sharedStyles.gameHeader}>Polidle - Foto Sløret</h1>
+      <h1 className={sharedStyles.gameHeader}>Polidle - Foto</h1>
       <GameSelector />
 
       <div className={pageStyles.photoDisplayContainer}>
