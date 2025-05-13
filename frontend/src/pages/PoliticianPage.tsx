@@ -89,9 +89,13 @@ const PoliticianPage: React.FC = () => {
           const subscriptions = await getSubscriptions();
           
           // Find Twitter ID via lookup-API'et (behold aktorId som parameter i URL)
-          const lookupResponse = await fetch(`http://localhost:5218/api/subscription/lookup/politicianTwitterId?aktorId=${politician.id}`, { // KORREKT: aktørId → id
+          const token = localStorage.getItem('jwt');
+          // Clean the token by removing any quotes that might be wrapping it
+          const cleanToken = token ? token.replace(/^["'](.*)["']$/, '$1') : '';
+
+          const lookupResponse = await fetch(`http://localhost:5218/api/subscription/lookup/politicianTwitterId?aktorId=${politician.id}`, { 
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+              'Authorization': `Bearer ${cleanToken}`
             }
           });
 
