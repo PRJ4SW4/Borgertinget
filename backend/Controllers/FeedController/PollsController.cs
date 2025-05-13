@@ -89,7 +89,7 @@ namespace backend.Controllers
         [Authorize]
         public async Task<ActionResult<PollDetailsDto>> GetPollById(int id)
         {
-            var userIdString = User.FindFirstValue("userId");
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))  // her tjekker vi om brugeren er logget ind og om den har et gyldigt id
             {
                 

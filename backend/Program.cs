@@ -20,7 +20,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using backend.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using backend.utils;
@@ -31,7 +30,6 @@ using Microsoft.Extensions.Logging; // Add this
 
 using OpenSearch.Client;
 using OpenSearch.Net;
-using backend.Hubs;                
 
 // for .env secrets
 DotNetEnv.Env.Load();
