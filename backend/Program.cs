@@ -3,17 +3,14 @@ using System.Security.Claims;
 using System.Text;
 using backend.Data;
 using backend.Hubs;
+using backend.Repositories.Calendar;
 using backend.Services;
-// For Altinget Scraping
-using backend.Services.AutomationServices;
-using backend.Services.AutomationServices.HtmlFetching;
-using backend.Services.AutomationServices.Parsing;
-using backend.Services.AutomationServices.Repositories;
-// Flashcard Services
+using backend.Services.Calendar;
+using backend.Services.Calendar.HtmlFetching;
+using backend.Services.Calendar.Parsing;
+using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
-// Learning Environment Services
-using backend.Services.LearningEnvironmentServices;
-// JWT Stuff
+using backend.Services.LearningEnvironment;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
@@ -194,11 +191,12 @@ builder.Services.AddControllers(); /* .AddJsonOptions(options =>
     });*/
 
 // For altinget scraping
-builder.Services.AddHostedService<ScheduledAltingetScrapeService>();
+builder.Services.AddHostedService<AltingetScraperServiceScheduler>();
 builder.Services.AddScoped<IHtmlFetcher, AltingetHtmlFetcher>();
 builder.Services.AddScoped<IEventDataParser, AltingetEventDataParser>();
 builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
-builder.Services.AddScoped<IAutomationService, AltingetScraperService>();
+builder.Services.AddScoped<IScraperService, AltingetScraperService>();
+builder.Services.AddScoped<ICalendarService, CalendarService>();
 
 // Learning Environment Services
 builder.Services.AddScoped<IAnswerService, AnswerService>();
