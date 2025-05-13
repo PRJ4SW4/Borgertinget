@@ -1,32 +1,36 @@
+// src/App.tsx
 import { useState, useEffect, JSX } from "react";
-// Imports components from react-router-dom for routing.
 import { Routes, Route, Navigate } from "react-router-dom";
 
-// Layout Components: Provide consistent page structure.
-import LearningLayout from './layouts/LearningEnvironment/LearningLayout';
-import FlashcardLayout from './layouts/Flashcards/FlashcardLayout';
-import MainLayout from './layouts/MainLayout'; // Standard layout with Navbar/Footer.
-import NavbarLandingPageLayout from './layouts/LandingPage/NavbarLandingPageLayout';
+// Layout Components
+import LearningLayout from "./layouts/LearningEnvironment/LearningLayout";
+import FlashcardLayout from "./layouts/Flashcards/FlashcardLayout";
+import MainLayout from "./layouts/MainLayout";
+import NavbarLandingPageLayout from "./layouts/LandingPage/NavbarLandingPageLayout";
 
-// Page Components: Represent different views/pages in the application.
+// Page Components
 import Login from "./pages/Login";
-// HomePage after user signs in.
 import HomePage from "./pages/HomePage/HomePage";
-import PageContent from './components/LearningEnvironment/PageContent'; // Renders content within LearningLayout.
-import CalendarView from './components/Calendar/CalendarView';
-import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
-import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
-import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
+import PageContent from "./components/LearningEnvironment/PageContent";
+import CalendarView from "./components/Calendar/CalendarView";
+import PartyPage from "./pages/PartyPage";
+import PoliticianPage from "./pages/PoliticianPage";
+import PartiesPage from "./pages/PartiesPage";
 import LandingPage from "./pages/LandingPage/LandingPage";
-import FeedPage from './pages/FeedPage';
-import EmailVerification from "./utils/useEmailVerification"; // Handles email verification logic.
-// Navbar and Footer are rendered via MainLayout.
-// The main application component.
+import FeedPage from "./pages/FeedPage";
+
+// Polidle Pages - Sørg for korrekte importstier
+import PolidlePage from "./pages/PolidlePage/PolidlePage"; // Din hub-side
+import ClassicMode from "./pages/PolidlePage/ClassicMode/ClassicMode";
+import QuoteMode from "./pages/PolidlePage/QuoteMode/QuoteMode";
+import FotoBlurMode from "./pages/PolidlePage/FotoBlurMode/FotoBlurMode";
+
+import EmailVerification from "./utils/useEmailVerification";
+
 function App() {
-  
-  // State hook for the JWT authentication token.
-  // Initializes state from localStorage to persist login status.
-  const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("jwt")
+  );
   const handleSetToken = (newToken: string | null) => {
     setToken(newToken);
     if (newToken) {
@@ -36,105 +40,97 @@ function App() {
     }
   };
 
-  // Effect hook to synchronize token state with localStorage changes across tabs/windows.
   useEffect(() => {
     const handleStorageChange = () => {
-      // Updates the component's token state when localStorage changes.
       setToken(localStorage.getItem("jwt"));
     };
-
-    // Adds the event listener on component mount.
     window.addEventListener("storage", handleStorageChange);
-    // Removes the event listener on component unmount to prevent memory leaks.
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, []); // Empty dependency array ensures the effect runs only on mount and unmount.
+  }, []);
 
-  // --- Protected Route Component ---
-  // Wraps routes that require user authentication.
-  // Renders the child component if a token exists, otherwise redirects to /login.
-  const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
+  const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({
+    children,
+  }) => {
     return token ? children : <Navigate to="/login" />;
   };
 
-
-  // --- Routing Setup ---
-  // Defines the application's routes using the Routes component.
   return (
     <Routes>
       {/* --- Public Navbar Route --- */}
-      <Route element={<NavbarLandingPageLayout></NavbarLandingPageLayout>}>
+      <Route element={<NavbarLandingPageLayout />}>
+        {" "}
+        {/* Fjernet </NavbarLandingPageLayout> her */}
         <Route path="/LandingPage" element={<LandingPage />} />
-      </Route>
-
+      </Route>{" "}
+      {/* <<< Lukket </Route> her */}
       {/* --- Public Routes (No MainLayout, No login required) --- */}
-      {/* Login page route. */}
       <Route path="/login" element={<Login setToken={handleSetToken} />} />
-      {/* Post-login success/callback route. */}
-      <Route path="/login-success" element={<></>}/>
-      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={() => {}}/>} />
-
-
-      {/* --- Protected Routes using MainLayout --- */}
-      {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}
-      {/* All nested routes inherit the layout and protection. */}
-      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-        {/* Root path ("/") route, shows HomePage for logged-in users. */}
-
-        {/* Calendar route (requires login). */}
-        <Route
-            path="/kalender"
-            element={<CalendarView />}
-        />
-        <Route path="/feed" 
-        element={token ? <FeedPage /> : <Navigate to="/login" />} />
-
-        {/* Other routes requiring login and using MainLayout. */}
-        <Route path="/parties" element={<PartiesPage />} />
-        <Route path="/party/:partyName" element={<PartyPage />} /> {/* ':partyName' is a dynamic URL parameter. */}
-        <Route path="/politician/:id" element={<PoliticianPage />} /> {/* ':id' is a dynamic URL parameter. */}
-
-        {/* --- Learning Environment Routes (Nested and Protected) --- */}
-        {/* This route group uses LearningLayout and is protected by the parent ProtectedRoute. */}
-        <Route
-          path="/learning"
-          element={<LearningLayout />} // Uses its own layout in addition to MainLayout, protection inherited.
-        >
-          {/* Default content shown at "/learning". */}
-          <Route index element={<p>Velkommen til læringsområdet! Vælg et emne i menuen.</p>} />
-          {/* Route for specific learning pages, e.g., "/learning/topic-1". */}
-          <Route path=":pageId" element={<PageContent />} /> {/* ':pageId' is a dynamic URL parameter. */}
-        </Route>
-
-        {/* --- Flashcards Routes (Nested and Protected) --- */}
-        {/* Uses FlashcardLayout, protection inherited. "/*" enables nested routing within FlashcardLayout. */}
-        <Route
-            path="/flashcards/*"
-            element={<FlashcardLayout />}
-        />
-        <Route path="/homepage" element={<HomePage/>} />
-        {/* If others need to define other protected routes using MainLayout do it here. */}
-        <Route 
-        path="/feed" element={<FeedPage />}
-
-        />
-
-      </Route> {/* End of Protected MainLayout routes */}
-
-      {/* --- Catch-all Route --- */}
-      {/* Matches any URL not previously defined. */}
-      {/* Redirects based on authentication status: "/" if logged in, "/login" if not. */}
+      <Route path="/login-success" element={<></>} />{" "}
+      {/* Typisk redirect efter OAuth */}
       <Route
-        path="*"
-        element={<Navigate to={token ? "/" : "/landingpage"} replace />} // 'replace' avoids adding the redirect to browser history.
+        path="/verify"
+        element={<EmailVerification onVerified={() => {}} onError={() => {}} />}
       />
-
+      {/* --- Protected Routes using MainLayout --- */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        {/* Standard HomePage efter login */}
+        <Route path="/homepage" element={<HomePage />} />
+        {/* Rod-stien for logged-in brugere, navigerer til /homepage */}
+        {/* Overvej om '/' skal være HomePage eller LandingPage afhængig af login status.
+            Den nuværende catch-all håndterer dette, men en eksplicit '/' kan være klarere. */}
+        {/* <Route path="/" element={<Navigate to="/homepage" replace />} /> */}
+        {/* Andre beskyttede sider */}
+        <Route path="/kalender" element={<CalendarView />} />
+        <Route path="/feed" element={<FeedPage />} />{" "}
+        {/* Sikret at FeedPage er her */}
+        <Route path="/parties" element={<PartiesPage />} />
+        <Route path="/party/:partyName" element={<PartyPage />} />
+        <Route path="/politician/:id" element={<PoliticianPage />} />
+        {/* --- Learning Environment Routes --- */}
+        <Route path="/learning" element={<LearningLayout />}>
+          <Route
+            index
+            element={
+              <p>Velkommen til læringsområdet! Vælg et emne i menuen.</p>
+            }
+          />
+          <Route path=":pageId" element={<PageContent />} />
+        </Route>
+        {/* --- Flashcards Routes --- */}
+        <Route path="/flashcards/*" element={<FlashcardLayout />} />
+        {/* **************************************************** */}
+        {/* *** START: Polidle Routes (Beskyttet & i MainLayout) *** */}
+        {/* **************************************************** */}
+        <Route path="/polidle" element={<PolidlePage />} />
+        <Route path="/ClassicMode" element={<ClassicMode />} />
+        <Route path="/CitatMode" element={<QuoteMode />} />{" "}
+        {/* Props er fjernet */}
+        <Route path="/FotoBlurMode" element={<FotoBlurMode />} />{" "}
+        {/* Props er fjernet */}
+        {/* ************************************************** */}
+        {/* *** SLUT: Polidle Routes                         *** */}
+        {/* ************************************************** */}
+      </Route>{" "}
+      {/* End of Protected MainLayout routes */}
+      {/* --- Catch-all og Root Redirects --- */}
+      {/* Håndterer rod-stien: hvis logget ind -> /homepage, ellers -> /landingpage */}
       <Route
         path="/"
-        element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />} // 'replace' avoids adding the redirect to browser history.
+        element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />}
+      />
+      {/* Catch-all for ukendte stier: hvis logget ind -> /homepage, ellers -> /landingpage */}
+      <Route
+        path="*"
+        element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />}
       />
     </Routes>
   );
 }
 
-// Exports the App component for rendering in main.tsx.
 export default App;

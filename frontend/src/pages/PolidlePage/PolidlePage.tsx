@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import { GamemodeTypes } from "../../types/PolidleTypes"; // Importer GameMode enum
 
-import styles from "./Polidle.module.css";
+import styles from "./PolidlePage.module.css";
 
 // Definer en type for et gamemode objekt i denne hub-side
 interface HubGamemodeInfo {

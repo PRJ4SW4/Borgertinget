@@ -1,7 +1,7 @@
 // src/components/Polidle/GuessList/GuessList.tsx
 import React from "react";
 import GuessItem from "../GuessItem/GuessItem"; // Sørg for at GuessItem også bruger opdaterede typer
-import "./GuessList.css";
+import "./GuessList.module.css";
 
 // Importer den centrale type
 import { GuessResultDto } from "../../../types/PolidleTypes"; // <<< OPDATERET IMPORT

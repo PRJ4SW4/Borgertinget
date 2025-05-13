@@ -1,7 +1,6 @@
 // src/components/Polidle/GuessList/GuessItem.tsx
 import React from "react";
-import "./GuessItem.css"; // Din CSS fil
-
+import "./GuessItem.module.css";
 // Importer centrale typer
 import {
   GuessResultDto,

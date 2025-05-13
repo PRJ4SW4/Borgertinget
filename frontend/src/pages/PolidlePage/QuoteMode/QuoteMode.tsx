@@ -7,7 +7,7 @@ import { usePoliticianSearch } from "../../../hooks/usePoliticianSearch";
 import { useCitatPolidleGame } from "../../../hooks/useCitatPolidleGame";
 import { DailyPoliticianDto } from "../../../types/PolidleTypes";
 
-import pageStyles from "./CitatMode.module.css"; // <<< Specifikke styles
+import pageStyles from "./QuoteMode.module.css"; // <<< Specifikke styles
 import sharedStyles from "../../../components/Polidle/SharedPolidle.module.css";
 
 interface CitatGuessHistoryDisplayItem {

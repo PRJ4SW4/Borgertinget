@@ -43,17 +43,17 @@ namespace backend.Data
         // --- /Twitter Setup ---
 
         // --- Calendar Setup ---
-        public DbSet<CalendarEvent> CalendarEvents { get; set; }
+        public DbSet<CalendarEvent> CalendarEvents { get; set; } = null!; // Sørg for at initialisere
 
         // --- /Calendar Setup ---
 
         // --- Core Political Data ---
-        public DbSet<Aktor> Aktor { get; set; } // Navn er 'Aktor', men repræsenterer politikere osv.
+        public DbSet<Aktor> Aktor { get; set; } = null!; // Navn er 'Aktor', men repræsenterer politikere osv.
 
         // --- Polidle Setup Start ---
-        public DbSet<PoliticianQuote> PoliticianQuotes { get; set; }
-        public DbSet<GamemodeTracker> GamemodeTrackers { get; set; }
-        public DbSet<DailySelection> DailySelections { get; set; } // <<< TILFØJET DbSet
+        public DbSet<PoliticianQuote> PoliticianQuotes { get; set; } = null!;
+        public DbSet<GamemodeTracker> GamemodeTrackers { get; set; } = null!;
+        public DbSet<DailySelection> DailySelections { get; set; } = null!;
         // --- Polidle Setup End ---
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -87,200 +87,33 @@ namespace backend.Data
                 .HasForeignKey(f => f.CollectionId);
             // --- /Learning Environment Setup ---
 
-            // Configure Constituencies
-            modelBuilder
-                .Entity<Aktor>()
-                .Property(a => a.Constituencies) // Target the List<string> property
-                .HasConversion(
-                    // Convert List<string> to json string for DB
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    // Convert json string from DB back to List<string>
-                    v =>
-                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                        ?? new List<string>()
-                )
-                .Metadata.SetValueComparer(
-                    new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                        c => c.ToList()
-                    )
-                );
+            // --- Aktor List<string> to JSON Conversion Setup ---
+            ConfigureStringListToJsonConversion<Aktor>(modelBuilder, a => a.Constituencies);
+            ConfigureStringListToJsonConversion<Aktor>(modelBuilder, a => a.Nominations);
+            ConfigureStringListToJsonConversion<Aktor>(modelBuilder, a => a.Educations);
+            ConfigureStringListToJsonConversion<Aktor>(modelBuilder, a => a.Occupations);
+            ConfigureStringListToJsonConversion<Aktor>(modelBuilder, a => a.PublicationTitles);
+            ConfigureStringListToJsonConversion<Aktor>(modelBuilder, a => a.Ministers);
+            ConfigureStringListToJsonConversion<Aktor>(modelBuilder, a => a.Spokesmen);
+            ConfigureStringListToJsonConversion<Aktor>(modelBuilder, a => a.ParliamentaryPositionsOfTrust);
+             // --- /Aktor List<string> to JSON Conversion Setup ---
 
-            // Configure Nominations
-            modelBuilder
-                .Entity<Aktor>()
-                .Property(a => a.Nominations)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v =>
-                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                        ?? new List<string>()
-                )
-                .Metadata.SetValueComparer(
-                    new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                        c => c.ToList()
-                    )
-                );
 
-            // Add similar .HasConversion calls AND .Metadata.SetValueComparer(...) for Educations and Occupations
-            modelBuilder
-                .Entity<Aktor>()
-                .Property(a => a.Educations)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v =>
-                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                        ?? new List<string>()
-                )
-                .Metadata.SetValueComparer(
-                    new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                        c => c.ToList()
-                    )
-                );
-
-            modelBuilder
-                .Entity<Aktor>()
-                .Property(a => a.Occupations)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v =>
-                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                        ?? new List<string>()
-                )
-                .Metadata.SetValueComparer(
-                    new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                        c => c.ToList()
-                    )
-                );
-
-            modelBuilder
-                .Entity<Aktor>()
-                .Property(a => a.PublicationTitles)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v =>
-                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                        ?? new List<string>()
-                )
-                .Metadata.SetValueComparer(
-                    new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                        c => c.ToList()
-                    )
-                );
-            modelBuilder
-                .Entity<Aktor>()
-                .Property(a => a.Ministers)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v =>
-                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                        ?? new List<string>()
-                )
-                .Metadata.SetValueComparer(
-                    new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                        c => c.ToList()
-                    )
-                );
-            modelBuilder
-                .Entity<Aktor>()
-                .Property(a => a.Spokesmen)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v =>
-                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                        ?? new List<string>()
-                )
-                .Metadata.SetValueComparer(
-                    new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                        c => c.ToList()
-                    )
-                );
-
-            // --- SEED DATA ---
-
+            // --- Twitter Setup ---
             modelBuilder.Entity<PoliticianTwitterId>(entity =>
             {
                 entity.HasIndex(p => p.TwitterUserId).IsUnique();
-                entity
-                    .HasMany(p => p.Tweets)
-                    .WithOne(t => t.Politician)
-                    .HasForeignKey(t => t.PoliticianTwitterId)
-                    .OnDelete(DeleteBehavior.Cascade);
-                entity
-                    .HasMany(p => p.Subscriptions)
-                    .WithOne(s => s.Politician)
-                    .HasForeignKey(s => s.PoliticianTwitterId);
-                entity
-                    .HasMany(p => p.Polls)
-                    .WithOne(p => p.Politician)
-                    .HasForeignKey(p => p.PoliticianTwitterId);
-
+                entity.HasMany(p => p.Tweets).WithOne(t => t.Politician).HasForeignKey(t => t.PoliticianTwitterId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasMany(p => p.Subscriptions).WithOne(s => s.Politician).HasForeignKey(s => s.PoliticianTwitterId);
+                entity.HasMany(p => p.Polls).WithOne(p => p.Politician).HasForeignKey(p => p.PoliticianTwitterId);
                 entity.Property(p => p.TwitterUserId).IsRequired();
                 entity.Property(p => p.Name).IsRequired();
                 entity.Property(p => p.TwitterHandle).IsRequired();
-
-                entity
-                    .HasOne(politicianTwitter => politicianTwitter.Aktor)
-                    .WithOne()
-                    .HasForeignKey<PoliticianTwitterId>(politicianTwitter =>
-                        politicianTwitter.AktorId
-                    )
-                    .IsRequired(false)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                //ved merge skal nedestående være commented, da der ellers vi blive problemer med constraints i databasen
+                entity.HasOne(politicianTwitter => politicianTwitter.Aktor).WithOne().HasForeignKey<PoliticianTwitterId>(politicianTwitter => politicianTwitter.AktorId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
                 entity.HasData(
-                    new PoliticianTwitterId
-                    {
-                        Id = 1,
-                        TwitterUserId = "806068174567460864",
-                        Name = "Statsministeriet",
-                        TwitterHandle = "Statsmin",
-                        AktorId = null,
-                    },
-                    new PoliticianTwitterId
-                    {
-                        Id = 2,
-                        TwitterUserId = "123868861",
-                        Name = "Venstre, Danmarks Liberale Parti",
-                        TwitterHandle = "venstredk",
-                        AktorId = null,
-                    },
-                    new PoliticianTwitterId
-                    {
-                        Id = 3,
-                        TwitterUserId = "2965907578",
-                        Name = "Troels Lund Poulsen",
-                        TwitterHandle = "troelslundp",
-                        AktorId = null,
-                    }
+                    new PoliticianTwitterId { Id = 1, TwitterUserId = "806068174567460864", Name = "Statsministeriet", TwitterHandle = "Statsmin", AktorId = null },
+                    new PoliticianTwitterId { Id = 2, TwitterUserId = "123868861", Name = "Venstre, Danmarks Liberale Parti", TwitterHandle = "venstredk", AktorId = null },
+                    new PoliticianTwitterId { Id = 3, TwitterUserId = "2965907578", Name = "Troels Lund Poulsen", TwitterHandle = "troelslundp", AktorId = null }
                 );
             });
             modelBuilder.Entity<Tweet>(entity =>
@@ -290,8 +123,7 @@ namespace backend.Data
                 entity.Property(t => t.Text).IsRequired();
             });
 
-
-            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<User>().ToTable("Users"); // Omdøb IdentityUser tabellen
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
             modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
             modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
@@ -299,107 +131,111 @@ namespace backend.Data
             modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
 
+
             modelBuilder.Entity<Subscription>(entity =>
             {
                 entity.HasIndex(s => s.UserId);
                 entity.HasIndex(s => s.PoliticianTwitterId);
             });
-
-            modelBuilder.Entity<Poll>(entityPoll =>
-            {
-                entityPoll
-                    .HasOne(poll => poll.Politician)
-                    .WithMany(politician => politician.Polls)
-                    .HasForeignKey(poll => poll.PoliticianTwitterId);
-            });
-
+             modelBuilder.Entity<Poll>(entityPoll =>
+             {
+                 entityPoll.HasOne(poll => poll.Politician)
+                           .WithMany(politician => politician.Polls)
+                           .HasForeignKey(poll => poll.PoliticianTwitterId);
+             });
             modelBuilder.Entity<UserVote>().HasIndex(uv => new { uv.UserId, uv.PollId }).IsUnique();
+            // --- /Twitter Setup ---
+
+
+            // ***************************************************
+            // *** Polidle Configuration START              ***
+            // ***************************************************
+
+            // --- PoliticianQuote Configuration ---
+            modelBuilder.Entity<PoliticianQuote>()
+               .HasOne(pq => pq.Politician)      // En Quote har én Politician (Aktor)
+               .WithMany(a => a.Quotes)         // En Aktor har mange Quotes (Sørg for at Aktor.Quotes eksisterer og er korrekt stavet)
+               .HasForeignKey(pq => pq.AktorId); // Fremmednøglen er AktorId i PoliticianQuote
+
+            // --- GamemodeTracker Configuration ---
+            // 1. Definer Sammensat Primærnøgle
+            modelBuilder.Entity<GamemodeTracker>()
+                .HasKey(gt => new { gt.PolitikerId, gt.GameMode }); // Kombinationen er PK
+
+            // 2. Definer Relationen til Aktor (One-to-Many)
+            modelBuilder.Entity<GamemodeTracker>()
+                .HasOne(gt => gt.Politician)        // En Tracker har én Politician (Aktor)
+                .WithMany(a => a.GamemodeTrackings) // En Aktor har mange Trackings
+                .HasForeignKey(gt => gt.PolitikerId); // Fremmednøglen er PolitikerId i GamemodeTracker
+
+            // 3. Gem Enum som Tekst i DB
+             modelBuilder.Entity<GamemodeTracker>()
+                 .Property(gt => gt.GameMode)
+                 .HasConversion<string>();
+
+            // --- DailySelection Configuration ---
+            // 1. Definer Sammensat Primærnøgle
+            modelBuilder.Entity<DailySelection>()
+                .HasKey(ds => new { ds.SelectionDate, ds.GameMode }); // Kombinationen er PK
+
+            // 2. Definer Relationen til Aktor (One-to-Many)
+            modelBuilder.Entity<DailySelection>()
+                .HasOne(ds => ds.SelectedPolitiker) // En DailySelection har én SelectedPolitiker (Aktor)
+                .WithMany(a => a.DailySelections)   // En Aktor kan optræde i mange DailySelections
+                .HasForeignKey(ds => ds.SelectedPolitikerID); // Fremmednøglen er SelectedPolitikerID i DailySelection
+
+            // 3. Gem Enum som Tekst i DB
+             modelBuilder.Entity<DailySelection>()
+                .Property(ds => ds.GameMode)
+                .HasConversion<string>();
+
+            // ***************************************************
+            // *** Polidle Configuration END                ***
+            // ***************************************************
+
 
             // --- SEED DATA ---
+            SeedLearningEnvironmentData(modelBuilder);
+            SeedPollData(modelBuilder);
+        }
 
-            // --- Learning Environment Seeding ---
+        // Helper method til JSON konvertering for at undgå gentagelse
+        private void ConfigureStringListToJsonConversion<TEntity>(ModelBuilder modelBuilder, System.Linq.Expressions.Expression<Func<TEntity, List<string>?>> propertyExpression)
+            where TEntity : class
+        {
+            modelBuilder.Entity<TEntity>()
+                .Property(propertyExpression)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(new ValueComparer<List<string>>(
+                    (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                    c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                    c => c == null ? new List<string>() : c.ToList()
+                 ));
+        }
 
-            // 1. Seed Pages
-            modelBuilder
-                .Entity<Page>()
-                .HasData(
-                    new Page
-                    {
-                        Id = 1,
-                        Title = "Politik 101",
-                        Content = "Indhold for Politik 101...",
-                        ParentPageId = null,
-                        DisplayOrder = 1,
-                    },
-                    new Page
-                    {
-                        Id = 2,
-                        Title = "Den Politiske Akse",
-                        Content = "Indhold for Den Politiske Akse...",
-                        ParentPageId = 1,
-                        DisplayOrder = 1,
-                    },
-                    new Page
-                    {
-                        Id = 3,
-                        Title = "Venstre vs Højre",
-                        Content = "Indhold for Venstre vs Højre...",
-                        ParentPageId = 2,
-                        DisplayOrder = 1,
-                    },
-                    new Page
-                    {
-                        Id = 4,
-                        Title = "Højre",
-                        Content = "Højre er at være højre...",
-                        ParentPageId = 3,
-                        DisplayOrder = 1,
-                    },
-                    new Page
-                    {
-                        Id = 5,
-                        Title = "Venstre",
-                        Content = "Venstre er at være venstre...",
-                        ParentPageId = 3,
-                        DisplayOrder = 2,
-                    }
-                );
 
-            // 2. Seed Questions (Linked to Pages)
-            modelBuilder
-                .Entity<Question>()
-                .HasData(
-                    // -- Questions for Page 1 --
-                    new Question
-                    {
-                        QuestionId = 1, // Unique ID for this question
-                        PageId = 1, // Links to "Politik 101"
-                        QuestionText = "Hvad beskæftiger politologi sig primært med?",
-                    },
-                    new Question
-                    {
-                        QuestionId = 2, // Unique ID for this question
-                        PageId = 1, // Also links to "Politik 101"
-                        QuestionText =
-                            "Hvilket begreb dækker over fordelingen af autoritet i et samfund?",
-                    },
-                    // -- Question for Page 4 --
-                    new Question
-                    {
-                        QuestionId = 3, // Unique ID for this question
-                        PageId = 4, // Links to "Højre"
-                        QuestionText =
-                            "Hvilket økonomisk princip forbindes ofte med højreorienteret politik?",
-                    },
-                    // -- Question for Page 5 --
-                    new Question
-                    {
-                        QuestionId = 4, // Unique ID for this question
-                        PageId = 5, // Links to "Venstre"
-                        QuestionText =
-                            "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?",
-                    }
-                );
+        // Helper method til Seeding (Gør OnModelCreating kortere)
+        private void SeedLearningEnvironmentData(ModelBuilder modelBuilder)
+        {
+             // 1. Seed Pages
+            modelBuilder.Entity<Page>().HasData(
+                new Page { Id = 1, Title = "Politik 101", Content = "Indhold for Politik 101...", ParentPageId = null, DisplayOrder = 1 },
+                new Page { Id = 2, Title = "Den Politiske Akse", Content = "Indhold for Den Politiske Akse...", ParentPageId = 1, DisplayOrder = 1 },
+                new Page { Id = 3, Title = "Venstre vs Højre", Content = "Indhold for Venstre vs Højre...", ParentPageId = 2, DisplayOrder = 1 },
+                new Page { Id = 4, Title = "Højre", Content = "Højre er at være højre...", ParentPageId = 3, DisplayOrder = 1 },
+                new Page { Id = 5, Title = "Venstre", Content = "Venstre er at være venstre...", ParentPageId = 3, DisplayOrder = 2 }
+            );
+
+            // 2. Seed Questions
+            modelBuilder.Entity<Question>().HasData(
+                new Question { QuestionId = 1, PageId = 1, QuestionText = "Hvad beskæftiger politologi sig primært med?" },
+                new Question { QuestionId = 2, PageId = 1, QuestionText = "Hvilket begreb dækker over fordelingen af autoritet i et samfund?" },
+                new Question { QuestionId = 3, PageId = 4, QuestionText = "Hvilket økonomisk princip forbindes ofte med højreorienteret politik?" },
+                new Question { QuestionId = 4, PageId = 5, QuestionText = "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?" }
+             );
 
             // 3. Seed Answer Options
              modelBuilder.Entity<AnswerOption>().HasData(
@@ -417,162 +253,39 @@ namespace backend.Data
                  new AnswerOption { AnswerOptionId = 12, QuestionId = 4, OptionText = "Traditionelle hierarkier", IsCorrect = false, DisplayOrder = 3 }
             );
 
-            // --- FLASHCARDS ---
+            // Flashcards Seeding
+             modelBuilder.Entity<FlashcardCollection>().HasData(
+                new FlashcardCollection { CollectionId = 1, Title = "Politikerne og deres navne", DisplayOrder = 1 },
+                new FlashcardCollection { CollectionId = 2, Title = "Politiske begreber", DisplayOrder = 2 }
+            );
 
-            modelBuilder
-                .Entity<FlashcardCollection>()
-                .HasData(
-                    new FlashcardCollection
-                    {
-                        CollectionId = 1,
-                        Title = "Politikerne og deres navne",
-                        DisplayOrder = 1,
-                    },
-                    new FlashcardCollection
-                    {
-                        CollectionId = 2,
-                        Title = "Politiske begreber",
-                        DisplayOrder = 2,
-                    }
-                );
-
-            modelBuilder
-                .Entity<Flashcard>()
-                .HasData(
-                    // Cards for Collection 1
-                    new Flashcard
-                    {
-                        FlashcardId = 1,
-                        CollectionId = 1,
-                        DisplayOrder = 1,
-                        FrontContentType = FlashcardContentType.Image,
-                        FrontImagePath = "/uploads/flashcards/mettef.png",
-                        BackContentType = FlashcardContentType.Text,
-                        BackText = "Mette Frederiksen",
-                    },
-                    new Flashcard
-                    {
-                        FlashcardId = 2,
-                        CollectionId = 1,
-                        DisplayOrder = 2,
-                        FrontContentType = FlashcardContentType.Image,
-                        FrontImagePath = "/uploads/flashcards/larsl.png",
-                        BackContentType = FlashcardContentType.Text,
-                        BackText = "Lars Løkke Rasmussen",
-                    },
-                    new Flashcard
-                    {
-                        FlashcardId = 3,
-                        CollectionId = 1,
-                        DisplayOrder = 3,
-                        FrontContentType = FlashcardContentType.Text,
-                        FrontText = "Hvem er formand for Danmarksdemokraterne?",
-                        BackContentType = FlashcardContentType.Text,
-                        BackText = "Inger Støjberg",
-                    },
-                    // Cards for Collection 2
-                    new Flashcard
-                    {
-                        FlashcardId = 4,
-                        CollectionId = 2,
-                        DisplayOrder = 1,
-                        FrontContentType = FlashcardContentType.Text,
-                        FrontText = "Hvad betyder 'Demokrati'?",
-                        BackContentType = FlashcardContentType.Text,
-                        BackText = "Folkestyre",
-                    },
-                    new Flashcard
-                    {
-                        FlashcardId = 5,
-                        CollectionId = 2,
-                        DisplayOrder = 2,
-                        FrontContentType = FlashcardContentType.Text,
-                        FrontText = "Hvad er 'Finansloven'?",
-                        BackContentType = FlashcardContentType.Text,
-                        BackText = "Statens budget for det kommende år",
-                    }
-                );
-
-            // --- /FLASHCARDS ---
-
-
-            const int SeedPoliticianId = 1;
-            const int SeedPollId = 1;
-            const int NewPollId = 2;
-
-            modelBuilder
-                .Entity<Poll>()
-                .HasData(
-                    new Poll
-                    {
-                        Id = SeedPollId,
-                        Question = "Hvad synes du om den nye bro?",
-                        PoliticianTwitterId = SeedPoliticianId,
-                        CreatedAt = new DateTime(2025, 4, 15, 10, 0, 0, DateTimeKind.Utc),
-                        EndedAt = null,
-                    },
-                    new Poll
-                    {
-                        Id = NewPollId,
-                        Question = "Skal Danmark øge investeringer i vedvarende energi?",
-                        PoliticianTwitterId = SeedPoliticianId,
-                        CreatedAt = new DateTime(2025, 4, 28, 14, 30, 0, DateTimeKind.Utc),
-                        EndedAt = null,
-                    }
-                );
-            modelBuilder
-                .Entity<PollOption>()
-                .HasData(
-                    new PollOption
-                    {
-                        Id = 1,
-                        PollId = SeedPollId,
-                        OptionText = "Den er fantastisk!",
-                        Votes = 5,
-                    },
-                    new PollOption
-                    {
-                        Id = 2,
-                        PollId = SeedPollId,
-                        OptionText = "Den er ok, men dyr.",
-                        Votes = 12,
-                    },
-                    new PollOption
-                    {
-                        Id = 3,
-                        PollId = SeedPollId,
-                        OptionText = "Den er unødvendig.",
-                        Votes = 3,
-                    },
-                    new PollOption
-                    {
-                        Id = 4,
-                        PollId = NewPollId,
-                        OptionText = "Ja, meget mere end nu",
-                        Votes = 42,
-                    },
-                    new PollOption
-                    {
-                        Id = 5,
-                        PollId = NewPollId,
-                        OptionText = "Ja, lidt mere",
-                        Votes = 28,
-                    },
-                    new PollOption
-                    {
-                        Id = 6,
-                        PollId = NewPollId,
-                        OptionText = "Nej, det nuværende niveau er passende",
-                        Votes = 15,
-                    },
-                    new PollOption
-                    {
-                        Id = 7,
-                        PollId = NewPollId,
-                        OptionText = "Nej, vi bør investere mindre",
-                        Votes = 8,
-                    }
-                );
+            modelBuilder.Entity<Flashcard>().HasData(
+                new Flashcard { FlashcardId = 1, CollectionId = 1, DisplayOrder = 1, FrontContentType = FlashcardContentType.Image, FrontImagePath = "/uploads/flashcards/mettef.png", BackContentType = FlashcardContentType.Text, BackText = "Mette Frederiksen" },
+                new Flashcard { FlashcardId = 2, CollectionId = 1, DisplayOrder = 2, FrontContentType = FlashcardContentType.Image, FrontImagePath = "/uploads/flashcards/larsl.png", BackContentType = FlashcardContentType.Text, BackText = "Lars Løkke Rasmussen" },
+                new Flashcard { FlashcardId = 3, CollectionId = 1, DisplayOrder = 3, FrontContentType = FlashcardContentType.Text, FrontText = "Hvem er formand for Danmarksdemokraterne?", BackContentType = FlashcardContentType.Text, BackText = "Inger Støjberg" },
+                new Flashcard { FlashcardId = 4, CollectionId = 2, DisplayOrder = 1, FrontContentType = FlashcardContentType.Text, FrontText = "Hvad betyder 'Demokrati'?", BackContentType = FlashcardContentType.Text, BackText = "Folkestyre" },
+                new Flashcard { FlashcardId = 5, CollectionId = 2, DisplayOrder = 2, FrontContentType = FlashcardContentType.Text, FrontText = "Hvad er 'Finansloven'?", BackContentType = FlashcardContentType.Text, BackText = "Statens budget for det kommende år" }
+            );
         }
+
+         private void SeedPollData(ModelBuilder modelBuilder)
+         {
+             const int SeedPoliticianId = 1; // Matcher PoliticianTwitterId.Id = 1
+             const int SeedPollId = 1;
+             const int NewPollId = 2;
+
+             modelBuilder.Entity<Poll>().HasData(
+                 new Poll { Id = SeedPollId, Question = "Hvad synes du om den nye bro?", PoliticianTwitterId = SeedPoliticianId, CreatedAt = new DateTime(2025, 4, 15, 10, 0, 0, DateTimeKind.Utc), EndedAt = null },
+                 new Poll { Id = NewPollId, Question = "Skal Danmark øge investeringer i vedvarende energi?", PoliticianTwitterId = SeedPoliticianId, CreatedAt = new DateTime(2025, 4, 28, 14, 30, 0, DateTimeKind.Utc), EndedAt = null }
+             );
+             modelBuilder.Entity<PollOption>().HasData(
+                 new PollOption { Id = 1, PollId = SeedPollId, OptionText = "Den er fantastisk!", Votes = 5 },
+                 new PollOption { Id = 2, PollId = SeedPollId, OptionText = "Den er ok, men dyr.", Votes = 12 },
+                 new PollOption { Id = 3, PollId = SeedPollId, OptionText = "Den er unødvendig.", Votes = 3 },
+                 new PollOption { Id = 4, PollId = NewPollId, OptionText = "Ja, meget mere end nu", Votes = 42 },
+                 new PollOption { Id = 5, PollId = NewPollId, OptionText = "Ja, lidt mere", Votes = 28 },
+                 new PollOption { Id = 6, PollId = NewPollId, OptionText = "Nej, det nuværende niveau er passende", Votes = 15 },
+                 new PollOption { Id = 7, PollId = NewPollId, OptionText = "Nej, vi bør investere mindre", Votes = 8 });
+         }
     }
 }
