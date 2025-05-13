@@ -13,13 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-<<<<<<<< HEAD:backend/Migrations/20250513110359_InitialCreate.Designer.cs
-    [Migration("20250513110359_InitialCreate")]
-    partial class InitialCreate
-========
-    [Migration("20250513160738_PoliticianTwitterIdSeeding")]
-    partial class PoliticianTwitterIdSeeding
->>>>>>>> b913ed8a6c827831f7bb5d8abecc576ccf9ee04a:backend/Migrations/20250513160738_PoliticianTwitterIdSeeding.Designer.cs
+    [Migration("20250513195050_AStart")]
+    partial class AStart
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -793,13 +788,8 @@ namespace backend.Migrations
                     b.Property<string>("history")
                         .HasColumnType("text");
 
-<<<<<<<< HEAD:backend/Migrations/20250513110359_InitialCreate.Designer.cs
-                    b.PrimitiveCollection<List<int>>("memberIds")
-                        .HasColumnType("integer[]");
-========
                     b.Property<string>("memberIds")
                         .HasColumnType("text");
->>>>>>>> b913ed8a6c827831f7bb5d8abecc576ccf9ee04a:backend/Migrations/20250513160738_PoliticianTwitterIdSeeding.Designer.cs
 
                     b.Property<string>("partyName")
                         .HasColumnType("text");
@@ -819,13 +809,8 @@ namespace backend.Migrations
                     b.Property<int?>("spokesmanId")
                         .HasColumnType("integer");
 
-<<<<<<<< HEAD:backend/Migrations/20250513110359_InitialCreate.Designer.cs
-                    b.PrimitiveCollection<List<string>>("stats")
-                        .HasColumnType("text[]");
-========
                     b.Property<string>("stats")
                         .HasColumnType("text");
->>>>>>>> b913ed8a6c827831f7bb5d8abecc576ccf9ee04a:backend/Migrations/20250513160738_PoliticianTwitterIdSeeding.Designer.cs
 
                     b.Property<int?>("viceChairmanId")
                         .HasColumnType("integer");
@@ -843,7 +828,6 @@ namespace backend.Migrations
                     b.ToTable("Party");
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250513110359_InitialCreate.Designer.cs
             modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
                 {
                     b.Property<int>("PolitikerId")
@@ -890,8 +874,6 @@ namespace backend.Migrations
                     b.ToTable("PoliticianQuotes");
                 });
 
-========
->>>>>>>> b913ed8a6c827831f7bb5d8abecc576ccf9ee04a:backend/Migrations/20250513160738_PoliticianTwitterIdSeeding.Designer.cs
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
                     b.Property<int>("Id")
@@ -1352,12 +1334,8 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Models.Aktor", "chairman")
                         .WithMany()
-<<<<<<<< HEAD:backend/Migrations/20250513110359_InitialCreate.Designer.cs
-                        .HasForeignKey("chairmanId");
-========
                         .HasForeignKey("chairmanId")
                         .OnDelete(DeleteBehavior.SetNull);
->>>>>>>> b913ed8a6c827831f7bb5d8abecc576ccf9ee04a:backend/Migrations/20250513160738_PoliticianTwitterIdSeeding.Designer.cs
 
                     b.HasOne("backend.Models.Aktor", "secretary")
                         .WithMany()
@@ -1380,7 +1358,6 @@ namespace backend.Migrations
                     b.Navigation("viceChairman");
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250513110359_InitialCreate.Designer.cs
             modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
                 {
                     b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
@@ -1403,8 +1380,6 @@ namespace backend.Migrations
                     b.Navigation("FakePolitiker");
                 });
 
-========
->>>>>>>> b913ed8a6c827831f7bb5d8abecc576ccf9ee04a:backend/Migrations/20250513160738_PoliticianTwitterIdSeeding.Designer.cs
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
                     b.HasOne("backend.Models.Aktor", "Aktor")

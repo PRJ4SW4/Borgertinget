@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic; // Required
 using System.Linq;
 using System.Text.Json; // Required
-using System.Text.Json; // Required
 using backend.Models; // Sørg for at FakePolitiker, FakeParti og PolidleGamemodeTracker er i dette namespace
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
@@ -11,7 +10,6 @@ using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.ChangeTracking; // For ValueComparer
 
 namespace backend.Data
@@ -46,11 +44,9 @@ namespace backend.Data
         // --- Calendar Setup ---
         public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
-        public DbSet<Party> Party { get; set; }
-
         // --- NYE DbSets for Polidle ---
         // Husk at rette modelnavnet til Politician når du skifter fra FakePolitiker
-        public DbSet<FakePolitiker> FakePolitikere { get; set; } 
+        public DbSet<FakePolitiker> FakePolitikere { get; set; }
         public DbSet<FakeParti> FakePartier { get; set; } // <--- TILFØJET DbSet for FakeParti
         public DbSet<PolidleGamemodeTracker> GameTrackings { get; set; }
         public DbSet<DailySelection> DailySelections { get; set; }
@@ -367,13 +363,6 @@ namespace backend.Data
                 );
             });
 
-            modelBuilder.Entity<Tweet>(entity =>
-            {
-                entity.HasIndex(t => new { t.PoliticianTwitterId, t.TwitterTweetId }).IsUnique();
-                entity.Property(t => t.TwitterTweetId).IsRequired();
-                entity.Property(t => t.Text).IsRequired();
-            });
-
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
             modelBuilder
@@ -400,21 +389,73 @@ namespace backend.Data
             modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
 
-            modelBuilder.Entity<Subscription>(entity =>
-            {
-                entity.HasIndex(s => s.UserId);
-                entity.HasIndex(s => s.PoliticianTwitterId);
-            });
+            #region Polidle
+            // --- NY KONFIGURATION for Polidle ---
 
-            modelBuilder.Entity<Poll>(entityPoll =>
-            {
-                entityPoll
-                    .HasOne(poll => poll.Politician)
-                    .WithMany(politician => politician.Polls)
-                    .HasForeignKey(poll => poll.PoliticianTwitterId);
-            });
+            // 1. Konfigurer sammensat primærnøgle for PolidleGamemodeTracker
+            modelBuilder
+                .Entity<PolidleGamemodeTracker>()
+                .HasKey(pgt => new { pgt.PolitikerId, pgt.GameMode }); // Definerer PK som (PolitikerId, GameMode)
 
-            modelBuilder.Entity<UserVote>().HasIndex(uv => new { uv.UserId, uv.PollId }).IsUnique();
+            // 2. Konfigurer En-til-mange relation mellem FakePolitiker og PolidleGamemodeTracker
+            modelBuilder
+                .Entity<PolidleGamemodeTracker>()
+                .HasOne(pgt => pgt.FakePolitiker) // Fra Tracker peg på én Politiker
+                .WithMany(p => p.GameTrackings) // Fra Politiker peg på mange Trackings
+                .HasForeignKey(pgt => pgt.PolitikerId) // Specificer FK kolonnen i Tracker
+                .OnDelete(DeleteBehavior.Cascade); // Eksempel: Slet tracking-rækker hvis politikeren slettes
+
+            // 3. Konfigurer Enum-til-String konvertering for GameMode (Valgfrit, men anbefalet)
+            modelBuilder
+                .Entity<PolidleGamemodeTracker>()
+                .Property(pgt => pgt.GameMode)
+                .HasConversion<string>() // Konverter til string
+                .HasMaxLength(50); // Sæt en passende max længde
+
+            // --- Konfiguration for DailySelection ---
+            modelBuilder
+                .Entity<DailySelection>()
+                .HasKey(ds => new { ds.SelectionDate, ds.GameMode }); // Sammensat PK
+
+            // Konfigurer relation til FakePolitiker (En DailySelection har én Politiker)
+            modelBuilder
+                .Entity<DailySelection>()
+                .HasOne(ds => ds.SelectedPolitiker)
+                .WithMany() // En politiker kan være valgt mange gange (over tid/gamemodes)
+                .HasForeignKey(ds => ds.SelectedPolitikerID)
+                .OnDelete(DeleteBehavior.Restrict); // Undgå at slette en politiker hvis de er et dagligt valg?
+
+            // Konfigurer evt. Enum-til-String for GameMode her også, hvis den ikke er globalt konfigureret
+            modelBuilder
+                .Entity<DailySelection>()
+                .Property(ds => ds.GameMode)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+            // ------------------------------------
+
+            // --- NYT: Konfiguration for FakeParti <-> FakePolitiker relation ---
+            // Antagelser:
+            // 1. Din `FakePolitiker` model har en `int PartiId` foreign key property.
+            // 2. Din `FakePolitiker` model har en `FakeParti FakeParti` navigation property.
+            // Juster `.HasForeignKey()` og `.WithOne()` hvis dine properties hedder noget andet.
+
+            modelBuilder
+                .Entity<FakeParti>()
+                .HasMany(p => p.FakePolitikers)
+                .WithOne(fp => fp.FakeParti) // Matcher navigation property i FakePolitiker
+                .HasForeignKey(fp => fp.PartiId) // Matcher foreign key property i FakePolitiker
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // === NYT: Konfiguration for FakePolitiker <-> PoliticianQuote relation ===
+            modelBuilder
+                .Entity<PoliticianQuote>()
+                .HasOne(q => q.FakePolitiker) // Et citat har én politiker
+                .WithMany(p => p.Quotes) // En politiker har mange citater (via 'Quotes' collection i FakePolitiker)
+                .HasForeignKey(q => q.PolitikerId) // Fremmednøglen i PoliticianQuote tabellen
+                .OnDelete(DeleteBehavior.Cascade); // Slet citater hvis politikeren slettes
+            // -------------------------------------------------------------------
+            #endregion
+
 
             // --- SEED DATA ---
 

@@ -29,11 +29,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenSearch.Client;
 using OpenSearch.Net;
-using backend.Hubs;                
 
 // for .env secrets
 DotNetEnv.Env.Load();
-         
+
 var builder = WebApplication.CreateBuilder(args);
 
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
@@ -41,7 +40,9 @@ if (string.IsNullOrEmpty(openSearchUrl))
 {
     // Handle missing configuration - throw an error or default
     openSearchUrl = "http://localhost:9200"; // Default if not configured
-    Console.WriteLine("Warning: OpenSearch URL not configured in appsettings.json. Using default: http://localhost:9200");
+    Console.WriteLine(
+        "Warning: OpenSearch URL not configured in appsettings.json. Using default: http://localhost:9200"
+    );
 }
 
 // Add credentials if needed (example using Basic Auth - get from config)
@@ -328,7 +329,6 @@ builder.Services.AddScoped<AdministratorService>();
 // -----------------------------------------
 var app = builder.Build();
 
-
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -345,11 +345,13 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Triggering initial background indexing task...");
         var indexingService = services.GetRequiredService<SearchIndexingService>();
         // --- End trigger initial indexing ---
-
     }
     catch (Exception ex)
     {
-        logger.LogCritical(ex, "An error occurred during application startup while setting up OpenSearch.");
+        logger.LogCritical(
+            ex,
+            "An error occurred during application startup while setting up OpenSearch."
+        );
         // Optionally prevent the application from starting if setup fails
         // throw;
     }

@@ -48,7 +48,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
         Password: loginPassword,
       });
 
-      const token = response.data.token.result;
+      const token = response.data.token;
       localStorage.setItem("jwt", token);
       setToken(token);
       navigate("/");

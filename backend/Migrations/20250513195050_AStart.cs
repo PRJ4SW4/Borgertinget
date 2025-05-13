@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class AStart : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -174,12 +174,12 @@ namespace backend.Migrations
                     partyProgram = table.Column<string>(type: "text", nullable: true),
                     politics = table.Column<string>(type: "text", nullable: true),
                     history = table.Column<string>(type: "text", nullable: true),
-                    stats = table.Column<List<string>>(type: "text[]", nullable: true),
+                    stats = table.Column<string>(type: "text", nullable: true),
                     chairmanId = table.Column<int>(type: "integer", nullable: true),
                     viceChairmanId = table.Column<int>(type: "integer", nullable: true),
                     secretaryId = table.Column<int>(type: "integer", nullable: true),
                     spokesmanId = table.Column<int>(type: "integer", nullable: true),
-                    memberIds = table.Column<List<int>>(type: "integer[]", nullable: true)
+                    memberIds = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -188,7 +188,8 @@ namespace backend.Migrations
                         name: "FK_Party_Aktor_chairmanId",
                         column: x => x.chairmanId,
                         principalTable: "Aktor",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Party_Aktor_secretaryId",
                         column: x => x.secretaryId,

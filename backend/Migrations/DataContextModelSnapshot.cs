@@ -301,7 +301,7 @@ namespace backend.Migrations
                     b.HasIndex("SourceUrl")
                         .IsUnique();
 
-                    b.ToTable("CalendarEvents" , (string)null);
+                    b.ToTable("CalendarEvents");
                 });
 
             modelBuilder.Entity("backend.Models.DailySelection", b =>
@@ -1355,7 +1355,7 @@ namespace backend.Migrations
                     b.Navigation("viceChairman");
                 });
 
-                modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
+            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
                 {
                     b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
                         .WithMany("GameTrackings")
