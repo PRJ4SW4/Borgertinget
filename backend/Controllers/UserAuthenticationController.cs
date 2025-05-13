@@ -82,9 +82,7 @@ namespace backend.Controllers
                 var message = $@"
                     <p>Tak fordi du oprettede en konto.</p>
                     <p>Klik venligst på linket nedenfor for at bekræfte din e-mailadresse:</p>
-                    <p><a href='{verificationLink}'>Bekræft min e-mail</a></p>
-                    <p>Hvis du ikke kan klikke på linket, kopier og indsæt følgende URL i din browser:</p>
-                    <p>{verificationLink}</p>";
+                    <p><a href='{verificationLink}'>Bekræft min e-mail</a></p>";
 
                 try
                 {
@@ -166,7 +164,7 @@ namespace backend.Controllers
             var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
 
             if(result.Succeeded) {
-                var token = await GenerateJwtToken(user);
+                var token = GenerateJwtToken(user);
                 return Ok(new { token });
             }
             else if (result.IsNotAllowed)
@@ -176,6 +174,70 @@ namespace backend.Controllers
             else 
             {
                 return BadRequest(new { error = "Forkert adgangskode." });
+            }
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ForgotPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                return BadRequest(new { error = "Bruger findes ikke." });
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+            var resetLink = $"http://localhost:5173/reset-password?userId={user.Id}&token={encodedToken}";
+
+            var subject = "Nulstil din adgangskode";
+            var message = $@"
+                <p>Du anmodede om at nulstille din adgangskode.</p>
+                <p>Klik venligst på linket nedenfor for at nulstille din adgangskode:</p>
+                <p><a href='{resetLink}'>Nulstil adgangskode</a></p>";
+
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email, subject, message);
+                return Ok(new { message = "En mail med et link til at nulstille din adgangskode er blevet sendt." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Mail kunne ikke sendes: {ex.Message}");
+                return StatusCode(500, new { message = "Fejl ved afsendelse af nulstillingsmail. Prøv venligst igen senere." } );
+            }
+        }
+
+        [HttpPut("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                return BadRequest(new { error = "Bruger findes ikke." });
+            }
+
+            try
+            {
+                var decodedTokenBytes = WebEncoders.Base64UrlDecode(dto.Token);
+                var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
+            
+                var result = await _userManager.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
+                if(result.Succeeded)
+                {
+                    return Ok(new { message = "Adgangskoden er blevet nulstillet." });
+                }
+                else 
+                {
+                    return StatusCode(500, new { error = "Ugyldigt eller udløbet nulstillingslink" });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Fejl ved afkodning af token");
+                return BadRequest(new {message = "Ugyldigt token format"});
             }
         }
 
