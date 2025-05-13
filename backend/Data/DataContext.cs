@@ -299,14 +299,6 @@ namespace backend.Data
                 entity.Property(t => t.Text).IsRequired();
             });
 
-            // modelBuilder.Entity<User>(entity =>
-            // {
-            //     entity
-                    .HasMany(u => u.Subscriptions)
-          //           .WithOne(s => s.User)
-          //           .HasForeignKey(s => s.UserId);
-            // });
-
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
             modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
