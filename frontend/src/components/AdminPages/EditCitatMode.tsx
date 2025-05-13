@@ -90,15 +90,28 @@ export default function EditCitatMode() {
 
       <h1>Rediger Citat‑mode</h1>
 
-      <ul className="quote-list">
-        {quotes.map((q) => (
-          <li key={q.quoteId}>
-            <button className="quote-button" onClick={() => fetchQuote(q.quoteId)}>
-              {q.quoteText}
-            </button>
-          </li>
-        ))}
-      </ul>
+      {/* Conditional rendering for quote list OR "Choose another quote" button */}
+      {!selectedQuote ? (
+        <ul className="quote-list">
+          {quotes.map((q) => (
+            <li key={q.quoteId}>
+              <button className="quote-button" onClick={() => fetchQuote(q.quoteId)}>
+                {q.quoteText}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <button
+          className="cancel-button"
+          style={{ marginBottom: "1rem" }}
+          onClick={() => {
+            setSelectedQuote(null);
+            setNewText(""); // Clear the text area when deselecting
+          }}>
+          Vælg et andet citat
+        </button>
+      )}
 
       {selectedQuote && (
         <div className="editor">
@@ -111,9 +124,6 @@ export default function EditCitatMode() {
           <br />
           <button className="save-button" onClick={saveQuote}>
             Gem
-          </button>
-          <button className="cancel-button" onClick={() => setSelectedQuote(null)}>
-            Annullér
           </button>
         </div>
       )}
