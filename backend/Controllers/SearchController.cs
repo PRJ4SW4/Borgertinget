@@ -42,7 +42,8 @@ namespace backend.Controllers
                 return BadRequest("Search query cannot be empty.");
             }
 
-            _logger.LogInformation("Received search query: '{Query}' for top {TopNResults} results", query, TopNResults);
+            var sanitizedQuery = query.Replace("\n", "").Replace("\r", "");
+            _logger.LogInformation("Received search query: '{Query}' for top {TopNResults} results", sanitizedQuery, TopNResults);
 
             try
             {
@@ -74,20 +75,21 @@ namespace backend.Controllers
 
                 if (!searchResponse.IsValid)
                 {
-                    _logger.LogError("OpenSearch query failed: {ErrorReason}. DebugInfo: {DebugInfo}",
+                    _logger.LogError("OpenSearch query failed: {ErrorReason}. DebugInfo: {DebugInfo}. Query: '{Query}'",
                         searchResponse.ServerError?.Error?.Reason ?? "N/A",
-                        searchResponse.DebugInformation);
+                        searchResponse.DebugInformation,
+                        sanitizedQuery);
                     return StatusCode(500, "An error occurred while searching.");
                 }
 
-                _logger.LogInformation("Search successful. Returning {Count} documents out of {TotalHits} total hits for query: '{Query}'", searchResponse.Documents.Count, searchResponse.Total, query);
+                _logger.LogInformation("Search successful. Returning {Count} documents out of {TotalHits} total hits for query: '{Query}'", searchResponse.Documents.Count, searchResponse.Total, sanitizedQuery);
                 
                 // Just return the documents, as total hits and pagination info are less relevant for a top N query
                 return Ok(searchResponse.Documents);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An exception occurred during search operation for query: '{Query}'", query);
+                _logger.LogError(ex, "An exception occurred during search operation for query: '{Query}'", sanitizedQuery);
                 return StatusCode(500, "An internal server error occurred.");
             }
         }
