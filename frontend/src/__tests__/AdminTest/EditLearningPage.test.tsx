@@ -1,13 +1,37 @@
-import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { BrowserRouter } from "react-router-dom";
-import EditLearningPage from "../components/AdminPages/EditLearningPage";
-import { mockNavigate, mockedAxios, mockGetItem } from "./testMocks";
+import EditLearningPage from "../../components/AdminPages/EditLearningPage";
+import { mockNavigate, mockedAxios, mockGetItem } from "../testMocks";
 
 const mockPagesSummary = [
-  { id: 1, title: "Page 1", parentPageId: null, displayOrder: 1, hasChildren: false },
-  { id: 2, title: "Page 2", parentPageId: 1, displayOrder: 1, hasChildren: false },
-  { id: 3, title: "Page 3", parentPageId: null, displayOrder: 2, hasChildren: true },
+  {
+    id: 1,
+    title: "Page 1",
+    parentPageId: null,
+    displayOrder: 1,
+    hasChildren: false,
+  },
+  {
+    id: 2,
+    title: "Page 2",
+    parentPageId: 1,
+    displayOrder: 1,
+    hasChildren: false,
+  },
+  {
+    id: 3,
+    title: "Page 3",
+    parentPageId: null,
+    displayOrder: 2,
+    hasChildren: true,
+  },
 ];
 
 const mockPageDetail = {
@@ -73,7 +97,9 @@ describe("EditLearningPage", () => {
       expect(screen.getByText("Page 1")).toBeInTheDocument();
     });
 
-    const selectPage = screen.getByRole("combobox", { name: /vælg side/i }) as HTMLSelectElement;
+    const selectPage = screen.getByRole("combobox", {
+      name: /vælg side/i,
+    }) as HTMLSelectElement;
     fireEvent.change(selectPage, { target: { value: "1" } });
 
     await waitFor(() => {
@@ -82,8 +108,12 @@ describe("EditLearningPage", () => {
       });
     });
 
-    expect(screen.getByPlaceholderText("Titel")).toHaveValue(mockPageDetail.title);
-    expect(screen.getByPlaceholderText("Markdown indhold")).toHaveValue(mockPageDetail.content);
+    expect(screen.getByPlaceholderText("Titel")).toHaveValue(
+      mockPageDetail.title
+    );
+    expect(screen.getByPlaceholderText("Markdown indhold")).toHaveValue(
+      mockPageDetail.content
+    );
     expect(screen.getByText("Gem Ændringer")).toBeInTheDocument();
   });
 
@@ -108,11 +138,15 @@ describe("EditLearningPage", () => {
     fireEvent.change(titleInput, { target: { value: "Updated Title" } });
     expect(titleInput.value).toBe("Updated Title");
 
-    const contentTextarea = screen.getByPlaceholderText("Markdown indhold") as HTMLTextAreaElement;
+    const contentTextarea = screen.getByPlaceholderText(
+      "Markdown indhold"
+    ) as HTMLTextAreaElement;
     fireEvent.change(contentTextarea, { target: { value: "Updated Content" } });
     expect(contentTextarea.value).toBe("Updated Content");
 
-    const parentSelect = screen.getByRole("combobox", { name: /overordnet side/i }) as HTMLSelectElement;
+    const parentSelect = screen.getByRole("combobox", {
+      name: /overordnet side/i,
+    }) as HTMLSelectElement;
     expect(within(parentSelect).getByText("Page 2")).toBeInTheDocument();
     expect(within(parentSelect).queryByText("Page 1")).not.toBeInTheDocument();
     fireEvent.change(parentSelect, { target: { value: "2" } });
@@ -133,7 +167,9 @@ describe("EditLearningPage", () => {
     fireEvent.change(selectPage, { target: { value: "1" } });
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText("Titel")).toHaveValue(mockPageDetail.title);
+      expect(screen.getByPlaceholderText("Titel")).toHaveValue(
+        mockPageDetail.title
+      );
     });
 
     const titleInput = screen.getByPlaceholderText("Titel");

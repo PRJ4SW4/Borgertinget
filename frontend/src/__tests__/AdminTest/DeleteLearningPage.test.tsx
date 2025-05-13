@@ -1,12 +1,24 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { BrowserRouter } from "react-router-dom";
-import DeleteLearningPage from "../components/AdminPages/DeleteLearningPage";
-import { mockNavigate, mockedAxios, mockGetItem } from "./testMocks";
+import DeleteLearningPage from "../../components/AdminPages/DeleteLearningPage";
+import { mockNavigate, mockedAxios, mockGetItem } from "../testMocks";
 
 const mockPagesSummary = [
-  { id: 1, title: "Page to Delete", parentPageId: null, displayOrder: 1, hasChildren: false },
-  { id: 2, title: "Another Page", parentPageId: null, displayOrder: 2, hasChildren: false },
+  {
+    id: 1,
+    title: "Page to Delete",
+    parentPageId: null,
+    displayOrder: 1,
+    hasChildren: false,
+  },
+  {
+    id: 2,
+    title: "Another Page",
+    parentPageId: null,
+    displayOrder: 2,
+    hasChildren: false,
+  },
 ];
 
 const mockPageDetail = {
@@ -72,7 +84,9 @@ describe("DeleteLearningPage", () => {
       expect(screen.getByText("Page to Delete")).toBeInTheDocument();
     });
 
-    const selectPage = screen.getByRole("combobox", { name: /vælg side/i }) as HTMLSelectElement;
+    const selectPage = screen.getByRole("combobox", {
+      name: /vælg side/i,
+    }) as HTMLSelectElement;
     fireEvent.change(selectPage, { target: { value: "1" } });
 
     await waitFor(() => {
@@ -82,7 +96,9 @@ describe("DeleteLearningPage", () => {
     });
 
     expect(screen.getByLabelText("Titel")).toHaveValue(mockPageDetail.title);
-    expect(screen.getByLabelText("Indhold")).toHaveValue(mockPageDetail.content);
+    expect(screen.getByLabelText("Indhold")).toHaveValue(
+      mockPageDetail.content
+    );
     expect(screen.getByText("Slet Side")).toBeInTheDocument();
   });
 
@@ -108,7 +124,9 @@ describe("DeleteLearningPage", () => {
     const deleteButton = screen.getByText("Slet Side");
     fireEvent.click(deleteButton);
 
-    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne læringsside?");
+    expect(window.confirm).toHaveBeenCalledWith(
+      "Er du sikker på, at du vil slette denne læringsside?"
+    );
 
     await waitFor(() => {
       expect(mockedAxios.delete).toHaveBeenCalledWith("/api/pages/1", {
@@ -142,7 +160,9 @@ describe("DeleteLearningPage", () => {
     const deleteButton = screen.getByText("Slet Side");
     fireEvent.click(deleteButton);
 
-    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne læringsside?");
+    expect(window.confirm).toHaveBeenCalledWith(
+      "Er du sikker på, at du vil slette denne læringsside?"
+    );
     expect(mockedAxios.delete).not.toHaveBeenCalled();
     expect(window.alert).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();

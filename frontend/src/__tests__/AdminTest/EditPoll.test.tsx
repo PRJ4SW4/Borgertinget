@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { BrowserRouter } from "react-router-dom";
-import EditPoll from "../components/AdminPages/EditPoll";
-import { mockNavigate, mockedAxios, mockGetItem } from "./testMocks";
+import EditPoll from "../../components/AdminPages/EditPoll";
+import { mockNavigate, mockedAxios, mockGetItem } from "../testMocks";
 
 const mockPollsSummaryList = [
   { id: 1, question: "Poll One Question", politicianTwitterId: "twit1" },
@@ -41,7 +41,9 @@ describe("EditPoll", () => {
       if (url.startsWith("/api/subscription/lookup/politicianTwitterId")) {
         const aktorId = url.split("=")[1];
         const politician = mockPoliticiansList.find((p) => p.id === aktorId);
-        return Promise.resolve({ data: { politicianTwitterId: politician?.politicianTwitterId || 789 } });
+        return Promise.resolve({
+          data: { politicianTwitterId: politician?.politicianTwitterId || 789 },
+        });
       }
       if (url.startsWith("/api/administrator/lookup/aktorId")) {
         return Promise.resolve({ data: { aktorId: "aktor1" } });
@@ -59,10 +61,18 @@ describe("EditPoll", () => {
     );
     expect(screen.getByText("Rediger Poll")).toBeInTheDocument();
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith("/api/polls", expect.anything());
-      expect(mockedAxios.get).toHaveBeenCalledWith("/api/aktor/all", expect.anything());
+      expect(mockedAxios.get).toHaveBeenCalledWith(
+        "/api/polls",
+        expect.anything()
+      );
+      expect(mockedAxios.get).toHaveBeenCalledWith(
+        "/api/aktor/all",
+        expect.anything()
+      );
     });
-    mockPollsSummaryList.forEach((p) => expect(screen.getByText(p.question)).toBeInTheDocument());
+    mockPollsSummaryList.forEach((p) =>
+      expect(screen.getByText(p.question)).toBeInTheDocument()
+    );
     expect(screen.queryByLabelText("Vælg Politiker *")).not.toBeInTheDocument();
   });
 
@@ -72,13 +82,22 @@ describe("EditPoll", () => {
         <EditPoll />
       </BrowserRouter>
     );
-    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        screen.getByText(mockPollsSummaryList[0].question)
+      ).toBeInTheDocument()
+    );
 
     const pollSelect = screen.getByLabelText("Vælg Poll") as HTMLSelectElement;
-    fireEvent.change(pollSelect, { target: { value: String(mockSelectedPollDetails.id) } });
+    fireEvent.change(pollSelect, {
+      target: { value: String(mockSelectedPollDetails.id) },
+    });
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith(`/api/polls/${mockSelectedPollDetails.id}`, expect.anything());
+      expect(mockedAxios.get).toHaveBeenCalledWith(
+        `/api/polls/${mockSelectedPollDetails.id}`,
+        expect.anything()
+      );
       expect(mockedAxios.get).toHaveBeenCalledWith(
         `/api/administrator/lookup/aktorId?twitterId=${mockSelectedPollDetails.politicianId}`,
         expect.anything()
@@ -87,12 +106,20 @@ describe("EditPoll", () => {
 
     await waitFor(() => {
       expect(screen.getByLabelText("Vælg Politiker *")).toBeInTheDocument();
-      expect(screen.getByDisplayValue(mockPoliticiansList[0].navn)).toBeInTheDocument();
+      expect(
+        screen.getByDisplayValue(mockPoliticiansList[0].navn)
+      ).toBeInTheDocument();
     });
 
-    expect(screen.getByPlaceholderText("Skriv spørgsmålet her...")).toHaveValue(mockSelectedPollDetails.question);
-    expect(screen.getByPlaceholderText("Svarmulighed 1")).toHaveValue(mockSelectedPollDetails.options[0].optionText);
-    expect(screen.getByLabelText("Slutdato (valgfri)")).toHaveValue("2024-01-01");
+    expect(screen.getByPlaceholderText("Skriv spørgsmålet her...")).toHaveValue(
+      mockSelectedPollDetails.question
+    );
+    expect(screen.getByPlaceholderText("Svarmulighed 1")).toHaveValue(
+      mockSelectedPollDetails.options[0].optionText
+    );
+    expect(screen.getByLabelText("Slutdato (valgfri)")).toHaveValue(
+      "2024-01-01"
+    );
   });
 
   it("submits updated form data", async () => {
@@ -101,16 +128,28 @@ describe("EditPoll", () => {
         <EditPoll />
       </BrowserRouter>
     );
-    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        screen.getByText(mockPollsSummaryList[0].question)
+      ).toBeInTheDocument()
+    );
 
-    fireEvent.change(screen.getByLabelText("Vælg Poll"), { target: { value: String(mockSelectedPollDetails.id) } });
-
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText("Skriv spørgsmålet her...")).toHaveValue(mockSelectedPollDetails.question);
+    fireEvent.change(screen.getByLabelText("Vælg Poll"), {
+      target: { value: String(mockSelectedPollDetails.id) },
     });
 
-    const politicianSelect = screen.getByLabelText("Vælg Politiker *") as HTMLSelectElement;
-    fireEvent.change(politicianSelect, { target: { value: mockPoliticiansList[1].id } });
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText("Skriv spørgsmålet her...")
+      ).toHaveValue(mockSelectedPollDetails.question);
+    });
+
+    const politicianSelect = screen.getByLabelText(
+      "Vælg Politiker *"
+    ) as HTMLSelectElement;
+    fireEvent.change(politicianSelect, {
+      target: { value: mockPoliticiansList[1].id },
+    });
 
     await waitFor(() => {
       expect(mockedAxios.get).toHaveBeenCalledWith(
@@ -119,8 +158,12 @@ describe("EditPoll", () => {
       );
     });
 
-    fireEvent.change(screen.getByPlaceholderText("Skriv spørgsmålet her..."), { target: { value: "Updated Question?" } });
-    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1"), { target: { value: "Updated Opt A" } });
+    fireEvent.change(screen.getByPlaceholderText("Skriv spørgsmålet her..."), {
+      target: { value: "Updated Question?" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Svarmulighed 1"), {
+      target: { value: "Updated Opt A" },
+    });
 
     fireEvent.click(screen.getByText("Opdater Poll"));
 
@@ -129,7 +172,10 @@ describe("EditPoll", () => {
         `/api/polls/${mockSelectedPollDetails.id}`,
         {
           question: "Updated Question?",
-          options: ["Updated Opt A", mockSelectedPollDetails.options[1].optionText],
+          options: [
+            "Updated Opt A",
+            mockSelectedPollDetails.options[1].optionText,
+          ],
           politicianTwitterId: 3,
           endedAt: new Date("2024-01-01T00:00:00Z").toISOString(),
         },
@@ -150,7 +196,9 @@ describe("EditPoll", () => {
       }
       if (url === `/api/polls/${mockSelectedPollDetails.id}`) {
         // Crucial for this test: return poll details with politicianId as null
-        return Promise.resolve({ data: { ...mockSelectedPollDetails, politicianId: null } });
+        return Promise.resolve({
+          data: { ...mockSelectedPollDetails, politicianId: null },
+        });
       }
       // Provide default successful responses for other potential GET calls to avoid unhandled rejections
       if (url.startsWith("/api/subscription/lookup/politicianTwitterId")) {
@@ -159,7 +207,9 @@ describe("EditPoll", () => {
       if (url.startsWith("/api/administrator/lookup/aktorId")) {
         return Promise.resolve({ data: { aktorId: "aktor1" } }); // Default mock value
       }
-      return Promise.reject(new Error(`Unhandled GET URL in test-specific mock: ${url}`));
+      return Promise.reject(
+        new Error(`Unhandled GET URL in test-specific mock: ${url}`)
+      );
     });
 
     render(
@@ -169,15 +219,25 @@ describe("EditPoll", () => {
     );
 
     // Wait for initial data to load (polls list)
-    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        screen.getByText(mockPollsSummaryList[0].question)
+      ).toBeInTheDocument()
+    );
 
     // Select the poll that will have null politicianId
-    fireEvent.change(screen.getByLabelText("Vælg Poll"), { target: { value: String(mockSelectedPollDetails.id) } });
+    fireEvent.change(screen.getByLabelText("Vælg Poll"), {
+      target: { value: String(mockSelectedPollDetails.id) },
+    });
 
     // Wait for the form to populate and verify politician selection is empty
     await waitFor(() => {
-      expect(screen.getByPlaceholderText("Skriv spørgsmålet her...")).toBeInTheDocument();
-      const politicianSelect = screen.getByLabelText("Vælg Politiker *") as HTMLSelectElement;
+      expect(
+        screen.getByPlaceholderText("Skriv spørgsmålet her...")
+      ).toBeInTheDocument();
+      const politicianSelect = screen.getByLabelText(
+        "Vælg Politiker *"
+      ) as HTMLSelectElement;
       expect(politicianSelect).toBeInTheDocument();
       expect(politicianSelect.value).toBe(""); // Ensure no politician is selected
     });

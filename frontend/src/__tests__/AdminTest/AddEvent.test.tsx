@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest"; // Removed vi and afterEach
-import AddEvent from "../components/AdminPages/AddEvent";
-import { mockNavigate, mockGetItem, mockedAxios } from "./testMocks";
+import AddEvent from "../../components/AdminPages/AddEvent";
+import { mockNavigate, mockGetItem, mockedAxios } from "../testMocks";
 
 // Global mocks from setupTests.ts are used for react-router-dom, axios, localStorage
 
@@ -16,10 +16,14 @@ describe("AddEvent Component", () => {
   it("renders the form correctly", () => {
     render(<AddEvent />);
     expect(screen.getByLabelText(/Titel/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i)
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Lokation/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Kilde URL/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Opret Begivenhed/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Opret Begivenhed/i })
+    ).toBeInTheDocument();
   });
 
   it("shows an error message if not logged in", async () => {
@@ -38,18 +42,32 @@ describe("AddEvent Component", () => {
     fireEvent.submit(screen.getByRole("button", { name: /Opret Begivenhed/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Titel, Start Dato/Tid (UTC), og Kilde URL er påkrævede felter.")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Titel, Start Dato/Tid (UTC), og Kilde URL er påkrævede felter."
+        )
+      ).toBeInTheDocument();
     });
   });
 
   it("submits the form data correctly", async () => {
-    mockedAxios.post.mockResolvedValue({ data: { message: "Begivenhed oprettet succesfuldt!" } });
+    mockedAxios.post.mockResolvedValue({
+      data: { message: "Begivenhed oprettet succesfuldt!" },
+    });
     render(<AddEvent />);
 
-    fireEvent.change(screen.getByLabelText(/Titel/i), { target: { value: "Test Event" } });
-    fireEvent.change(screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i), { target: { value: "2025-12-31T10:00" } });
-    fireEvent.change(screen.getByLabelText(/Lokation/i), { target: { value: "Test Location" } });
-    fireEvent.change(screen.getByLabelText(/Kilde URL/i), { target: { value: "http://example.com" } });
+    fireEvent.change(screen.getByLabelText(/Titel/i), {
+      target: { value: "Test Event" },
+    });
+    fireEvent.change(screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i), {
+      target: { value: "2025-12-31T10:00" },
+    });
+    fireEvent.change(screen.getByLabelText(/Lokation/i), {
+      target: { value: "Test Location" },
+    });
+    fireEvent.change(screen.getByLabelText(/Kilde URL/i), {
+      target: { value: "http://example.com" },
+    });
 
     fireEvent.submit(screen.getByRole("button", { name: /Opret Begivenhed/i }));
 
@@ -64,7 +82,9 @@ describe("AddEvent Component", () => {
         },
         { headers: { Authorization: "Bearer fake-jwt-token" } }
       );
-      expect(screen.getByText("Begivenhed oprettet succesfuldt!")).toBeInTheDocument();
+      expect(
+        screen.getByText("Begivenhed oprettet succesfuldt!")
+      ).toBeInTheDocument();
       expect(mockNavigate).toHaveBeenCalledWith("/admin/Indhold");
     });
   });
@@ -76,9 +96,15 @@ describe("AddEvent Component", () => {
     });
     render(<AddEvent />);
 
-    fireEvent.change(screen.getByLabelText(/Titel/i), { target: { value: "Test Event" } });
-    fireEvent.change(screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i), { target: { value: "2025-12-31T10:00" } });
-    fireEvent.change(screen.getByLabelText(/Kilde URL/i), { target: { value: "http://example.com" } });
+    fireEvent.change(screen.getByLabelText(/Titel/i), {
+      target: { value: "Test Event" },
+    });
+    fireEvent.change(screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i), {
+      target: { value: "2025-12-31T10:00" },
+    });
+    fireEvent.change(screen.getByLabelText(/Kilde URL/i), {
+      target: { value: "http://example.com" },
+    });
 
     fireEvent.submit(screen.getByRole("button", { name: /Opret Begivenhed/i }));
 
@@ -89,7 +115,9 @@ describe("AddEvent Component", () => {
 
   it("navigates back to admin content page", () => {
     render(<AddEvent />);
-    fireEvent.click(screen.getByRole("button", { name: /Tilbage til Admin Indhold/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })
+    );
     expect(mockNavigate).toHaveBeenCalledWith("/admin/Indhold");
   });
 });

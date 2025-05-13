@@ -1,13 +1,25 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest"; // Removed vi
-import EditEvent from "../components/AdminPages/EditEvent";
-import { mockNavigate, mockGetItem, mockedAxios } from "./testMocks";
+import EditEvent from "../../components/AdminPages/EditEvent";
+import { mockNavigate, mockGetItem, mockedAxios } from "../testMocks";
 
 // Global mocks from setupTests.ts are used for react-router-dom, axios, localStorage
 
 const mockEventsData = [
-  { id: 1, title: "Event 1", startDateTimeUtc: "2025-01-01T10:00:00Z", location: "Location 1", sourceUrl: "http://example.com/1" },
-  { id: 2, title: "Event 2", startDateTimeUtc: "2025-02-01T12:00:00Z", location: "Location 2", sourceUrl: "http://example.com/2" },
+  {
+    id: 1,
+    title: "Event 1",
+    startDateTimeUtc: "2025-01-01T10:00:00Z",
+    location: "Location 1",
+    sourceUrl: "http://example.com/1",
+  },
+  {
+    id: 2,
+    title: "Event 2",
+    startDateTimeUtc: "2025-02-01T12:00:00Z",
+    location: "Location 2",
+    sourceUrl: "http://example.com/2",
+  },
 ];
 
 describe("EditEvent Component", () => {
@@ -46,13 +58,24 @@ describe("EditEvent Component", () => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
+    });
 
     await waitFor(() => {
-      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(mockEventsData[0].title);
-      expect((screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i) as HTMLInputElement).value).toBe("2025-01-01T11:00"); // Adjusted to local time this is bad and we should use local time instead of UTC
-      expect((screen.getByLabelText(/Lokation/i) as HTMLInputElement).value).toBe(mockEventsData[0].location);
-      expect((screen.getByLabelText(/Kilde URL/i) as HTMLInputElement).value).toBe(mockEventsData[0].sourceUrl);
+      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(
+        mockEventsData[0].title
+      );
+      expect(
+        (screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i) as HTMLInputElement)
+          .value
+      ).toBe("2025-01-01T11:00"); // Adjusted to local time this is bad and we should use local time instead of UTC
+      expect(
+        (screen.getByLabelText(/Lokation/i) as HTMLInputElement).value
+      ).toBe(mockEventsData[0].location);
+      expect(
+        (screen.getByLabelText(/Kilde URL/i) as HTMLInputElement).value
+      ).toBe(mockEventsData[0].sourceUrl);
     });
   });
 
@@ -61,36 +84,60 @@ describe("EditEvent Component", () => {
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
-
-    await waitFor(() => {
-      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe("Event 1");
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
     });
-    fireEvent.change(screen.getByLabelText(/Titel/i), { target: { value: "" } });
-
-    fireEvent.submit(screen.getByRole("button", { name: /Opdater Begivenhed/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Titel, Start Dato/Tid (UTC), og Kilde URL er påkrævede felter.")).toBeInTheDocument();
+      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(
+        "Event 1"
+      );
+    });
+    fireEvent.change(screen.getByLabelText(/Titel/i), {
+      target: { value: "" },
+    });
+
+    fireEvent.submit(
+      screen.getByRole("button", { name: /Opdater Begivenhed/i })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Titel, Start Dato/Tid (UTC), og Kilde URL er påkrævede felter."
+        )
+      ).toBeInTheDocument();
     });
   });
 
   it("submits updated form data correctly", async () => {
-    mockedAxios.put.mockResolvedValue({ data: { message: "Begivenhed opdateret succesfuldt!" } });
+    mockedAxios.put.mockResolvedValue({
+      data: { message: "Begivenhed opdateret succesfuldt!" },
+    });
     render(<EditEvent />);
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
-
-    await waitFor(() => {
-      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe("Event 1");
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
     });
 
-    fireEvent.change(screen.getByLabelText(/Titel/i), { target: { value: "Updated Event 1" } });
-    fireEvent.change(screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i), { target: { value: "2025-01-01T11:00" } });
+    await waitFor(() => {
+      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(
+        "Event 1"
+      );
+    });
 
-    fireEvent.submit(screen.getByRole("button", { name: /Opdater Begivenhed/i }));
+    fireEvent.change(screen.getByLabelText(/Titel/i), {
+      target: { value: "Updated Event 1" },
+    });
+    fireEvent.change(screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i), {
+      target: { value: "2025-01-01T11:00" },
+    });
+
+    fireEvent.submit(
+      screen.getByRole("button", { name: /Opdater Begivenhed/i })
+    );
 
     await waitFor(() => {
       expect(mockedAxios.put).toHaveBeenCalledWith(
@@ -104,7 +151,9 @@ describe("EditEvent Component", () => {
         }),
         { headers: { Authorization: "Bearer fake-jwt-token" } }
       );
-      expect(screen.getByText("Begivenhed opdateret succesfuldt!")).toBeInTheDocument();
+      expect(
+        screen.getByText("Begivenhed opdateret succesfuldt!")
+      ).toBeInTheDocument();
     });
   });
 
@@ -117,17 +166,27 @@ describe("EditEvent Component", () => {
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
-
-    await waitFor(() => {
-      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe("Event 1");
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
     });
 
-    fireEvent.change(screen.getByLabelText(/Titel/i), { target: { value: "Updated Event 1" } });
-    fireEvent.submit(screen.getByRole("button", { name: /Opdater Begivenhed/i }));
+    await waitFor(() => {
+      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(
+        "Event 1"
+      );
+    });
+
+    fireEvent.change(screen.getByLabelText(/Titel/i), {
+      target: { value: "Updated Event 1" },
+    });
+    fireEvent.submit(
+      screen.getByRole("button", { name: /Opdater Begivenhed/i })
+    );
 
     await waitFor(() => {
-      const specificErrorMessage = screen.queryByText("Fejl: Failed to update event");
+      const specificErrorMessage = screen.queryByText(
+        "Fejl: Failed to update event"
+      );
       const fallbackErrorMessage = screen.queryByText("En ukendt fejl opstod.");
       expect(specificErrorMessage || fallbackErrorMessage).toBeInTheDocument();
     });
@@ -142,7 +201,9 @@ describe("EditEvent Component", () => {
     });
     render(<EditEvent />);
     await waitFor(() => {
-      expect(screen.getByText(/Kunne ikke hente begivenheder\./)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Kunne ikke hente begivenheder\./)
+      ).toBeInTheDocument();
     });
   });
 
@@ -151,9 +212,13 @@ describe("EditEvent Component", () => {
     await waitFor(() => {
       expect(screen.getByLabelText("Vælg Begivenhed")).toBeInTheDocument();
     });
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
+    });
 
-    fireEvent.click(screen.getByRole("button", { name: /Tilbage til Admin Indhold/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })
+    );
     expect(mockNavigate).toHaveBeenCalledWith("/admin/Indhold");
   });
 });

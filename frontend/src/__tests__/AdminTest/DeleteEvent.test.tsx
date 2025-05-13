@@ -1,13 +1,25 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach, Mock } from "vitest"; // Removed vi, added Mock for casting window.confirm if needed
-import DeleteEvent from "../components/AdminPages/DeleteEvent";
-import { mockNavigate, mockGetItem, mockedAxios } from "./testMocks";
+import DeleteEvent from "../../components/AdminPages/DeleteEvent";
+import { mockNavigate, mockGetItem, mockedAxios } from "../testMocks";
 
 // Global mocks from setupTests.ts are used for react-router-dom, axios, localStorage, window.confirm
 
 const mockEventsData = [
-  { id: 1, title: "Event 1", startDateTimeUtc: "2025-01-01T10:00:00Z", location: "Location 1", sourceUrl: "http://example.com/1" },
-  { id: 2, title: "Event 2", startDateTimeUtc: "2025-02-01T12:00:00Z", location: "Location 2", sourceUrl: "http://example.com/2" },
+  {
+    id: 1,
+    title: "Event 1",
+    startDateTimeUtc: "2025-01-01T10:00:00Z",
+    location: "Location 1",
+    sourceUrl: "http://example.com/1",
+  },
+  {
+    id: 2,
+    title: "Event 2",
+    startDateTimeUtc: "2025-02-01T12:00:00Z",
+    location: "Location 2",
+    sourceUrl: "http://example.com/2",
+  },
 ];
 
 describe("DeleteEvent Component", () => {
@@ -47,33 +59,50 @@ describe("DeleteEvent Component", () => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
+    });
 
     await waitFor(() => {
       const detailsHeading = screen.getByText("Begivenhedsdetaljer:");
       expect(detailsHeading).toBeInTheDocument();
       const detailsContainer = detailsHeading.parentElement;
 
-      expect(detailsContainer).toHaveTextContent(new RegExp(`Titel:\\s*${mockEventsData[0].title}`));
+      expect(detailsContainer).toHaveTextContent(
+        new RegExp(`Titel:\\s*${mockEventsData[0].title}`)
+      );
 
-      const expectedDateString = new Date(mockEventsData[0].startDateTimeUtc).toLocaleString();
-      const escapedExpectedDateString = expectedDateString.replace(/[.*+?^${}()|[\\\]\\]/g, "\\$&");
+      const expectedDateString = new Date(
+        mockEventsData[0].startDateTimeUtc
+      ).toLocaleString();
+      const escapedExpectedDateString = expectedDateString.replace(
+        /[.*+?^${}()|[\\\]\\]/g,
+        "\\$&"
+      );
       const dateRegex = new RegExp(`Start:\\s*${escapedExpectedDateString}`);
       expect(detailsContainer).toHaveTextContent(dateRegex);
 
-      expect(detailsContainer).toHaveTextContent(new RegExp(`Lokation:\\s*${mockEventsData[0].location}`));
-      expect(detailsContainer).toHaveTextContent(new RegExp(`Kilde URL:\\s*${mockEventsData[0].sourceUrl}`));
+      expect(detailsContainer).toHaveTextContent(
+        new RegExp(`Lokation:\\s*${mockEventsData[0].location}`)
+      );
+      expect(detailsContainer).toHaveTextContent(
+        new RegExp(`Kilde URL:\\s*${mockEventsData[0].sourceUrl}`)
+      );
     });
   });
 
   it("prompts for confirmation and deletes event if confirmed", async () => {
-    mockedAxios.delete.mockResolvedValue({ data: { message: "Begivenhed slettet succesfuldt!" } });
+    mockedAxios.delete.mockResolvedValue({
+      data: { message: "Begivenhed slettet succesfuldt!" },
+    });
     render(<DeleteEvent />);
     // Wait for the select to be populated
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
+    });
 
     await waitFor(() => {
       // Ensure details are shown before clicking delete
@@ -82,13 +111,20 @@ describe("DeleteEvent Component", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Slet Begivenhed/i }));
 
-    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne begivenhed?");
+    expect(window.confirm).toHaveBeenCalledWith(
+      "Er du sikker på, at du vil slette denne begivenhed?"
+    );
 
     await waitFor(() => {
-      expect(mockedAxios.delete).toHaveBeenCalledWith("/api/calendar/events/1", {
-        headers: { Authorization: "Bearer fake-jwt-token" },
-      });
-      expect(screen.getByText("Begivenhed slettet succesfuldt!")).toBeInTheDocument();
+      expect(mockedAxios.delete).toHaveBeenCalledWith(
+        "/api/calendar/events/1",
+        {
+          headers: { Authorization: "Bearer fake-jwt-token" },
+        }
+      );
+      expect(
+        screen.getByText("Begivenhed slettet succesfuldt!")
+      ).toBeInTheDocument();
       // Check if the event is removed from the dropdown
       expect(screen.queryByText("Event 1 (ID: 1)")).not.toBeInTheDocument();
       expect(screen.getByText("Event 2 (ID: 2)")).toBeInTheDocument(); // Other events should remain
@@ -102,7 +138,9 @@ describe("DeleteEvent Component", () => {
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
+    });
 
     await waitFor(() => {
       // Ensure details are shown
@@ -111,7 +149,9 @@ describe("DeleteEvent Component", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Slet Begivenhed/i }));
 
-    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne begivenhed?");
+    expect(window.confirm).toHaveBeenCalledWith(
+      "Er du sikker på, at du vil slette denne begivenhed?"
+    );
     expect(mockedAxios.delete).not.toHaveBeenCalled();
   });
 
@@ -121,7 +161,9 @@ describe("DeleteEvent Component", () => {
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Begivenhedsdetaljer:")).toBeInTheDocument();
@@ -146,7 +188,9 @@ describe("DeleteEvent Component", () => {
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
-    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Vælg Begivenhed"), {
+      target: { value: "1" },
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Begivenhedsdetaljer:")).toBeInTheDocument();
@@ -168,7 +212,9 @@ describe("DeleteEvent Component", () => {
     });
     render(<DeleteEvent />);
     await waitFor(() => {
-      expect(screen.getByText("Kunne ikke hente begivenheder.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Kunne ikke hente begivenheder.")
+      ).toBeInTheDocument();
     });
   });
 
@@ -176,9 +222,13 @@ describe("DeleteEvent Component", () => {
     render(<DeleteEvent />);
     await waitFor(() => {
       // Wait for initial render and potential fetches
-      expect(screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })
+      ).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByRole("button", { name: /Tilbage til Admin Indhold/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })
+    );
     expect(mockNavigate).toHaveBeenCalledWith("/admin/Indhold");
   });
 });
