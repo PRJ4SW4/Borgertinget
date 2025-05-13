@@ -6,12 +6,8 @@ export interface IAktor {
     fornavn: string | null;
     efternavn: string | null;
     biografi: string | null; // The raw XML/tagged string (optional to display)
-    startdato: string | null; // Dates often come as strings from JSON APIs
-    slutdato: string | null; // Make nullable if applicable
     opdateringsdato: string;
-    typeid?: number | null; // Include if needed
-    gruppeNavnKort?: string | null; // Include if needed
-    periodeid?: number | null; // Include if needed
+    ministertitel?: string | null;
   
     // --- Parsed fields from biography ---
     // (Assuming your backend endpoint adds these)
@@ -49,4 +45,6 @@ export interface IAktor {
     // publicationTitles?: string | null;
     // etc.
     // And then parse them in the component.
+
+    
   }
