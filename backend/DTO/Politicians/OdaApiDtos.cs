@@ -70,7 +70,7 @@ namespace backend.DTO.FT
         {
             return new AktorDetailDto
             {
-                Id = aktor.PoliticianId,
+                Id = aktor.Id,
                 fornavn = aktor.fornavn,
                 efternavn = aktor.efternavn,
                 navn = aktor.navn,

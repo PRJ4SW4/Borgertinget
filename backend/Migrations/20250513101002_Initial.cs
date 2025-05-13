@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,7 @@ namespace backend.Migrations
                 name: "Aktor",
                 columns: table => new
                 {
-                    PoliticianId = table.Column<int>(type: "integer", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false),
                     biografi = table.Column<string>(type: "text", nullable: true),
                     fornavn = table.Column<string>(type: "text", nullable: true),
                     efternavn = table.Column<string>(type: "text", nullable: true),
@@ -52,7 +52,7 @@ namespace backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Aktor", x => x.PoliticianId);
+                    table.PrimaryKey("PK_Aktor", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -110,17 +110,41 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Roles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    UserName = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    IsVerified = table.Column<bool>(type: "boolean", nullable: false),
-                    VerificationToken = table.Column<string>(type: "text", nullable: true),
-                    Roles = table.Column<List<string>>(type: "text[]", nullable: false)
+                    Roles = table.Column<List<string>>(type: "text[]", nullable: false),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -152,23 +176,23 @@ namespace backend.Migrations
                         name: "FK_Party_Aktor_chairmanId",
                         column: x => x.chairmanId,
                         principalTable: "Aktor",
-                        principalColumn: "PoliticianId",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Party_Aktor_secretaryId",
                         column: x => x.secretaryId,
                         principalTable: "Aktor",
-                        principalColumn: "PoliticianId");
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Party_Aktor_spokesmanId",
                         column: x => x.spokesmanId,
                         principalTable: "Aktor",
-                        principalColumn: "PoliticianId");
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Party_Aktor_viceChairmanId",
                         column: x => x.viceChairmanId,
                         principalTable: "Aktor",
-                        principalColumn: "PoliticianId");
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -189,7 +213,7 @@ namespace backend.Migrations
                         name: "FK_PoliticianTwitterIds_Aktor_AktorId",
                         column: x => x.AktorId,
                         principalTable: "Aktor",
-                        principalColumn: "PoliticianId",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                 });
 
@@ -235,6 +259,112 @@ namespace backend.Migrations
                         name: "FK_Questions_Pages_PageId",
                         column: x => x.PageId,
                         principalTable: "Pages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleId = table.Column<int>(type: "integer", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RoleClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RoleClaims_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserClaims_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserLogins",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    ProviderKey = table.Column<string>(type: "text", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.ForeignKey(
+                        name: "FK_UserLogins_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    RoleId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserRoles", x => new { x.UserId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_UserRoles_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserRoles_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.ForeignKey(
+                        name: "FK_UserTokens_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -404,16 +534,6 @@ namespace backend.Migrations
                 values: new object[] { 1, "Indhold for Politik 101...", 1, null, "Politik 101" });
 
             migrationBuilder.InsertData(
-                table: "PoliticianTwitterIds",
-                columns: new[] { "Id", "AktorId", "Name", "TwitterHandle", "TwitterUserId" },
-                values: new object[,]
-                {
-                    { 1, null, "Statsministeriet", "Statsmin", "806068174567460864" },
-                    { 2, null, "Venstre, Danmarks Liberale Parti", "venstredk", "123868861" },
-                    { 3, null, "Troels Lund Poulsen", "troelslundp", "2965907578" }
-                });
-
-            migrationBuilder.InsertData(
                 table: "Flashcards",
                 columns: new[] { "FlashcardId", "BackContentType", "BackImagePath", "BackText", "CollectionId", "DisplayOrder", "FrontContentType", "FrontImagePath", "FrontText" },
                 values: new object[,]
@@ -429,15 +549,6 @@ namespace backend.Migrations
                 table: "Pages",
                 columns: new[] { "Id", "Content", "DisplayOrder", "ParentPageId", "Title" },
                 values: new object[] { 2, "Indhold for Den Politiske Akse...", 1, 1, "Den Politiske Akse" });
-
-            migrationBuilder.InsertData(
-                table: "Polls",
-                columns: new[] { "Id", "CreatedAt", "EndedAt", "PoliticianTwitterId", "Question" },
-                values: new object[,]
-                {
-                    { 1, new DateTime(2025, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc), null, 1, "Hvad synes du om den nye bro?" },
-                    { 2, new DateTime(2025, 4, 28, 14, 30, 0, 0, DateTimeKind.Utc), null, 1, "Skal Danmark øge investeringer i vedvarende energi?" }
-                });
 
             migrationBuilder.InsertData(
                 table: "Questions",
@@ -464,27 +575,9 @@ namespace backend.Migrations
             migrationBuilder.InsertData(
                 table: "Pages",
                 columns: new[] { "Id", "Content", "DisplayOrder", "ParentPageId", "Title" },
-                values: new object[] { 3, "Indhold for Venstre vs Højre...", 1, 2, "Venstre vs Højre" });
-
-            migrationBuilder.InsertData(
-                table: "PollOptions",
-                columns: new[] { "Id", "OptionText", "PollId", "Votes" },
                 values: new object[,]
                 {
-                    { 1, "Den er fantastisk!", 1, 5 },
-                    { 2, "Den er ok, men dyr.", 1, 12 },
-                    { 3, "Den er unødvendig.", 1, 3 },
-                    { 4, "Ja, meget mere end nu", 2, 42 },
-                    { 5, "Ja, lidt mere", 2, 28 },
-                    { 6, "Nej, det nuværende niveau er passende", 2, 15 },
-                    { 7, "Nej, vi bør investere mindre", 2, 8 }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Pages",
-                columns: new[] { "Id", "Content", "DisplayOrder", "ParentPageId", "Title" },
-                values: new object[,]
-                {
+                    { 3, "Indhold for Venstre vs Højre...", 1, 2, "Venstre vs Højre" },
                     { 4, "Højre er at være højre...", 1, 3, "Højre" },
                     { 5, "Venstre er at være venstre...", 2, 3, "Venstre" }
                 });
@@ -580,6 +673,17 @@ namespace backend.Migrations
                 column: "PageId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RoleClaims_RoleId",
+                table: "RoleClaims",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "RoleNameIndex",
+                table: "Roles",
+                column: "NormalizedName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Subscriptions_PoliticianTwitterId",
                 table: "Subscriptions",
                 column: "PoliticianTwitterId");
@@ -593,6 +697,32 @@ namespace backend.Migrations
                 name: "IX_Tweets_PoliticianTwitterId_TwitterTweetId",
                 table: "Tweets",
                 columns: new[] { "PoliticianTwitterId", "TwitterTweetId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserClaims_UserId",
+                table: "UserClaims",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserLogins_UserId",
+                table: "UserLogins",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRoles_RoleId",
+                table: "UserRoles",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "EmailIndex",
+                table: "Users",
+                column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "UserNameIndex",
+                table: "Users",
+                column: "NormalizedUserName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -628,10 +758,25 @@ namespace backend.Migrations
                 name: "Party");
 
             migrationBuilder.DropTable(
+                name: "RoleClaims");
+
+            migrationBuilder.DropTable(
                 name: "Subscriptions");
 
             migrationBuilder.DropTable(
                 name: "Tweets");
+
+            migrationBuilder.DropTable(
+                name: "UserClaims");
+
+            migrationBuilder.DropTable(
+                name: "UserLogins");
+
+            migrationBuilder.DropTable(
+                name: "UserRoles");
+
+            migrationBuilder.DropTable(
+                name: "UserTokens");
 
             migrationBuilder.DropTable(
                 name: "UserVotes");
@@ -641,6 +786,9 @@ namespace backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "FlashcardCollections");
+
+            migrationBuilder.DropTable(
+                name: "Roles");
 
             migrationBuilder.DropTable(
                 name: "PollOptions");

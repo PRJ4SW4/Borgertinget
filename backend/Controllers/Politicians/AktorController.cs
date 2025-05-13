@@ -256,7 +256,7 @@ public class AktorController : ControllerBase{
 
 
                             var existingAktor = await _context.Aktor
-                                                        .FirstOrDefaultAsync(a => a.PoliticianId == aktorDto.Id);
+                                                        .FirstOrDefaultAsync(a => a.Id == aktorDto.Id);
                             Aktor currentAktor;
                             
                             if (apiStatus == "1") // Active Politician
@@ -273,13 +273,13 @@ public class AktorController : ControllerBase{
                                     currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle); // Use helper
                                     _context.Aktor.Add(currentAktor);
                                     addedCount++;
-                                     _logger.LogDebug("Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}", currentAktor.PoliticianId, currentAktor.navn, currentAktor.MinisterTitel);
+                                     _logger.LogDebug("Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}", currentAktor.Id, currentAktor.navn, currentAktor.MinisterTitel);
                                 }
                                 else // UPDATE
                                 {
                                     currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle, existingAktor); // Use helper to update
                                     updatedCount++;
-                                     _logger.LogDebug("Updating Aktor ID: {Id}, Name: {Name}, Title: {Title}", existingAktor.PoliticianId, existingAktor.navn, existingAktor.MinisterTitel);
+                                     _logger.LogDebug("Updating Aktor ID: {Id}, Name: {Name}, Title: {Title}", existingAktor.Id, existingAktor.navn, existingAktor.MinisterTitel);
                                 }
                                 if (!string.IsNullOrWhiteSpace(partyNameFromBio)){
                                     Party? partyEnt;
@@ -304,12 +304,12 @@ public class AktorController : ControllerBase{
                                     if (partyEnt.memberIds == null){
                                         partyEnt.memberIds = new List<int>();
                                     }
-                                    if (!partyEnt.memberIds.Contains(currentAktor.PoliticianId)){
-                                        partyEnt.memberIds.Add(currentAktor.PoliticianId);
+                                    if (!partyEnt.memberIds.Contains(currentAktor.Id)){
+                                        partyEnt.memberIds.Add(currentAktor.Id);
                                         pageMembersAddedToparties++;
-                                        _logger.LogDebug("Adding Aktor ID: {AktorId} to MemberIds of Party: {partyName}", currentAktor.PoliticianId, partyEnt.partyName);
+                                        _logger.LogDebug("Adding Aktor ID: {AktorId} to MemberIds of Party: {partyName}", currentAktor.Id, partyEnt.partyName);
                                     } else {
-                                        _logger.LogWarning("Aktor ID: {Id} has no party name in biography.", currentAktor.PoliticianId);
+                                        _logger.LogWarning("Aktor ID: {Id} has no party name in biography.", currentAktor.Id);
                                     }
                                 }
                             }
@@ -319,12 +319,12 @@ public class AktorController : ControllerBase{
                                     {
                                         // Also need to remove the AktorId from any Party.MemberIds lists
                                         var partiesContainingAktor = await _context.Party
-                                            .Where(p => p.memberIds != null && p.memberIds.Contains(existingAktor.PoliticianId))
+                                            .Where(p => p.memberIds != null && p.memberIds.Contains(existingAktor.Id))
                                             .ToListAsync();
 
                                         foreach(var party in partiesContainingAktor)
                                         {
-                                            party.memberIds?.Remove(existingAktor.PoliticianId);
+                                            party.memberIds?.Remove(existingAktor.Id);
                                             _context.Entry(party).State = EntityState.Modified; // Mark as modified
                                         }
 
@@ -388,11 +388,12 @@ public class AktorController : ControllerBase{
     {
         var aktor = existingAktor ?? new Aktor(); // Create new or use existing
 
-        aktor.PoliticianId = dto.Id; // Set ID always (PK)
+        aktor.Id = dto.Id; // Set ID always (PK)
         aktor.navn = dto.navn;
         aktor.fornavn = dto.fornavn;
         aktor.efternavn = dto.efternavn;
         aktor.biografi = dto.biografi;
+
         // Ensure DateTimeKind is set to Utc if values exist
         aktor.startdato = dto.startdato.HasValue ? DateTime.SpecifyKind(dto.startdato.Value, DateTimeKind.Utc) : null;
         aktor.slutdato = dto.slutdato.HasValue ? DateTime.SpecifyKind(dto.slutdato.Value, DateTimeKind.Utc) : null;
@@ -400,6 +401,8 @@ public class AktorController : ControllerBase{
         aktor.typeid = 5; // Assuming this fetch is only for politicians (typeid=5)
 
         // Map parsed fields
+        aktor.Party = bioDetails.GetValueOrDefault("Party") as string;
+        aktor.PartyShortname = bioDetails.GetValueOrDefault("PartyShortname") as string;
         aktor.Sex = bioDetails.GetValueOrDefault("Sex") as string;
         aktor.Born = bioDetails.GetValueOrDefault("Born") as string;
         aktor.EducationStatistic = bioDetails.GetValueOrDefault("EducationStatistic") as string;

@@ -260,14 +260,14 @@ namespace backend.Data
                     .OnDelete(DeleteBehavior.SetNull);
 
                 //ved merge skal nedestående være commented, da der ellers vi blive problemer med constraints i databasen
-                entity.HasData(
+                /*entity.HasData(
                     new PoliticianTwitterId
                     {
                         Id = 1,
                         TwitterUserId = "806068174567460864",
                         Name = "Statsministeriet",
                         TwitterHandle = "Statsmin",
-                        AktorId = null,
+                        AktorId = 138,
                     },
                     new PoliticianTwitterId
                     {
@@ -285,7 +285,7 @@ namespace backend.Data
                         TwitterHandle = "troelslundp",
                         AktorId = null,
                     }
-                );
+                );*/
             });
 
             modelBuilder.Entity<Tweet>(entity =>
