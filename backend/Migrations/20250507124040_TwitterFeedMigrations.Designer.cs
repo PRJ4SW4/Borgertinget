@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -12,9 +13,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250507124040_TwitterFeedMigrations")]
+    partial class TwitterFeedMigrations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,138 +25,6 @@ namespace backend.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
-
-                    b.ToTable("Roles", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ClaimType")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("RoleClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ClaimType")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
-                {
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProviderKey")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("text");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("LoginProvider", "ProviderKey");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserLogins", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("UserRoles", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("text");
-
-                    b.HasKey("UserId", "LoginProvider", "Name");
-
-                    b.ToTable("UserTokens", (string)null);
-                });
 
             modelBuilder.Entity("backend.Models.Aktor", b =>
                 {
@@ -327,58 +198,6 @@ namespace backend.Migrations
                     b.HasIndex("CollectionId");
 
                     b.ToTable("Flashcards");
-
-                    b.HasData(
-                        new
-                        {
-                            FlashcardId = 1,
-                            BackContentType = 0,
-                            BackText = "Mette Frederiksen",
-                            CollectionId = 1,
-                            DisplayOrder = 1,
-                            FrontContentType = 1,
-                            FrontImagePath = "/uploads/flashcards/mettef.png"
-                        },
-                        new
-                        {
-                            FlashcardId = 2,
-                            BackContentType = 0,
-                            BackText = "Lars Løkke Rasmussen",
-                            CollectionId = 1,
-                            DisplayOrder = 2,
-                            FrontContentType = 1,
-                            FrontImagePath = "/uploads/flashcards/larsl.png"
-                        },
-                        new
-                        {
-                            FlashcardId = 3,
-                            BackContentType = 0,
-                            BackText = "Inger Støjberg",
-                            CollectionId = 1,
-                            DisplayOrder = 3,
-                            FrontContentType = 0,
-                            FrontText = "Hvem er formand for Danmarksdemokraterne?"
-                        },
-                        new
-                        {
-                            FlashcardId = 4,
-                            BackContentType = 0,
-                            BackText = "Folkestyre",
-                            CollectionId = 2,
-                            DisplayOrder = 1,
-                            FrontContentType = 0,
-                            FrontText = "Hvad betyder 'Demokrati'?"
-                        },
-                        new
-                        {
-                            FlashcardId = 5,
-                            BackContentType = 0,
-                            BackText = "Statens budget for det kommende år",
-                            CollectionId = 2,
-                            DisplayOrder = 2,
-                            FrontContentType = 0,
-                            FrontText = "Hvad er 'Finansloven'?"
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>
@@ -664,60 +483,6 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("backend.Models.Party", b =>
-                {
-                    b.Property<int>("partyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
-
-                    b.Property<int?>("chairmanId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("history")
-                        .HasColumnType("text");
-
-                    b.Property<string>("memberIds")
-                        .HasColumnType("text");
-
-                    b.Property<string>("partyName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("partyProgram")
-                        .HasColumnType("text");
-
-                    b.Property<string>("partyShortName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("politics")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("secretaryId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("spokesmanId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("stats")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("viceChairmanId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("partyId");
-
-                    b.HasIndex("chairmanId");
-
-                    b.HasIndex("secretaryId");
-
-                    b.HasIndex("spokesmanId");
-
-                    b.HasIndex("viceChairmanId");
-
-                    b.ToTable("Party");
-                });
-
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
                     b.Property<int>("Id")
@@ -970,67 +735,31 @@ namespace backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
+                    b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<bool>("EmailConfirmed")
+                    b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
 
                     b.PrimitiveCollection<List<string>>("Roles")
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<string>("SecurityStamp")
+                    b.Property<string>("UserName")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.Property<string>("VerificationToken")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
-
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("backend.Models.UserVote", b =>
@@ -1060,57 +789,6 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("UserVotes");
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
-                {
-                    b.HasOne("backend.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
-                {
-                    b.HasOne("backend.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
-                {
-                    b.HasOne("backend.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -1154,34 +832,6 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
-                });
-
-            modelBuilder.Entity("backend.Models.Party", b =>
-                {
-                    b.HasOne("backend.Models.Aktor", "chairman")
-                        .WithMany()
-                        .HasForeignKey("chairmanId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("backend.Models.Aktor", "secretary")
-                        .WithMany()
-                        .HasForeignKey("secretaryId");
-
-                    b.HasOne("backend.Models.Aktor", "spokesman")
-                        .WithMany()
-                        .HasForeignKey("spokesmanId");
-
-                    b.HasOne("backend.Models.Aktor", "viceChairman")
-                        .WithMany()
-                        .HasForeignKey("viceChairmanId");
-
-                    b.Navigation("chairman");
-
-                    b.Navigation("secretary");
-
-                    b.Navigation("spokesman");
-
-                    b.Navigation("viceChairman");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
