@@ -22,8 +22,6 @@ namespace backend.Data
             : base(options) { }
 
         // --- DbSets ---
-        public DbSet<User> Users { get; set; } = null!;
-
         // --- Learning Environment Setup ---
         public DbSet<Page> Pages { get; set; } = null!;
         public DbSet<Question> Questions { get; set; } = null!;
@@ -298,6 +296,7 @@ namespace backend.Data
                 entity.Property(t => t.TwitterTweetId).IsRequired();
                 entity.Property(t => t.Text).IsRequired();
             });
+
 
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
