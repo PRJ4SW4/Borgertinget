@@ -44,12 +44,16 @@ export default function AdminBruger() {
       // Reset inputs
       setOldUsername("");
       setNewUsername("");
-    } catch (err: any) {
-      console.error(err);
-      if (err.response?.status === 404) {
-        alert("Fejl: Bruger ikke fundet");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 404) {
+          alert("Fejl: Bruger ikke fundet");
+        } else {
+          alert("Fejl under opdatering af brugernavn");
+        }
       } else {
-        alert("Fejl under opdatering af brugernavn");
+        console.error("Ukendt fejl:", err);
+        alert("Uventet fejl opstod.");
       }
     }
   };
@@ -58,7 +62,11 @@ export default function AdminBruger() {
     <div className="admin-bruger-container">
       <div style={{ position: "relative" }}>
         {" "}
-        <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
+        <img
+          src={BorgertingetIcon}
+          className="Borgertinget-Icon"
+          alt="Borgertinget Icon"
+        />
         <div style={{ position: "absolute", top: "10px", left: "10px" }}>
           {" "}
           <BackButton match={matchProp} destination="admin" />
@@ -69,9 +77,21 @@ export default function AdminBruger() {
       <h1>Ændre Brugernavn</h1>
 
       <div className="input-group">
-        <input type="text" required placeholder="Gammel brugernavn" value={oldUsername} onChange={(e) => setOldUsername(e.target.value)} />
+        <input
+          type="text"
+          required
+          placeholder="Gammel brugernavn"
+          value={oldUsername}
+          onChange={(e) => setOldUsername(e.target.value)}
+        />
 
-        <input type="text" required placeholder="Ny brugernavn" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
+        <input
+          type="text"
+          required
+          placeholder="Ny brugernavn"
+          value={newUsername}
+          onChange={(e) => setNewUsername(e.target.value)}
+        />
       </div>
 
       <button className="Button" onClick={editUsername}>
