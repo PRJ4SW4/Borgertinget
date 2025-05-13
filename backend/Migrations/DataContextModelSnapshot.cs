@@ -701,7 +701,6 @@ namespace backend.Migrations
                         new
                         {
                             Id = 1,
-                            AktorId = 138,
                             Name = "Statsministeriet",
                             TwitterHandle = "Statsmin",
                             TwitterUserId = "806068174567460864"
@@ -716,7 +715,6 @@ namespace backend.Migrations
                         new
                         {
                             Id = 3,
-                            AktorId = 206,
                             Name = "Troels Lund Poulsen",
                             TwitterHandle = "troelslundp",
                             TwitterUserId = "2965907578"

@@ -269,7 +269,7 @@ namespace backend.Data
                         TwitterUserId = "806068174567460864",
                         Name = "Statsministeriet",
                         TwitterHandle = "Statsmin",
-                        AktorId = 138,
+                        AktorId = null,
                     },
                     new PoliticianTwitterId
                     {
@@ -285,7 +285,7 @@ namespace backend.Data
                         TwitterUserId = "2965907578",
                         Name = "Troels Lund Poulsen",
                         TwitterHandle = "troelslundp",
-                        AktorId = 206,
+                        AktorId = null,
                     }
                 );
             });
