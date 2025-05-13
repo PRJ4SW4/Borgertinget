@@ -67,6 +67,8 @@ const HomePage: React.FC = () => {
           return `/flashcards/${result.collectionId}`; // Link to the collection
         }
         return `/flashcards`; // Fallback or a general flashcards page
+      case 'party':
+        return `/party/${result.partyName}`
       // Add more cases for other dataTypes if needed
       default:
         return '#'; // Default fallback link
@@ -79,6 +81,8 @@ const HomePage: React.FC = () => {
         return 'Politiker';
       case 'flashcard':
         return 'Flashcard';
+      case 'party':
+        return 'Parti';
       // more cases (learning env)
       default:
         return dataType;

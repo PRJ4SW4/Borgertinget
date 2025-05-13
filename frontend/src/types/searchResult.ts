@@ -19,4 +19,12 @@ export interface SearchDocument {
   backText?: string | null;
   frontImagePath?: string | null;
   backImagePath?: string | null;
+
+  partyName?: string | null;
+  partyShortNameFromParty: string | null;
+  partyProgram: string | null;
+  politics: string | null;
+  history: string | null;
+
+
 }

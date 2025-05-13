@@ -51,6 +51,7 @@ namespace backend.Services
             var operations = new List<IBulkOperation>();
             int aktorCount = 0;
             int flashcardCount = 0;
+            int partyCount = 0;
             const int batchSize = 1000; // Adjust batch size as needed
 
             try
@@ -115,6 +116,26 @@ namespace backend.Services
                 }
                 _logger.LogInformation("Finished mapping Flashcards.");
 
+                // Index Party
+                _logger.LogInformation("Fetching Parties");
+                var parties = await _dbContext.Party.AsNoTracking().ToListAsync();
+
+                foreach ( var party in parties){
+                    var searchDoc = MapPartyToSearchDocument(party);
+                    operations.Add(
+                        new BulkIndexOperation<SearchDocument>(searchDoc) {Id = searchDoc.Id}
+                    );
+                    partyCount++;
+                    if (operations.Count >= batchSize){
+                        await SendBulkRequestAsync(operations, cancellationToken);
+                        operations.Clear();
+                        _logger.LogInformation(
+                            "Indexed batch of {BatchSize} documents...", batchSize
+                        );
+                    }
+                }
+                _logger.LogInformation("Finished mapping Parties");
+
                 // Send any remaining documents
                 if (operations.Count > 0)
                 {
@@ -126,9 +147,10 @@ namespace backend.Services
                 }
 
                 _logger.LogInformation(
-                    "Finished indexing. Total Aktors: {AktorCount}, Total Flashcards: {FlashcardCount}",
+                    "Finished indexing. Total Aktors: {AktorCount}, Total Flashcards: {FlashcardCount}, Total Parties: {partyCount}",
                     aktorCount,
-                    flashcardCount
+                    flashcardCount,
+                    partyCount
                 );
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -219,6 +241,25 @@ namespace backend.Services
                 FrontImagePath = flashcard.FrontImagePath,
                 BackImagePath = flashcard.BackImagePath,
                 // No Aktor specific fields populated here
+            };
+        }
+        private SearchDocument MapPartyToSearchDocument(Party party){
+            var contentParts = new List<string?> {party.history, party.politics, party.partyProgram};
+            string? title = party.partyName;
+            return new SearchDocument{
+                Id = $"party-{party.partyId}",
+                DataType = "Party",
+                Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
+                Content = string.Join(" | ",
+                                        contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
+                LastUpdated = DateTime.UtcNow,
+
+                //Party Specific
+                partyName = party.partyName,
+                partyShortNameFromParty = party.partyShortName,
+                partyProgram = party.partyProgram,
+                politics = party.politics,
+                history = party.history,
             };
         }
 
