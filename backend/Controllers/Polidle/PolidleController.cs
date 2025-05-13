@@ -1,6 +1,7 @@
 using backend.Services;
 using backend.Interfaces.Services;
 using backend.DTO;
+using backend.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
@@ -35,16 +36,20 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<List<SearchListDto>>> GetAllPoliticians([FromQuery] string? search = null)
         {
-            _logger.LogInformation("Request received for politician summaries with search: '{SearchTerm}'.", search ?? "<null>");
+             // Rens 'search' før logning og før den sendes videre, HVIS den kun bruges til logning i service
+            // Hvis service bruger den til DB query, skal den originale bruges dér, og servicen selv sanitize før logning.
+            string sanitizedSearchForLog = LogSanitizer.Sanitize(search); // Rens kun til logning
+
+            _logger.LogInformation("Request received for politician summaries with search: '{SearchTerm}'.", sanitizedSearchForLog); // <<< RETTET HER
             try
             {
+                // Send den *originale* 'search' streng til servicen, da den skal bruges til at query databasen
                 var politicians = await _selectionService.GetAllPoliticiansForGuessingAsync(search);
                 return Ok(politicians);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching politicians with search term '{SearchTerm}'", search ?? "<null>");
-                // Generisk fejlbesked
+                _logger.LogError(ex, "Error fetching politicians with search term '{SearchTerm}'", sanitizedSearchForLog); // <<< RETTET HER
                 return StatusCode(StatusCodes.Status500InternalServerError, "An internal server error occurred while fetching politicians.");
             }
         }

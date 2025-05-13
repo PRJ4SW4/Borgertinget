@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Globalization; // For CultureInfo
 using System.Threading.Tasks;
+using backend.Interfaces.Utility;
+using backend.Services.Utility;
+using backend.Utils;
 
 namespace backend.Controllers
 {
@@ -19,11 +22,13 @@ namespace backend.Controllers
     {
         private readonly IDailySelectionService _selectionService;
         private readonly ILogger<PolidleAdminController> _logger; // Logger for denne specifikke controller
+        private readonly IDateTimeProvider _dateTimeProvider;
 
-        public PolidleAdminController(IDailySelectionService selectionService, ILogger<PolidleAdminController> logger)
+        public PolidleAdminController(IDailySelectionService selectionService, ILogger<PolidleAdminController> logger, IDateTimeProvider dateTimeProvider)
         {
             _selectionService = selectionService;
             _logger = logger;
+            _dateTimeProvider = dateTimeProvider;
         }
     #endregion
     #region Todays selection
@@ -66,13 +71,13 @@ namespace backend.Controllers
             }
             else
             {
-                targetDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                targetDate = _dateTimeProvider.TodayUtc;
                 if (!string.IsNullOrEmpty(date)) // Log kun advarsel hvis der blev *forsøgt* at angive en dato
                 {
-                     _logger.LogWarning("[Admin] Invalid date format provided ('{ProvidedDate}'). Expected yyyy-MM-dd. Falling back to today: {FallbackDate}", date, targetDate);
-                }
-                else
-                {
+                    _logger.LogWarning("[Admin] Invalid date format provided ('{ProvidedDate}'). Expected yyyy-MM-dd. Falling back to today: {FallbackDate}",
+                        LogSanitizer.Sanitize(date), // <<< RETTET HER
+                        targetDate);
+                }else{
                     _logger.LogInformation("[Admin] Manual trigger received for generating today's selections (date not specified). Using {FallbackDate}", targetDate);
                 }
             }

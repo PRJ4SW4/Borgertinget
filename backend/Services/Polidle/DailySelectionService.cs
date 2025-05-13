@@ -6,6 +6,7 @@ using backend.Interfaces.Utility; // For IDateTimeProvider
 using backend.Models;
 using backend.Data;
 using backend.Enums;
+using backend.Utils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -67,10 +68,13 @@ namespace backend.Services
 
         public async Task<List<SearchListDto>> GetAllPoliticiansForGuessingAsync(string? search = null)
         {
-            _logger.LogInformation("Fetching politicians for guessing. Search: '{SearchTerm}'", search ?? "<null>");
-            var aktors = await _aktorRepository.GetAllForSummaryAsync(search); // Max results håndteres i repo
+            string sanitizedSearchForLog = LogSanitizer.Sanitize(search); // Rens til logning
+            
+            _logger.LogInformation("Fetching politicians for guessing. Search: '{SearchTerm}'", sanitizedSearchForLog); // <<< RETTET HER
+            // Den *originale* 'search' streng bruges i _aktorRepository.GetAllForSummaryAsync(search)
+            var aktors = await _aktorRepository.GetAllForSummaryAsync(search);
             var dtos = _mapper.MapToSummaryDtoList(aktors);
-            _logger.LogInformation("Returning {Count} politician summaries. Search: '{SearchTerm}'", dtos.Count, search ?? "<null>");
+            _logger.LogInformation("Returning {Count} politician summaries. Search: '{SearchTerm}'", dtos.Count, sanitizedSearchForLog); // <<< RETTET HER
             return dtos;
         }
 
