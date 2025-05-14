@@ -61,6 +61,7 @@ public class AdministratorController : ControllerBase
         }
 
         var uploadsFolder = Path.Combine("wwwroot", "uploads", "flashcards");
+        // Does nothing if the directory is already there
         Directory.CreateDirectory(uploadsFolder);
 
         var fileName = Path.GetFileName(file.FileName);
