@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Text.Json;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace backend.Services.Politician
@@ -18,7 +18,7 @@ namespace backend.Services.Politician
 
                 string jsonResponse = await response.Content.ReadAsStringAsync();
                 Console.WriteLine("Raw JSON Response:");
-                Console.WriteLine(jsonResponse);  // Debugging output
+                Console.WriteLine(jsonResponse); // Debugging output
 
                 return JsonSerializer.Deserialize<T>(jsonResponse);
             }

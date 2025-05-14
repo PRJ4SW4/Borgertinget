@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using OpenSearch.Client;
 using backend.Models;
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using backend.Models; // Assuming your SearchDocument is here
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using backend.Services.Search;
+using OpenSearch.Client;
 
 namespace backend.Controllers
 {
@@ -168,6 +172,7 @@ namespace backend.Controllers
                 return StatusCode(500, "An internal server error occurred while fetching suggestions.");
             }
         }
+
         [HttpPost("ensure-and-reindex")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
