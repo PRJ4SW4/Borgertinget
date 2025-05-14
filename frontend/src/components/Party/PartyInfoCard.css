@@ -1,10 +1,9 @@
 .party-info-card {
-    background-color: #f8f8f8; /* Light grey background */
+    background-color: #f8f8f8; 
     padding: 20px;
     border-radius: 8px;
-    /* max-width: 350px; */ /* Adjust width as needed - Commented out for dynamic width */
-    width: fit-content; /* Makes the card's width adjust to its content */
-    min-width: 250px; /* Optional: set a minimum width if very short names look too narrow */
+    width: fit-content; 
+    min-width: fit-content; 
     margin: 20px auto; /* Center the card within its column if column is wider */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     color: #333; /* Default text color */
