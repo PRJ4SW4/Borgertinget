@@ -319,7 +319,7 @@ namespace backend.Controllers
                     _logger.LogError($"Fejl ved at linke eksternt login: {string.Join(", ", addLoginResult.Errors.Select(e => e.Description))}"); //
                     return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode("Kunne ikke linke Google konto.")}");
                 }
-                _logger.LogInformation($"Eksternt login linket for bruger: {appUser.UserName}"); //
+                _logger.LogInformation("Eksternt login linket for en bruger."); //
             }
             
             // Ryd den midlertidige eksterne cookie
