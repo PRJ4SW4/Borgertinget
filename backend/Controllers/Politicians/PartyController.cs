@@ -53,7 +53,7 @@ public class PartyController : ControllerBase{
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching party with name '{PartyName}'.", partyName);
+            _logger.LogError(ex, "Error fetching party'.");
             return StatusCode(500, "An error occurred while fetching the party.");
         }
     }
@@ -83,7 +83,7 @@ public class PartyController : ControllerBase{
 
             if (existingParty == null)
             {
-                _logger.LogWarning("Party with ID {PartyId} not found for update.", partyId);
+                _logger.LogWarning("Party with ID not found for update.");
                 return NotFound($"Party with ID {partyId} not found.");
             }
 
@@ -97,7 +97,7 @@ public class PartyController : ControllerBase{
                 {
                     existingParty.partyProgram = updateDto.partyProgram;
                     changesMade = true;
-                        _logger.LogInformation("Updating PartyProgram for Party ID {PartyId}.", partyId);
+                        _logger.LogInformation("Updating PartyProgram for Party ID.");
                 }
             }
 
@@ -107,7 +107,7 @@ public class PartyController : ControllerBase{
                 {
                     existingParty.history = updateDto.history;
                     changesMade = true;
-                    _logger.LogInformation("Updating History for Party ID {PartyId}.", partyId);
+                    _logger.LogInformation("Updating History for Party ID.");
                 }
             }
 
@@ -117,7 +117,7 @@ public class PartyController : ControllerBase{
                 {
                     existingParty.politics = updateDto.politics;
                     changesMade = true;
-                        _logger.LogInformation("Updating Poilitics for Party ID {PartyId}.", partyId);
+                        _logger.LogInformation("Updating Poilitics for Party ID.");
                 }
             }
 
@@ -125,11 +125,11 @@ public class PartyController : ControllerBase{
             if (changesMade)
             {
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Successfully updated details for Party ID {PartyId}.", partyId);
+                _logger.LogInformation("Successfully updated details for Party ID.");
             }
             else
             {
-                _logger.LogInformation("No changes detected for Party ID {PartyId}.", partyId);
+                _logger.LogInformation("No changes detected for Party ID.");
             }
 
             // --- Return Success Response ---
@@ -137,17 +137,17 @@ public class PartyController : ControllerBase{
         }
         catch (DbUpdateConcurrencyException dbEx) // Handle potential concurrency issues
         {
-                _logger.LogError(dbEx, "Concurrency error occurred while updating party ID {PartyId}.", partyId);
+                _logger.LogError(dbEx, "Concurrency error occurred while updating party ID.");
                 return StatusCode(500, "A concurrency error occurred while updating the party.");
         }
         catch (DbUpdateException dbEx)
         {
-            _logger.LogError(dbEx, "Database error occurred while updating party ID {PartyId}.", partyId);
+            _logger.LogError(dbEx, "Database error occurred while updating party ID.");
             return StatusCode(500, "A database error occurred while updating the party.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while updating party ID {PartyId}.", partyId);
+            _logger.LogError(ex, "An unexpected error occurred while updating party ID.");
             return StatusCode(500, "An unexpected error occurred.");
         }
     }

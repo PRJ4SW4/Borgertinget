@@ -43,7 +43,7 @@ namespace backend.Controllers
                 return BadRequest("Search query cannot be empty.");
             }
 
-            _logger.LogInformation("Received search query: '{Query}' for top {TopNResults} results", query, TopNResults);
+            _logger.LogInformation("Received search query: for top {TopNResults} results", TopNResults);
 
             try
             {
@@ -87,12 +87,12 @@ namespace backend.Controllers
                     return StatusCode(500, "An error occurred while searching.");
                 }
 
-                _logger.LogInformation("Search successful. Returning {Count} documents out of {TotalHits} total hits for query: '{Query}'", searchResponse.Documents.Count, searchResponse.Total, query);
+                _logger.LogInformation("Search successful. Returning {Count} documents out of {TotalHits} total hits", searchResponse.Documents.Count, searchResponse.Total);
                 return Ok(searchResponse.Documents);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An exception occurred during search operation for query: '{Query}'", query);
+                _logger.LogError(ex, "An exception occurred during search operation:");
                 return StatusCode(500, "An internal server error occurred.");
             }
         }
@@ -113,7 +113,7 @@ namespace backend.Controllers
                 return Ok(Enumerable.Empty<string>());
             }
 
-            _logger.LogInformation("Received suggestion request for prefix: '{Prefix}'", prefix);
+            _logger.LogInformation("Received suggestion request");
 
             try
             {
@@ -152,12 +152,12 @@ namespace backend.Controllers
                 
                 var distinctSuggestions = suggestions.Distinct().ToList();
 
-                _logger.LogInformation("Suggestion query successful. Returning {Count} distinct suggestions for prefix: '{Prefix}'", distinctSuggestions.Count, prefix);
+                _logger.LogInformation("Suggestion query successful. Returning {Count} distinct suggestions:'", distinctSuggestions.Count);
                 return Ok(distinctSuggestions);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An exception occurred during suggest operation for prefix: '{Prefix}'", prefix);
+                _logger.LogError(ex, "An exception occurred during suggest operation:");
                 return StatusCode(500, "An internal server error occurred while fetching suggestions.");
             }
         }
