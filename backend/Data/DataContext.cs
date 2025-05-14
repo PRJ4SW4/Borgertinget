@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic; // Required
+using System.Text.Json;          // Required
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq;
 using System.Text.Json; // Required
 using backend.DTO.Calendar;
@@ -50,7 +52,8 @@ namespace backend.Data
 
         public DbSet<Party> Party { get; set; }
 
-        // --- /Calendar Setup ---
+
+
 
         public DbSet<Aktor> Aktor { get; set; }
 

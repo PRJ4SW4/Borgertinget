@@ -1,453 +1,415 @@
-// Example: Services/SearchIndexingService.cs (New or Modified File)
-namespace backend.Services.Search;
-
+// backend/Services/Search/SearchIndexService.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using backend.Data; // Your DbContext
-using backend.Models; // Your models including Aktor, Flashcard, SearchDocument
+using backend.Data;
+using backend.Models;
 using backend.Models.Flashcards;
-using backend.Models.LearningEnvironment;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection; // For GetService
-using Microsoft.Extensions.Hosting; // For IHostApplicationLifetime or similar context
+using backend.Models.LearningEnvironment;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Npgsql; // Or your DB provider if not using Npgsql directly here
+using Npgsql;
 using OpenSearch.Client;
-using OpenSearch.Net; // For BulkResponse
+using OpenSearch.Net;
 
-// --- Assume you have configured and registered IOpenSearchClient via DI ---
-public class SearchIndexingService // Renamed for clarity
+namespace backend.Services.Search
 {
-    private readonly IOpenSearchClient _openSearchClient;
-    private readonly DataContext _dbContext; // Inject DbContext directly
-    private readonly ILogger<SearchIndexingService> _logger;
-    private const string IndexName = "borgertinget-search"; // Define your OpenSearch index name
-
-    public SearchIndexingService(
-        IOpenSearchClient openSearchClient,
-        DataContext dbContext,
-        ILogger<SearchIndexingService> logger
-    )
+    public class SearchIndexingService
     {
-        _openSearchClient =
-            openSearchClient ?? throw new ArgumentNullException(nameof(openSearchClient));
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+        private readonly IOpenSearchClient _openSearchClient;
+        private readonly DataContext _dbContext;
+        private readonly ILogger<SearchIndexingService> _logger;
+        private const string IndexName = "borgertinget-search";
 
-    public async Task RunFullIndexAsync(CancellationToken cancellationToken = default)
-    {
-        _logger.LogInformation(
-            "Starting full indexing from PostgreSQL to OpenSearch index '{IndexName}'...",
-            IndexName
-        );
-
-        var bulkRequest = new BulkRequest(IndexName);
-        var operations = new List<IBulkOperation>();
-        int aktorCount = 0;
-        int flashcardCount = 0;
-        int partyCount = 0;
-        int pagesCount = 0;
-        const int batchSize = 1000; // Adjust batch size as needed
-
-        try
+        public SearchIndexingService(
+            IOpenSearchClient openSearchClient,
+            DataContext dbContext,
+            ILogger<SearchIndexingService> logger
+        )
         {
-            // --- Index Aktors ---
-            _logger.LogInformation("Fetching Aktors from database...");
-            // Fetch in batches if the dataset is very large, but for now fetch all
-            var aktors = await _dbContext
-                .Aktor.AsNoTracking() // Improve performance for read-only operation
-                .Where(a => a.typeid == 5) // Assuming you only index politicians
-                .ToListAsync(cancellationToken);
+            _openSearchClient =
+                openSearchClient ?? throw new ArgumentNullException(nameof(openSearchClient));
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
-            _logger.LogInformation("Mapping {Count} Aktors for indexing...", aktors.Count);
-            foreach (var aktor in aktors)
-            {
-                var searchDoc = MapAktorToSearchDocument(aktor);
-                operations.Add(
-                    new BulkIndexOperation<SearchDocument>(searchDoc) { Id = searchDoc.Id }
-                );
-                aktorCount++;
-
-                if (operations.Count >= batchSize)
-                {
-                    await SendBulkRequestAsync(operations, cancellationToken);
-                    operations.Clear();
-                    _logger.LogInformation("Indexed batch of {BatchSize} documents...", batchSize);
-                }
-            }
-            _logger.LogInformation("Finished mapping Aktors.");
-
-            // --- Index Flashcards ---
-            _logger.LogInformation("Fetching Flashcards from database...");
-            var flashcards = await _dbContext
-                .Flashcards.AsNoTracking()
-                .Include(f => f.FlashcardCollection) // Include collection for title
-                .ToListAsync(cancellationToken);
-
-            _logger.LogInformation("Mapping {Count} Flashcards for indexing...", flashcards.Count);
-            foreach (var flashcard in flashcards)
-            {
-                var searchDoc = MapFlashcardToSearchDocument(flashcard);
-                operations.Add(
-                    new BulkIndexOperation<SearchDocument>(searchDoc) { Id = searchDoc.Id }
-                );
-                flashcardCount++;
-
-                if (operations.Count >= batchSize)
-                {
-                    await SendBulkRequestAsync(operations, cancellationToken);
-                    operations.Clear();
-                    _logger.LogInformation("Indexed batch of {BatchSize} documents...", batchSize);
-                }
-            }
-            _logger.LogInformation("Finished mapping Flashcards.");
-
-            // Index Party
-            _logger.LogInformation("Fetching Parties");
-            var parties = await _dbContext.Party.AsNoTracking().ToListAsync();
-
-            foreach (var party in parties)
-            {
-                var searchDoc = MapPartyToSearchDocument(party);
-                operations.Add(
-                    new BulkIndexOperation<SearchDocument>(searchDoc) { Id = searchDoc.Id }
-                );
-                partyCount++;
-                if (operations.Count >= batchSize)
-                {
-                    await SendBulkRequestAsync(operations, cancellationToken);
-                    operations.Clear();
-                    _logger.LogInformation("Indexed batch of {BatchSize} documents...", batchSize);
-                }
-            }
-            _logger.LogInformation("Finished mapping Parties");
-
-            //Index Learning env
-            _logger.LogInformation("Fetching pages");
-            var pages = await _dbContext.Pages.AsNoTracking().ToListAsync();
-
-            foreach (var page in pages)
-            {
-                var searchDoc = MapPageToSearchDocument(page);
-                operations.Add(
-                    new BulkIndexOperation<SearchDocument>(searchDoc) { Id = searchDoc.Id }
-                );
-                pagesCount++;
-                if (operations.Count >= batchSize)
-                {
-                    await SendBulkRequestAsync(operations, cancellationToken);
-                    operations.Clear();
-                }
-            }
-            _logger.LogInformation("Finished mapping pages");
-
-            // Send any remaining documents
-            if (operations.Count > 0)
-            {
-                await SendBulkRequestAsync(operations, cancellationToken);
-                _logger.LogInformation(
-                    "Indexed final batch of {Count} documents.",
-                    operations.Count
-                );
-            }
-
+        public async Task RunFullIndexAsync(CancellationToken cancellationToken = default)
+        {
             _logger.LogInformation(
-                "Finished indexing. Total Aktors: {AktorCount}, Total Flashcards: {FlashcardCount}, Total Parties: {partyCount}",
-                aktorCount,
-                flashcardCount,
-                partyCount
+                "Starting full indexing from PostgreSQL to OpenSearch index '{IndexName}'...",
+                IndexName
             );
+
+            // ... (rest of RunFullIndexAsync method remains the same - no changes needed here for mapping)
+            var bulkRequest = new BulkRequest(IndexName);
+            var operations = new List<IBulkOperation>();
+            int aktorCount = 0;
+            int flashcardCount = 0;
+            int partyCount = 0;
+            int pagesCount = 0;
+            const int batchSize = 300;
+
+            try
+            {
+                // --- Index Aktors ---
+                _logger.LogInformation("Fetching Aktors from database...");
+                var aktors = await _dbContext
+                    .Aktor.AsNoTracking()
+                    .Where(a => a.typeid == 5)
+                    .ToListAsync(cancellationToken);
+
+                _logger.LogInformation("Mapping {Count} Aktors for indexing...", aktors.Count);
+                foreach (var aktor in aktors)
+                {
+                    var searchDoc = MapAktorToSearchDocument(aktor);
+                    operations.Add(
+                        new BulkIndexOperation<SearchDocument>(searchDoc) { Id = searchDoc.Id }
+                    );
+                    aktorCount++;
+
+                    if (operations.Count >= batchSize)
+                    {
+                        await SendBulkRequestAsync(operations, cancellationToken);
+                        operations.Clear();
+                        _logger.LogInformation(
+                            "Indexed batch of {BatchSize} documents...",
+                            batchSize
+                        );
+                    }
+                }
+                _logger.LogInformation("Finished mapping Aktors.");
+
+                // --- Index Flashcards ---
+                _logger.LogInformation("Fetching Flashcards from database...");
+                var flashcards = await _dbContext
+                    .Flashcards.AsNoTracking()
+                    .Include(f => f.FlashcardCollection) // Include collection for title
+                    .ToListAsync(cancellationToken);
+
+                _logger.LogInformation(
+                    "Mapping {Count} Flashcards for indexing...",
+                    flashcards.Count
+                );
+                foreach (var flashcard in flashcards)
+                {
+                    var searchDoc = MapFlashcardToSearchDocument(flashcard);
+                    operations.Add(
+                        new BulkIndexOperation<SearchDocument>(searchDoc) { Id = searchDoc.Id }
+                    );
+                    flashcardCount++;
+
+                    if (operations.Count >= batchSize)
+                    {
+                        await SendBulkRequestAsync(operations, cancellationToken);
+                        operations.Clear();
+                        _logger.LogInformation(
+                            "Indexed batch of {BatchSize} documents...",
+                            batchSize
+                        );
+                    }
+                }
+                _logger.LogInformation("Finished mapping Flashcards.");
+
+                // Index Party
+                _logger.LogInformation("Fetching Parties");
+                var parties = await _dbContext.Party.AsNoTracking().ToListAsync(cancellationToken);
+
+                foreach ( var party in parties){
+                    var searchDoc = MapPartyToSearchDocument(party);
+                    operations.Add(
+                        new BulkIndexOperation<SearchDocument>(searchDoc) {Id = searchDoc.Id}
+                    );
+                    partyCount++;
+                    if (operations.Count >= batchSize){
+                        await SendBulkRequestAsync(operations, cancellationToken);
+                        operations.Clear();
+                        _logger.LogInformation(
+                            "Indexed batch of {BatchSize} documents...", batchSize
+                        );
+                    }
+                }
+                _logger.LogInformation("Finished mapping Parties.");
+
+                //Index Learning env
+                _logger.LogInformation("Fetching pages");
+                var pages = await _dbContext.Pages.AsNoTracking().ToListAsync(cancellationToken);
+
+                foreach(var page in pages){
+                    var searchDoc = MapPageToSearchDocument(page);
+                    operations.Add(
+                        new BulkIndexOperation<SearchDocument>(searchDoc) {Id = searchDoc.Id}
+                    );
+                    pagesCount++;
+                    if (operations.Count >= batchSize){
+                        await SendBulkRequestAsync(operations, cancellationToken);
+                        operations.Clear();
+                         _logger.LogInformation(
+                            "Indexed batch of {BatchSize} Page documents...",
+                            batchSize
+                        );
+                    }
+                }
+                _logger.LogInformation("Finished mapping pages.");
+
+                // Send any remaining documents
+                if (operations.Count > 0)
+                {
+                    await SendBulkRequestAsync(operations, cancellationToken);
+                    _logger.LogInformation(
+                        "Indexed final batch of {Count} documents.",
+                        operations.Count
+                    );
+                }
+
+                _logger.LogInformation(
+                    "Finished indexing. Total Aktors: {AktorCount}, Total Flashcards: {FlashcardCount}, Total Parties: {PartyCount}, Total Pages: {PagesCount}",
+                    aktorCount,
+                    flashcardCount,
+                    partyCount,
+                    pagesCount
+                );
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning("Indexing operation was cancelled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during indexing process.");
+                throw;
+            }
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+
+        private SearchDocument MapAktorToSearchDocument(Aktor aktor)
         {
-            _logger.LogWarning("Indexing operation was cancelled.");
-            // Handle cancellation gracefully if needed
+            var contentParts = new List<string?>
+            {
+                aktor.navn, aktor.Party, aktor.PartyShortname, aktor.MinisterTitel,
+                aktor.FunctionFormattedTitle, aktor.PositionsOfTrust, aktor.Sex, aktor.Born,
+            };
+            if (aktor.Spokesmen != null) contentParts.AddRange(aktor.Spokesmen);
+            if (aktor.Ministers != null) contentParts.AddRange(aktor.Ministers);
+            if (aktor.ParliamentaryPositionsOfTrust != null) contentParts.AddRange(aktor.ParliamentaryPositionsOfTrust);
+            if (aktor.Constituencies != null) contentParts.AddRange(aktor.Constituencies);
+            if (aktor.Educations != null) contentParts.AddRange(aktor.Educations);
+            if (aktor.Occupations != null) contentParts.AddRange(aktor.Occupations);
+
+            var suggestInputs = new List<string>();
+            if (!string.IsNullOrWhiteSpace(aktor.navn)) suggestInputs.Add(aktor.navn);
+            if (!string.IsNullOrWhiteSpace(aktor.Party)) suggestInputs.Add(aktor.Party);
+            if (!string.IsNullOrWhiteSpace(aktor.PartyShortname)) suggestInputs.Add(aktor.PartyShortname);
+
+            return new SearchDocument
+            {
+                Id = $"aktor-{aktor.Id}", DataType = "Aktor", Title = aktor.navn,
+                Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
+                LastUpdated = DateTime.UtcNow, AktorName = aktor.navn, Party = aktor.Party,
+                PartyShortname = aktor.PartyShortname, MinisterTitle = aktor.MinisterTitel,
+                Constituencies = aktor.Constituencies?.ToList(), // Ensure it's a List if not null
+                Suggest = suggestInputs.Any() ? new CompletionField { Input = suggestInputs } : null
+            };
         }
-        catch (Exception ex)
+
+        private SearchDocument MapFlashcardToSearchDocument(Flashcard flashcard)
         {
-            _logger.LogError(ex, "Error during indexing process.");
-            // Rethrow or handle exceptions appropriately
-            throw;
-        }
-    }
-
-    // Helper to map Aktor to the unified SearchDocument
-    private SearchDocument MapAktorToSearchDocument(Aktor aktor)
-    {
-        // Combine relevant text fields for searchable content
-        var contentParts = new List<string?>
-        {
-            aktor.navn,
-            aktor.Party,
-            aktor.PartyShortname,
-            aktor.MinisterTitel,
-            aktor.FunctionFormattedTitle,
-            aktor.PositionsOfTrust,
-            aktor.Sex,
-            aktor.Born,
-            // Add other text fields you want searchable here
-        };
-        contentParts.AddRange(aktor.Spokesmen ?? Enumerable.Empty<string>());
-        contentParts.AddRange(aktor.Ministers ?? Enumerable.Empty<string>());
-        contentParts.AddRange(aktor.ParliamentaryPositionsOfTrust ?? Enumerable.Empty<string>());
-        contentParts.AddRange(aktor.Constituencies ?? Enumerable.Empty<string>());
-        contentParts.AddRange(aktor.Educations ?? Enumerable.Empty<string>()); // Add educations
-        contentParts.AddRange(aktor.Occupations ?? Enumerable.Empty<string>()); // Add occupations
-
-        return new SearchDocument
-        {
-            Id = $"aktor-{aktor.Id}", // Unique ID for OpenSearch
-            DataType = "Aktor",
-            Title = aktor.navn, // Use full name as the primary title
-            Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))), // Simple concatenation
-            LastUpdated = DateTime.UtcNow, // Use UTC
-
-            // Aktor specific
-            AktorName = aktor.navn,
-            Party = aktor.Party,
-            PartyShortname = aktor.PartyShortname,
-            MinisterTitle = aktor.MinisterTitel,
-            Constituencies = aktor.Constituencies,
-            // Map other Aktor fields as needed
-        };
-    }
-
-    // Helper to map Flashcard to the unified SearchDocument
-    private SearchDocument MapFlashcardToSearchDocument(Flashcard flashcard)
-    {
-        // Combine front/back text for searchable content
-        var contentParts = new List<string?> { flashcard.FrontText, flashcard.BackText };
-
-        string? title =
-            flashcard.FrontContentType == FlashcardContentType.Text
+            var contentParts = new List<string?> { flashcard.FrontText, flashcard.BackText };
+            string? title = flashcard.FrontContentType == FlashcardContentType.Text
                 ? flashcard.FrontText
                 : $"Flashcard from '{flashcard.FlashcardCollection?.Title ?? "Unknown Collection"}'";
 
-        return new SearchDocument
-        {
-            Id = $"flashcard-{flashcard.FlashcardId}", // Unique ID
-            DataType = "Flashcard",
-            Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title, // Simple title logic, truncate if needed
-            Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
-            LastUpdated = DateTime.UtcNow, // Use UTC
-
-            // Flashcard specific
-            FlashcardId = flashcard.FlashcardId,
-            CollectionId = flashcard.CollectionId,
-            CollectionTitle = flashcard.FlashcardCollection?.Title,
-            FrontText = flashcard.FrontText,
-            BackText = flashcard.BackText,
-            FrontImagePath = flashcard.FrontImagePath,
-            BackImagePath = flashcard.BackImagePath,
-            // No Aktor specific fields populated here
-        };
-    }
-
-    private SearchDocument MapPartyToSearchDocument(Party party)
-    {
-        var contentParts = new List<string?> { party.history, party.politics, party.partyProgram };
-        string? title = party.partyName;
-        return new SearchDocument
-        {
-            Id = $"party-{party.partyId}",
-            DataType = "Party",
-            Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
-            Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
-            LastUpdated = DateTime.UtcNow,
-
-            //Party Specific
-            partyName = party.partyName,
-            partyShortNameFromParty = party.partyShortName,
-            partyProgram = party.partyProgram,
-            politics = party.politics,
-            history = party.history,
-        };
-    }
-
-    private SearchDocument MapPageToSearchDocument(Page page)
-    {
-        var contentParts = new List<string?> { page.Title, page.Content };
-        string? title = page.Title;
-        return new SearchDocument
-        {
-            Id = $"page-{page.Id}",
-            DataType = "Page",
-            Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
-            Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
-            LastUpdated = DateTime.UtcNow,
-
-            pageTitle = page.Title,
-            pageContent = page.Content,
-        };
-    }
-
-    private async Task SendBulkRequestAsync(
-        List<IBulkOperation> operations,
-        CancellationToken cancellationToken
-    )
-    {
-        if (!operations.Any())
-            return;
-
-        var bulkRequest = new BulkRequest(IndexName) { Operations = operations };
-        var response = await _openSearchClient.BulkAsync(bulkRequest, cancellationToken);
-
-        if (!response.IsValid)
-        {
-            _logger.LogError(
-                "Bulk indexing request failed: {ErrorReason}. DebugInfo: {DebugInfo}",
-                response.ServerError?.Error?.Reason ?? "N/A",
-                response.DebugInformation
-            );
-            // Throw or handle more granularly if needed
-            throw response.OriginalException
-                ?? new Exception("Bulk request failed with no specific exception.");
-        }
-        else if (response.Errors)
-        {
-            _logger.LogWarning("Bulk indexing completed with some item errors.");
-            foreach (var itemWithError in response.ItemsWithErrors)
+            var suggestInputs = new List<string?>();
+            if (!string.IsNullOrWhiteSpace(title)) suggestInputs.Add(title);
+            if (!string.IsNullOrWhiteSpace(flashcard.FrontText)) suggestInputs.Add(flashcard.FrontText);
+            if (!string.IsNullOrWhiteSpace(flashcard.BackText)) suggestInputs.Add(flashcard.BackText);
+            if (flashcard.FlashcardCollection != null && !string.IsNullOrWhiteSpace(flashcard.FlashcardCollection.Title))
             {
-                _logger.LogWarning(
-                    "Failed to index item {ItemId} (Type: {ItemType}): {ErrorReason}",
-                    itemWithError.Id,
-                    itemWithError.Index,
-                    itemWithError.Error?.Reason ?? "Unknown reason"
-                );
+                suggestInputs.Add(flashcard.FlashcardCollection.Title);
             }
-            // Decide if partial success is acceptable or should throw an error
+
+            return new SearchDocument
+            {
+                Id = $"flashcard-{flashcard.FlashcardId}", DataType = "Flashcard",
+                Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
+                Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
+                LastUpdated = DateTime.UtcNow, FlashcardId = flashcard.FlashcardId,
+                CollectionId = flashcard.CollectionId, CollectionTitle = flashcard.FlashcardCollection?.Title,
+                FrontText = flashcard.FrontText, BackText = flashcard.BackText,
+                FrontImagePath = flashcard.FrontImagePath, BackImagePath = flashcard.BackImagePath,
+                Suggest = suggestInputs.Any(s => !string.IsNullOrWhiteSpace(s)) ? new CompletionField { Input = suggestInputs.Where(s => !string.IsNullOrWhiteSpace(s)).ToList()! } : null
+            };
         }
-        else
+
+        private SearchDocument MapPartyToSearchDocument(Party party)
         {
-            _logger.LogDebug(
-                "Successfully indexed bulk request with {Count} operations.",
-                operations.Count
-            );
+            var contentParts = new List<string?> { party.history, party.politics, party.partyProgram };
+            string? title = party.partyName;
+            var suggestInputs = new List<string>();
+            if (!string.IsNullOrWhiteSpace(party.partyName)) suggestInputs.Add(party.partyName);
+            if (!string.IsNullOrWhiteSpace(party.partyShortName)) suggestInputs.Add(party.partyShortName);
+
+            return new SearchDocument
+            {
+                Id = $"party-{party.partyId}", DataType = "Party",
+                Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
+                Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
+                LastUpdated = DateTime.UtcNow, partyName = party.partyName,
+                partyShortNameFromParty = party.partyShortName, partyProgram = party.partyProgram,
+                politics = party.politics, history = party.history,
+                Suggest = suggestInputs.Any() ? new CompletionField { Input = suggestInputs } : null
+            };
+        }
+
+        private SearchDocument MapPageToSearchDocument(Page page)
+        {
+            var contentParts = new List<string?> { page.Title, page.Content };
+            string? title = page.Title;
+            var suggestInputs = new List<string>();
+            if (!string.IsNullOrWhiteSpace(page.Title)) suggestInputs.Add(page.Title);
+
+            return new SearchDocument
+            {
+                Id = $"page-{page.Id}", DataType = "Page",
+                Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
+                Content = string.Join(" | ", contentParts.Where(s => !string.IsNullOrWhiteSpace(s))),
+                LastUpdated = DateTime.UtcNow, pageTitle = page.Title, pageContent = page.Content,
+                Suggest = suggestInputs.Any() ? new CompletionField { Input = suggestInputs } : null
+            };
+        }
+
+        private async Task SendBulkRequestAsync(List<IBulkOperation> operations, CancellationToken cancellationToken)
+        {
+            if (!operations.Any()) return;
+            var bulkRequest = new BulkRequest(IndexName) { Operations = operations };
+            var response = await _openSearchClient.BulkAsync(bulkRequest, cancellationToken);
+
+            if (!response.IsValid)
+            {
+                _logger.LogError("Bulk indexing request failed: {ErrorReason}. DebugInfo: {DebugInfo}",
+                    response.ServerError?.Error?.Reason ?? "N/A", response.DebugInformation);
+                throw response.OriginalException ?? new Exception("Bulk request failed with no specific exception.");
+            }
+            else if (response.Errors)
+            {
+                _logger.LogWarning("Bulk indexing completed with some item errors.");
+                foreach (var itemWithError in response.ItemsWithErrors)
+                {
+                    _logger.LogWarning("Failed to index item {ItemId} (Type: {ItemType}): {ErrorReason}",
+                        itemWithError.Id, itemWithError.Index, itemWithError.Error?.Reason ?? "Unknown reason");
+                }
+            }
+            else
+            {
+                _logger.LogDebug("Successfully indexed bulk request with {Count} operations.", operations.Count);
+            }
         }
     }
-}
-
-public static class SearchIndexSetup
-{
-    public static async Task EnsureIndexExistsWithMapping(IServiceProvider services)
+    public static class SearchIndexSetup
     {
-        // Resolve services needed
-        var client = services.GetRequiredService<IOpenSearchClient>();
-        var logger = services.GetRequiredService<ILogger<Program>>(); // Or appropriate logger category
-        const string indexName = "borgertinget-search"; // Use the same index name as in your indexing service
-
-        logger.LogInformation("Checking if index '{IndexName}' exists...", indexName);
-
-        // 1. Check if the index already exists
-        var indexExistsResponse = await client.Indices.ExistsAsync(indexName);
-
-        if (!indexExistsResponse.IsValid)
+        public static async Task EnsureIndexExistsWithMapping(IServiceProvider services)
         {
-            logger.LogError(
-                "Failed to check index existence for '{IndexName}'. Error: {Error}",
-                indexName,
-                indexExistsResponse.ServerError?.Error?.Reason
-                    ?? indexExistsResponse.DebugInformation
-            );
-            // Handle error appropriately - maybe throw or exit startup
-            return;
-        }
+            var client = services.GetRequiredService<IOpenSearchClient>();
+            var logger = services.GetRequiredService<ILogger<SearchIndexingService>>(); // Changed logger category
+            const string indexName = "borgertinget-search";
 
-        if (indexExistsResponse.Exists)
-        {
-            logger.LogInformation("Index '{IndexName}' already exists.", indexName);
-            // Optional: You could check if the existing mapping needs updates here using GetMapping API,
-            // but modifying existing mappings is often limited.
-            return;
-        }
+            logger.LogInformation("[SearchIndexSetup] Starting EnsureIndexExistsWithMapping for index '{IndexName}'.", indexName);
 
-        // 2. Create the index with the explicit mapping
-        logger.LogInformation(
-            "Index '{IndexName}' does not exist. Creating index with mapping...",
-            indexName
-        );
+            var indexExistsResponse = await client.Indices.ExistsAsync(indexName);
 
-        var createIndexResponse = await client.Indices.CreateAsync(
-            indexName,
-            c =>
-                c.Map<SearchDocument>(m =>
-                    m // Use the C# model type
-                    .Properties(ps =>
-                        ps
+            // --- MODIFIED LOGIC TO HANDLE 404 CORRECTLY ---
+            bool indexTrulyExists = false;
+            if (indexExistsResponse.IsValid) // If the response is considered valid by the client
+            {
+                indexTrulyExists = indexExistsResponse.Exists;
+            }
+            else if (indexExistsResponse.ApiCall is { Success: true, HttpStatusCode: 404 }) // Specifically handle the 404 case
+            {
+                logger.LogInformation("[SearchIndexSetup] Index '{IndexName}' does not exist (confirmed by 404).", indexName);
+                indexTrulyExists = false;
+            }
+            else // Any other invalid response is an actual error
+            {
+                logger.LogError("[SearchIndexSetup] Failed to check index existence for '{IndexName}'. Status: {StatusCode}. Error: {Error}. DebugInfo: {DebugInfo}",
+                    indexName,
+                    indexExistsResponse.ApiCall?.HttpStatusCode,
+                    indexExistsResponse.ServerError?.Error?.Reason ?? "N/A",
+                    indexExistsResponse.DebugInformation);
+                return; // Exit if we can't reliably determine existence
+            }
+            // --- END OF MODIFIED LOGIC ---
+
+            if (indexTrulyExists)
+            {
+                logger.LogInformation("[SearchIndexSetup] Index '{IndexName}' already exists. Verifying 'suggest' field mapping...", indexName);
+                // You might want to add logic here to GET the current mapping and verify it.
+                // For now, we'll assume if it exists, we won't try to recreate or update mapping.
+                // If issues persist, you might need to delete and recreate the index if the mapping is wrong.
+                logger.LogInformation("[SearchIndexSetup] Index '{IndexName}' exists. If 'suggest' field is not working as expected, consider deleting the index manually and restarting the application to ensure the latest mapping is applied.", indexName);
+                return;
+            }
+
+            // If we reach here, indexTrulyExists is false, so we create the index.
+            logger.LogInformation("[SearchIndexSetup] Index '{IndexName}' does not exist. Attempting to create index with fully explicit mapping...", indexName);
+
+            var createIndexResponse = await client.Indices.CreateAsync(indexName, c => c
+                .Map(m => m
+                    .Properties<SearchDocument>(ps => ps
                         // --- Common Fields ---
-                        .Keyword(k => k.Name(p => p.Id)) // Keyword for exact matching ID
-                            .Keyword(k => k.Name(p => p.DataType)) // Keyword for filtering type
-                            .Text(t =>
-                                t.Name(p => p.Title) // Text for full-text search on title
-                                    .Fields(f =>
-                                        f // Add keyword sub-field for exact matching/sorting
-                                        .Keyword(k => k.Name("keyword").IgnoreAbove(256)) // Common pattern
-                                    )
-                            )
-                            .Text(t =>
-                                t.Name(p => p.Content) // Text for main content search
-                            // You can customize the analyzer here if needed, e.g., .Analyzer("danish")
-                            )
-                            .Date(d => d.Name(p => p.LastUpdated)) // Date type
-                            // --- Aktor Specific Fields ---
-                            .Text(t =>
-                                t.Name(p => p.AktorName)
-                                    .Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256)))
-                            )
-                            .Text(t =>
-                                t.Name(p => p.Party)
-                                    .Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256)))
-                            )
-                            .Keyword(k => k.Name(p => p.PartyShortname)) // Usually an exact match term
-                            .Keyword(k => k.Name(p => p.PictureUrl).Index(false)) // URLs often don't need indexing
-                            .Text(t =>
-                                t.Name(p => p.MinisterTitle)
-                                    .Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256)))
-                            )
-                            // For lists like Constituencies, map as text/keyword based on search needs
-                            .Text(t =>
-                                t.Name(p => p.Constituencies)
-                                    .Fields(f => f.Keyword(k => k.Name("keyword")))
-                            )
-                            // --- Flashcard Specific Fields ---
-                            .Number(n => n.Name(p => p.FlashcardId).Type(NumberType.Integer)) // Explicit number type
-                            .Number(n => n.Name(p => p.CollectionId).Type(NumberType.Integer))
-                            .Text(t =>
-                                t.Name(p => p.CollectionTitle)
-                                    .Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256)))
-                            )
-                            .Text(t => t.Name(p => p.FrontText)) // Analyze front text
-                            .Text(t => t.Name(p => p.BackText)) // Analyze back text
-                            .Keyword(k => k.Name(p => p.FrontImagePath).Index(false)) // Don't index image paths for search usually
-                            .Keyword(k => k.Name(p => p.BackImagePath).Index(false))
-                    // --- Optional: Completion Suggester Field ---
-                    // .Completion(cp => cp.Name(p => p.Suggest))
+                        .Keyword(k => k.Name(p => p.Id))
+                        .Keyword(k => k.Name(p => p.DataType))
+                        .Text(t => t.Name(p => p.Title).Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256))))
+                        .Text(t => t.Name(p => p.Content))
+                        .Date(d => d.Name(p => p.LastUpdated))
+                        // --- Aktor Specific Fields ---
+                        .Text(t => t.Name(p => p.AktorName).Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256))))
+                        .Text(t => t.Name(p => p.Party).Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256))))
+                        .Keyword(k => k.Name(p => p.PartyShortname))
+                        .Keyword(k => k.Name(p => p.PictureUrl).Index(false))
+                        .Text(t => t.Name(p => p.MinisterTitle).Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256))))
+                        .Text(t => t.Name(p => p.Constituencies).Fields(f => f.Keyword(k => k.Name("keyword"))))
+                        // --- Flashcard Specific Fields ---
+                        .Number(n => n.Name(p => p.FlashcardId).Type(NumberType.Integer))
+                        .Number(n => n.Name(p => p.CollectionId).Type(NumberType.Integer))
+                        .Text(t => t.Name(p => p.CollectionTitle).Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256))))
+                        .Text(t => t.Name(p => p.FrontText))
+                        .Text(t => t.Name(p => p.BackText))
+                        .Keyword(k => k.Name(p => p.FrontImagePath).Index(false))
+                        .Keyword(k => k.Name(p => p.BackImagePath).Index(false))
+                        // --- Party Specific Fields (from SearchDocument) ---
+                        .Text(t => t.Name(p => p.partyName).Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256))))
+                        .Keyword(k => k.Name(p => p.partyShortNameFromParty))
+                        .Text(t => t.Name(p => p.partyProgram))
+                        .Text(t => t.Name(p => p.politics))
+                        .Text(t => t.Name(p => p.history))
+                        // --- Page Specific Fields (from SearchDocument) ---
+                        .Text(t => t.Name(p => p.pageTitle).Fields(f => f.Keyword(k => k.Name("keyword").IgnoreAbove(256))))
+                        .Text(t => t.Name(p => p.pageContent))
+                        // --- CRUCIAL: Explicitly map the 'Suggest' field as Completion ---
+                        .Completion(cp => cp
+                            .Name(p => p.Suggest) // This should map SearchDocument.Suggest
+                        )
                     )
-                // You can also add Index Settings here (e.g., number of shards/replicas)
-                // .Settings(s => s.NumberOfShards(1).NumberOfReplicas(0)) // Example for local dev
                 )
-        );
+            );
 
-        if (!createIndexResponse.IsValid)
-        {
-            logger.LogError(
-                "Failed to create index '{IndexName}'. Error: {Error}",
-                indexName,
-                createIndexResponse.ServerError?.Error?.Reason
-                    ?? createIndexResponse.DebugInformation
-            );
-            // Handle error
-        }
-        else
-        {
-            logger.LogInformation(
-                "Successfully created index '{IndexName}' with explicit mapping.",
-                indexName
-            );
+            if (!createIndexResponse.IsValid)
+            {
+                logger.LogError("[SearchIndexSetup] Failed to create index '{IndexName}'. Error: {Error}. DebugInfo: {DebugInfo}",
+                    indexName, createIndexResponse.ServerError?.Error?.Reason ?? "N/A", createIndexResponse.DebugInformation);
+                // Log the full exception if available
+                if (createIndexResponse.OriginalException != null)
+                {
+                    logger.LogError(createIndexResponse.OriginalException, "[SearchIndexSetup] Exception during index creation for '{IndexName}'.", indexName);
+                }
+            }
+            else
+            {
+                logger.LogInformation("[SearchIndexSetup] Successfully created index '{IndexName}'.", indexName);
+            }
+            logger.LogInformation("[SearchIndexSetup] Finished EnsureIndexExistsWithMapping for index '{IndexName}'.", indexName);
         }
     }
 }
