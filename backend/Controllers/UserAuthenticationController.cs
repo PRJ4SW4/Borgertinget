@@ -341,7 +341,8 @@ namespace backend.Controllers
             }
             else if (!string.IsNullOrEmpty(returnUrl))
             {
-                _logger.LogWarning("Ignorerer ugyldig returnUrl ('{OriginalReturnUrl}') modtaget i HandleGoogleCallback for redirect til LoginSuccessPage.", returnUrl);
+                var sanitizedReturnUrl = returnUrl.Replace("\n", "").Replace("\r", "");
+                _logger.LogWarning("Ignorerer ugyldig returnUrl ('{OriginalReturnUrl}') modtaget i HandleGoogleCallback for redirect til LoginSuccessPage.", sanitizedReturnUrl);
             }
 
             string urlForLoginSuccessPage = QueryHelpers.AddQueryString($"{frontendBaseUrl}{loginSuccessPathOnFrontend}", queryParams);
