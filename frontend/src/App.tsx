@@ -27,13 +27,14 @@ import QuoteMode from "./pages/PolidlePage/QuoteMode/QuoteMode";
 import FotoBlurMode from "./pages/PolidlePage/FotoBlurMode/FotoBlurMode";
 
 import EmailVerification from "./utils/useEmailVerification"; // Handles email verification logic.
-
-// State hook for the JWT authentication token.
-// Initializes state from localStorage to persist login status.
+import LoginSuccessPage from "./pages/LoginSuccessPage"; // Handles post-login redirection.
+// Navbar and Footer are rendered via MainLayout.
+// The main application component.
 function App() {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("jwt")
-  );
+  
+  // State hook for the JWT authentication token.
+  // Initializes state from localStorage to persist login status.
+  const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
   const handleSetToken = (newToken: string | null) => {
     setToken(newToken);
     if (newToken) {
@@ -75,11 +76,11 @@ function App() {
       {/* <<< Lukket </Route> her */}
       {/* --- Public Routes (No MainLayout, No login required) --- */}
       <Route path="/login" element={<Login setToken={handleSetToken} />} />
-      <Route path="/login-success" element={<></>} />{" "}
-      <Route
-        path="/verify"
-        element={<EmailVerification onVerified={() => {}} onError={() => {}} />}
-      />
+      {/* Post-login success/callback route. */}
+      <Route path="/login-success" element={<LoginSuccessPage setToken={handleSetToken} />} /> 
+      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={(message) => { console.error("Email verification error:", message); }}/>} />
+
+
       {/* --- Protected Routes using MainLayout --- */}
       {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}
       {/* All nested routes inherit the layout and protection. */}

@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+// google stuff
+using System.Web;
 using backend.Data;
 using backend.Enums;
 using backend.Hubs;
@@ -23,6 +25,7 @@ using backend.Services.Search;
 using backend.Services.Selection;
 using backend.Services.Utility;
 using backend.utils;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -143,6 +146,7 @@ builder
             // THIS LINE ensures ASP.NET picks up "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
             // as the user's role claim.
             RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.Name,
         };
         // Indsæt event hooks til fejllogning
         options.Events = new JwtBearerEvents
@@ -182,13 +186,58 @@ builder
                 return Task.CompletedTask;
             },
         };
-    });
+    })
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    {
+        IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleOAuth");
+        options.ClientId = googleAuthNSection["ClientId"] ?? throw new InvalidOperationException("Google ClientId ikke fundet.");
+        options.ClientSecret = googleAuthNSection["ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret ikke fundet.");
+        options.CallbackPath = "/signin-google"; 
+        options.Events.OnTicketReceived = ctx => 
+        {
+            return Task.CompletedTask;
+        };
+        options.Events.OnRemoteFailure = context => {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError("Google Remote Failure: {FailureMessage}", context.Failure?.Message);
+            context.Response.Redirect("/error?message=" + HttpUtility.UrlEncode("Google login fejlede."));
+            context.HandleResponse(); // Stop videre behandling
+            return Task.CompletedTask;
+        };
+    });//.AddCookie(IdentityConstants.ExternalScheme);
+
+// ASP.NET Core Identity bruger cookies til at håndtere det *eksterne login flow* i led af Oauth.
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5); 
+    options.SlidingExpiration = true;
+
+    // Forhindr Identity i at redirecte API-kald til login-sider
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
 
 // Authorization for Admin and User roles
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("RequireAdministratorRole", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
+    options.AddPolicy(
+        "RequireAdministratorRole",
+        policy => policy.RequireRole("Admin")
+    );
+    options.AddPolicy(
+        "UserOrAdmin",
+        policy => policy.RequireRole("User", "Admin")
+    );
 });
 
 // Swagger
@@ -265,9 +314,6 @@ builder.Services.AddControllers(); /* .AddJsonOptions(options =>
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     });*/
 
-//Search indexing service
-builder.Services.AddScoped<SearchIndexingService>();
-
 builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
 
 //builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
@@ -276,6 +322,9 @@ builder.Services.AddSingleton<
     backend.Services.Utility.DateTimeProvider
 >();
 builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
+
+//Search indexing service
+builder.Services.AddScoped<SearchIndexingService>();
 
 // For altinget scraping
 builder.Services.AddHostedService<AltingetScraperServiceScheduler>();
