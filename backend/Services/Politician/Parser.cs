@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
 
-namespace backend.Services
+namespace backend.Services.Politician
 {
     public static class BioParser
     {

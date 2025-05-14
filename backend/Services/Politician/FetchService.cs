@@ -10,7 +10,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace backend.Services.fetchService{
+namespace backend.Services.Politician{
     public class FetchService : IFetchService{
         private readonly DataContext _context;
         private readonly HttpService _httpService; // Assuming HttpService is still used
