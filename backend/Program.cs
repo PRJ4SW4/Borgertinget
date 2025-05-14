@@ -11,6 +11,7 @@ using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
+using backend.Services.fetchService; 
 using backend.Services.LearningEnvironment;
 using backend.Services.Search;
 using backend.utils;
@@ -210,6 +211,7 @@ builder.Services.AddScoped<EmailService>();
 
 //oda.ft crawler
 builder.Services.AddScoped<HttpService>();
+builder.Services.AddScoped<IFetchService, FetchService>(); 
 
 builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHttpClient<TwitterService>();
