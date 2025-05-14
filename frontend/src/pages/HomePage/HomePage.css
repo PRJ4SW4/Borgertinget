@@ -47,6 +47,7 @@
     margin-left: auto; /* Centers the container */
     margin-right: auto; /* Centers the container */
     margin-bottom: 20px;
+    position: relative;
   }
   .search-results-container{
     margin-top: 15px;
@@ -73,6 +74,53 @@
     color: #ffffff; /* White text color */
     outline: none; /* Removes default browser focus outline */
   }
+
+.search-suggestions-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 100%; /* Position below the input */
+  left: 0;
+  right: 0;
+  background-color: #fff; /* Or your desired background */
+  border: 1px solid #ccc;
+  border-top: none; /* Optional: if input has bottom border */
+  z-index: 1000; /* Ensure it's above other content */
+  max-height: 200px; /* Or your desired max height */
+  overflow-y: auto;
+  border-radius: 0 0 8px 8px; /* Match input's bottom corners if rounded */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.suggestion-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  color: #333; /* Text color for suggestions */
+  border-bottom: 1px solid #eee; /* Separator line */
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f0f0; /* Hover effect */
+}
+
+.suggestion-item.loading,
+.suggestion-item.no-suggestions {
+  padding: 10px 15px;
+  color: #777;
+  cursor: default;
+}
+
+/* Adjust search results container if suggestions overlap or spacing is needed */
+.search-results-container {
+  margin-top: 5px; /* Example: Add some space if suggestions are shown above it */
+}
+
+
 
   /* Placeholder text styling */
   .hero-search-input::placeholder {
@@ -158,14 +206,14 @@
 }
 
 .result-type-badge.type-politiker {
-  background-color: #007bff; /* Blue for Aktor */
+  background-color: #007bff; 
 }
 
 .result-type-badge.type-flashcard {
-  background-color: #28a745; /* Green for Flashcard */
+  background-color: #28a745; 
 }
 .result-type-badge.type-parti {
-  background-color: #ffA500; /* Green for Flashcard */
+  background-color: #ffA500;
 }
 
 .result-type-badge.type-læringsside {

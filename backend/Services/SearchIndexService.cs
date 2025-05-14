@@ -4,30 +4,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using backend.Data; // Your DbContext
-using backend.Models; // Your models including Aktor, Flashcard, SearchDocument
+using backend.Data;
+using backend.Models;
 using backend.Models.Flashcards;
 using Microsoft.EntityFrameworkCore;
 using backend.Models.LearningEnvironment;
-using Microsoft.Extensions.DependencyInjection; // For GetService
-using Microsoft.Extensions.Hosting; // For IHostApplicationLifetime or similar context
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Npgsql; // Or your DB provider if not using Npgsql directly here
+using Npgsql; 
 using OpenSearch.Client;
-using OpenSearch.Net; // For BulkResponse
+using OpenSearch.Net;
 
-// --- Assume you have configured and registered IOpenSearchClient via DI ---
 
 
 
 namespace backend.Services
 {
-    public class SearchIndexingService // Renamed for clarity
+    public class SearchIndexingService 
     {
         private readonly IOpenSearchClient _openSearchClient;
-        private readonly DataContext _dbContext; // Inject DbContext directly
+        private readonly DataContext _dbContext;
         private readonly ILogger<SearchIndexingService> _logger;
-        private const string IndexName = "borgertinget-search"; // Define your OpenSearch index name
+        private const string IndexName = "borgertinget-search";
 
         public SearchIndexingService(
             IOpenSearchClient openSearchClient,
@@ -54,16 +53,15 @@ namespace backend.Services
             int flashcardCount = 0;
             int partyCount = 0;
             int pagesCount = 0;
-            const int batchSize = 1000; // Adjust batch size as needed
+            const int batchSize = 300;
 
             try
             {
                 // --- Index Aktors ---
                 _logger.LogInformation("Fetching Aktors from database...");
-                // Fetch in batches if the dataset is very large, but for now fetch all
                 var aktors = await _dbContext
-                    .Aktor.AsNoTracking() // Improve performance for read-only operation
-                    .Where(a => a.typeid == 5) // Assuming you only index politicians
+                    .Aktor.AsNoTracking()
+                    .Where(a => a.typeid == 5) 
                     .ToListAsync(cancellationToken);
 
                 _logger.LogInformation("Mapping {Count} Aktors for indexing...", aktors.Count);
@@ -175,12 +173,10 @@ namespace backend.Services
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 _logger.LogWarning("Indexing operation was cancelled.");
-                // Handle cancellation gracefully if needed
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during indexing process.");
-                // Rethrow or handle exceptions appropriately
                 throw;
             }
         }
@@ -199,25 +195,30 @@ namespace backend.Services
                 aktor.PositionsOfTrust,
                 aktor.Sex,
                 aktor.Born,
-                // Add other text fields you want searchable here
             };
             contentParts.AddRange(aktor.Spokesmen ?? Enumerable.Empty<string>());
             contentParts.AddRange(aktor.Ministers ?? Enumerable.Empty<string>());
             contentParts.AddRange(aktor.ParliamentaryPositionsOfTrust ?? Enumerable.Empty<string>());
             contentParts.AddRange(aktor.Constituencies ?? Enumerable.Empty<string>());
-            contentParts.AddRange(aktor.Educations ?? Enumerable.Empty<string>()); // Add educations
-            contentParts.AddRange(aktor.Occupations ?? Enumerable.Empty<string>()); // Add occupations
+            contentParts.AddRange(aktor.Educations ?? Enumerable.Empty<string>()); 
+            contentParts.AddRange(aktor.Occupations ?? Enumerable.Empty<string>());
+
+            
+            var suggestInputs = new List<string>();
+            if (!string.IsNullOrWhiteSpace(aktor.navn)) suggestInputs.Add(aktor.navn);
+            if (!string.IsNullOrWhiteSpace(aktor.Party)) suggestInputs.Add(aktor.Party);
+            if (!string.IsNullOrWhiteSpace(aktor.PartyShortname)) suggestInputs.Add(aktor.PartyShortname);
 
             return new SearchDocument
             {
-                Id = $"aktor-{aktor.Id}", // Unique ID for OpenSearch
+                Id = $"aktor-{aktor.Id}",
                 DataType = "Aktor",
-                Title = aktor.navn, // Use full name as the primary title
+                Title = aktor.navn,
                 Content = string.Join(
                     " | ",
                     contentParts.Where(s => !string.IsNullOrWhiteSpace(s))
-                ), // Simple concatenation
-                LastUpdated = DateTime.UtcNow, // Use UTC
+                ),
+                LastUpdated = DateTime.UtcNow,
 
                 // Aktor specific
                 AktorName = aktor.navn,
@@ -225,31 +226,34 @@ namespace backend.Services
                 PartyShortname = aktor.PartyShortname,
                 MinisterTitle = aktor.MinisterTitel,
                 Constituencies = aktor.Constituencies,
-                // Map other Aktor fields as needed
+                Suggest = suggestInputs.Any() ? new CompletionField { Input = suggestInputs } : null
             };
         }
 
         // Helper to map Flashcard to the unified SearchDocument
         private SearchDocument MapFlashcardToSearchDocument(Flashcard flashcard)
         {
-            // Combine front/back text for searchable content
             var contentParts = new List<string?> { flashcard.FrontText, flashcard.BackText };
 
             string? title =
                 flashcard.FrontContentType == FlashcardContentType.Text
                     ? flashcard.FrontText
                     : $"Flashcard from '{flashcard.FlashcardCollection?.Title ?? "Unknown Collection"}'";
-
+            var suggestInputs = new List<string?>();
+            if (!string.IsNullOrWhiteSpace(title)) suggestInputs.Add(title);
+            if (!string.IsNullOrWhiteSpace(flashcard.FrontText)) suggestInputs.Add(flashcard.FrontText);
+            if (!string.IsNullOrWhiteSpace(flashcard.BackText)) suggestInputs.Add(flashcard.BackText);
+            if (!string.IsNullOrWhiteSpace(flashcard.FlashcardCollection?.Title)) suggestInputs.Add(flashcard.FlashcardCollection.Title);
             return new SearchDocument
             {
-                Id = $"flashcard-{flashcard.FlashcardId}", // Unique ID
+                Id = $"flashcard-{flashcard.FlashcardId}", 
                 DataType = "Flashcard",
-                Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title, // Simple title logic, truncate if needed
+                Title = title?.Length > 150 ? title.Substring(0, 150) + "..." : title,
                 Content = string.Join(
                     " | ",
                     contentParts.Where(s => !string.IsNullOrWhiteSpace(s))
                 ),
-                LastUpdated = DateTime.UtcNow, // Use UTC
+                LastUpdated = DateTime.UtcNow,
 
                 // Flashcard specific
                 FlashcardId = flashcard.FlashcardId,
@@ -259,12 +263,16 @@ namespace backend.Services
                 BackText = flashcard.BackText,
                 FrontImagePath = flashcard.FrontImagePath,
                 BackImagePath = flashcard.BackImagePath,
-                // No Aktor specific fields populated here
+                Suggest = suggestInputs.Any() ? new CompletionField { Input = suggestInputs } : null
             };
         }
         private SearchDocument MapPartyToSearchDocument(Party party){
             var contentParts = new List<string?> {party.history, party.politics, party.partyProgram};
             string? title = party.partyName;
+            var suggestInputs = new List<string>();
+            if (!string.IsNullOrWhiteSpace(party.partyName)) suggestInputs.Add(party.partyName);
+            if (!string.IsNullOrWhiteSpace(party.partyShortName)) suggestInputs.Add(party.partyShortName);
+
             return new SearchDocument{
                 Id = $"party-{party.partyId}",
                 DataType = "Party",
@@ -279,11 +287,17 @@ namespace backend.Services
                 partyProgram = party.partyProgram,
                 politics = party.politics,
                 history = party.history,
+                Suggest = suggestInputs.Any() ? new CompletionField { Input = suggestInputs } : null
             };
         }
         private SearchDocument MapPageToSearchDocument(Page page){
+
             var contentParts = new List<string?> {page.Title, page.Content};
             string? title = page.Title;
+            var suggestInputs = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(page.Title)) suggestInputs.Add(page.Title);
+
             return new SearchDocument{
                 Id = $"page-{page.Id}",
                 DataType = "Page",
@@ -293,6 +307,7 @@ namespace backend.Services
 
                 pageTitle = page.Title,
                 pageContent = page.Content,
+                Suggest = suggestInputs.Any() ? new CompletionField { Input = suggestInputs } : null
             };
         }
 
@@ -314,7 +329,6 @@ namespace backend.Services
                     response.ServerError?.Error?.Reason ?? "N/A",
                     response.DebugInformation
                 );
-                // Throw or handle more granularly if needed
                 throw response.OriginalException
                     ?? new Exception("Bulk request failed with no specific exception.");
             }
@@ -330,7 +344,6 @@ namespace backend.Services
                         itemWithError.Error?.Reason ?? "Unknown reason"
                     );
                 }
-                // Decide if partial success is acceptable or should throw an error
             }
             else
             {
@@ -346,10 +359,9 @@ namespace backend.Services
     {
         public static async Task EnsureIndexExistsWithMapping(IServiceProvider services)
         {
-            // Resolve services needed
             var client = services.GetRequiredService<IOpenSearchClient>();
-            var logger = services.GetRequiredService<ILogger<Program>>(); // Or appropriate logger category
-            const string indexName = "borgertinget-search"; // Use the same index name as in your indexing service
+            var logger = services.GetRequiredService<ILogger<Program>>(); 
+            const string indexName = "borgertinget-search"; 
 
             logger.LogInformation("Checking if index '{IndexName}' exists...", indexName);
 
@@ -364,19 +376,52 @@ namespace backend.Services
                     indexExistsResponse.ServerError?.Error?.Reason
                         ?? indexExistsResponse.DebugInformation
                 );
-                // Handle error appropriately - maybe throw or exit startup
                 return;
             }
 
             if (indexExistsResponse.Exists)
             {
                 logger.LogInformation("Index '{IndexName}' already exists.", indexName);
-                // Optional: You could check if the existing mapping needs updates here using GetMapping API,
-                // but modifying existing mappings is often limited.
+                var getMappingResponse = await client.Indices.GetMappingAsync<SearchDocument>(m => m.Index(indexName));
+                bool suggestFieldExists = false;
+                if (getMappingResponse.IsValid && getMappingResponse.Indices.TryGetValue(indexName, out var indexMapping))
+                {
+                    if (indexMapping.Mappings.Properties.TryGetValue("suggest", out var suggestProperty) && 
+                        suggestProperty is CompletionProperty)
+                    {
+                        suggestFieldExists = true;
+                        logger.LogInformation("'Suggest' field with completion mapping already exists in '{IndexName}'.", indexName);
+                    }
+                }
+
+                if (!suggestFieldExists)
+                {
+                    logger.LogInformation("'Suggest' field mapping not found or incorrect in '{IndexName}'. Attempting to update mapping...", indexName);
+                    var updateMappingResponse = await client.Indices.PutMappingAsync<SearchDocument>(pm => pm
+                        .Index(indexName)
+                        .Properties(ps => ps
+                            .Completion(c => c
+                                .Name(p => p.Suggest) // Map to the Suggest property in SearchDocument
+                            )
+                        )
+                    );
+
+                    if (updateMappingResponse.IsValid && updateMappingResponse.Acknowledged)
+                    {
+                        logger.LogInformation("Successfully updated mapping for '{IndexName}' to include 'Suggest' field.", indexName);
+                    }
+                    else
+                    {
+                        logger.LogError("Failed to update mapping for '{IndexName}'. Error: {Error}. DebugInfo: {DebugInfo}",
+                            indexName, 
+                            updateMappingResponse.ServerError?.Error?.Reason ?? "N/A", 
+                            updateMappingResponse.DebugInformation);
+                    }
+                }
                 return;
             }
 
-            // 2. Create the index with the explicit mapping
+            // Create the index with the explicit mapping
             logger.LogInformation(
                 "Index '{IndexName}' does not exist. Creating index with mapping...",
                 indexName
@@ -386,7 +431,7 @@ namespace backend.Services
                 indexName,
                 c =>
                     c.Map<SearchDocument>(m =>
-                        m // Use the C# model type
+                        m 
                         .Properties(ps =>
                             ps
                             // --- Common Fields ---
@@ -395,15 +440,15 @@ namespace backend.Services
                                 .Text(t =>
                                     t.Name(p => p.Title) // Text for full-text search on title
                                         .Fields(f =>
-                                            f // Add keyword sub-field for exact matching/sorting
+                                            f 
                                             .Keyword(k => k.Name("keyword").IgnoreAbove(256)) // Common pattern
                                         )
                                 )
                                 .Text(t =>
-                                    t.Name(p => p.Content) // Text for main content search
-                                // You can customize the analyzer here if needed, e.g., .Analyzer("danish")
+                                    t.Name(p => p.Content)
+                                    .Analyzer("danish")
                                 )
-                                .Date(d => d.Name(p => p.LastUpdated)) // Date type
+                                .Date(d => d.Name(p => p.LastUpdated))
                                 // --- Aktor Specific Fields ---
                                 .Text(t =>
                                     t.Name(p => p.AktorName)
@@ -417,15 +462,14 @@ namespace backend.Services
                                             f.Keyword(k => k.Name("keyword").IgnoreAbove(256))
                                         )
                                 )
-                                .Keyword(k => k.Name(p => p.PartyShortname)) // Usually an exact match term
-                                .Keyword(k => k.Name(p => p.PictureUrl).Index(false)) // URLs often don't need indexing
+                                .Keyword(k => k.Name(p => p.PartyShortname))
+                                .Keyword(k => k.Name(p => p.PictureUrl).Index(false)) 
                                 .Text(t =>
                                     t.Name(p => p.MinisterTitle)
                                         .Fields(f =>
                                             f.Keyword(k => k.Name("keyword").IgnoreAbove(256))
                                         )
                                 )
-                                // For lists like Constituencies, map as text/keyword based on search needs
                                 .Text(t =>
                                     t.Name(p => p.Constituencies)
                                         .Fields(f => f.Keyword(k => k.Name("keyword")))
@@ -441,13 +485,11 @@ namespace backend.Services
                                 )
                                 .Text(t => t.Name(p => p.FrontText)) // Analyze front text
                                 .Text(t => t.Name(p => p.BackText)) // Analyze back text
-                                .Keyword(k => k.Name(p => p.FrontImagePath).Index(false)) // Don't index image paths for search usually
+                                .Keyword(k => k.Name(p => p.FrontImagePath).Index(false)) // Don't index image paths for search
                                 .Keyword(k => k.Name(p => p.BackImagePath).Index(false))
-                        // --- Optional: Completion Suggester Field ---
-                        // .Completion(cp => cp.Name(p => p.Suggest))
+                        
+                                .Completion(cp => cp.Name(p => p.Suggest))
                         )
-                    // You can also add Index Settings here (e.g., number of shards/replicas)
-                    // .Settings(s => s.NumberOfShards(1).NumberOfReplicas(0)) // Example for local dev
                     )
             );
 
