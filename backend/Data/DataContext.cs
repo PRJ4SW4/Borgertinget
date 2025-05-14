@@ -50,6 +50,8 @@ namespace backend.Data
 
         public DbSet<Party> Party { get; set; }
 
+        public DbSet<EventInterest> EventInterests { get; set; }
+
         // --- /Calendar Setup ---
 
         public DbSet<Aktor> Aktor { get; set; }
@@ -60,6 +62,22 @@ namespace backend.Data
 
             // --- Calendar Setup ---
             modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
+
+            modelBuilder.Entity<EventInterest>(entity =>
+            {
+                entity.HasIndex(ei => new {ei.CalendarEventId, ei.UserId}).IsUnique();
+
+                entity.HasOne(ei => ei.User)
+                .WithMany()
+                .HasForeignKey(ei => ei.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+                entity.HasOne(ei => ei.CalendarEvent)
+                .WithMany(ce => ce.InterestedUsers)
+                .HasForeignKey(ei => ei.CalendarEventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            });
+
 
             // --- /Calendar Setup ---
 

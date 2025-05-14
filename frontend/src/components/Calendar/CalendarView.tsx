@@ -14,6 +14,9 @@ import type { CalendarEventDto } from '../../types/calendarTypes';
 // Import CSS for this component
 import './CalendarView.css';
 
+// --- Axios Import ---
+import axios from 'axios';
+
 // Timezone for Display
 const displayTimeZone = 'Europe/Copenhagen';
 const altingetBaseUrl = 'https://www.altinget.dk';
@@ -46,8 +49,32 @@ function CalendarView() {
       .finally(() => {
         setIsLoading(false);
       });
+
+      handleToggleInterest();
   // Empty dependency array means fetch only once on mount
   }, []);
+
+  // Handle interest toggle
+  const handleToggleInterest = () => {
+    setIsLoading(true);
+    setError(null);
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setError("Bruger er ikke logget ind");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get("http://localhost:5218/api/events/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+      const baseEvents = await response.data;
+    }
+  };
 
   // Group events by date using useMemo for efficiency
   const groupedEvents = useMemo(() => {
@@ -72,7 +99,6 @@ function CalendarView() {
     });
     return groups;
   }, [events]); // Re-group only when the events array changes
-
 
   // --- Render Logic ---
   if (isLoading) {
@@ -130,6 +156,16 @@ function CalendarView() {
                         )}
                     </div>
                   </a>
+                  <div className="event-interest">
+                    <div className="event-interest-count">
+                      {/* Display interest count */}
+                    </div>
+                    <button
+                      className={`interest-toggle-button ${event.isInterested ? 'interested' : 'not-interested'}`}
+                      onClick={() => handleToggleInterest(event.id, event.isInterested, event.interestCount)}
+                      aria-label={event.isInterested ? 'Deltag ikke' : 'Deltag'}>
+                    </button>
+                  </div>
                 </li>
               );
             })}

@@ -11,6 +11,10 @@ using backend.Services.Calendar.Scraping;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
+using backend.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 [ApiController]
 // Defines the route for this controller, setting the base URL segment to "api/calendar".
@@ -80,6 +84,57 @@ public class CalendarController : ControllerBase
         {
             _logger.LogError(ex, "An error occurred while fetching calendar events via Service.");
             return StatusCode(500, "An internal error occurred while fetching events.");
+        }
+    }
+
+    // Bruger skal kunne deltage (subscribe) til kalenderevents
+    [Authorize]
+    [HttpPost("/events/toggle-interest/{eventid}")]
+    public async Task<ActionResult> ToggleInterest(CalendarEventDTO dto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized("User not authenticated or could not be retrieved.");
+        }
+        try
+        {
+            var result = await _calendarService.ToggleInterestAsync(dto.Id, userId);
+            if (result)
+            {
+                return Ok("Interest toggled successfully.");
+            }
+            else
+            {
+                return NotFound("Event not found.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while toggling interest in the event.");
+            return StatusCode(500, "An internal error occurred while toggling interest.");
+        }
+    }
+
+    [Authorize]
+    [HttpGet("events/get-amount-interested/{eventId}")]
+    // Retrieves the number of users interested in a specific event.
+    public async Task<ActionResult<int>> GetAmountInterested(int eventId)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized("User not authenticated or could not be retrieved.");
+        }
+        try
+        {
+            var count = await _calendarService.GetAmountInterestedAsync(eventId);
+            return Ok(count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while fetching the number of interested users.");
+            return StatusCode(500, "An internal error occurred while fetching the number of interested users.");
         }
     }
 }
