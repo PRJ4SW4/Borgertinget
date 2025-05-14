@@ -49,12 +49,12 @@ export const useClassicPolidleGame = (): UseClassicPolidleGameReturn => {
           setIsGameWon(true); // <<< SÆT SPILLET TIL VUNDET
         }
         return resultData;
-      } catch (error: any) {
-        // Husk at rette 'any' til 'unknown' og brug type guard
+      } catch (error) {
         console.error("Guess API error in hook (Classic):", error);
         if (error instanceof Error) {
-          setGuessError(error.message);
+          setGuessError(error.message); // Nu er det sikkert at tilgå error.message
         } else {
+          // Håndter andre typer af fejl, eller sæt en generisk besked
           setGuessError("Ukendt fejl under afsendelse af gæt.");
         }
         return null;
