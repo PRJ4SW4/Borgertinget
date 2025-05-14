@@ -1,32 +1,35 @@
 // src/App.tsx
 import { useState, useEffect, JSX } from "react";
+// Imports components from react-router-dom for routing.
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Layout Components
 import LearningLayout from "./layouts/LearningEnvironment/LearningLayout";
 import FlashcardLayout from "./layouts/Flashcards/FlashcardLayout";
-import MainLayout from "./layouts/MainLayout";
-import NavbarLandingPageLayout from "./layouts/LandingPage/NavbarLandingPageLayout";
+import MainLayout from "./layouts/MainLayout"; // Navbar and Footer are rendered via MainLayout.
+import NavbarLandingPageLayout from "./layouts/LandingPage/NavbarLandingPageLayout"; // Different layout for the landing page.
 
 // Page Components
 import Login from "./pages/Login";
 import HomePage from "./pages/HomePage/HomePage";
-import PageContent from "./components/LearningEnvironment/PageContent";
-import CalendarView from "./components/Calendar/CalendarView";
-import PartyPage from "./pages/PartyPage";
-import PoliticianPage from "./pages/PoliticianPage";
-import PartiesPage from "./pages/PartiesPage";
+import PageContent from './components/LearningEnvironment/PageContent'; // Renders content within LearningLayout.
+import CalendarView from './components/Calendar/CalendarView';
+import PartyPage from "./pages/PartyPage"; // Displays details for a specific party.
+import PoliticianPage from "./pages/PoliticianPage"; // Displays details for a specific politician.
+import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
 import LandingPage from "./pages/LandingPage/LandingPage";
 import FeedPage from "./pages/FeedPage";
 
-// Polidle Pages - Sørg for korrekte importstier
-import PolidlePage from "./pages/PolidlePage/PolidlePage"; // Din hub-side
+// Polidle Pages
+import PolidlePage from "./pages/PolidlePage/PolidlePage";
 import ClassicMode from "./pages/PolidlePage/ClassicMode/ClassicMode";
 import QuoteMode from "./pages/PolidlePage/QuoteMode/QuoteMode";
 import FotoBlurMode from "./pages/PolidlePage/FotoBlurMode/FotoBlurMode";
 
-import EmailVerification from "./utils/useEmailVerification";
+import EmailVerification from "./utils/useEmailVerification"; // Handles email verification logic.
 
+// State hook for the JWT authentication token.
+// Initializes state from localStorage to persist login status.
 function App() {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("jwt")
@@ -39,39 +42,47 @@ function App() {
       localStorage.removeItem("jwt");
     }
   };
-
+// Effect hook to synchronize token state with localStorage changes across tabs/windows.
   useEffect(() => {
     const handleStorageChange = () => {
+      // Updates the component's token state when localStorage changes.
       setToken(localStorage.getItem("jwt"));
     };
+    // Adds the event listener on component mount.
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+    // Removes the event listener on component unmount to prevent memory leaks.
+    return () => window.removeEventListener("storage", handleStorageChange); 
+  }, []);  // Empty dependency array ensures the effect runs only on mount and unmount.
 
+  // --- Protected Route Component ---
+  // Wraps routes that require user authentication.
+  // Renders the child component if a token exists, otherwise redirects to /login.
   const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({
     children,
   }) => {
     return token ? children : <Navigate to="/login" />;
   };
 
+  // --- Routing Setup ---
+  // Defines the application's routes using the Routes component.
   return (
     <Routes>
       {/* --- Public Navbar Route --- */}
       <Route element={<NavbarLandingPageLayout />}>
         {" "}
-        {/* Fjernet </NavbarLandingPageLayout> her */}
         <Route path="/LandingPage" element={<LandingPage />} />
       </Route>{" "}
       {/* <<< Lukket </Route> her */}
       {/* --- Public Routes (No MainLayout, No login required) --- */}
       <Route path="/login" element={<Login setToken={handleSetToken} />} />
       <Route path="/login-success" element={<></>} />{" "}
-      {/* Typisk redirect efter OAuth */}
       <Route
         path="/verify"
         element={<EmailVerification onVerified={() => {}} onError={() => {}} />}
       />
       {/* --- Protected Routes using MainLayout --- */}
+      {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}
+      {/* All nested routes inherit the layout and protection. */}
       <Route
         element={
           <ProtectedRoute>
@@ -82,9 +93,7 @@ function App() {
         {/* Standard HomePage efter login */}
         <Route path="/homepage" element={<HomePage />} />
         {/* Rod-stien for logged-in brugere, navigerer til /homepage */}
-        {/* Overvej om '/' skal være HomePage eller LandingPage afhængig af login status.
-            Den nuværende catch-all håndterer dette, men en eksplicit '/' kan være klarere. */}
-        {/* <Route path="/" element={<Navigate to="/homepage" replace />} /> */}
+
         {/* Andre beskyttede sider */}
         <Route path="/kalender" element={<CalendarView />} />
         <Route path="/feed" element={<FeedPage />} />{" "}
@@ -104,18 +113,12 @@ function App() {
         </Route>
         {/* --- Flashcards Routes --- */}
         <Route path="/flashcards/*" element={<FlashcardLayout />} />
-        {/* **************************************************** */}
-        {/* *** START: Polidle Routes (Beskyttet & i MainLayout) *** */}
-        {/* **************************************************** */}
+        {/* --- START: Polidle Routes (Beskyttet & i MainLayout) --- */}
         <Route path="/polidle" element={<PolidlePage />} />
         <Route path="/ClassicMode" element={<ClassicMode />} />
         <Route path="/CitatMode" element={<QuoteMode />} />{" "}
-        {/* Props er fjernet */}
         <Route path="/FotoBlurMode" element={<FotoBlurMode />} />{" "}
-        {/* Props er fjernet */}
-        {/* ************************************************** */}
-        {/* *** SLUT: Polidle Routes                         *** */}
-        {/* ************************************************** */}
+        {/* --- SLUT: Polidle Routes --- */}
       </Route>{" "}
       {/* End of Protected MainLayout routes */}
       {/* --- Catch-all og Root Redirects --- */}

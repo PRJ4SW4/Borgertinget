@@ -1,57 +1,36 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-
 using backend.Data;
 using backend.Enums;
 using backend.Hubs;
-using backend.Models;
-using backend.Repositories.Calendar;
 using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility;
 using backend.Jobs;
+using backend.Models;
+using backend.Persistence.Repositories;
+using backend.Repositories.Calendar;
 using backend.Services;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
-using backend.Services.Selection;
-using backend.Services.Mapping;
-using backend.Services.Utility;
-using backend.utils;
-using backend.Persistence.Repositories;
-
-// Automation / Scraping Services
-/*
-! ERROR: Path cannot find these namespaces
-using backend.Services.AutomationServices;
-using backend.Services.AutomationServices.HtmlFetching;
-using backend.Services.AutomationServices.Parsing;
-using backend.Services.AutomationServices.Repositories;
-*/
-
-// Flashcard Services
 using backend.Services.Flashcards;
 using backend.Services.LearningEnvironment;
+using backend.Services.Mapping;
 using backend.Services.Search;
+using backend.Services.Selection;
+using backend.Services.Utility;
 using backend.utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -217,7 +196,7 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Polidle API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Borgertinget API", Version = "v1" });
     options.AddSecurityDefinition(
         "Bearer",
         new OpenApiSecurityScheme
@@ -290,8 +269,12 @@ builder.Services.AddControllers(); /* .AddJsonOptions(options =>
 builder.Services.AddScoped<SearchIndexingService>();
 
 builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
+
 //builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
-builder.Services.AddSingleton<backend.Interfaces.Utility.IDateTimeProvider, backend.Services.Utility.DateTimeProvider>();
+builder.Services.AddSingleton<
+    backend.Interfaces.Utility.IDateTimeProvider,
+    backend.Services.Utility.DateTimeProvider
+>();
 builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
 
 // For altinget scraping
@@ -327,7 +310,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>(); // Or specific category
+    var logger = services.GetRequiredService<ILogger<Program>>();
 
     try
     {
@@ -366,24 +349,28 @@ if (app.Environment.IsDevelopment())
     // ***********************************************************************
     // *** START: Dummy Auth Middleware KUN FOR DEVELOPMENT ENVIRONMENT    ***
     // ***********************************************************************
-    app.Use(async (context, next) =>
-    {
-        // ALTID i development, sæt dummy admin:
+    app.Use(
+        async (context, next) =>
+        {
+            // ALTID i development, sæt dummy admin:
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, "DummyDevAdmin"),       // Brugernavn for dummy admin
+                new Claim(ClaimTypes.Name, "DummyDevAdmin"), // Brugernavn for dummy admin
                 new Claim(ClaimTypes.NameIdentifier, "dummy-admin-id-123"), // Et unikt ID
-                new Claim(ClaimTypes.Role, "Admin"),              // Giver Admin rollen
+                new Claim(ClaimTypes.Role, "Admin"), // Giver Admin rollen
                 new Claim(ClaimTypes.Email, "devadmin@example.com"),
             };
             var identity = new ClaimsIdentity(claims, "DevelopmentDummyAuth"); // "DevelopmentDummyAuth" er bare et navn
             context.User = new ClaimsPrincipal(identity);
 
             var logger = context.RequestServices.GetRequiredService<ILogger<Program>>(); // Få en logger instans
-            logger.LogWarning("DEVELOPMENT MODE: Bypassing JWT. User context populated with DummyDevAdmin (Role: Admin).");
+            logger.LogWarning(
+                "DEVELOPMENT MODE: Bypassing JWT. User context populated with DummyDevAdmin (Role: Admin)."
+            );
 
-        await next.Invoke();
-    });
+            await next.Invoke();
+        }
+    );
     // ***********************************************************************
     // *** SLUT: Dummy Auth Middleware KUN FOR DEVELOPMENT ENVIRONMENT     ***
     // ***********************************************************************
@@ -398,10 +385,8 @@ else
 
 app.UseCors("AllowReactApp");
 
-app.UseRouting(); // Skal være før Authentication og Authorization
-
 app.UseAuthentication(); // Din rigtige JWT auth middleware
-app.UseAuthorization();  // Din rigtige authorization middleware
+app.UseAuthorization(); // Din rigtige authorization middleware
 
 app.MapControllers();
 
