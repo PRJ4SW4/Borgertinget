@@ -222,7 +222,8 @@ namespace backend.Controllers
 
             if (!string.IsNullOrEmpty(remoteError))
             {
-                _logger.LogError($"Fejl fra ekstern udbyder: {remoteError}"); //
+                var sanitizedRemoteError = remoteError.Replace("\n", "").Replace("\r", "");
+                _logger.LogError($"Fejl fra ekstern udbyder: {sanitizedRemoteError}"); //
                 return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode(remoteError)}");
             }
 
