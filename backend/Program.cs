@@ -27,7 +27,7 @@ using OpenSearch.Net;
 
 // for .env secrets
 DotNetEnv.Env.Load();
-
+         
 var builder = WebApplication.CreateBuilder(args);
 
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
@@ -244,6 +244,8 @@ builder.Services.AddControllers(); /* .AddJsonOptions(options =>
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     });*/
 
+
+
 //Search indexing service
 builder.Services.AddScoped<SearchIndexingService>();
 
@@ -304,6 +306,7 @@ app.UseRouting();
 
 // For static images from wwwroot folder
 app.UseStaticFiles();
+
 
 if (app.Environment.IsDevelopment())
 {

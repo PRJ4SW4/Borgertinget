@@ -1,0 +1,157 @@
+/* SearchBar.css */
+/* Styles specific to the SearchBar component */
+
+.search-component-container {
+  position: relative; /* Crucial for positioning suggestions */
+  width: 100%; /* Or a specific width as needed */
+  max-width: 600px; /* Example max-width */
+  margin: 0 auto; /* Center it if it has a max-width */
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 1rem; /* Responsive font size */
+  border: 1px solid #ccc; /* Softer border */
+  border-radius: 25px; /* Pill shape */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none; /* Remove default focus outline */
+  background-color: #f8f9fa; /* Light background */
+  color: #495057; /* Darker text for contrast */
+}
+
+.search-input:focus {
+  border-color: #007bff; /* Highlight color on focus */
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Subtle glow */
+}
+
+.search-suggestions-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 5px 0 0 0; /* Add some margin at the top */
+  position: absolute;
+  top: 100%; 
+  left: 0;
+  right: 0;
+  background-color: #8B0000;
+  border: 1px solid #dee2e6;
+  border-top: none;
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.suggestion-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  color: #ffffff;
+  border-bottom: 1px solid #f1f3f5;
+  font-size: 0.95rem;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background-color: #e9ecef;
+}
+
+.suggestion-item.loading,
+.suggestion-item.no-suggestions {
+  padding: 10px 15px;
+  color: #ffffff;;
+  cursor: default;
+  font-style: italic;
+  
+}
+
+/* Container for main search results or feedback messages */
+.search-results-feedback-container {
+  margin-top: 15px; /* Space below the search/suggestions box */
+  width: 100%;
+  text-align: left; /* Or center, depending on your design */
+}
+
+.search-loading,
+.search-error,
+.search-no-results {
+  padding: 10px 15px;
+  margin-top: 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.search-loading {
+  color: #ffffff;
+}
+
+.search-error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+.search-no-results {
+  color: #ffffff;
+}
+
+/* Main results list (distinct from suggestions list) */
+.search-results-list.main-results {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.search-result-item {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.search-result-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-result-link {
+  display: flex; /* Use flex for better alignment */
+  align-items: center; /* Vertically align items */
+  padding: 15px;
+  text-decoration: none;
+  color: #333;
+  display: block; /* Or flex, depending on inner content */
+}
+
+.result-type-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border-radius: 4px;
+  margin-right: 10px; /* Space between badge and title */
+  color: #fff;
+  text-transform: capitalize;
+}
+
+/* Example badge colors - customize these */
+.type-politiker { background-color: #007bff; }
+.type-flashcard { background-color: #28a745; }
+.type-parti { background-color: #ffc107; color: #212529;} /* Darker text for yellow */
+.type-læringsside { background-color: #17a2b8; }
+.type-default { background-color: #6c757d; } /* Fallback */
+
+
+.result-title {
+  font-weight: 500;
+  font-size: 1rem;
+  color: #343a40;
+}
+
+/* Ensure HomePage.css hero-search-container doesn't conflict if it has specific width/positioning */
+/* It's better if hero-search-container in HomePage.css just handles its placement in the hero section */
+
