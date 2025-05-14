@@ -420,34 +420,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
 
-    // ***********************************************************************
-    // *** START: Dummy Auth Middleware KUN FOR DEVELOPMENT ENVIRONMENT    ***
-    // ***********************************************************************
-    app.Use(
-        async (context, next) =>
-        {
-            // ALTID i development, sæt dummy admin:
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, "DummyDevAdmin"), // Brugernavn for dummy admin
-                new Claim(ClaimTypes.NameIdentifier, "dummy-admin-id-123"), // Et unikt ID
-                new Claim(ClaimTypes.Role, "Admin"), // Giver Admin rollen
-                new Claim(ClaimTypes.Email, "devadmin@example.com"),
-            };
-            var identity = new ClaimsIdentity(claims, "DevelopmentDummyAuth"); // "DevelopmentDummyAuth" er bare et navn
-            context.User = new ClaimsPrincipal(identity);
-
-            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>(); // Få en logger instans
-            logger.LogWarning(
-                "DEVELOPMENT MODE: Bypassing JWT. User context populated with DummyDevAdmin (Role: Admin)."
-            );
-
-            await next.Invoke();
-        }
-    );
-    // ***********************************************************************
-    // *** SLUT: Dummy Auth Middleware KUN FOR DEVELOPMENT ENVIRONMENT     ***
-    // ***********************************************************************
+    //! DELETED DUMMMY MIDDLEWARE
 }
 else
 {
