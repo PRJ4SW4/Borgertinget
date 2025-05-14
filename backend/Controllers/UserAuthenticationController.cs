@@ -326,7 +326,7 @@ namespace backend.Controllers
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             var localJwtToken = await GenerateJwtToken(appUser); 
-            _logger.LogInformation($"JWT genereret for bruger: {appUser.UserName}");
+            _logger.LogInformation("JWT genereret for en bruger.");
 
             string frontendBaseUrl = _config["FrontendBaseUrl"] ?? "http://localhost:5173";
             string loginSuccessPathOnFrontend = "/login-success"; 
