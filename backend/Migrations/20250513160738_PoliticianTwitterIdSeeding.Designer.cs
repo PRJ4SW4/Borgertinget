@@ -13,13 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-<<<<<<<< HEAD:backend/Migrations/20250513170756_Addmette.Designer.cs
-    [Migration("20250513170756_Addmette")]
-    partial class Addmette
-========
     [Migration("20250513160738_PoliticianTwitterIdSeeding")]
     partial class PoliticianTwitterIdSeeding
->>>>>>>> origin/main:backend/Migrations/20250513160738_PoliticianTwitterIdSeeding.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -763,7 +758,6 @@ namespace backend.Migrations
                         new
                         {
                             Id = 1,
-                            AktorId = 138,
                             Name = "Statsministeriet",
                             TwitterHandle = "Statsmin",
                             TwitterUserId = "806068174567460864"

@@ -50,7 +50,6 @@ namespace backend.Data
 
         public DbSet<Party> Party { get; set; }
 
-        public DbSet<Party> Party { get; set; }
 
 
 
@@ -301,7 +300,7 @@ namespace backend.Data
                         TwitterUserId = "806068174567460864",
                         Name = "Statsministeriet",
                         TwitterHandle = "Statsmin",
-                        AktorId = 138,
+                        AktorId = null,
                     },
                     new PoliticianTwitterId
                     {

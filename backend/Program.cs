@@ -270,7 +270,7 @@ builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddRouting();
 
 // Search Services
-builder.Services.AddHostedService<ScheduledIndexService>();
+builder.Services.AddHostedService<TestScheduledIndexService>();
 
 var app = builder.Build();
 

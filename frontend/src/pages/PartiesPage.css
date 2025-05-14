@@ -2,13 +2,13 @@
     padding: 1rem; /* Add some overall padding */
 }
 /* Updated navigation link styling */
-.party-page-nav {
+.parties-page nav {
   width: 100%; /* Make the nav take full width */
   margin-bottom: 20px; /* Existing margin-bottom */
   /* order: 0; /* Not strictly necessary here unless party-page becomes a flex container like politician-page */
 }
 
-.party-page-nav a {
+.parties-page nav a {
   display: inline-block; /* Allows padding and other block-level properties */
   text-decoration: none;
   background-color: #950018; /* Borgertinget primary red from Navbar.css */
@@ -21,7 +21,7 @@
   white-space: nowrap; /* Prevents link text from wrapping */
 }
 
-.party-page-nav a:hover {
+.parties-page nav a:hover {
   background-color: #f0f0f0; /* Light grey background on hover from Navbar.css */
   color: #8B0000; /* Dark red text on hover from Navbar.css */
   text-decoration: none; /* Remove underline on hover to match navbar style */

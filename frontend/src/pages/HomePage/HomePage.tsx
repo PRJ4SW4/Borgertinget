@@ -13,7 +13,6 @@ const HomePage: React.FC = () => {
     <div className="homepage">
       <section className="hero-section">
         <div className="hero-content">
-        <div className="hero-content">
           <img src="/assets/logo-large-white.png" alt="Borgertinget Stort Logo" className="hero-logo" />
           <h1 className="hero-title">Borgertinget</h1>
           <p className="hero-subtitle">Din stemme, din viden, din fremtid</p>

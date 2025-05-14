@@ -4,52 +4,7 @@ import { IAktor } from '../types/Aktor';
 import { IParty } from '../types/Party';
 import PartyInfoCard from '../components/Party/PartyInfoCard';
 import "./PartyPage.css"; // Ensure this CSS file is imported
-import { IParty } from '../types/Party';
-import PartyInfoCard from '../components/Party/PartyInfoCard';
-import "./PartyPage.css"; // Ensure this CSS file is imported
 import DefaultPic from "../images/defaultPic.jpg";
-// --- Logo Map ---
-import socialdemokratietLogo from '../images/PartyLogos/socialdemokratiet.webp';
-import venstreLogo from '../images/PartyLogos/Venstre.png';
-import moderaterneLogo from '../images/PartyLogos/Moderaterne.png';
-import alternativetLogo from '../images/PartyLogos/alternativet.png';
-import borgernesLogo from '../images/PartyLogos/borgernesParti.jpg';
-import centrumLogo from '../images/PartyLogos/centrumDemokraterne.png';
-import danmarksLogo from '../images/PartyLogos/danmarksDemokraterne.jpg';
-import DFLogo from '../images/PartyLogos/DanskFolkeparti.png';
-import enhedslistenLogo from '../images/PartyLogos/enhedslisten.jpg';
-import inuitLogo from '../images/PartyLogos/InuitAtaqatigiit.png';
-import javnaLogo from '../images/PartyLogos/Javnaðarflokkurin.png';
-import konsvertiveLogo from '../images/PartyLogos/konservative.png';
-import kristeligtLogo from '../images/PartyLogos/KristeligFolkeparti.png';
-import LALogo from '../images/PartyLogos/LiberalAlliance.png';
-import naleraq from '../images/PartyLogos/NaleraqLogo.svg';
-import radikale from '../images/PartyLogos/radikaleVenstre.png';
-import sambands from '../images/PartyLogos/sambandspartiet.png';
-import SF from '../images/PartyLogos/SocialistiskeFolkeparti.png';
-
-const partyLogoMap: { [key: string]: string } = {
-  "Socialdemokratiet": socialdemokratietLogo,
-  "Venstre": venstreLogo,
-  "Moderaterne": moderaterneLogo,
-  "Alternativet": alternativetLogo,
-  "Borgernes Parti": borgernesLogo,
-  "Centrum-Demokraterne": centrumLogo,
-  "Danmarksdemokraterne": danmarksLogo,
-  "Dansk Folkeparti": DFLogo,
-  "Det Konservative Folkeparti": konsvertiveLogo,
-  "Enhedslisten": enhedslistenLogo,
-  "Inuit Ataqatigiit": inuitLogo,
-  "Javnaðarflokkurin": javnaLogo,
-  "Kristeligt Folkeparti": kristeligtLogo,
-  "Liberal Alliance": LALogo,
-  "Naleraq": naleraq,
-  "Radikale Venstre": radikale,
-  "Sambandsflokkurin": sambands,
-  "Socialistisk Folkeparti": SF
-};
-// --- End Logo Map ---
-
 // --- Logo Map ---
 import socialdemokratietLogo from '../images/PartyLogos/socialdemokratiet.webp';
 import venstreLogo from '../images/PartyLogos/Venstre.png';
@@ -114,17 +69,6 @@ const PartyPage: React.FC = () => {
   const displayPartyName = partyName ? decodeURIComponent(partyName) : 'Ukendt Parti';
   const defaultPoliticianImageUrl = DefaultPic;
 
-  // --- State for role holders ---
-  const [chairman, setChairman] = useState<IAktor | null>(null);
-  const [viceChairman, setViceChairman] = useState<IAktor | null>(null);
-  const [secretary, setSecretary] = useState<IAktor | null>(null);
-  const [spokesperson, setSpokesperson] = useState<IAktor | null>(null);
-  const [groupLeader, setGroupLeader] = useState<IAktor | null>(null);
-
-
-  const displayPartyName = partyName ? decodeURIComponent(partyName) : 'Ukendt Parti';
-  const defaultPoliticianImageUrl = DefaultPic;
-
   // --- Helper function to fetch Aktor details by ID (still needed for role holders) ---
   const fetchAktorById = async (id: number | null): Promise<IAktor | null> => {
     if (!id) return null;
@@ -147,8 +91,6 @@ const PartyPage: React.FC = () => {
       if (!partyName) {
         setError("Partinavn mangler i URL.");
         setLoadingParty(false);
-        setError("Partinavn mangler i URL.");
-        setLoadingParty(false);
         return;
       }
 
@@ -169,9 +111,6 @@ const PartyPage: React.FC = () => {
         const partyApiUrl = `http://localhost:5218/api/Party/Party/${encodeURIComponent(partyName)}`;
         const partyResponse = await fetch(partyApiUrl);
 
-        if (!partyResponse.ok) {
-          if (partyResponse.status === 404) {
-             throw new Error(`Partiet "${displayPartyName}" blev ikke fundet.`);
         if (!partyResponse.ok) {
           if (partyResponse.status === 404) {
              throw new Error(`Partiet "${displayPartyName}" blev ikke fundet.`);
@@ -255,8 +194,6 @@ const PartyPage: React.FC = () => {
 
   return (
     <div className="party-page">
-      <nav className="party-page-nav">
-        <Link to="/parties">← Tilbage til partioversigt</Link>
       <nav className="party-page-nav">
         <Link to="/parties">← Tilbage til partioversigt</Link>
       </nav>
