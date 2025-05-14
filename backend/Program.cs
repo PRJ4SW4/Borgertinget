@@ -81,17 +81,7 @@ var key = Encoding.UTF8.GetBytes(
 );
 
 // Authorization for Admin and User roles
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(
-        "RequireAdministratorRole",
-        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
-    );
-    options.AddPolicy(
-        "UserOrAdmin",
-        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
-    );
-});
+builder.Services.AddAuthorization();
 
 // EF Core Database Context
 builder.Services.AddDbContext<DataContext>(options =>
@@ -247,7 +237,7 @@ builder
                 return Task.CompletedTask;
             };
         }
-    ); 
+    );
 
 // ASP.NET Core Identity bruger cookies til at håndtere det *eksterne login flow* i led af Oauth.
 builder.Services.ConfigureApplicationCookie(options =>
@@ -358,19 +348,6 @@ builder.Services.AddSingleton<
 >();
 builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
 
-builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
-
-//builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
-builder.Services.AddSingleton<
-    backend.Interfaces.Utility.IDateTimeProvider,
-    backend.Services.Utility.DateTimeProvider
->();
-builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
-
-//Search indexing service
-builder.Services.AddScoped<SearchIndexingService>();
-
-builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
 
 // For altinget scraping
@@ -388,6 +365,9 @@ builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 // Flashcard Services
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
+//Search indexing service
+builder.Services.AddScoped<SearchIndexingService>();
+
 // Polidle
 builder.Services.AddScoped<IAktorRepository, AktorRepository>();
 builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>();
@@ -396,9 +376,6 @@ builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
 builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
 
 builder.Services.AddRouting();
-builder.Services.AddHostedService<TestScheduledIndexService>();
-
-builder.Services.AddScoped<AdministratorService>();
 
 // Search Services
 builder.Services.AddHostedService<ScheduledIndexService>();

@@ -13,20 +13,15 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-<<<<<<<< HEAD:backend/Migrations/20250513203558_InitialCreate.Designer.cs
-    [Migration("20250513203558_InitialCreate")]
+    [Migration("20250514191252_InitialCreate")]
     partial class InitialCreate
-========
-    [Migration("20250514164409_InitialSchemaAfterReset")]
-    partial class InitialSchemaAfterReset
->>>>>>>> 9d3d3d83d609a23f0cdaadc718e98a9b5a811d04:backend/Migrations/20250514164409_InitialSchemaAfterReset.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -158,6 +153,18 @@ namespace backend.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("UserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 100,
+                            RoleId = 1
+                        },
+                        new
+                        {
+                            UserId = 100,
+                            RoleId = 2
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -319,12 +326,7 @@ namespace backend.Migrations
                         .HasColumnName("selection_date");
 
                     b.Property<string>("GameMode")
-<<<<<<<< HEAD:backend/Migrations/20250513203558_InitialCreate.Designer.cs
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-========
                         .HasColumnType("text")
->>>>>>>> 9d3d3d83d609a23f0cdaadc718e98a9b5a811d04:backend/Migrations/20250514164409_InitialSchemaAfterReset.Designer.cs
                         .HasColumnName("gamemode");
 
                     b.Property<int>("SelectedPolitikerID")
@@ -342,72 +344,6 @@ namespace backend.Migrations
                     b.ToTable("daily_selections");
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250513203558_InitialCreate.Designer.cs
-            modelBuilder.Entity("backend.Models.FakeParti", b =>
-                {
-                    b.Property<int>("PartiId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PartiId"));
-
-                    b.Property<string>("PartiNavn")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("PartiId");
-
-                    b.ToTable("FakePartier");
-                });
-
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("date_of_birth");
-
-                    b.Property<string>("Køn")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("PartiId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("PolitikerNavn")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<byte[]>("Portræt")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.Property<string>("Region")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<string>("Uddannelse")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PartiId");
-
-                    b.ToTable("FakePolitikere");
-                });
-
-========
->>>>>>>> 9d3d3d83d609a23f0cdaadc718e98a9b5a811d04:backend/Migrations/20250514164409_InitialSchemaAfterReset.Designer.cs
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
                 {
                     b.Property<int>("FlashcardId")
@@ -863,48 +799,12 @@ namespace backend.Migrations
                     b.ToTable("Party");
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250513203558_InitialCreate.Designer.cs
-            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
-                {
-                    b.Property<int>("PolitikerId")
-                        .HasColumnType("integer")
-                        .HasColumnName("politiker_id");
-
-                    b.Property<string>("GameMode")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("gamemode");
-
-                    b.Property<int?>("AlgoWeight")
-                        .HasColumnType("integer")
-                        .HasColumnName("algovægt");
-
-                    b.Property<DateOnly?>("LastSelectedDate")
-                        .HasColumnType("date")
-                        .HasColumnName("lastselecteddate");
-
-                    b.HasKey("PolitikerId", "GameMode");
-
-                    b.ToTable("GameTrackings");
-                });
-
-            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
-                {
-                    b.Property<int>("QuoteId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuoteId"));
-
-                    b.Property<int>("PolitikerId")
-========
             modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
                 {
                     b.Property<int>("QuoteId")
                         .HasColumnType("integer");
 
                     b.Property<int>("AktorId")
->>>>>>>> 9d3d3d83d609a23f0cdaadc718e98a9b5a811d04:backend/Migrations/20250514164409_InitialSchemaAfterReset.Designer.cs
                         .HasColumnType("integer");
 
                     b.Property<string>("QuoteText")
@@ -913,11 +813,7 @@ namespace backend.Migrations
 
                     b.HasKey("QuoteId");
 
-<<<<<<<< HEAD:backend/Migrations/20250513203558_InitialCreate.Designer.cs
-                    b.HasIndex("PolitikerId");
-========
                     b.HasIndex("AktorId");
->>>>>>>> 9d3d3d83d609a23f0cdaadc718e98a9b5a811d04:backend/Migrations/20250514164409_InitialSchemaAfterReset.Designer.cs
 
                     b.ToTable("PoliticianQuotes");
                 });
@@ -1231,6 +1127,24 @@ namespace backend.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 100,
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "9a90d138-772e-44b1-b052-18d591edef58",
+                            Email = "superuser@borgertinget.dk",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "SUPERUSER@BORGERTINGET.DK",
+                            NormalizedUserName = "BORGERTINGET_SUPERUSER",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIrNoscXqh4mXSk/2ebk5jFjsosHlU5MJ4tEgcXgFoBVTCmLw0KLd1EymioDIOU5wg==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH",
+                            TwoFactorEnabled = false,
+                            UserName = "borgertinget_superuser"
+                        });
                 });
 
             modelBuilder.Entity("backend.Models.UserVote", b =>
@@ -1315,36 +1229,15 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.DailySelection", b =>
                 {
-<<<<<<<< HEAD:backend/Migrations/20250513203558_InitialCreate.Designer.cs
-                    b.HasOne("backend.Models.FakePolitiker", "SelectedPolitiker")
-                        .WithMany()
-                        .HasForeignKey("SelectedPolitikerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-========
                     b.HasOne("backend.Models.Aktor", "SelectedPolitiker")
                         .WithMany("DailySelections")
                         .HasForeignKey("SelectedPolitikerID")
                         .OnDelete(DeleteBehavior.Cascade)
->>>>>>>> 9d3d3d83d609a23f0cdaadc718e98a9b5a811d04:backend/Migrations/20250514164409_InitialSchemaAfterReset.Designer.cs
                         .IsRequired();
 
                     b.Navigation("SelectedPolitiker");
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250513203558_InitialCreate.Designer.cs
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.HasOne("backend.Models.FakeParti", "FakeParti")
-                        .WithMany("FakePolitikers")
-                        .HasForeignKey("PartiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FakeParti");
-                });
-
-========
->>>>>>>> 9d3d3d83d609a23f0cdaadc718e98a9b5a811d04:backend/Migrations/20250514164409_InitialSchemaAfterReset.Designer.cs
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
                 {
                     b.HasOne("backend.Models.Flashcards.FlashcardCollection", "FlashcardCollection")
@@ -1427,28 +1320,6 @@ namespace backend.Migrations
                     b.Navigation("viceChairman");
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250513203558_InitialCreate.Designer.cs
-            modelBuilder.Entity("backend.Models.PolidleGamemodeTracker", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
-                        .WithMany("GameTrackings")
-                        .HasForeignKey("PolitikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FakePolitiker");
-                });
-
-            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
-                {
-                    b.HasOne("backend.Models.FakePolitiker", "FakePolitiker")
-                        .WithMany("Quotes")
-                        .HasForeignKey("PolitikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FakePolitiker");
-========
             modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
                 {
                     b.HasOne("backend.Models.Aktor", "Politician")
@@ -1458,7 +1329,6 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Politician");
->>>>>>>> 9d3d3d83d609a23f0cdaadc718e98a9b5a811d04:backend/Migrations/20250514164409_InitialSchemaAfterReset.Designer.cs
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
@@ -1550,22 +1420,11 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250513203558_InitialCreate.Designer.cs
-            modelBuilder.Entity("backend.Models.FakeParti", b =>
-                {
-                    b.Navigation("FakePolitikers");
-                });
-
-            modelBuilder.Entity("backend.Models.FakePolitiker", b =>
-                {
-                    b.Navigation("GameTrackings");
-========
             modelBuilder.Entity("backend.Models.Aktor", b =>
                 {
                     b.Navigation("DailySelections");
 
                     b.Navigation("GamemodeTrackings");
->>>>>>>> 9d3d3d83d609a23f0cdaadc718e98a9b5a811d04:backend/Migrations/20250514164409_InitialSchemaAfterReset.Designer.cs
 
                     b.Navigation("Quotes");
                 });

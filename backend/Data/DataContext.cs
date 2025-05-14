@@ -395,73 +395,6 @@ namespace backend.Data
                 );
             // --- END SEED SUPERUSER ---
 
-            #region Polidle
-            // --- NY KONFIGURATION for Polidle ---
-
-            // 1. Konfigurer sammensat primærnøgle for PolidleGamemodeTracker
-            modelBuilder
-                .Entity<PolidleGamemodeTracker>()
-                .HasKey(pgt => new { pgt.PolitikerId, pgt.GameMode }); // Definerer PK som (PolitikerId, GameMode)
-
-            // 2. Konfigurer En-til-mange relation mellem FakePolitiker og PolidleGamemodeTracker
-            modelBuilder
-                .Entity<PolidleGamemodeTracker>()
-                .HasOne(pgt => pgt.FakePolitiker) // Fra Tracker peg på én Politiker
-                .WithMany(p => p.GameTrackings) // Fra Politiker peg på mange Trackings
-                .HasForeignKey(pgt => pgt.PolitikerId) // Specificer FK kolonnen i Tracker
-                .OnDelete(DeleteBehavior.Cascade); // Eksempel: Slet tracking-rækker hvis politikeren slettes
-
-            // 3. Konfigurer Enum-til-String konvertering for GameMode (Valgfrit, men anbefalet)
-            modelBuilder
-                .Entity<PolidleGamemodeTracker>()
-                .Property(pgt => pgt.GameMode)
-                .HasConversion<string>() // Konverter til string
-                .HasMaxLength(50); // Sæt en passende max længde
-
-            // --- Konfiguration for DailySelection ---
-            modelBuilder
-                .Entity<DailySelection>()
-                .HasKey(ds => new { ds.SelectionDate, ds.GameMode }); // Sammensat PK
-
-            // Konfigurer relation til FakePolitiker (En DailySelection har én Politiker)
-            modelBuilder
-                .Entity<DailySelection>()
-                .HasOne(ds => ds.SelectedPolitiker)
-                .WithMany() // En politiker kan være valgt mange gange (over tid/gamemodes)
-                .HasForeignKey(ds => ds.SelectedPolitikerID)
-                .OnDelete(DeleteBehavior.Restrict); // Undgå at slette en politiker hvis de er et dagligt valg?
-
-            // Konfigurer evt. Enum-til-String for GameMode her også, hvis den ikke er globalt konfigureret
-            modelBuilder
-                .Entity<DailySelection>()
-                .Property(ds => ds.GameMode)
-                .HasConversion<string>()
-                .HasMaxLength(50);
-            // ------------------------------------
-
-            // --- NYT: Konfiguration for FakeParti <-> FakePolitiker relation ---
-            // Antagelser:
-            // 1. Din `FakePolitiker` model har en `int PartiId` foreign key property.
-            // 2. Din `FakePolitiker` model har en `FakeParti FakeParti` navigation property.
-            // Juster `.HasForeignKey()` og `.WithOne()` hvis dine properties hedder noget andet.
-
-            modelBuilder
-                .Entity<FakeParti>()
-                .HasMany(p => p.FakePolitikers)
-                .WithOne(fp => fp.FakeParti) // Matcher navigation property i FakePolitiker
-                .HasForeignKey(fp => fp.PartiId) // Matcher foreign key property i FakePolitiker
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // === NYT: Konfiguration for FakePolitiker <-> PoliticianQuote relation ===
-            modelBuilder
-                .Entity<PoliticianQuote>()
-                .HasOne(q => q.FakePolitiker) // Et citat har én politiker
-                .WithMany(p => p.Quotes) // En politiker har mange citater (via 'Quotes' collection i FakePolitiker)
-                .HasForeignKey(q => q.PolitikerId) // Fremmednøglen i PoliticianQuote tabellen
-                .OnDelete(DeleteBehavior.Cascade); // Slet citater hvis politikeren slettes
-            // -------------------------------------------------------------------
-            #endregion
-
             modelBuilder.Entity<Subscription>(entity =>
             {
                 entity.HasIndex(s => s.UserId);
@@ -829,9 +762,11 @@ namespace backend.Data
                         BackText = "Statens budget for det kommende år",
                     }
                 );
-            // --- /FLASHCARDS ---
-            private void SeedPollData(ModelBuilder modelBuilder){
+        }
 
+        // --- /FLASHCARDS ---
+        private void SeedPollData(ModelBuilder modelBuilder)
+        {
             const int SeedPoliticianId = 3;
             const int SeedPollId = 1;
             const int NewPollId = 2;
