@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -13,11 +12,9 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250513112657_PolidleMigration")]
-    partial class PolidleMigration
+    partial class DataContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -196,8 +193,8 @@ namespace backend.Migrations
                     b.Property<string>("Occupations")
                         .HasColumnType("text");
 
-                    b.Property<string>("ParliamentaryPositionsOfTrust")
-                        .HasColumnType("text");
+                    b.PrimitiveCollection<List<string>>("ParliamentaryPositionsOfTrust")
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Party")
                         .HasColumnType("text");
@@ -715,6 +712,60 @@ namespace backend.Migrations
                         });
                 });
 
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.Property<int>("partyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
+
+                    b.Property<int?>("chairmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("history")
+                        .HasColumnType("text");
+
+                    b.Property<string>("memberIds")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyProgram")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyShortName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("politics")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("secretaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("spokesmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("stats")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("viceChairmanId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("partyId");
+
+                    b.HasIndex("chairmanId");
+
+                    b.HasIndex("secretaryId");
+
+                    b.HasIndex("spokesmanId");
+
+                    b.HasIndex("viceChairmanId");
+
+                    b.ToTable("Party");
+                });
+
             modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
                 {
                     b.Property<int>("QuoteId")
@@ -1195,6 +1246,34 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "chairman")
+                        .WithMany()
+                        .HasForeignKey("chairmanId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("backend.Models.Aktor", "secretary")
+                        .WithMany()
+                        .HasForeignKey("secretaryId");
+
+                    b.HasOne("backend.Models.Aktor", "spokesman")
+                        .WithMany()
+                        .HasForeignKey("spokesmanId");
+
+                    b.HasOne("backend.Models.Aktor", "viceChairman")
+                        .WithMany()
+                        .HasForeignKey("viceChairmanId");
+
+                    b.Navigation("chairman");
+
+                    b.Navigation("secretary");
+
+                    b.Navigation("spokesman");
+
+                    b.Navigation("viceChairman");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
