@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import './HomePage.css'; // Styles for HomePage layout
 import SearchBar from '../../components/Searchbar'; // Import the new SearchBar component
 
