@@ -19,15 +19,10 @@ namespace backend.Services
     public class AdministratorService : IAdministratorService
     {
         private readonly IAdministratorRepository _repository;
-        private readonly ILogger<AdministratorService> _logger;
 
-        public AdministratorService(
-            IAdministratorRepository repository,
-            ILogger<AdministratorService> logger
-        )
+        public AdministratorService(IAdministratorRepository repository)
         {
             _repository = repository;
-            _logger = logger;
         }
 
         #region Flashcard Collection
@@ -35,12 +30,9 @@ namespace backend.Services
         // POST Flashcard collection
         public async Task<int> CreateCollectionAsync(FlashcardCollectionDetailDTO dto)
         {
-            _logger.LogInformation("Creating flashcard collection '{Title}'.", dto.Title);
-
             var collection = MapDtoToEntity(dto);
             await _repository.AddFlashcardCollectionAsync(collection);
 
-            _logger.LogInformation("Created collection with ID {Id}.", collection.CollectionId);
             return collection.CollectionId;
         }
 
@@ -50,8 +42,6 @@ namespace backend.Services
             FlashcardCollectionDetailDTO dto
         )
         {
-            _logger.LogInformation("Updating flashcard collection {Id}.", collectionId);
-
             var collection = await _repository.GetFlashcardCollectionByIdAsync(collectionId);
             if (collection == null)
             {

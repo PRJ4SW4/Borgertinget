@@ -1,12 +1,14 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using backend.Data;
 using backend.DTO.Flashcards;
 using backend.DTOs;
 using backend.Models;
 using backend.Models.Flashcards;
+using backend.Repositories;
 using backend.Services;
-using Microsoft.EntityFrameworkCore;
+using NSubstitute;
 using NUnit.Framework;
 
 namespace Tests.Services
@@ -14,25 +16,14 @@ namespace Tests.Services
     [TestFixture]
     public class AdministratorServiceTests
     {
-        private DataContext _context;
+        private IAdministratorRepository _repository;
         private AdministratorService _service;
 
         [SetUp]
         public void Setup()
         {
-            var options = new DbContextOptionsBuilder<DataContext>()
-                .UseInMemoryDatabase(databaseName: "TestDb")
-                .Options;
-
-            _context = new DataContext(options);
-            _service = new AdministratorService(_context);
-        }
-
-        [TearDown]
-        public void Teardown()
-        {
-            _context.Database.EnsureDeleted(); // clean after each test
-            _context.Dispose();
+            _repository = Substitute.For<IAdministratorRepository>();
+            _service = new AdministratorService(_repository);
         }
 
         #region Flashcard POST
@@ -49,25 +40,23 @@ namespace Tests.Services
                     new FlashcardDTO
                     {
                         FrontContentType = "Text",
-                        FrontText = "Mette Frederiksen",
+                        FrontText = "MF",
                         BackContentType = "Text",
-                        BackText = "Socialdemokratiet",
+                        BackText = "S",
                     },
                 },
             };
 
-            var id = await _service.CreateCollectionAsync(dto);
+            _repository
+                .When(r => r.AddFlashcardCollectionAsync(Arg.Any<FlashcardCollection>()))
+                .Do(ci => ci.Arg<FlashcardCollection>().CollectionId = 42);
 
-            Assert.That(id, Is.GreaterThan(0));
-            var collection = await _context
-                .FlashcardCollections.Include(c => c.Flashcards)
-                .FirstOrDefaultAsync(c => c.CollectionId == id);
-            Assert.That(collection?.Title, Is.EqualTo("Folketinget"));
-            Assert.That(collection?.Flashcards.Count, Is.EqualTo(1));
+            var id = await _service.CreateCollectionAsync(dto);
+            Assert.That(id, Is.EqualTo(42));
         }
 
         [Test]
-        public async Task CreateCollectionAsync_WithMultipleFlashcards_SavesAll()
+        public async Task CreateCollectionAsync_WithMultipleFlashcards_SendsAllFlashcardsToRepo()
         {
             var dto = new FlashcardCollectionDetailDTO
             {
@@ -78,91 +67,88 @@ namespace Tests.Services
                     new FlashcardDTO
                     {
                         FrontContentType = "Text",
-                        FrontText = "Josephine Fock",
+                        FrontText = "A",
                         BackContentType = "Text",
-                        BackText = "Tidligere leder",
+                        BackText = "B",
                     },
                     new FlashcardDTO
                     {
                         FrontContentType = "Text",
-                        FrontText = "Franziska Rosenkilde",
+                        FrontText = "C",
                         BackContentType = "Text",
-                        BackText = "Nuværende leder",
+                        BackText = "D",
                     },
                 },
             };
 
-            var id = await _service.CreateCollectionAsync(dto);
-            var collection = await _context
-                .FlashcardCollections.Include(c => c.Flashcards)
-                .FirstOrDefaultAsync(c => c.CollectionId == id);
+            FlashcardCollection captured = null!;
+            _repository
+                .When(r => r.AddFlashcardCollectionAsync(Arg.Any<FlashcardCollection>()))
+                .Do(ci => captured = ci.Arg<FlashcardCollection>());
 
-            Assert.That(collection?.Flashcards.Count, Is.EqualTo(2));
+            await _service.CreateCollectionAsync(dto);
+            Assert.That(captured, Is.Not.Null);
+            Assert.That(captured.Flashcards.Count, Is.EqualTo(2));
         }
 
         #endregion
 
-        #region  Flashcard GET
+        #region Flashcard GET
 
         [Test]
         public async Task GetAllFlashcardCollectionTitlesAsync_CollectionsExist_ReturnsList()
         {
-            _context.FlashcardCollections.AddRange(
-                new FlashcardCollection { Title = "LA" },
-                new FlashcardCollection { Title = "Nye Borgerlige" }
+            var titles = new List<string> { "LA", "NB" };
+            _repository.GetAllFlashcardCollectionTitlesAsync().Returns(titles);
+
+            var result = await _service.GetAllFlashcardCollectionTitlesAsync();
+            Assert.That(result, Is.EquivalentTo(titles));
+        }
+
+        [Test]
+        public void GetAllFlashcardCollectionTitlesAsync_NoCollections_Throws()
+        {
+            _repository.GetAllFlashcardCollectionTitlesAsync().Returns(new List<string>());
+            Assert.ThrowsAsync<KeyNotFoundException>(
+                () => _service.GetAllFlashcardCollectionTitlesAsync()
             );
-            await _context.SaveChangesAsync();
-
-            var titles = await _service.GetAllFlashcardCollectionTitlesAsync();
-
-            Assert.That(titles.Count, Is.EqualTo(2));
-            Assert.That(titles, Does.Contain("LA"));
         }
 
         [Test]
-        public void GetAllFlashcardCollectionTitlesAsync_NoCollections_ThrowsKeyNotFound()
+        public async Task GetFlashCardCollectionByTitle_Valid_ReturnsDto()
         {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+            var entity = new FlashcardCollection
             {
-                await _service.GetAllFlashcardCollectionTitlesAsync();
-            });
-        }
-
-        [Test]
-        public void GetFlashCardCollectionByTitle_InvalidTitle_ThrowsKeyNotFound()
-        {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                await _service.GetFlashCardCollectionByTitle("Ukendt Titel");
-            });
-        }
-
-        [Test]
-        public async Task GetFlashCardCollectionByTitle_ValidTitle_ReturnsDto()
-        {
-            var collection = new FlashcardCollection
-            {
-                Title = "Dansk Folkeparti",
-                Description = "Nationalt fokus",
+                CollectionId = 1,
+                Title = "DF",
+                Description = "Nationalt",
                 Flashcards = new List<Flashcard>
                 {
                     new Flashcard
                     {
                         FrontContentType = FlashcardContentType.Text,
-                        FrontText = "Morten Messerschmidt",
+                        FrontText = "MM",
                         BackContentType = FlashcardContentType.Text,
                         BackText = "Formand",
                     },
                 },
             };
+            _repository.GetFlashcardCollectionByTitleAsync("DF").Returns(entity);
 
-            _context.FlashcardCollections.Add(collection);
-            await _context.SaveChangesAsync();
+            var dto = await _service.GetFlashCardCollectionByTitle("DF");
+            Assert.That(dto.Title, Is.EqualTo("DF"));
+            Assert.That(dto.Flashcards.Count, Is.EqualTo(1));
+        }
 
-            var result = await _service.GetFlashCardCollectionByTitle("Dansk Folkeparti");
-
-            Assert.That(result.Title, Is.EqualTo("Dansk Folkeparti"));
-            Assert.That(result.Flashcards.Count, Is.EqualTo(1));
+        [Test]
+        public void GetFlashCardCollectionByTitle_Invalid_Throws()
+        {
+            _repository
+                .GetFlashcardCollectionByTitleAsync("Ukendt")
+                .Returns((FlashcardCollection)null!);
+            Assert.ThrowsAsync<KeyNotFoundException>(
+                () => _service.GetFlashCardCollectionByTitle("Ukendt")
+            );
         }
 
         #endregion
@@ -170,56 +156,52 @@ namespace Tests.Services
         #region Flashcard PUT
 
         [Test]
-        public async Task UpdateCollectionInfoAsync_ValidUpdate_ChangesTitleAndDescription()
+        public async Task UpdateCollectionInfoAsync_Valid_UpdatesEntityAndRepoCalled()
         {
-            var collection = new FlashcardCollection
+            var existing = new FlashcardCollection
             {
-                Title = "SF",
-                Description = "Tidligere titel",
+                CollectionId = 1,
+                Title = "Old",
+                Description = "Old",
+                Flashcards = new List<Flashcard>(),
             };
-            _context.FlashcardCollections.Add(collection);
-            await _context.SaveChangesAsync();
+            _repository.GetFlashcardCollectionByIdAsync(1).Returns(existing);
 
             var dto = new FlashcardCollectionDetailDTO
             {
-                Title = "SF Opdateret",
-                Description = "Ny beskrivelse",
+                Title = "New",
+                Description = "New",
                 Flashcards = new List<FlashcardDTO>
                 {
                     new FlashcardDTO
                     {
                         FrontContentType = "Text",
-                        FrontText = "Pia Olsen Dyhr",
+                        FrontText = "X",
                         BackContentType = "Text",
-                        BackText = "Partiformand",
+                        BackText = "Y",
                     },
                 },
             };
 
-            await _service.UpdateCollectionInfoAsync(collection.CollectionId, dto);
-
-            var updated = await _context
-                .FlashcardCollections.Include(c => c.Flashcards)
-                .FirstOrDefaultAsync(c => c.CollectionId == collection.CollectionId);
-
-            Assert.That(updated?.Title, Is.EqualTo("SF Opdateret"));
-            Assert.That(updated?.Flashcards.Count, Is.EqualTo(1));
+            await _service.UpdateCollectionInfoAsync(1, dto);
+            await _repository.Received(1).UpdateFlashcardCollectionAsync(existing);
+            Assert.That(existing.Title, Is.EqualTo("New"));
+            Assert.That(existing.Flashcards.Count, Is.EqualTo(1));
         }
 
         [Test]
-        public void UpdateCollectionInfoAsync_NonExistingId_ThrowsKeyNotFound()
+        public void UpdateCollectionInfoAsync_NonExisting_Throws()
         {
+            _repository.GetFlashcardCollectionByIdAsync(7).Returns((FlashcardCollection)null!);
             var dto = new FlashcardCollectionDetailDTO
             {
-                Title = "Fake",
-                Description = "Should fail",
+                Title = "None",
+                Description = "x",
                 Flashcards = new List<FlashcardDTO>(),
             };
-
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                await _service.UpdateCollectionInfoAsync(-1, dto);
-            });
+            Assert.ThrowsAsync<KeyNotFoundException>(
+                () => _service.UpdateCollectionInfoAsync(7, dto)
+            );
         }
 
         #endregion
@@ -227,213 +209,173 @@ namespace Tests.Services
         #region Flashcard DELETE
 
         [Test]
-        public async Task DeleteFlashcardCollectionAsync_ValidId_RemovesCollection()
+        public async Task DeleteFlashcardCollectionAsync_ValidId_CallsRepo()
         {
-            var collection = new FlashcardCollection
-            {
-                Title = "Moderaterne",
-                Flashcards = new List<Flashcard>
-                {
-                    new Flashcard
-                    {
-                        FrontContentType = FlashcardContentType.Text,
-                        FrontText = "Lars Løkke",
-                        BackContentType = FlashcardContentType.Text,
-                        BackText = "Statsminister?",
-                    },
-                },
-            };
+            var coll = new FlashcardCollection { CollectionId = 9 };
+            _repository.GetFlashcardCollectionByIdAsync(9).Returns(coll);
 
-            _context.FlashcardCollections.Add(collection);
-            await _context.SaveChangesAsync();
-
-            await _service.DeleteFlashcardCollectionAsync(collection.CollectionId);
-
-            var deleted = await _context.FlashcardCollections.FindAsync(collection.CollectionId);
-            Assert.That(deleted, Is.Null);
+            await _service.DeleteFlashcardCollectionAsync(9);
+            await _repository.Received(1).DeleteFlashcardCollectionAsync(coll);
         }
 
         [Test]
-        public void DeleteFlashcardCollectionAsync_InvalidId_ThrowsKeyNotFound()
+        public void DeleteFlashcardCollectionAsync_InvalidId_Throws()
         {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                await _service.DeleteFlashcardCollectionAsync(-99);
-            });
-        }
-
-        #endregion
-
-        #region Username GET
-
-        [Test]
-        public async Task GetUserByUsernameAsync_ExistingUser_ReturnsUser()
-        {
-            var user = new User
-            {
-                UserName = "hellethorning",
-                Email = "helle@folketinget.dk",
-                PasswordHash = "hashed_pw",
-            };
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var result = await _service.GetUserByUsernameAsync("hellethorning");
-
-            Assert.That(result.UserName, Is.EqualTo("hellethorning"));
-        }
-
-        [Test]
-        public void GetUserByUsernameAsync_NonExistingUser_ThrowsKeyNotFound()
-        {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                await _service.GetUserByUsernameAsync("ukendtbruger");
-            });
-        }
-
-        [Test]
-        public async Task GetAllUsersAsync_WithUsers_ReturnsAll()
-        {
-            _context.Users.AddRange(
-                new User
-                {
-                    Email = "karsten@folketinget.dk",
-                    UserName = "margrethev",
-                    PasswordHash = "dummyHash123",
-                },
-                new User
-                {
-                    Email = "karsten@folketinget.dk",
-                    UserName = "larslykke",
-                    PasswordHash = "dummyHash123",
-                }
+            _repository.GetFlashcardCollectionByIdAsync(-9).Returns((FlashcardCollection)null!);
+            Assert.ThrowsAsync<KeyNotFoundException>(
+                () => _service.DeleteFlashcardCollectionAsync(-9)
             );
-            await _context.SaveChangesAsync();
-
-            var result = await _service.GetAllUsersAsync();
-
-            Assert.That(result.Length, Is.EqualTo(2));
-            Assert.That(result.Any(u => u.UserName == "larslykke"));
-        }
-
-        [Test]
-        public void GetAllUsersAsync_NoUsers_ThrowsKeyNotFound()
-        {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                await _service.GetAllUsersAsync();
-            });
         }
 
         #endregion
 
-        #region Username PUT
+        #region User
 
         [Test]
-        public async Task UpdateUserNameAsync_ValidId_UpdatesUserName()
+        public async Task GetUserByUsernameAsync_Existing_ReturnsUser()
         {
-            var user = new User
+            var user = new User { Id = 1, UserName = "helle" };
+            _repository.GetUserByUsernameAsync("helle").Returns(user);
+            var res = await _service.GetUserByUsernameAsync("helle");
+            Assert.That(res, Is.EqualTo(user));
+        }
+
+        [Test]
+        public void GetUserByUsernameAsync_NotFound_Throws()
+        {
+            _repository.GetUserByUsernameAsync("ghost").Returns((User)null!);
+            Assert.ThrowsAsync<KeyNotFoundException>(
+                () => _service.GetUserByUsernameAsync("ghost")
+            );
+        }
+
+        [Test]
+        public async Task GetAllUsersAsync_WithUsers_Returns()
+        {
+            var users = new[]
             {
-                Email = "karsten@folketinget.dk",
-                UserName = "nybruger",
-                PasswordHash = "dummyHash123",
+                new User { UserName = "a" },
+                new User { UserName = "b" },
             };
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var dto = new UpdateUserNameDto { UserName = "nybruger" };
-
-            await _service.UpdateUserNameAsync(user.Id, dto);
-
-            var updated = await _context.Users.FindAsync(user.Id);
-            Assert.That(updated?.UserName, Is.EqualTo("nybruger"));
+            _repository.GetAllUsersAsync().Returns(users);
+            var res = await _service.GetAllUsersAsync();
+            Assert.That(res.Length, Is.EqualTo(2));
         }
 
         [Test]
-        public void UpdateUserNameAsync_InvalidId_ThrowsKeyNotFound()
+        public void GetAllUsersAsync_NoUsers_Throws()
         {
-            var dto = new UpdateUserNameDto { UserName = "ingenbruger" };
+            _repository.GetAllUsersAsync().Returns(Array.Empty<User>());
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetAllUsersAsync());
+        }
 
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                await _service.UpdateUserNameAsync(-1, dto);
-            });
+        [Test]
+        public async Task UpdateUserNameAsync_Valid_UpdatesAndCallsRepo()
+        {
+            var user = new User { Id = 5, UserName = "old" };
+            _repository.GetUserByIdAsync(5).Returns(user);
+            await _service.UpdateUserNameAsync(5, new UpdateUserNameDto { UserName = "new" });
+            Assert.That(user.UserName, Is.EqualTo("new"));
+            await _repository.Received(1).UpdateUserAsync(user);
+        }
+
+        [Test]
+        public void UpdateUserNameAsync_InvalidId_Throws()
+        {
+            _repository.GetUserByIdAsync(99).Returns((User)null!);
+            Assert.ThrowsAsync<KeyNotFoundException>(
+                () => _service.UpdateUserNameAsync(99, new UpdateUserNameDto { UserName = "x" })
+            );
         }
 
         #endregion
 
-        #region Citat-mode GET
+        #region Quotes
 
         [Test]
         public async Task GetAllQuotesAsync_WithQuotes_ReturnsList()
         {
-            _context.PoliticianQuotes.Add(
-                new PoliticianQuote { QuoteId = 1, QuoteText = "Vi har styr på økonomien" }
-            );
-            await _context.SaveChangesAsync();
-
-            var result = await _service.GetAllQuotesAsync();
-
-            Assert.That(result.Count, Is.EqualTo(1));
-            Assert.That(result[0].QuoteText, Is.EqualTo("Vi har styr på økonomien"));
-        }
-
-        [Test]
-        public void GetAllQuotesAsync_NoQuotes_ThrowsKeyNotFound()
-        {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+            var list = new List<PoliticianQuote>
             {
-                await _service.GetAllQuotesAsync();
-            });
+                new PoliticianQuote { QuoteId = 1, QuoteText = "Q" },
+            };
+            _repository.GetAllQuotesAsync().Returns(list);
+            var res = await _service.GetAllQuotesAsync();
+            Assert.That(res.Count, Is.EqualTo(1));
         }
 
         [Test]
-        public async Task GetQuoteByIdAsync_ValidId_ReturnsQuote()
+        public void GetAllQuotesAsync_None_Throws()
         {
-            _context.PoliticianQuotes.Add(
-                new PoliticianQuote { QuoteId = 7, QuoteText = "Mette sagde noget klogt" }
-            );
-            await _context.SaveChangesAsync();
-
-            var result = await _service.GetQuoteByIdAsync(7);
-
-            Assert.That(result.QuoteId, Is.EqualTo(7));
-            Assert.That(result.QuoteText, Is.EqualTo("Mette sagde noget klogt"));
+            _repository.GetAllQuotesAsync().Returns(new List<PoliticianQuote>());
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetAllQuotesAsync());
         }
 
         [Test]
-        public void GetQuoteByIdAsync_InvalidId_ThrowsKeyNotFound()
+        public async Task GetQuoteByIdAsync_Valid_ReturnsDto()
         {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                await _service.GetQuoteByIdAsync(999);
-            });
+            var quote = new PoliticianQuote { QuoteId = 7, QuoteText = "text" };
+            _repository.GetQuoteByIdAsync(7).Returns(quote);
+            var dto = await _service.GetQuoteByIdAsync(7);
+            Assert.That(dto.QuoteText, Is.EqualTo("text"));
+        }
+
+        [Test]
+        public void GetQuoteByIdAsync_InvalidId_Throws()
+        {
+            _repository.GetQuoteByIdAsync(999).Returns((PoliticianQuote)null!);
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetQuoteByIdAsync(999));
+        }
+
+        [Test]
+        public async Task EditQuoteAsync_Valid_UpdatesAndCallsRepo()
+        {
+            var quote = new PoliticianQuote { QuoteId = 3, QuoteText = "Old" };
+            _repository.GetQuoteByIdAsync(3).Returns(quote);
+
+            await _service.EditQuoteAsync(3, "New");
+
+            Assert.That(quote.QuoteText, Is.EqualTo("New"));
+            await _repository.Received(1).UpdateQuoteAsync(quote);
+        }
+
+        [Test]
+        public void EditQuoteAsync_InvalidId_Throws()
+        {
+            _repository.GetQuoteByIdAsync(404).Returns((PoliticianQuote)null!);
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _service.EditQuoteAsync(404, "text"));
         }
 
         #endregion
 
-        #region Citat-mode PUT
+        #region Politician Twitter Lookup
 
         [Test]
-        public async Task EditQuoteAsync_ValidId_UpdatesQuoteText()
+        public async Task GetAktorIdByTwitterIdAsync_ValidId_ReturnsAktorId()
         {
-            var quote = new PoliticianQuote { QuoteId = 3, QuoteText = "Originalt citat" };
-            _context.PoliticianQuotes.Add(quote);
-            await _context.SaveChangesAsync();
+            _repository.GetAktorIdByTwitterIdAsync(321).Returns(654);
 
-            await _service.EditQuoteAsync(3, "Nyt citat fra oppositionen");
+            var result = await _service.GetAktorIdByTwitterIdAsync(321);
 
-            var updated = await _context.PoliticianQuotes.FindAsync(3);
-            Assert.That(updated?.QuoteText, Is.EqualTo("Nyt citat fra oppositionen"));
+            Assert.That(result, Is.EqualTo(654));
         }
 
         [Test]
-        public void EditQuoteAsync_InvalidId_ThrowsKeyNotFound()
+        public async Task GetAktorIdByTwitterIdAsync_IdNotFound_ReturnsNull()
         {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+            _repository.GetAktorIdByTwitterIdAsync(999).Returns((int?)null);
+
+            var result = await _service.GetAktorIdByTwitterIdAsync(999);
+
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void GetAktorIdByTwitterIdAsync_InvalidId_ThrowsArgumentOutOfRange()
+        {
+            Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
             {
-                await _service.EditQuoteAsync(999, "Dette virker ikke");
+                await _service.GetAktorIdByTwitterIdAsync(0);
             });
         }
 

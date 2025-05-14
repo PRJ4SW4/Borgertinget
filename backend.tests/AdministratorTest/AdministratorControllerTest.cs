@@ -430,20 +430,14 @@ namespace Tests.Controllers
             // Arrange
             var twitterId = 123;
             var expectedAktorId = 456;
-            var politicianTwitterId = new PoliticianTwitterId
-            {
-                Id = twitterId,
-                AktorId = expectedAktorId,
-            };
-            _context.PoliticianTwitterIds.Add(politicianTwitterId);
-            await _context.SaveChangesAsync();
+            _service.GetAktorIdByTwitterIdAsync(twitterId).Returns(expectedAktorId);
 
             // Act
             var result = await _controller.GetAktorIdByTwitterId(twitterId);
 
             // Assert
-            Assert.That(result, Is.TypeOf<ActionResult<object>>());
-            var okResult = result.Result as OkObjectResult;
+            Assert.That(result, Is.TypeOf<OkObjectResult>());
+            var okResult = result as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
             Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
             Assert.That(okResult.Value, Is.Not.Null);
@@ -459,13 +453,14 @@ namespace Tests.Controllers
         {
             // Arrange
             var twitterId = 789;
+            _service.GetAktorIdByTwitterIdAsync(twitterId).Returns((int?)null);
 
             // Act
             var result = await _controller.GetAktorIdByTwitterId(twitterId);
 
             // Assert
-            Assert.That(result, Is.TypeOf<ActionResult<object>>());
-            var notFoundResult = result.Result as NotFoundObjectResult;
+            Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
+            var notFoundResult = result as NotFoundObjectResult;
             Assert.That(notFoundResult, Is.Not.Null);
             Assert.That(notFoundResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
             Assert.That(
@@ -484,8 +479,8 @@ namespace Tests.Controllers
             var result = await _controller.GetAktorIdByTwitterId(twitterId);
 
             // Assert
-            Assert.That(result, Is.TypeOf<ActionResult<object>>());
-            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
+            var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
             Assert.That(badRequestResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
             Assert.That(badRequestResult.Value, Is.EqualTo("Ugyldigt Twitter ID."));
