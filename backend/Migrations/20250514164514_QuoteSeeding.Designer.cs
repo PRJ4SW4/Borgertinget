@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250514140710_SeedHardcodedQuotes")]
-    partial class SeedHardcodedQuotes
+    [Migration("20250514164514_QuoteSeeding")]
+    partial class QuoteSeeding
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

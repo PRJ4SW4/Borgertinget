@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialPolidleSchema : Migration
+    public partial class InitialSchemaAfterReset : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -239,8 +239,7 @@ namespace backend.Migrations
                 name: "PoliticianQuotes",
                 columns: table => new
                 {
-                    QuoteId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    QuoteId = table.Column<int>(type: "integer", nullable: false),
                     QuoteText = table.Column<string>(type: "text", nullable: false),
                     AktorId = table.Column<int>(type: "integer", nullable: false)
                 },

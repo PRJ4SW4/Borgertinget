@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic; // Required
-using System.Text.Json;          // Required
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq;
+using System.Text.Json; // Required
+using backend.Data.SeedData;
 using backend.DTO.Calendar;
 using backend.DTO.LearningEnvironment;
 using backend.Enums;
@@ -10,11 +10,11 @@ using backend.Models;
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
-using backend.Data.SeedData;
+using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace backend.Data
 {
@@ -47,9 +47,6 @@ namespace backend.Data
         public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
         public DbSet<Party> Party { get; set; }
-
-
-
 
         // --- Core Political Data ---
         public DbSet<Aktor> Aktor { get; set; } = null!; // Navn er 'Aktor', men repræsenterer politikere osv.
@@ -362,7 +359,8 @@ namespace backend.Data
             modelBuilder.Entity<PoliticianQuote>(entity =>
             {
                 entity.Property(e => e.QuoteId).ValueGeneratedNever();
-                entity.HasOne(pq => pq.Politician)
+                entity
+                    .HasOne(pq => pq.Politician)
                     .WithMany(a => a.Quotes) // Sørg for Aktor.Quotes er defineret
                     .HasForeignKey(pq => pq.AktorId);
             });
@@ -413,7 +411,7 @@ namespace backend.Data
             // --- SEED DATA ---
             SeedLearningEnvironmentData(modelBuilder);
             SeedPollData(modelBuilder);
-            QuoteSeeder.SeedQuotes(modelBuilder); // Kald din QuoteSeeder
+            //QuoteSeeder.SeedQuotes(modelBuilder); // Kald din QuoteSeeder
         }
 
         // Helper method til JSON konvertering for at undgå gentagelse

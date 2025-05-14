@@ -7,7 +7,7 @@
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class SeedHardcodedQuotes : Migration
+    public partial class QuoteSeeding : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
