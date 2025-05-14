@@ -389,6 +389,41 @@ namespace backend.Data
             modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
 
+            // --- SEED SUPERUSER (ADMIN + USER ROLES) ---
+            var superUserId = 100; // Using a distinct ID for this user
+
+            // IMPORTANT: You MUST replace the PasswordHash below with a securely generated hash.
+            // To generate a hash, you can use ASP.NET Core Identity's PasswordHasher.
+            // For example, in a temporary controller or a utility method:
+            // var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
+            // var hashedPassword = hasher.HashPassword(null, "YourChosenSecureP@ssw0rd1!");
+            // Console.WriteLine(hashedPassword); // Then copy the output here.
+
+            var superUser = new User
+            {
+                Id = superUserId,
+                UserName = "borgertinget_superuser",
+                NormalizedUserName = "BORGERTINGET_SUPERUSER",
+                Email = "superuser@borgertinget.dk",
+                NormalizedEmail = "SUPERUSER@BORGERTINGET.DK",
+                EmailConfirmed = true,
+                PasswordHash =
+                    "AQAAAAIAAYagAAAAEIrNoscXqh4mXSk/2ebk5jFjsosHlU5MJ4tEgcXgFoBVTCmLw0KLd1EymioDIOU5wg==",
+                SecurityStamp = "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH",
+                ConcurrencyStamp = "9a90d138-772e-44b1-b052-18d591edef58",
+            };
+
+            modelBuilder.Entity<User>().HasData(superUser);
+
+            // Assign both Admin (Id=1) and User (Id=2) roles to the superuser
+            modelBuilder
+                .Entity<IdentityUserRole<int>>()
+                .HasData(
+                    new IdentityUserRole<int> { UserId = superUserId, RoleId = 1 }, // Admin Role
+                    new IdentityUserRole<int> { UserId = superUserId, RoleId = 2 } // User Role
+                );
+            // --- END SEED SUPERUSER ---
+
             #region Polidle
             // --- NY KONFIGURATION for Polidle ---
 
