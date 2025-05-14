@@ -1,16 +1,24 @@
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  within,
-} from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { BrowserRouter } from "react-router-dom";
 import EditLearningPage from "../../components/AdminPages/EditLearningPage";
 import { mockNavigate, mockedAxios, mockGetItem } from "../testMocks";
 
-const mockPagesSummary = [
+import { fetchPagesStructure } from "../../services/ApiService";
+import type { PageSummaryDto, PageDetailDto as ApiPageDetailDto } from "../../types/pageTypes";
+
+vi.mock("../../services/ApiService", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../services/ApiService")>();
+  return {
+    ...actual,
+    fetchPagesStructure: vi.fn(),
+  };
+});
+
+// Cast the mocked function for type safety and to access mock methods
+const mockedFetchPagesStructure = fetchPagesStructure as Mock<() => Promise<PageSummaryDto[]>>;
+
+const mockPagesSummary: PageSummaryDto[] = [
   {
     id: 1,
     title: "Page 1",
@@ -34,26 +42,39 @@ const mockPagesSummary = [
   },
 ];
 
-const mockPageDetail = {
+const mockPageDetail: ApiPageDetailDto = {
   id: 1,
   title: "Page 1 Title",
   content: "Page 1 Content",
   parentPageId: null,
+  previousSiblingId: null,
+  nextSiblingId: null,
+  associatedQuestions: [],
 };
 
 describe("EditLearningPage", () => {
   beforeEach(() => {
     mockGetItem.mockReturnValue("fake-jwt-token");
-    mockedAxios.get.mockImplementation((url) => {
-      if (url === "/api/pages") {
-        return Promise.resolve({ data: mockPagesSummary });
+
+    mockedFetchPagesStructure.mockResolvedValue([...mockPagesSummary]);
+
+    mockedAxios.get.mockImplementation(async (url: string) => {
+      if (url === `/api/pages/${mockPageDetail.id}`) {
+        return Promise.resolve({ data: { ...mockPageDetail } });
       }
-      if (url === "/api/pages/1") {
-        return Promise.resolve({ data: mockPageDetail });
-      }
-      return Promise.reject(new Error("not found"));
+      return Promise.reject(new Error(`mockedAxios.get: unhandled URL ${url}`));
     });
+
     mockedAxios.put.mockResolvedValue({ data: {} });
+
+    mockedFetchPagesStructure.mockClear();
+    mockedAxios.get.mockClear();
+    mockedAxios.put.mockClear();
+    mockNavigate.mockClear();
+
+    if (window.alert as Mock) {
+      (window.alert as Mock).mockReset();
+    }
   });
 
   it("renders correctly and fetches pages", async () => {
@@ -67,13 +88,11 @@ describe("EditLearningPage", () => {
     expect(screen.getByText("-- Vælg side --")).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith("/api/pages", {
-        headers: { Authorization: "Bearer fake-jwt-token" },
-      });
+      expect(mockedFetchPagesStructure).toHaveBeenCalledTimes(1);
     });
 
     mockPagesSummary.forEach((page) => {
-      expect(screen.getByText(page.title)).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: page.title })).toBeInTheDocument();
     });
   });
 
@@ -94,7 +113,7 @@ describe("EditLearningPage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Page 1")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
     });
 
     const selectPage = screen.getByRole("combobox", {
@@ -108,12 +127,8 @@ describe("EditLearningPage", () => {
       });
     });
 
-    expect(screen.getByPlaceholderText("Titel")).toHaveValue(
-      mockPageDetail.title
-    );
-    expect(screen.getByPlaceholderText("Markdown indhold")).toHaveValue(
-      mockPageDetail.content
-    );
+    expect(screen.getByPlaceholderText("Titel")).toHaveValue(mockPageDetail.title);
+    expect(screen.getByPlaceholderText("Markdown indhold")).toHaveValue(mockPageDetail.content);
     expect(screen.getByText("Gem Ændringer")).toBeInTheDocument();
   });
 
@@ -124,7 +139,7 @@ describe("EditLearningPage", () => {
       </BrowserRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText("Page 1")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
     });
 
     const selectPage = screen.getByRole("combobox", { name: /vælg side/i });
@@ -138,9 +153,7 @@ describe("EditLearningPage", () => {
     fireEvent.change(titleInput, { target: { value: "Updated Title" } });
     expect(titleInput.value).toBe("Updated Title");
 
-    const contentTextarea = screen.getByPlaceholderText(
-      "Markdown indhold"
-    ) as HTMLTextAreaElement;
+    const contentTextarea = screen.getByPlaceholderText("Markdown indhold") as HTMLTextAreaElement;
     fireEvent.change(contentTextarea, { target: { value: "Updated Content" } });
     expect(contentTextarea.value).toBe("Updated Content");
 
@@ -160,16 +173,14 @@ describe("EditLearningPage", () => {
       </BrowserRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText("Page 1")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
     });
 
     const selectPage = screen.getByRole("combobox", { name: /vælg side/i });
     fireEvent.change(selectPage, { target: { value: "1" } });
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText("Titel")).toHaveValue(
-        mockPageDetail.title
-      );
+      expect(screen.getByPlaceholderText("Titel")).toHaveValue(mockPageDetail.title);
     });
 
     const titleInput = screen.getByPlaceholderText("Titel");
@@ -190,6 +201,7 @@ describe("EditLearningPage", () => {
           content: "Final Content",
           parentPageId: null,
           displayOrder: 1,
+          associatedQuestions: [],
         },
         { headers: { Authorization: "Bearer fake-jwt-token" } }
       );
@@ -207,7 +219,7 @@ describe("EditLearningPage", () => {
       </BrowserRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText("Page 1")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
     });
 
     const selectPage = screen.getByRole("combobox", { name: /vælg side/i });

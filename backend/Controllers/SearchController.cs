@@ -1,11 +1,11 @@
-using Microsoft.AspNetCore.Mvc;
-using OpenSearch.Client;
-using backend.Models; // Assuming your SearchDocument is here
 using System;
-using System.Threading.Tasks;
-using System.Linq;
-using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using backend.Models; // Assuming your SearchDocument is here
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using OpenSearch.Client;
 
 namespace backend.Controllers
 {
@@ -18,7 +18,10 @@ namespace backend.Controllers
         private const string IndexName = "borgertinget-search"; // From your SearchIndexingService
         private const int TopNResults = 5; // Define the number of results to return
 
-        public SearchController(IOpenSearchClient openSearchClient, ILogger<SearchController> logger)
+        public SearchController(
+            IOpenSearchClient openSearchClient,
+            ILogger<SearchController> logger
+        )
         {
             _openSearchClient = openSearchClient;
             _logger = logger;
@@ -43,53 +46,68 @@ namespace backend.Controllers
             }
 
             var sanitizedQuery = query.Replace("\n", "").Replace("\r", "");
-            _logger.LogInformation("Received search query: '{Query}' for top {TopNResults} results", sanitizedQuery, TopNResults);
+            _logger.LogInformation(
+                "Received search query: '{Query}' for top {TopNResults} results",
+                sanitizedQuery,
+                TopNResults
+            );
 
             try
             {
-                var searchResponse = await _openSearchClient.SearchAsync<SearchDocument>(s => s
-                    .Index(IndexName)
-                    .Size(TopNResults) // Set size to return only the top N results
-                    .Query(q => q
-                        .MultiMatch(mm => mm
-                            .Query(query)
-                            .Fields(f => f
-                                .Field(sd => sd.Title, boost: 3)
-                                .Field(sd => sd.DataType)
-                                .Field(sd => sd.Content)
-                                .Field(sd => sd.AktorName, boost: 2)
-                                .Field(sd => sd.Party)
-                                .Field(sd => sd.PartyShortname)
-                                .Field(sd => sd.MinisterTitle)
-                                .Field(sd => sd.CollectionTitle)
-                                .Field(sd => sd.FrontText)
-                                .Field(sd => sd.BackText)
-                                .Field(sd => sd.Constituencies)
+                var searchResponse = await _openSearchClient.SearchAsync<SearchDocument>(s =>
+                    s.Index(IndexName)
+                        .Size(TopNResults) // Set size to return only the top N results
+                        .Query(q =>
+                            q.MultiMatch(mm =>
+                                mm.Query(query)
+                                    .Fields(f =>
+                                        f.Field(sd => sd.Title, boost: 3)
+                                            .Field(sd => sd.DataType)
+                                            .Field(sd => sd.Content)
+                                            .Field(sd => sd.AktorName, boost: 2)
+                                            .Field(sd => sd.Party)
+                                            .Field(sd => sd.PartyShortname)
+                                            .Field(sd => sd.MinisterTitle)
+                                            .Field(sd => sd.CollectionTitle)
+                                            .Field(sd => sd.FrontText)
+                                            .Field(sd => sd.BackText)
+                                            .Field(sd => sd.Constituencies)
+                                    )
+                                    .Type(TextQueryType.BestFields)
+                                    .Fuzziness(Fuzziness.Auto)
+                                    .PrefixLength(1)
                             )
-                            .Type(TextQueryType.BestFields)
-                            .Fuzziness(Fuzziness.Auto)
-                            .PrefixLength(1)
                         )
-                    )
                 );
 
                 if (!searchResponse.IsValid)
                 {
-                    _logger.LogError("OpenSearch query failed: {ErrorReason}. DebugInfo: {DebugInfo}. Query: '{Query}'",
+                    _logger.LogError(
+                        "OpenSearch query failed: {ErrorReason}. DebugInfo: {DebugInfo}. Query: '{Query}'",
                         searchResponse.ServerError?.Error?.Reason ?? "N/A",
                         searchResponse.DebugInformation,
-                        sanitizedQuery);
+                        sanitizedQuery
+                    );
                     return StatusCode(500, "An error occurred while searching.");
                 }
 
-                _logger.LogInformation("Search successful. Returning {Count} documents out of {TotalHits} total hits for query: '{Query}'", searchResponse.Documents.Count, searchResponse.Total, sanitizedQuery);
-                
+                _logger.LogInformation(
+                    "Search successful. Returning {Count} documents out of {TotalHits} total hits for query: '{Query}'",
+                    searchResponse.Documents.Count,
+                    searchResponse.Total,
+                    sanitizedQuery
+                );
+
                 // Just return the documents, as total hits and pagination info are less relevant for a top N query
                 return Ok(searchResponse.Documents);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An exception occurred during search operation for query: '{Query}'", sanitizedQuery);
+                _logger.LogError(
+                    ex,
+                    "An exception occurred during search operation for query: '{Query}'",
+                    sanitizedQuery
+                );
                 return StatusCode(500, "An internal server error occurred.");
             }
         }

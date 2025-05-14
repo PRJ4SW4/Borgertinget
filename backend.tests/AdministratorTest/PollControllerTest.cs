@@ -21,6 +21,7 @@ namespace Tests.Controllers
         private DataContext _context;
         private PollsController _uut;
         private IHubContext<FeedHub> _mockHubContext;
+        private IClientProxy _mockClientProxy; // Added for verifying SignalR calls
 
         [SetUp]
         public void Setup()
@@ -32,11 +33,10 @@ namespace Tests.Controllers
             _context.Database.EnsureCreated();
 
             _mockHubContext = Substitute.For<IHubContext<FeedHub>>();
-            // Minimal setup for IHubContext as admin endpoints might not use SignalR directly for broadcasting
             var mockClients = Substitute.For<IHubClients>();
-            var mockClientProxy = Substitute.For<IClientProxy>();
+            _mockClientProxy = Substitute.For<IClientProxy>(); // Initialize the field
             _mockHubContext.Clients.Returns(mockClients);
-            mockClients.All.Returns(mockClientProxy);
+            mockClients.All.Returns(_mockClientProxy); // Use the field
 
             _uut = new PollsController(_context, _mockHubContext);
         }
@@ -63,6 +63,39 @@ namespace Tests.Controllers
             _context.PoliticianTwitterIds.Add(politician);
             await _context.SaveChangesAsync();
             return politician;
+        }
+
+        private async Task<Poll> SeedPoll( // Helper method to seed a poll
+            int? pollId = null, // Allow nullable for DB generation
+            string question = "Test Poll",
+            int politicianId = 1,
+            List<string>? optionTexts = null, // Corrected to nullable list
+            DateTime? endedAt = null,
+            bool generateId = false // If true, we don't set Id and let DB generate
+        )
+        {
+            if (optionTexts == null)
+            {
+                optionTexts = new List<string> { "Opt A", "Opt B" };
+            }
+
+            var poll = new Poll
+            {
+                Question = question,
+                PoliticianTwitterId = politicianId,
+                CreatedAt = DateTime.UtcNow,
+                EndedAt = endedAt,
+                Options = optionTexts.Select(ot => new PollOption { OptionText = ot }).ToList(),
+            };
+
+            if (pollId.HasValue && !generateId)
+            {
+                poll.Id = pollId.Value;
+            }
+
+            _context.Polls.Add(poll);
+            await _context.SaveChangesAsync();
+            return poll;
         }
 
         #region CreatePoll Tests
@@ -104,7 +137,6 @@ namespace Tests.Controllers
             Assert.That(dbPoll.Options.Count, Is.EqualTo(2));
             Assert.That(dbPoll.EndedAt.HasValue, Is.True);
             // Compare dates and allow for minor precision differences in time due to ToUniversalTime()
-            Assert.That(dbPoll.EndedAt.Value.Date, Is.EqualTo(endedAtDate.Date));
             Assert.That(
                 Math.Abs((dbPoll.EndedAt.Value - endedAtDate.ToUniversalTime()).TotalSeconds),
                 Is.LessThan(1)
@@ -419,6 +451,109 @@ namespace Tests.Controllers
                 validationProblem!.Errors.ContainsKey(nameof(UpdatePollDto.Options)),
                 Is.True
             );
+        }
+
+        #endregion
+
+        #region DeletePoll Tests
+
+        [Test]
+        public async Task DeletePoll_PollNotFound_ReturnsNotFoundResult()
+        {
+            // Arrange
+            var nonExistentPollId = 999;
+
+            // Act
+            var result = await _uut.DeletePoll(nonExistentPollId);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
+            var notFoundResult = result as NotFoundObjectResult;
+            Assert.That(notFoundResult, Is.Not.Null, "NotFoundResult should not be null.");
+            Assert.That(
+                notFoundResult!.Value,
+                Is.EqualTo($"Poll med ID {nonExistentPollId} blev ikke fundet.")
+            );
+        }
+
+        [Test]
+        public async Task DeletePoll_ExistingPoll_DeletesPollAndRelatedData_ReturnsOk_NotifiesHub()
+        {
+            // Arrange
+            var politician = await SeedPolitician(
+                id: 301,
+                name: "PolForDelete",
+                handle: "polfordel"
+            );
+            var poll = await SeedPoll(
+                politicianId: politician.Id,
+                optionTexts: new List<string> { "DelOpt1", "DelOpt2" },
+                generateId: true
+            );
+
+            // Seed some votes for the poll
+            var userVote1 = new UserVote
+            {
+                PollId = poll.Id,
+                ChosenOptionId = poll.Options[0].Id,
+                UserId = 1,
+            };
+            var userVote2 = new UserVote
+            {
+                PollId = poll.Id,
+                ChosenOptionId = poll.Options[1].Id,
+                UserId = 2,
+            };
+            _context.UserVotes.AddRange(userVote1, userVote2);
+            await _context.SaveChangesAsync();
+
+            var pollIdToDelete = poll.Id;
+            var optionIdsToDelete = poll.Options.Select(o => o.Id).ToList();
+
+            // Act
+            var result = await _uut.DeletePoll(pollIdToDelete);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<OkObjectResult>());
+            var okResult = result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null, "OkResult should not be null.");
+            Assert.That(okResult!.Value, Is.Not.Null, "OkResult.Value should not be null.");
+
+            var messageProperty = okResult.Value.GetType().GetProperty("message");
+            Assert.That(
+                messageProperty,
+                Is.Not.Null,
+                "Message property should exist on the OkResult value."
+            );
+            var messageValue = messageProperty!.GetValue(okResult.Value, null);
+            Assert.That(messageValue, Is.EqualTo($"Poll med ID {pollIdToDelete} blev slettet."));
+
+            // Verify data is deleted
+            var deletedPoll = await _context.Polls.FindAsync(pollIdToDelete);
+            Assert.That(deletedPoll, Is.Null, "Poll should be deleted.");
+
+            foreach (var optionId in optionIdsToDelete)
+            {
+                var deletedOption = await _context.PollOptions.FindAsync(optionId);
+                Assert.That(
+                    deletedOption,
+                    Is.Null,
+                    $"PollOption with Id {optionId} should be deleted."
+                );
+            }
+
+            var remainingVotes = await _context
+                .UserVotes.Where(uv => uv.PollId == pollIdToDelete)
+                .ToListAsync();
+            Assert.That(remainingVotes, Is.Empty, "UserVotes for the poll should be deleted.");
+
+            // Verify SignalR Hub was called
+            await _mockClientProxy
+                .Received(1)
+                .SendCoreAsync(
+                    "PollDeleted",
+                    Arg.Is<object[]>(args => args.Length == 1 && (int)args[0] == pollIdToDelete)
+                );
         }
 
         #endregion

@@ -1,10 +1,26 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { BrowserRouter } from "react-router-dom";
 import DeleteLearningPage from "../../components/AdminPages/DeleteLearningPage";
 import { mockNavigate, mockedAxios, mockGetItem } from "../testMocks";
 
-const mockPagesSummary = [
+// Import the function to be mocked and types for mock data
+import { fetchPagesStructure } from "../../services/ApiService";
+import type { PageSummaryDto, PageDetailDto as ApiPageDetailDto } from "../../types/pageTypes";
+
+// Mock the ApiService module
+vi.mock("../../services/ApiService", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../services/ApiService")>();
+  return {
+    ...actual,
+    fetchPagesStructure: vi.fn(), // Mock the specific function
+  };
+});
+
+// Cast the mocked function for type safety and to access mock methods
+const mockedFetchPagesStructure = fetchPagesStructure as Mock<() => Promise<PageSummaryDto[]>>;
+
+const mockPagesSummary: PageSummaryDto[] = [
   {
     id: 1,
     title: "Page to Delete",
@@ -21,26 +37,48 @@ const mockPagesSummary = [
   },
 ];
 
-const mockPageDetail = {
+const mockPageDetail: ApiPageDetailDto = {
   id: 1,
   title: "Page to Delete Title",
   content: "Page to Delete Content",
   parentPageId: null,
+  previousSiblingId: null, // Added missing property
+  nextSiblingId: null, // Added missing property
+  associatedQuestions: [], // Ensure this matches the DTO structure
 };
 
 describe("DeleteLearningPage", () => {
   beforeEach(() => {
     mockGetItem.mockReturnValue("fake-jwt-token");
-    mockedAxios.get.mockImplementation((url) => {
-      if (url === "/api/pages") {
-        return Promise.resolve({ data: mockPagesSummary });
+
+    // Mock for fetchPagesStructure (used in the first useEffect)
+    mockedFetchPagesStructure.mockResolvedValue([...mockPagesSummary]);
+
+    // Mock for axios.get (used in the second useEffect for page details)
+    mockedAxios.get.mockImplementation(async (url: string) => {
+      if (url === `/api/pages/${mockPageDetail.id}`) {
+        return Promise.resolve({ data: { ...mockPageDetail } });
       }
-      if (url === "/api/pages/1") {
-        return Promise.resolve({ data: mockPageDetail });
-      }
-      return Promise.reject(new Error("not found"));
+      return Promise.reject(new Error(`mockedAxios.get: unhandled URL ${url}`));
     });
+
+    // Mock for axios.delete (used in handleDelete)
     mockedAxios.delete.mockResolvedValue({ data: {} });
+
+    // Reset mocks before each test
+    mockedFetchPagesStructure.mockClear();
+    mockedAxios.get.mockClear();
+    mockedAxios.delete.mockClear();
+    mockNavigate.mockClear();
+
+    // Ensure window.confirm and window.alert are reset (if not globally handled or needing override)
+    if (window.confirm as Mock) {
+      (window.confirm as Mock).mockReset();
+      (window.confirm as Mock).mockReturnValue(true); // Default to true
+    }
+    if (window.alert as Mock) {
+      (window.alert as Mock).mockReset();
+    }
   });
 
   it("renders correctly and fetches pages", async () => {
@@ -54,13 +92,13 @@ describe("DeleteLearningPage", () => {
     expect(screen.getByText("-- Vælg en side --")).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith("/api/pages", {
-        headers: { Authorization: "Bearer fake-jwt-token" },
-      });
+      // Assert that fetchPagesStructure was called for the initial list
+      expect(mockedFetchPagesStructure).toHaveBeenCalledTimes(1);
     });
 
+    // Check if options are populated from the mocked fetchPagesStructure
     mockPagesSummary.forEach((page) => {
-      expect(screen.getByText(page.title)).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: page.title })).toBeInTheDocument();
     });
   });
 
@@ -80,8 +118,9 @@ describe("DeleteLearningPage", () => {
       </BrowserRouter>
     );
 
+    // Wait for the initial page list to load and populate the select
     await waitFor(() => {
-      expect(screen.getByText("Page to Delete")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Page to Delete" })).toBeInTheDocument();
     });
 
     const selectPage = screen.getByRole("combobox", {
@@ -96,14 +135,14 @@ describe("DeleteLearningPage", () => {
     });
 
     expect(screen.getByLabelText("Titel")).toHaveValue(mockPageDetail.title);
-    expect(screen.getByLabelText("Indhold")).toHaveValue(
-      mockPageDetail.content
-    );
-    expect(screen.getByText("Slet Side")).toBeInTheDocument();
+    expect(screen.getByLabelText("Indhold")).toHaveValue(mockPageDetail.content);
+    // Ensure the delete button within the form is checked
+    const form = screen.getByLabelText("Titel").closest("form");
+    expect(within(form!).getByRole("button", { name: "Slet Side" })).toBeInTheDocument();
   });
 
   it("deletes the page and navigates on successful deletion after confirmation", async () => {
-    (window.confirm as Mock).mockReturnValue(true);
+    (window.confirm as Mock).mockReturnValue(true); // Explicitly set for this test, though default is true
 
     render(
       <BrowserRouter>
@@ -111,22 +150,22 @@ describe("DeleteLearningPage", () => {
       </BrowserRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText("Page to Delete")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Page to Delete" })).toBeInTheDocument();
     });
 
     const selectPage = screen.getByRole("combobox", { name: /vælg side/i });
     fireEvent.change(selectPage, { target: { value: "1" } });
 
     await waitFor(() => {
-      expect(screen.getByText("Slet Side")).toBeInTheDocument();
+      // Ensure the form's delete button is present
+      const form = screen.getByLabelText("Titel").closest("form");
+      expect(within(form!).getByRole("button", { name: "Slet Side" })).toBeInTheDocument();
     });
 
-    const deleteButton = screen.getByText("Slet Side");
+    const deleteButton = within(screen.getByLabelText("Titel").closest("form")!).getByRole("button", { name: "Slet Side" });
     fireEvent.click(deleteButton);
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Er du sikker på, at du vil slette denne læringsside?"
-    );
+    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne læringsside?");
 
     await waitFor(() => {
       expect(mockedAxios.delete).toHaveBeenCalledWith("/api/pages/1", {
@@ -147,22 +186,22 @@ describe("DeleteLearningPage", () => {
       </BrowserRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText("Page to Delete")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Page to Delete" })).toBeInTheDocument();
     });
 
     const selectPage = screen.getByRole("combobox", { name: /vælg side/i });
     fireEvent.change(selectPage, { target: { value: "1" } });
 
     await waitFor(() => {
-      expect(screen.getByText("Slet Side")).toBeInTheDocument();
+      // Ensure the form's delete button is present
+      const form = screen.getByLabelText("Titel").closest("form");
+      expect(within(form!).getByRole("button", { name: "Slet Side" })).toBeInTheDocument();
     });
 
-    const deleteButton = screen.getByText("Slet Side");
+    const deleteButton = within(screen.getByLabelText("Titel").closest("form")!).getByRole("button", { name: "Slet Side" });
     fireEvent.click(deleteButton);
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Er du sikker på, at du vil slette denne læringsside?"
-    );
+    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne læringsside?");
     expect(mockedAxios.delete).not.toHaveBeenCalled();
     expect(window.alert).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -178,17 +217,19 @@ describe("DeleteLearningPage", () => {
       </BrowserRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText("Page to Delete")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Page to Delete" })).toBeInTheDocument();
     });
 
     const selectPage = screen.getByRole("combobox", { name: /vælg side/i });
     fireEvent.change(selectPage, { target: { value: "1" } });
 
     await waitFor(() => {
-      expect(screen.getByText("Slet Side")).toBeInTheDocument();
+      // Ensure the form's delete button is present
+      const form = screen.getByLabelText("Titel").closest("form");
+      expect(within(form!).getByRole("button", { name: "Slet Side" })).toBeInTheDocument();
     });
 
-    const deleteButton = screen.getByText("Slet Side");
+    const deleteButton = within(screen.getByLabelText("Titel").closest("form")!).getByRole("button", { name: "Slet Side" });
     fireEvent.click(deleteButton);
 
     await waitFor(() => {

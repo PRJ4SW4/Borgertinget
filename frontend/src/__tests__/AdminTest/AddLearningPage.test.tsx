@@ -6,8 +6,8 @@ import * as ApiService from "../../services/ApiService";
 import { mockNavigate, mockGetItem } from "../testMocks"; // Adjust path as needed
 
 // ⚠️ Make sure path matches import!
-vi.mock("../services/ApiService", async () => {
-  const actual = await vi.importActual("../services/ApiService");
+vi.mock("../../services/ApiService", async () => {
+  const actual = await vi.importActual("../../services/ApiService");
   return {
     ...actual,
     fetchPagesStructure: vi.fn(),
@@ -53,9 +53,7 @@ describe("AddLearningPage", () => {
 
     expect(screen.getByText("Opret Læringsside")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Titel")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Indhold (Markdown understøttet)")
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Indhold (Markdown understøttet)")).toBeInTheDocument();
     expect(screen.getByText("(Ingen overordnet side)")).toBeInTheDocument();
     expect(screen.getByText("Gem Side")).toBeInTheDocument();
 
@@ -77,9 +75,7 @@ describe("AddLearningPage", () => {
     fireEvent.change(titleInput, { target: { value: "Test Title" } });
     expect(titleInput.value).toBe("Test Title");
 
-    const contentTextarea = screen.getByPlaceholderText(
-      "Indhold (Markdown understøttet)"
-    ) as HTMLTextAreaElement;
+    const contentTextarea = screen.getByPlaceholderText("Indhold (Markdown understøttet)") as HTMLTextAreaElement;
     fireEvent.change(contentTextarea, { target: { value: "Test Content" } });
     expect(contentTextarea.value).toBe("Test Content");
   });
@@ -95,9 +91,7 @@ describe("AddLearningPage", () => {
       expect(screen.getByText("Parent Page 1")).toBeInTheDocument();
     });
 
-    const parentSelect = screen.getByDisplayValue(
-      "(Ingen overordnet side)"
-    ) as HTMLSelectElement;
+    const parentSelect = screen.getByDisplayValue("(Ingen overordnet side)") as HTMLSelectElement;
     fireEvent.change(parentSelect, { target: { value: "1" } });
     expect(parentSelect.value).toBe("1");
   });
@@ -129,18 +123,13 @@ describe("AddLearningPage", () => {
     fireEvent.change(screen.getByPlaceholderText("Titel"), {
       target: { value: "New Page Title" },
     });
-    fireEvent.change(
-      screen.getByPlaceholderText("Indhold (Markdown understøttet)"),
-      { target: { value: "New Page Content" } }
-    );
+    fireEvent.change(screen.getByPlaceholderText("Indhold (Markdown understøttet)"), { target: { value: "New Page Content" } });
 
     await waitFor(() => {
       expect(screen.getByText("Parent Page 1")).toBeInTheDocument();
     });
 
-    const parentSelect = screen.getByDisplayValue(
-      "(Ingen overordnet side)"
-    ) as HTMLSelectElement;
+    const parentSelect = screen.getByDisplayValue("(Ingen overordnet side)") as HTMLSelectElement;
     fireEvent.change(parentSelect, { target: { value: "1" } });
 
     fireEvent.click(screen.getByText("Gem Side"));
@@ -157,6 +146,7 @@ describe("AddLearningPage", () => {
           content: "New Page Content",
           parentPageId: 1,
           displayOrder: 1,
+          associatedQuestions: [], // Added this line
         }),
       });
     });
@@ -186,9 +176,7 @@ describe("AddLearningPage", () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
-      expect(window.alert).toHaveBeenCalledWith(
-        "Fejl under oprettelse af side."
-      );
+      expect(window.alert).toHaveBeenCalledWith("Netværksfejl ved oprettelse af side.");
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });

@@ -417,9 +417,9 @@ namespace backend.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
-            foreach (var roleName in userRoles)
+            foreach (var role in userRoles)
             {
-                claims.Add(new Claim(ClaimTypes.Role, roleName));
+                claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor

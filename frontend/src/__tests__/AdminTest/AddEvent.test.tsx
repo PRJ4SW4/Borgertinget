@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest"; // Removed vi and afterEach
+import { MemoryRouter } from "react-router-dom"; // Added MemoryRouter
 import AddEvent from "../../components/AdminPages/AddEvent";
 import { mockNavigate, mockGetItem, mockedAxios } from "../testMocks";
 
@@ -14,21 +15,25 @@ describe("AddEvent Component", () => {
   });
 
   it("renders the form correctly", () => {
-    render(<AddEvent />);
+    render(
+      <MemoryRouter>
+        <AddEvent />
+      </MemoryRouter>
+    );
     expect(screen.getByLabelText(/Titel/i)).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i)
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Lokation/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Kilde URL/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Opret Begivenhed/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Opret Begivenhed/i })).toBeInTheDocument();
   });
 
   it("shows an error message if not logged in", async () => {
     mockGetItem.mockReturnValueOnce(null); // Simulate not logged in
-    render(<AddEvent />);
+    render(
+      <MemoryRouter>
+        <AddEvent />
+      </MemoryRouter>
+    );
 
     fireEvent.submit(screen.getByRole("button", { name: /Opret Begivenhed/i }));
 
@@ -38,15 +43,15 @@ describe("AddEvent Component", () => {
   });
 
   it("shows an error message if required fields are missing", async () => {
-    render(<AddEvent />);
+    render(
+      <MemoryRouter>
+        <AddEvent />
+      </MemoryRouter>
+    );
     fireEvent.submit(screen.getByRole("button", { name: /Opret Begivenhed/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText(
-          "Titel, Start Dato/Tid (UTC), og Kilde URL er påkrævede felter."
-        )
-      ).toBeInTheDocument();
+      expect(screen.getByText("Titel, Start Dato/Tid (UTC), og Kilde URL er påkrævede felter.")).toBeInTheDocument();
     });
   });
 
@@ -54,7 +59,11 @@ describe("AddEvent Component", () => {
     mockedAxios.post.mockResolvedValue({
       data: { message: "Begivenhed oprettet succesfuldt!" },
     });
-    render(<AddEvent />);
+    render(
+      <MemoryRouter>
+        <AddEvent />
+      </MemoryRouter>
+    );
 
     fireEvent.change(screen.getByLabelText(/Titel/i), {
       target: { value: "Test Event" },
@@ -82,9 +91,7 @@ describe("AddEvent Component", () => {
         },
         { headers: { Authorization: "Bearer fake-jwt-token" } }
       );
-      expect(
-        screen.getByText("Begivenhed oprettet succesfuldt!")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Begivenhed oprettet succesfuldt!")).toBeInTheDocument();
       expect(mockNavigate).toHaveBeenCalledWith("/admin/Indhold");
     });
   });
@@ -94,7 +101,11 @@ describe("AddEvent Component", () => {
       isAxiosError: true,
       response: { data: { message: "Failed to add event" } },
     });
-    render(<AddEvent />);
+    render(
+      <MemoryRouter>
+        <AddEvent />
+      </MemoryRouter>
+    );
 
     fireEvent.change(screen.getByLabelText(/Titel/i), {
       target: { value: "Test Event" },
@@ -109,15 +120,17 @@ describe("AddEvent Component", () => {
     fireEvent.submit(screen.getByRole("button", { name: /Opret Begivenhed/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("En ukendt fejl opstod.")).toBeInTheDocument();
+      expect(screen.getByText("Fejl: Failed to add event")).toBeInTheDocument();
     });
   });
 
   it("navigates back to admin content page", () => {
-    render(<AddEvent />);
-    fireEvent.click(
-      screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })
+    render(
+      <MemoryRouter>
+        <AddEvent />
+      </MemoryRouter>
     );
+    fireEvent.click(screen.getByRole("button", { name: /Tilbage til Admin Indhold/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/admin/Indhold");
   });
 });

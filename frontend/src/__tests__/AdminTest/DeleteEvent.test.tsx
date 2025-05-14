@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach, Mock } from "vitest"; // Removed vi, added Mock for casting window.confirm if needed
+import { MemoryRouter } from "react-router-dom"; // Added MemoryRouter import
 import DeleteEvent from "../../components/AdminPages/DeleteEvent";
 import { mockNavigate, mockGetItem, mockedAxios } from "../testMocks";
 
@@ -33,7 +34,11 @@ describe("DeleteEvent Component", () => {
   });
 
   it("renders the component and fetches events", async () => {
-    render(<DeleteEvent />);
+    render(
+      <MemoryRouter>
+        <DeleteEvent />
+      </MemoryRouter>
+    );
     expect(screen.getByText("Slet Begivenhed")).toBeInTheDocument();
     await waitFor(() => {
       expect(mockedAxios.get).toHaveBeenCalledWith("/api/calendar/events", {
@@ -47,14 +52,22 @@ describe("DeleteEvent Component", () => {
 
   it("shows an error if not logged in when fetching events", async () => {
     mockGetItem.mockReturnValueOnce(null);
-    render(<DeleteEvent />);
+    render(
+      <MemoryRouter>
+        <DeleteEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText("Du er ikke logget ind.")).toBeInTheDocument();
     });
   });
 
   it("displays event details when an event is selected", async () => {
-    render(<DeleteEvent />);
+    render(
+      <MemoryRouter>
+        <DeleteEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
@@ -68,26 +81,15 @@ describe("DeleteEvent Component", () => {
       expect(detailsHeading).toBeInTheDocument();
       const detailsContainer = detailsHeading.parentElement;
 
-      expect(detailsContainer).toHaveTextContent(
-        new RegExp(`Titel:\\s*${mockEventsData[0].title}`)
-      );
+      expect(detailsContainer).toHaveTextContent(new RegExp(`Titel:\\s*${mockEventsData[0].title}`));
 
-      const expectedDateString = new Date(
-        mockEventsData[0].startDateTimeUtc
-      ).toLocaleString();
-      const escapedExpectedDateString = expectedDateString.replace(
-        /[.*+?^${}()|[\\\]\\]/g,
-        "\\$&"
-      );
+      const expectedDateString = new Date(mockEventsData[0].startDateTimeUtc).toLocaleString();
+      const escapedExpectedDateString = expectedDateString.replace(/[.*+?^${}()|[\\\]\\]/g, "\\$&");
       const dateRegex = new RegExp(`Start:\\s*${escapedExpectedDateString}`);
       expect(detailsContainer).toHaveTextContent(dateRegex);
 
-      expect(detailsContainer).toHaveTextContent(
-        new RegExp(`Lokation:\\s*${mockEventsData[0].location}`)
-      );
-      expect(detailsContainer).toHaveTextContent(
-        new RegExp(`Kilde URL:\\s*${mockEventsData[0].sourceUrl}`)
-      );
+      expect(detailsContainer).toHaveTextContent(new RegExp(`Lokation:\\s*${mockEventsData[0].location}`));
+      expect(detailsContainer).toHaveTextContent(new RegExp(`Kilde URL:\\s*${mockEventsData[0].sourceUrl}`));
     });
   });
 
@@ -95,7 +97,11 @@ describe("DeleteEvent Component", () => {
     mockedAxios.delete.mockResolvedValue({
       data: { message: "Begivenhed slettet succesfuldt!" },
     });
-    render(<DeleteEvent />);
+    render(
+      <MemoryRouter>
+        <DeleteEvent />
+      </MemoryRouter>
+    );
     // Wait for the select to be populated
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
@@ -111,20 +117,13 @@ describe("DeleteEvent Component", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Slet Begivenhed/i }));
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Er du sikker på, at du vil slette denne begivenhed?"
-    );
+    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne begivenhed?");
 
     await waitFor(() => {
-      expect(mockedAxios.delete).toHaveBeenCalledWith(
-        "/api/calendar/events/1",
-        {
-          headers: { Authorization: "Bearer fake-jwt-token" },
-        }
-      );
-      expect(
-        screen.getByText("Begivenhed slettet succesfuldt!")
-      ).toBeInTheDocument();
+      expect(mockedAxios.delete).toHaveBeenCalledWith("/api/calendar/events/1", {
+        headers: { Authorization: "Bearer fake-jwt-token" },
+      });
+      expect(screen.getByText("Begivenhed slettet succesfuldt!")).toBeInTheDocument();
       // Check if the event is removed from the dropdown
       expect(screen.queryByText("Event 1 (ID: 1)")).not.toBeInTheDocument();
       expect(screen.getByText("Event 2 (ID: 2)")).toBeInTheDocument(); // Other events should remain
@@ -133,7 +132,11 @@ describe("DeleteEvent Component", () => {
 
   it("does not delete event if confirmation is denied", async () => {
     (window.confirm as Mock).mockReturnValueOnce(false); // Set specific return value for this test
-    render(<DeleteEvent />);
+    render(
+      <MemoryRouter>
+        <DeleteEvent />
+      </MemoryRouter>
+    );
     // Wait for the select to be populated
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
@@ -149,14 +152,16 @@ describe("DeleteEvent Component", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Slet Begivenhed/i }));
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Er du sikker på, at du vil slette denne begivenhed?"
-    );
+    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne begivenhed?");
     expect(mockedAxios.delete).not.toHaveBeenCalled();
   });
 
   it("shows an error if not logged in when attempting to delete", async () => {
-    render(<DeleteEvent />);
+    render(
+      <MemoryRouter>
+        <DeleteEvent />
+      </MemoryRouter>
+    );
     // Wait for the select to be populated
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
@@ -183,7 +188,11 @@ describe("DeleteEvent Component", () => {
       isAxiosError: true,
       response: { data: { message: "Failed to delete event" } },
     });
-    render(<DeleteEvent />);
+    render(
+      <MemoryRouter>
+        <DeleteEvent />
+      </MemoryRouter>
+    );
     // Wait for the select to be populated
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
@@ -199,7 +208,7 @@ describe("DeleteEvent Component", () => {
     fireEvent.click(screen.getByRole("button", { name: /Slet Begivenhed/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("En ukendt fejl opstod.")).toBeInTheDocument();
+      expect(screen.getByText("Fejl: Failed to delete event")).toBeInTheDocument();
     });
   });
 
@@ -210,25 +219,27 @@ describe("DeleteEvent Component", () => {
       isAxiosError: true,
       response: { data: { message: "Failed to fetch events" } },
     });
-    render(<DeleteEvent />);
+    render(
+      <MemoryRouter>
+        <DeleteEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
-      expect(
-        screen.getByText("Kunne ikke hente begivenheder.")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Kunne ikke hente begivenheder.")).toBeInTheDocument();
     });
   });
 
   it("navigates back to admin content page", async () => {
-    render(<DeleteEvent />);
+    render(
+      <MemoryRouter>
+        <DeleteEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       // Wait for initial render and potential fetches
-      expect(
-        screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })).toBeInTheDocument();
     });
-    fireEvent.click(
-      screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })
-    );
+    fireEvent.click(screen.getByRole("button", { name: /Tilbage til Admin Indhold/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/admin/Indhold");
   });
 });

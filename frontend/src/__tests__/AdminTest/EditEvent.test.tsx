@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest"; // Removed vi
+import { MemoryRouter } from "react-router-dom";
 import EditEvent from "../../components/AdminPages/EditEvent";
 import { mockNavigate, mockGetItem, mockedAxios } from "../testMocks";
 
@@ -31,7 +32,11 @@ describe("EditEvent Component", () => {
   });
 
   it("renders the component and fetches events", async () => {
-    render(<EditEvent />);
+    render(
+      <MemoryRouter>
+        <EditEvent />
+      </MemoryRouter>
+    );
     expect(screen.getByText("Rediger Begivenhed")).toBeInTheDocument();
     await waitFor(() => {
       expect(mockedAxios.get).toHaveBeenCalledWith("/api/calendar/events", {
@@ -45,7 +50,11 @@ describe("EditEvent Component", () => {
 
   it("shows an error if not logged in when fetching events", async () => {
     mockGetItem.mockReturnValueOnce(null);
-    render(<EditEvent />);
+    render(
+      <MemoryRouter>
+        <EditEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText(/Du er ikke logget ind/i)).toBeInTheDocument();
     });
@@ -53,7 +62,11 @@ describe("EditEvent Component", () => {
   });
 
   it("loads event details when an event is selected", async () => {
-    render(<EditEvent />);
+    render(
+      <MemoryRouter>
+        <EditEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
@@ -63,24 +76,19 @@ describe("EditEvent Component", () => {
     });
 
     await waitFor(() => {
-      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(
-        mockEventsData[0].title
-      );
-      expect(
-        (screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i) as HTMLInputElement)
-          .value
-      ).toBe("2025-01-01T11:00"); // Adjusted to local time this is bad and we should use local time instead of UTC
-      expect(
-        (screen.getByLabelText(/Lokation/i) as HTMLInputElement).value
-      ).toBe(mockEventsData[0].location);
-      expect(
-        (screen.getByLabelText(/Kilde URL/i) as HTMLInputElement).value
-      ).toBe(mockEventsData[0].sourceUrl);
+      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(mockEventsData[0].title);
+      expect((screen.getByLabelText(/Start Dato\/Tid \(UTC\)/i) as HTMLInputElement).value).toBe("2025-01-01T11:00"); // Adjusted to local time this is bad and we should use local time instead of UTC
+      expect((screen.getByLabelText(/Lokation/i) as HTMLInputElement).value).toBe(mockEventsData[0].location);
+      expect((screen.getByLabelText(/Kilde URL/i) as HTMLInputElement).value).toBe(mockEventsData[0].sourceUrl);
     });
   });
 
   it("shows an error message if required fields are missing on submit", async () => {
-    render(<EditEvent />);
+    render(
+      <MemoryRouter>
+        <EditEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
@@ -89,24 +97,16 @@ describe("EditEvent Component", () => {
     });
 
     await waitFor(() => {
-      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(
-        "Event 1"
-      );
+      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe("Event 1");
     });
     fireEvent.change(screen.getByLabelText(/Titel/i), {
       target: { value: "" },
     });
 
-    fireEvent.submit(
-      screen.getByRole("button", { name: /Opdater Begivenhed/i })
-    );
+    fireEvent.submit(screen.getByRole("button", { name: /Opdater Begivenhed/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText(
-          "Titel, Start Dato/Tid (UTC), og Kilde URL er påkrævede felter."
-        )
-      ).toBeInTheDocument();
+      expect(screen.getByText("Titel, Start Dato/Tid (UTC), og Kilde URL er påkrævede felter.")).toBeInTheDocument();
     });
   });
 
@@ -114,7 +114,11 @@ describe("EditEvent Component", () => {
     mockedAxios.put.mockResolvedValue({
       data: { message: "Begivenhed opdateret succesfuldt!" },
     });
-    render(<EditEvent />);
+    render(
+      <MemoryRouter>
+        <EditEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
@@ -123,9 +127,7 @@ describe("EditEvent Component", () => {
     });
 
     await waitFor(() => {
-      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(
-        "Event 1"
-      );
+      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe("Event 1");
     });
 
     fireEvent.change(screen.getByLabelText(/Titel/i), {
@@ -135,9 +137,7 @@ describe("EditEvent Component", () => {
       target: { value: "2025-01-01T11:00" },
     });
 
-    fireEvent.submit(
-      screen.getByRole("button", { name: /Opdater Begivenhed/i })
-    );
+    fireEvent.submit(screen.getByRole("button", { name: /Opdater Begivenhed/i }));
 
     await waitFor(() => {
       expect(mockedAxios.put).toHaveBeenCalledWith(
@@ -151,9 +151,7 @@ describe("EditEvent Component", () => {
         }),
         { headers: { Authorization: "Bearer fake-jwt-token" } }
       );
-      expect(
-        screen.getByText("Begivenhed opdateret succesfuldt!")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Begivenhed opdateret succesfuldt!")).toBeInTheDocument();
     });
   });
 
@@ -162,7 +160,11 @@ describe("EditEvent Component", () => {
       isAxiosError: true,
       response: { data: { message: "Failed to update event" } },
     });
-    render(<EditEvent />);
+    render(
+      <MemoryRouter>
+        <EditEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText("Event 1 (ID: 1)")).toBeInTheDocument();
     });
@@ -171,22 +173,16 @@ describe("EditEvent Component", () => {
     });
 
     await waitFor(() => {
-      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe(
-        "Event 1"
-      );
+      expect((screen.getByLabelText(/Titel/i) as HTMLInputElement).value).toBe("Event 1");
     });
 
     fireEvent.change(screen.getByLabelText(/Titel/i), {
       target: { value: "Updated Event 1" },
     });
-    fireEvent.submit(
-      screen.getByRole("button", { name: /Opdater Begivenhed/i })
-    );
+    fireEvent.submit(screen.getByRole("button", { name: /Opdater Begivenhed/i }));
 
     await waitFor(() => {
-      const specificErrorMessage = screen.queryByText(
-        "Fejl: Failed to update event"
-      );
+      const specificErrorMessage = screen.queryByText("Fejl: Failed to update event");
       const fallbackErrorMessage = screen.queryByText("En ukendt fejl opstod.");
       expect(specificErrorMessage || fallbackErrorMessage).toBeInTheDocument();
     });
@@ -199,16 +195,22 @@ describe("EditEvent Component", () => {
       isAxiosError: true,
       response: { data: { message: "Failed to fetch events" } },
     });
-    render(<EditEvent />);
+    render(
+      <MemoryRouter>
+        <EditEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
-      expect(
-        screen.getByText(/Kunne ikke hente begivenheder\./)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Kunne ikke hente begivenheder\./)).toBeInTheDocument();
     });
   });
 
   it("navigates back to admin content page", async () => {
-    render(<EditEvent />);
+    render(
+      <MemoryRouter>
+        <EditEvent />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByLabelText("Vælg Begivenhed")).toBeInTheDocument();
     });
@@ -216,9 +218,7 @@ describe("EditEvent Component", () => {
       target: { value: "1" },
     });
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /Tilbage til Admin Indhold/i })
-    );
+    fireEvent.click(screen.getByRole("button", { name: /Tilbage til Admin Indhold/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/admin/Indhold");
   });
 });
