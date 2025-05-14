@@ -664,6 +664,60 @@ namespace backend.Migrations
                         });
                 });
 
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.Property<int>("partyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
+
+                    b.Property<int?>("chairmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("history")
+                        .HasColumnType("text");
+
+                    b.Property<string>("memberIds")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyProgram")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyShortName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("politics")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("secretaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("spokesmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("stats")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("viceChairmanId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("partyId");
+
+                    b.HasIndex("chairmanId");
+
+                    b.HasIndex("secretaryId");
+
+                    b.HasIndex("spokesmanId");
+
+                    b.HasIndex("viceChairmanId");
+
+                    b.ToTable("Party", (string)null);
+                });
+
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
                     b.Property<int>("Id")
@@ -1100,6 +1154,34 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("backend.Models.Party", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "chairman")
+                        .WithMany()
+                        .HasForeignKey("chairmanId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("backend.Models.Aktor", "secretary")
+                        .WithMany()
+                        .HasForeignKey("secretaryId");
+
+                    b.HasOne("backend.Models.Aktor", "spokesman")
+                        .WithMany()
+                        .HasForeignKey("spokesmanId");
+
+                    b.HasOne("backend.Models.Aktor", "viceChairman")
+                        .WithMany()
+                        .HasForeignKey("viceChairmanId");
+
+                    b.Navigation("chairman");
+
+                    b.Navigation("secretary");
+
+                    b.Navigation("spokesman");
+
+                    b.Navigation("viceChairman");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
