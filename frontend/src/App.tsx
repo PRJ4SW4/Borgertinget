@@ -20,6 +20,7 @@ import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
 import LandingPage from "./pages/LandingPage/LandingPage";
 import FeedPage from './pages/FeedPage';
 import EmailVerification from "./utils/useEmailVerification"; // Handles email verification logic.
+import LoginSuccessPage from "./pages/LoginSuccessPage"; // Handles post-login redirection.
 // Navbar and Footer are rendered via MainLayout.
 // The main application component.
 function App() {
@@ -70,8 +71,8 @@ function App() {
       {/* Login page route. */}
       <Route path="/login" element={<Login setToken={handleSetToken} />} />
       {/* Post-login success/callback route. */}
-      <Route path="/login-success" element={<></>}/>
-      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={() => {}}/>} />
+      <Route path="/login-success" element={<LoginSuccessPage setToken={handleSetToken} />} /> 
+      <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={(message) => { console.error("Email verification error:", message); }}/>} />
 
 
       {/* --- Protected Routes using MainLayout --- */}
