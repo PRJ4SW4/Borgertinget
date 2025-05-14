@@ -72,34 +72,12 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
         )}
         {/* Navigation Links */}
         <ul className="navbar-links">
-          {/* Standard navigation links using NavLink */}
-          {/* The className function applies 'active' class based on route match */}
-          <li>
-            <NavLink to="/parties" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-              Politiske Sider
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/feed" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-              Feed
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/kalender" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-              Kalender
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/learning" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-              Læringsområde
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/flashcards" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-              Flashcards
-            </NavLink>
-          </li>
-
+          <li><NavLink to="/parties" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Politiske Sider</NavLink></li>
+          <li><NavLink to="/feed" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Feed</NavLink></li>
+          <li><NavLink to="/kalender" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Kalender</NavLink></li>
+          <li><NavLink to="/learning" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Læringsområde</NavLink></li>
+          <li><NavLink to="/flashcards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Flashcards</NavLink></li>
+          <li><NavLink to="/polidle" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Polidle</NavLink></li>
           {/* Logout Button */}
           {/* List item for structure */}
           <li className="logout-item">
@@ -114,5 +92,4 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
   );
 };
 
-// Exports the component for use in other parts of the application.
 export default Navbar;

@@ -1,11 +1,11 @@
 .gameSelector {
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   background-color: #f0f0f0;
   padding: 10px;
   border-radius: 5px;
-  width: 20%;
+  width: 30%; /* Meget smal bredde - afhænger af kontekst */
   margin: 20px auto;
 }
 
@@ -28,6 +28,6 @@
 }
 
 .gameSelectorButton.active {
-  background-color: red;
+  background-color: red; /* Meget kraftig aktiv farve */
   color: white;
 }

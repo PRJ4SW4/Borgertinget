@@ -1,16 +1,41 @@
-namespace backend.DTO;
-
-public class PoliticianDetailsDto // Overvej at omdøbe til PoliticianDetailsDto?
+namespace backend.DTO
 {
-    public int Id { get; set; }
-    public string PolitikerNavn { get; set; } = string.Empty;
+    /// DTO der indeholder de nødvendige detaljer om en politiker
+    /// specifikt til brug i Polidle-spillet (sammenligning og ledetråde).
+    public class DailyPoliticianDto
+    {
+        /// Unikt ID for politikeren (fra Aktor.Id).
+        /// Bruges til at identificere den specifikke politiker.
+        public int Id { get; set; }
 
-    // public Array[] Portræt { get; set; } // Sandsynligvis ikke nødvendig her
-    public string? Køn { get; set; }
-    public string? Parti { get; set; } // Navn fra FakeParti
+        /// Politikerens fulde navn (fra Aktor.navn).
+        /// Bruges som ledetråd/identifikation.
+        public string PolitikerNavn { get; set; } = string.Empty;
 
-    public int Age { get; set; } // Tilføj denne (beregnet alder)
+        /// URL til politikerens portræt (fra Aktor.PictureMiRes).
+        /// Bruges som ledetråd/identifikation.
+        public string? PictureUrl { get; set; }
 
-    public string? Region { get; set; }
-    public string? Uddannelse { get; set; }
+        /// Politikerens køn (fra Aktor.Sex).
+        /// Bruges som ledetråd og til sammenligning.
+        public string? Køn { get; set; }
+
+        /// Politikerens parti (fulde navn, fra Aktor.Party).
+        /// Bruges som ledetråd og til sammenligning.
+        public string? Parti { get; set; }
+
+        /// Politikerens beregnede alder (baseret på Aktor.Born).
+        /// Bruges som ledetråd og til sammenligning (højere/lavere/lig).
+        public int Age { get; set; } // Beregnes under mapping
+
+        /// Politikerens primære region/valgkreds (Simplificeret fra Aktor.Constituencies).
+        /// Bruges som ledetråd og til sammenligning.
+        /// Kræver konsistent mapping-logik (f.eks. tag første element).
+        public string? Region { get; set; } // Simplificeret under mapping
+
+        /// Politikerens primære uddannelse/uddannelsesniveau (Simplificeret fra Aktor.Educations / Aktor.EducationStatistic).
+        /// Bruges som ledetråd og til sammenligning.
+        /// Kræver konsistent mapping-logik.
+        public string? Uddannelse { get; set; } // Simplificeret under mapping
+    }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Login.css";
@@ -106,24 +106,11 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   };
 
   const handleGoogleLogin = () => {
-    const googleAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+    
+    const backendGoogleSigninPath = 'http://localhost:5218/api/Users/login-google';
 
-    const clientId = "16121037113-cioi5949kloah9uac0c4laqknumogptc.apps.googleusercontent.com";
-
-    const redirectUri = "http://localhost:5218/auth/google/callback"; // Din backend callback
-
-    const options = {
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: "code",
-      scope: "openid profile email", // Standard scopes til login
-      // state: 'tilfaeldig-sikkerheds-streng' // Implementeres senere for CSRF-beskyttelse
-    };
-
-    const queryString = new URLSearchParams(options).toString();
-
-    console.log("Redirecting to Google:", `${googleAuthUrl}?${queryString}`);
-    window.location.href = `${googleAuthUrl}?${queryString}`;
+    console.log("Frontend: Omdirigerer til backend for  Google login:", backendGoogleSigninPath); 
+    window.location.href = backendGoogleSigninPath;
   };
 
   return (

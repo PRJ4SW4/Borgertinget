@@ -1,40 +1,25 @@
-import React, { useState } from "react";
-import "./Input.css";
+// src/components/Polidle/Input/Input.tsx
+import React from "react";
+import "./Input.module.css";
 
-interface InputProps {
-  onGuess: (guess: any) => void;
-}
+// Brug en type alias i stedet for et tomt interface
+type GenericInputProps = React.InputHTMLAttributes<HTMLInputElement>;
+// Hvis du *senere* vil tilføje custom props, kan du skifte tilbage til interface:
+// interface GenericInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+//   customProp?: string;
+// }
 
-const Input: React.FC<InputProps> = ({ onGuess }) => {
-  const [inputText, setInputText] = useState("");
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputText(event.target.value);
-  };
-
-  const handleSubmit = () => {
-    onGuess({
-      politikker: inputText,
-      køn: "",
-      parti: "",
-      alder: 0,
-      region: "",
-      uddannelse: "",
-    }); // Tilpas gætteobjektet
-    setInputText(""); // Ryd inputfeltet
-  };
-
+const Input: React.FC<GenericInputProps> = ({
+  className = "",
+  type = "text",
+  ...rest
+}) => {
   return (
-    <div>
-      <input
-        type="text"
-        className="input-field"
-        placeholder="Gæt en politiker"
-        value={inputText}
-        onChange={handleInputChange}
-      />
-      <button onClick={handleSubmit}>Gæt</button>
-    </div>
+    <input
+      type={type}
+      className={`input-field ${className}`.trim()}
+      {...rest}
+    />
   );
 };
 

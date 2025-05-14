@@ -1,42 +1,51 @@
-// components/Polidle/GuessList/GuessList.tsx
+// src/components/Polidle/GuessList/GuessList.tsx
 import React from "react";
-import GuessItem from "./GuessItem";
-import "./GuessList.css"; // Behold eller opdater din CSS
-// Importer typerne fra ClassicMode eller en delt types fil
-import { GuessResultDto } from "../../../pages/Polidle/ClassicMode"; // Juster stien efter behov
+import GuessItem from "../GuessItem/GuessItem";
+import styles from "./GuessList.module.css"; // <<< BRUG CSS MODULE
+
+import { GuessResultDto } from "../../../types/PolidleTypes";
 
 interface GuessListProps {
-  results: GuessResultDto[]; // Modtager nu listen af resultater
+  results: GuessResultDto[];
 }
 
 const GuessList: React.FC<GuessListProps> = ({ results }) => {
-  // Hvis der ingen gæt er, vis intet eller en besked
   if (!results || results.length === 0) {
-    return <div className="guess-list-empty">Lav dit første gæt...</div>;
+    return <div className={styles.guessListEmpty}>Lav dit første gæt...</div>;
   }
 
+  const headers = [
+    "Politiker",
+    "Køn",
+    "Parti",
+    "Alder",
+    "Region",
+    "Uddannelse",
+  ];
+
   return (
-    <div className="guess-list">
-      {/* Header forbliver den samme */}
-      <div className="header">
-        <div className="category">Politiker</div>
-        <div className="category">Køn</div>
-        <div className="category">Parti</div>
-        <div className="category">Alder</div>
-        <div className="category">Region</div>
-        <div className="category">Uddannelse</div>
+    <div className={styles.guessListContainer}>
+      <div className={styles.guessListHeader}>
+        {headers.map((headerText) => (
+          <div className={styles.categoryHeader} key={headerText}>
+            {headerText}
+          </div>
+        ))}
       </div>
-      {/* Map over resultaterne fra backend */}
-      {results.map(
-        (result, index) =>
-          // Tjek om guessedPolitician findes før rendering
-          result.guessedPolitician ? (
-            <GuessItem
-              key={index} // Overvej at bruge et mere unikt ID hvis muligt, f.eks. result.guessedPolitician.id hvis gæt ikke kan gentages
-              result={result} // Send hele resultat-objektet til GuessItem
-            />
-          ) : null // Undlad at rendere hvis guessedPolitician mangler (bør ikke ske)
-      )}
+      <div className={styles.guessListItems}>
+        {results.map((result, index) => {
+          const key = result.guessedPolitician
+            ? `${result.guessedPolitician.id}-${index}`
+            : `guess-${index}`;
+          return result.guessedPolitician ? (
+            <GuessItem key={key} result={result} />
+          ) : (
+            <div key={`error-${index}`} className={styles.guessItemError}>
+              Fejl: Gætdata mangler.
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

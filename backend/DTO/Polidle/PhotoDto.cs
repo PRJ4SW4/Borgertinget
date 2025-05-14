@@ -1,9 +1,10 @@
-namespace backend.DTO;
-
-public class PhotoDto
+namespace backend.DTO
 {
-    // Send som Base64 streng i JSON
-    public string PortraitBase64 { get; set; } = string.Empty;
-    // Alternativt: Send URL hvis billeder gemmes eksternt
-    // public string PhotoUrl { get; set; } = string.Empty;
+    /// DTO til at levere URL'en for dagens billede i Foto-gamemode.
+    public class PhotoDto
+    {
+        /// URL til portrætbilledet for dagens politiker.
+        /// <example>/path/to/image.jpg</example>
+        public string? PhotoUrl { get; set; } // Brug URL'en fra Aktor.PictureMiRes
+    }
 }

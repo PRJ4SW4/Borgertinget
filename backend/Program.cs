@@ -1,9 +1,17 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+// google stuff
+using System.Web;
 using backend.Data;
+using backend.Enums;
 using backend.Hubs;
+using backend.Interfaces.Repositories;
+using backend.Interfaces.Services;
+using backend.Interfaces.Utility;
+using backend.Jobs;
 using backend.Models;
+using backend.Persistence.Repositories;
 using backend.Repositories;
 using backend.Repositories.Calendar;
 using backend.Services;
@@ -12,13 +20,21 @@ using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
+using backend.Services.Politician; 
 using backend.Services.LearningEnvironment;
+using backend.Services.Mapping;
 using backend.Services.Search;
+using backend.Services.Selection;
+using backend.Services.Utility;
 using backend.utils;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -27,7 +43,7 @@ using OpenSearch.Net;
 
 // for .env secrets
 DotNetEnv.Env.Load();
-
+         
 var builder = WebApplication.CreateBuilder(args);
 
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
@@ -64,17 +80,16 @@ var key = Encoding.UTF8.GetBytes(
     jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key mangler i konfigurationen")
 );
 
-// Authorization Policies
+// Authorization for Admin and User roles
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("RequireAdministratorRole", policy => policy.RequireRole("Admin"));
+    options.AddPolicy(
+        "RequireAdministratorRole",
+        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
+    );
     options.AddPolicy(
         "UserOrAdmin",
-        policy =>
-            policy.RequireAssertion(context =>
-                context.User.HasClaim(c => c.Type == "role" && c.Value == "User")
-                || context.User.HasClaim(c => c.Type == "role" && c.Value == "Admin")
-            )
+        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
     );
 });
 
@@ -136,6 +151,7 @@ builder
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ClockSkew = TimeSpan.Zero, // Vær præcis med token udløb
             RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.Name,
         };
         // Indsæt event hooks til fejllogning
         options.Events = new JwtBearerEvents
@@ -197,6 +213,66 @@ builder
             },
         };
     });
+        };
+    })
+    .AddGoogle(
+        GoogleDefaults.AuthenticationScheme,
+        options =>
+        {
+            IConfigurationSection googleAuthNSection = builder.Configuration.GetSection(
+                "GoogleOAuth"
+            );
+            options.ClientId =
+                googleAuthNSection["ClientId"]
+                ?? throw new InvalidOperationException("Google ClientId ikke fundet.");
+            options.ClientSecret =
+                googleAuthNSection["ClientSecret"]
+                ?? throw new InvalidOperationException("Google ClientSecret ikke fundet.");
+            options.CallbackPath = "/signin-google";
+            options.Events.OnTicketReceived = ctx =>
+            {
+                return Task.CompletedTask;
+            };
+            options.Events.OnRemoteFailure = context =>
+            {
+                var logger = context.HttpContext.RequestServices.GetRequiredService<
+                    ILogger<Program>
+                >();
+                logger.LogError(
+                    "Google Remote Failure: {FailureMessage}",
+                    context.Failure?.Message
+                );
+                context.Response.Redirect(
+                    "/error?message=" + HttpUtility.UrlEncode("Google login fejlede.")
+                );
+                context.HandleResponse(); // Stop videre behandling
+                return Task.CompletedTask;
+            };
+        }
+    ); //.AddCookie(IdentityConstants.ExternalScheme);
+
+// ASP.NET Core Identity bruger cookies til at håndtere det *eksterne login flow* i led af Oauth.
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+    options.SlidingExpiration = true;
+
+    // Forhindr Identity i at redirecte API-kald til login-sider
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
 
 builder.Services.AddSignalR();
 
@@ -206,9 +282,7 @@ builder.Services.AddScoped<IAdministratorService, AdministratorService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
-
-    // Tilføj JWT authentication knap i Swagger UI
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Borgertinget API", Version = "v1" });
     options.AddSecurityDefinition(
         "Bearer",
         new OpenApiSecurityScheme
@@ -221,7 +295,6 @@ builder.Services.AddSwaggerGen(options =>
             Description = "Indtast JWT token i formatet: Bearer {token}",
         }
     );
-
     options.AddSecurityRequirement(
         new OpenApiSecurityRequirement
         {
@@ -240,15 +313,13 @@ builder.Services.AddSwaggerGen(options =>
     );
 });
 
-// Registrering af dine custom services
+// --- EKSISTERENDE SERVICES ---
 builder.Services.AddScoped<EmailService>();
-builder.Services.AddHostedService<TweetFetchingService>(); // <--- TILFØJ DENNE LINJE
-builder.Services.AddHttpClient<TwitterService>();
-
-//oda.ft crawler
 builder.Services.AddScoped<HttpService>();
-builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
+builder.Services.AddScoped<IFetchService, FetchService>(); 
+
 builder.Services.AddHostedService<TweetFetchingService>();
+builder.Services.AddHostedService<DailySelectionJob>();
 builder.Services.AddHttpClient<TwitterService>();
 
 builder.Services.AddHttpClient();
@@ -279,14 +350,27 @@ builder.Services.AddControllers(); /* .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     });*/
-builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
-builder.Services.AddHostedService<DailySelectionJob>(); //* Bruges til udvælgelse af "dagens politiker"
+
+builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
+
+//builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
+builder.Services.AddSingleton<
+    backend.Interfaces.Utility.IDateTimeProvider,
+    backend.Services.Utility.DateTimeProvider
+>();
+builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
+
+builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
+
+//builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
+builder.Services.AddSingleton<
+    backend.Interfaces.Utility.IDateTimeProvider,
+    backend.Services.Utility.DateTimeProvider
+>();
+builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
 
 //Search indexing service
 builder.Services.AddScoped<SearchIndexingService>();
-
-builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
-builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
 
 builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
@@ -305,6 +389,14 @@ builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 
 // Flashcard Services
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+
+// Polidle
+builder.Services.AddScoped<IAktorRepository, AktorRepository>();
+builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>();
+builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository>();
+builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
+builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
+builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 
 builder.Services.AddRouting();
 builder.Services.AddHostedService<TestScheduledIndexService>();
@@ -326,7 +418,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>(); // Or specific category
+    var logger = services.GetRequiredService<ILogger<Program>>();
 
     try
     {
@@ -351,68 +443,11 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>(); // Or specific category
+app.UseRouting();
 
-    try
-    {
-        logger.LogInformation("Ensuring OpenSearch index exists before starting...");
-        // Ensure SearchIndexSetup class exists or move this logic inline
-        await SearchIndexSetup.EnsureIndexExistsWithMapping(services);
-        logger.LogInformation("Index check/creation complete.");
+// For static images from wwwroot folder
+app.UseStaticFiles();
 
-        // --- Trigger initial indexing ---
-        logger.LogInformation("Triggering initial background indexing task...");
-        var indexingService = services.GetRequiredService<SearchIndexingService>();
-        // --- End trigger initial indexing ---
-    }
-    catch (Exception ex)
-    {
-        logger.LogCritical(
-            ex,
-            "An error occurred during application startup while setting up OpenSearch."
-        );
-        // Optionally prevent the application from starting if setup fails
-        // throw;
-    }
-}
-
-// --- DATABASE MIGRATION OG SEEDING START ---
-// Dette afsnit køres én gang ved applikationens opstart
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>(); // Logger hentes her for scope't
-    try
-    {
-        var context = services.GetRequiredService<DataContext>();
-
-        logger.LogInformation("Applying database migrations...");
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Database migrations applied successfully.");
-
-        logger.LogInformation("Attempting to seed data if necessary...");
-        await PolidleSeed.SeedDataAsync(context, 75); // Kald til din seeder
-        logger.LogInformation("Data seeding completed (data added only if tables were empty).");
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
-        // throw; // Overvej at genkaste fejlen for at stoppe opstart
-    }
-}
-
-// --- DATABASE MIGRATION OG SEEDING SLUT ---
-
-
-// -----------------------------------------
-// Konfigurer HTTP request pipeline (Middleware)
-// Rækkefølgen er VIGTIG
-// -----------------------------------------
-
-// Konfigurer kun detaljeret fejlvisning og Swagger i udviklingsmiljøet
 
 if (app.Environment.IsDevelopment())
 {
@@ -422,26 +457,22 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 
-    // Brug den hentede logger
-    devLogger.LogInformation("Development environment detected. Swagger enabled.");
+    //! DELETED DUMMMY MIDDLEWARE
 }
 else
 {
-    app.UseExceptionHandler("/Error");
+    app.UseExceptionHandler("/Error"); // Sørg for at have en Error-handling side/endpoint
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-
-// app.UseStaticFiles(); // Behold hvis du har filer i wwwroot
-
-app.UseRouting();
+// app.UseHttpsRedirection(); // Aktiver når du har HTTPS sat op
 
 app.UseCors("AllowReactApp"); // Skal typisk før UseAuthentication/UseAuthorization
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // Din rigtige JWT auth middleware
+app.UseAuthorization(); // Din rigtige authorization middleware
 
 app.MapControllers();
 
@@ -450,8 +481,4 @@ app.UseStaticFiles();
 
 app.MapHub<FeedHub>("/feedHub");
 
-// Hent logger til den sidste besked før Run()
-var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
-startupLogger.LogInformation("Starting application...");
-
-app.Run(); // Starter applikationen
+app.Run();
