@@ -4,6 +4,7 @@ using System.Text;
 using backend.Data;
 using backend.Hubs;
 using backend.Models;
+using backend.Repositories;
 using backend.Repositories.Calendar;
 using backend.Services;
 using backend.Services.Calendar;
@@ -312,6 +313,10 @@ builder.Services.AddScoped<AdministratorService>();
 
 // Search Services
 builder.Services.AddHostedService<ScheduledIndexService>();
+
+// Administrator Services
+builder.Services.AddScoped<IAdministratorRepository, AdministratorRepository>();
+builder.Services.AddScoped<IAdministratorService, AdministratorService>();
 
 // -----------------------------------------
 // Byg WebApplication objektet

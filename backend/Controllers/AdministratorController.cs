@@ -21,7 +21,6 @@ public class AdministratorController : ControllerBase
     public AdministratorController(IAdministratorService service, DataContext context)
     {
         _service = service;
-        _context = context;
     }
 
     #region Flashcard Collection
@@ -61,7 +60,6 @@ public class AdministratorController : ControllerBase
         }
 
         var uploadsFolder = Path.Combine("wwwroot", "uploads", "flashcards");
-        // Does nothing if the directory is already there
         Directory.CreateDirectory(uploadsFolder);
 
         var fileName = Path.GetFileName(file.FileName);
@@ -84,7 +82,7 @@ public class AdministratorController : ControllerBase
     public async Task<IActionResult> GetFlashCardCollectionTitles()
     {
         try
-        {   
+        {
             // Fetches all Flashcard Collection titles
             var Titles = await _service.GetAllFlashcardCollectionTitlesAsync();
 
@@ -281,21 +279,17 @@ public class AdministratorController : ControllerBase
     #region Politician
 
     [HttpGet("lookup/aktorId")]
-    public async Task<ActionResult<object>> GetAktorIdByTwitterId([FromQuery] int twitterId)
+    public async Task<IActionResult> GetAktorIdByTwitterId([FromQuery] int twitterId)
     {
         if (twitterId <= 0)
             return BadRequest("Ugyldigt Twitter ID.");
 
-        var aktor = await _context
-            .PoliticianTwitterIds.AsNoTracking()
-            .Where(p => p.Id == twitterId)
-            .Select(p => new { aktorId = p.AktorId })
-            .FirstOrDefaultAsync();
+        int? aktorId = await _service.GetAktorIdByTwitterIdAsync(twitterId);
 
-        if (aktor == null)
+        if (aktorId == null)
             return NotFound($"Ingen AktorId fundet for Twitter ID {twitterId}");
 
-        return Ok(aktor);
+        return Ok(new { aktorId });
     }
 
     #endregion
