@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250513224729_IdentityGoogleAuthFix")]
-    partial class IdentityGoogleAuthFix
+    [Migration("20250514024327_OAuthFix")]
+    partial class OAuthFix
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

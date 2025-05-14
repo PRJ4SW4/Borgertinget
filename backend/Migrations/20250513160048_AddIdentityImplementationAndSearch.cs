@@ -4,14 +4,31 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class IdentityMigration : Migration
+    public partial class AddIdentityImplementationAndSearch : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DeleteData(
+                table: "PoliticianTwitterIds",
+                keyColumn: "Id",
+                keyValue: 1);
+
+            migrationBuilder.DeleteData(
+                table: "PoliticianTwitterIds",
+                keyColumn: "Id",
+                keyValue: 2);
+
+            migrationBuilder.DeleteData(
+                table: "PoliticianTwitterIds",
+                keyColumn: "Id",
+                keyValue: 3);
+
             migrationBuilder.RenameColumn(
                 name: "VerificationToken",
                 table: "Users",
@@ -107,6 +124,50 @@ namespace backend.Migrations
                 type: "boolean",
                 nullable: false,
                 defaultValue: false);
+
+            migrationBuilder.CreateTable(
+                name: "Party",
+                columns: table => new
+                {
+                    partyId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    partyName = table.Column<string>(type: "text", nullable: true),
+                    partyShortName = table.Column<string>(type: "text", nullable: true),
+                    partyProgram = table.Column<string>(type: "text", nullable: true),
+                    politics = table.Column<string>(type: "text", nullable: true),
+                    history = table.Column<string>(type: "text", nullable: true),
+                    stats = table.Column<string>(type: "text", nullable: true),
+                    chairmanId = table.Column<int>(type: "integer", nullable: true),
+                    viceChairmanId = table.Column<int>(type: "integer", nullable: true),
+                    secretaryId = table.Column<int>(type: "integer", nullable: true),
+                    spokesmanId = table.Column<int>(type: "integer", nullable: true),
+                    memberIds = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Party", x => x.partyId);
+                    table.ForeignKey(
+                        name: "FK_Party_Aktor_chairmanId",
+                        column: x => x.chairmanId,
+                        principalTable: "Aktor",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Party_Aktor_secretaryId",
+                        column: x => x.secretaryId,
+                        principalTable: "Aktor",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Party_Aktor_spokesmanId",
+                        column: x => x.spokesmanId,
+                        principalTable: "Aktor",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Party_Aktor_viceChairmanId",
+                        column: x => x.viceChairmanId,
+                        principalTable: "Aktor",
+                        principalColumn: "Id");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Roles",
@@ -241,6 +302,26 @@ namespace backend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Party_chairmanId",
+                table: "Party",
+                column: "chairmanId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Party_secretaryId",
+                table: "Party",
+                column: "secretaryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Party_spokesmanId",
+                table: "Party",
+                column: "spokesmanId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Party_viceChairmanId",
+                table: "Party",
+                column: "viceChairmanId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
                 table: "RoleClaims",
                 column: "RoleId");
@@ -270,6 +351,9 @@ namespace backend.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Party");
+
             migrationBuilder.DropTable(
                 name: "RoleClaims");
 
@@ -373,6 +457,16 @@ namespace backend.Migrations
                 oldType: "character varying(256)",
                 oldMaxLength: 256,
                 oldNullable: true);
+
+            migrationBuilder.InsertData(
+                table: "PoliticianTwitterIds",
+                columns: new[] { "Id", "AktorId", "Name", "TwitterHandle", "TwitterUserId" },
+                values: new object[,]
+                {
+                    { 1, null, "Statsministeriet", "Statsmin", "806068174567460864" },
+                    { 2, null, "Venstre, Danmarks Liberale Parti", "venstredk", "123868861" },
+                    { 3, null, "Troels Lund Poulsen", "troelslundp", "2965907578" }
+                });
         }
     }
 }

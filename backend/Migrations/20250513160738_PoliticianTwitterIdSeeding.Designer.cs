@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250513224810_Search")]
-    partial class Search
+    [Migration("20250513160738_PoliticianTwitterIdSeeding")]
+    partial class PoliticianTwitterIdSeeding
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
