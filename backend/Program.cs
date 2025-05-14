@@ -20,9 +20,9 @@ using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
-using backend.Services.Politician; 
 using backend.Services.LearningEnvironment;
 using backend.Services.Mapping;
+using backend.Services.Politician;
 using backend.Services.Search;
 using backend.Services.Selection;
 using backend.Services.Utility;
@@ -43,7 +43,7 @@ using OpenSearch.Net;
 
 // for .env secrets
 DotNetEnv.Env.Load();
-         
+
 var builder = WebApplication.CreateBuilder(args);
 
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
@@ -212,8 +212,6 @@ builder
                 return Task.CompletedTask;
             },
         };
-    });
-        };
     })
     .AddGoogle(
         GoogleDefaults.AuthenticationScheme,
@@ -249,7 +247,7 @@ builder
                 return Task.CompletedTask;
             };
         }
-    ); //.AddCookie(IdentityConstants.ExternalScheme);
+    ); 
 
 // ASP.NET Core Identity bruger cookies til at håndtere det *eksterne login flow* i led af Oauth.
 builder.Services.ConfigureApplicationCookie(options =>
@@ -316,7 +314,7 @@ builder.Services.AddSwaggerGen(options =>
 // --- EKSISTERENDE SERVICES ---
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<HttpService>();
-builder.Services.AddScoped<IFetchService, FetchService>(); 
+builder.Services.AddScoped<IFetchService, FetchService>();
 
 builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHostedService<DailySelectionJob>();
@@ -396,7 +394,6 @@ builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>(
 builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository>();
 builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
 builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
-builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 
 builder.Services.AddRouting();
 builder.Services.AddHostedService<TestScheduledIndexService>();
@@ -447,7 +444,6 @@ app.UseRouting();
 
 // For static images from wwwroot folder
 app.UseStaticFiles();
-
 
 if (app.Environment.IsDevelopment())
 {

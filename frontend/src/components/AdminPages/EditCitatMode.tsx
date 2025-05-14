@@ -4,7 +4,7 @@ import axios from "axios";
 import "./EditCitatMode.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 import BackButton from "../Button/backbutton";
-import { EditQuoteDTO } from "../../types/polidleTypes";
+import { EditQuoteDTO } from "../../types/PolidleTypes";
 
 export default function EditCitatMode() {
   const [quotes, setQuotes] = useState<EditQuoteDTO[]>([]);
