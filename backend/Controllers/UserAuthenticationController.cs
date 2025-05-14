@@ -298,7 +298,7 @@ namespace backend.Controllers
                     var createUserResult = await _userManager.CreateAsync(appUser);
                     if (!createUserResult.Succeeded)
                     {
-                        _logger.LogError($"Fejl ved oprettelse af bruger ({email}): {string.Join(", ", createUserResult.Errors.Select(e => e.Description))}");
+                        _logger.LogError($"Fejl ved oprettelse af bruger (email redacted): {string.Join(", ", createUserResult.Errors.Select(e => e.Description))}");
                         string errorDetail = createUserResult.Errors.FirstOrDefault()?.Description ?? "Kunne ikke oprette bruger.";
                         return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode(errorDetail)}");
                     }
