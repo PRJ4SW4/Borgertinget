@@ -294,7 +294,7 @@ namespace backend.Controllers
                     }
                     sanitizedUserName = tempUserName;
 
-                    _logger.LogInformation("Forsøger at oprette ny bruger med UserName: {UserName} (sanitized from Google) og Email: {Email}", sanitizedUserName, email);
+                    _logger.LogInformation("Forsøger at oprette ny bruger baseret på eksterne oplysninger fra Google.");
                     appUser = new User { UserName = sanitizedUserName, Email = email, EmailConfirmed = true }; 
                     var createUserResult = await _userManager.CreateAsync(appUser);
                     if (!createUserResult.Succeeded)
