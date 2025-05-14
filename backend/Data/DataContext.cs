@@ -358,7 +358,7 @@ namespace backend.Data
             // --- PoliticianQuote Configuration ---
             modelBuilder.Entity<PoliticianQuote>(entity =>
             {
-                entity.Property(e => e.QuoteId).ValueGeneratedNever();
+                entity.Property(e => e.QuoteId).ValueGeneratedOnAdd();
                 entity
                     .HasOne(pq => pq.Politician)
                     .WithMany(a => a.Quotes) // Sørg for Aktor.Quotes er defineret
@@ -411,7 +411,7 @@ namespace backend.Data
             // --- SEED DATA ---
             SeedLearningEnvironmentData(modelBuilder);
             SeedPollData(modelBuilder);
-            //QuoteSeeder.SeedQuotes(modelBuilder); // Kald din QuoteSeeder
+            ////QuoteSeeder.SeedQuotes(modelBuilder); // Kald din QuoteSeeder
         }
 
         // Helper method til JSON konvertering for at undgå gentagelse
