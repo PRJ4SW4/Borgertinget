@@ -1,28 +1,113 @@
-/* I GuessItem.css eller tilsvarende */
-.guess-item {
+/* src/components/Polidle/GuessList/GuessItem.module.css */
+.guessItem {
   display: flex;
-  border-bottom: 1px solid #ddd;
+  align-items: stretch;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  position: relative; /* For at den gyldne border kan positioneres korrekt hvis nødvendigt med pseudo-elementer */
 }
-.guess-data {
+
+.guessItem:last-child {
+  border-bottom: none;
+}
+
+/* NYT: Styling for når hele gættet er korrekt */
+.guessCorrectOverall {
+  border: 3px solid gold !important; /* Tyk gylden kant for hele rækken */
+  border-radius: 6px; /* Lidt afrunding for den ydre ramme */
+  margin-bottom: -1px; /* Juster for at undgå dobbelt border hvis der er border-bottom på .guessItem */
+  /* Baggrundsfarven for selve .guessItem skal IKKE sættes her,
+     da det vil overskrive de individuelle cellers farver.
+     Hver celle vil blive grøn individuelt via .correct klassen. */
+}
+
+/* Styling for hver celle/blok i et gæt */
+.guessData {
   flex: 1;
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 8px;
+  min-height: 90px; /* Bevar eller juster efter behov */
   text-align: center;
-  font-size: 1em;
-  border: 1px solid #ddd;
+  font-size: 0.9em;
+  border-right: 1px solid #f0f0f0;
   position: relative;
-  color: black;
+  color: #333; /* Standard tekstfarve, overskrives af feedback-klasser */
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
+
+.guessData:last-child {
+  border-right: none;
+}
+
+.politicianCell {
+  justify-content: center;
+}
+
+.politicianImage {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  object-fit: cover;
+  background-color: #f0f0f0;
+  margin-bottom: 5px;
+}
+
+.politicianImagePlaceholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #777;
+  font-size: 1.5em;
+  margin-bottom: 5px;
+}
+
+/* Farver for feedback på individuelle celler */
 .correct {
-  background-color: lightgreen;
+  background-color: #a7f3d0; /* Lysegrøn */
+  color: #065f46; /* Mørkere grøn tekst */
 }
+
 .incorrect {
-  background-color: lightcoral;
+  background-color: #fecaca; /* Lyserød */
+  color: #991b1b; /* Mørkere rød tekst */
 }
-.guess-data.higher,
-.guess-data.lower {
-  background-color: lightcoral;
-} /* Bemærk: Samme farve som incorrect pt. */
+
+.higher,
+.lower {
+  background-color: #ef4444; /* Rød baggrund for højere/lavere indikation */
+  color: white; /* Hvid tekst/tal for kontrast */
+}
+
 .arrow {
-  color: black;
-  /* ... */
+  font-size: 1.5em;
+  line-height: 1;
+  color: white; /* Sørg for at pilen også er hvid på rød baggrund */
+}
+
+.unknownFeedback {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.partyLogo {
+  font-size: 2em;
+  font-weight: bold;
+  line-height: 1;
+  /* Farven vil blive sat af den overordnede celles feedback-klasse (.correct, .incorrect osv.) */
+}
+
+.valueText {
+  margin-top: 5px;
+  font-size: 0.85em;
+  /* Farve arves fra .guessData's color (sat af .correct, .incorrect osv.) */
 }

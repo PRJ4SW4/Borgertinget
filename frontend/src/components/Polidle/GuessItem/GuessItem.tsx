@@ -1,131 +1,170 @@
 // src/components/Polidle/GuessList/GuessItem.tsx
 import React from "react";
-import "./GuessItem.module.css";
-// Importer centrale typer
+// VIGTIGT: Sørg for at importere styles som et CSS Module objekt
+import styles from "./GuessItem.module.css";
 import {
   GuessResultDto,
   FeedbackType,
-  DailyPoliticianDto, // <<< OPDATERET: Bruger nu den centrale DailyPoliticianDto
-} from "../../../types/PolidleTypes"; // << VIGTIGT: Sørg for korrekt sti
+  DailyPoliticianDto,
+} from "../../../types/PolidleTypes"; // Sørg for korrekt sti
 
 interface GuessItemProps {
   result: GuessResultDto;
 }
 
-// Definér nøglerne til feedback-objektet for at undgå magiske strenge
-// Disse bør matche de nøgler, din backend bruger i GuessResultDto.feedback
-// Du kan også overveje at definere dem i PolidleTypes.ts, hvis de er en fast del af kontrakten.
 const FeedbackFieldKeys = {
-  NAME: "Navn", // Eller hvad end din backend sender
+  NAME: "Navn",
   GENDER: "Køn",
   PARTY: "Parti",
   AGE: "Alder",
   REGION: "Region",
   EDUCATION: "Uddannelse",
-} as const; // 'as const' gør værdierne til literal types for bedre type-sikkerhed
+} as const;
 
 // Helper funktion til at mappe FeedbackType til CSS klasse
-const getFeedbackClass = (feedbackType: FeedbackType | undefined): string => {
-  if (feedbackType === undefined) return "unknown-feedback"; // En default klasse hvis feedback mangler
+// Tager nu isOverallCorrect som et argument
+const getFeedbackClass = (
+  feedbackType: FeedbackType | undefined,
+  isOverallCorrect: boolean // <<< NY PARAMETER
+): string => {
+  // Hvis hele gættet er korrekt, skal alle celler have 'correct' klassen
+  if (isOverallCorrect) {
+    return styles.correct; // <<< BRUGER styles.correct
+  }
+
+  // Ellers, brug den specifikke feedback type
+  if (feedbackType === undefined) return styles.unknownFeedback; // Brug styles.unknownFeedback
   switch (feedbackType) {
     case FeedbackType.Korrekt:
-      return "correct";
+      return styles.correct; // Brug styles.correct
     case FeedbackType.Forkert:
-      return "incorrect";
+      return styles.incorrect; // Brug styles.incorrect
     case FeedbackType.Højere:
-      return "higher"; // CSS skal håndtere, hvordan 'higher' og 'lower' ser ud
+      return styles.higher; // Brug styles.higher
     case FeedbackType.Lavere:
-      return "lower";
+      return styles.lower; // Brug styles.lower
     case FeedbackType.Undefined: // Hvis backend eksplicit sender Undefined
     default:
-      return "unknown-feedback";
+      return styles.unknownFeedback; // Brug styles.unknownFeedback
   }
 };
 
 const GuessItem: React.FC<GuessItemProps> = ({ result }) => {
-  // Vi forventer nu at guessedPolitician altid er der, hvis GuessResultDto er valid.
-  // Hvis den *kan* være null, skal det håndteres mere elegant end blot en fejlbesked,
-  // eller også skal typen i GuessResultDto være DailyPoliticianDto (ikke nullable).
-  // For nu antager vi, at den er der, baseret på vores forenklede GuessResultDto.
   if (!result.guessedPolitician) {
     console.error("GuessItem modtog et result uden guessedPolitician:", result);
+    // Sørg for at errorRow er defineret i dit GuessItem.module.css eller en global stilfil
     return (
-      <div className="guess-item error-row">
-        {" "}
-        {/* Tilføj evt. specifik fejl-styling */}
+      <div className={`${styles.guessItem} ${styles.errorRow}`}>
         Fejl: Manglende politiker data for dette gæt.
       </div>
     );
   }
 
-  // Nu er 'guessed' af typen DailyPoliticianDto
   const guessed: DailyPoliticianDto = result.guessedPolitician;
   const feedback = result.feedback;
 
+  const renderAgeFeedback = () => {
+    // Vis kun pile hvis det overordnede gæt IKKE er korrekt
+    if (!result.isCorrectGuess) {
+      if (feedback[FeedbackFieldKeys.AGE] === FeedbackType.Lavere) {
+        return <span className={styles.arrow}>&#8595;</span>;
+      }
+      if (feedback[FeedbackFieldKeys.AGE] === FeedbackType.Højere) {
+        return <span className={styles.arrow}>&#8593;</span>;
+      }
+    }
+    return null;
+  };
+
+  const renderPartyIndicator = () => {
+    if (guessed.parti) {
+      //TODO .parti should be changed to partyShortname
+      return <span className={styles.partyLogo}>{guessed.parti}</span>; //TODO .parti should be changed to partyShortname
+    }
+    return <span className={styles.valueText}>{guessed.parti || "-"}</span>;
+  };
+
   return (
     <div
-      className={`guess-item ${
-        result.isCorrectGuess ? "guess-correct-overall" : "" // CSS klasse for hvis hele gættet var rigtigt
+      className={`${styles.guessItem} ${
+        // Base klasse
+        result.isCorrectGuess ? styles.guessCorrectOverall : "" // Gylden kant hvis hele gættet er korrekt
       }`}
     >
-      {/* Politiker Navn - Antager backend sender feedback for Navn hvis hele gættet ikke var korrekt */}
+      {/* Politiker Celle */}
       <div
-        className={`guess-data ${getFeedbackClass(
-          feedback[FeedbackFieldKeys.NAME]
+        className={`${styles.guessData} ${
+          styles.politicianCell
+        } ${getFeedbackClass(
+          feedback[FeedbackFieldKeys.NAME],
+          result.isCorrectGuess
         )}`}
       >
-        {guessed.politikerNavn || "N/A"} {/* Vis N/A hvis navn mangler */}
-      </div>
-
-      {/* Køn */}
-      <div
-        className={`guess-data ${getFeedbackClass(
-          feedback[FeedbackFieldKeys.GENDER]
-        )}`}
-      >
-        {guessed.køn || "-"} {/* Vis - hvis data mangler */}
-      </div>
-
-      {/* Parti - DailyPoliticianDto har 'parti' og evt. 'partyShortname' */}
-      <div
-        className={`guess-data ${getFeedbackClass(
-          feedback[FeedbackFieldKeys.PARTY]
-        )}`}
-      >
-        {guessed.parti || "-"} {/* Vis det fulde partinavn */}
-      </div>
-
-      {/* Alder */}
-      <div
-        className={`guess-data ${getFeedbackClass(
-          feedback[FeedbackFieldKeys.AGE]
-        )}`}
-      >
-        {guessed.age}
-        {feedback[FeedbackFieldKeys.AGE] === FeedbackType.Lavere && (
-          <span className="arrow"> &#8595;</span> /* Pil ned */
+        {guessed.pictureUrl ? (
+          <img
+            src={guessed.pictureUrl}
+            alt={guessed.politikerNavn}
+            className={styles.politicianImage}
+          />
+        ) : (
+          <div className={styles.politicianImagePlaceholder}>?</div>
         )}
-        {feedback[FeedbackFieldKeys.AGE] === FeedbackType.Højere && (
-          <span className="arrow"> &#8593;</span> /* Pil op */
-        )}
+        <div className={styles.valueText}>{guessed.politikerNavn || "N/A"}</div>
       </div>
 
-      {/* Region */}
+      {/* Køn Celle */}
       <div
-        className={`guess-data ${getFeedbackClass(
-          feedback[FeedbackFieldKeys.REGION]
+        className={`${styles.guessData} ${getFeedbackClass(
+          feedback[FeedbackFieldKeys.GENDER],
+          result.isCorrectGuess
         )}`}
       >
-        {guessed.region || "-"}
+        <span style={{ fontSize: "1.2em", fontWeight: "bold" }}>
+          {guessed.køn || "-"}
+        </span>
       </div>
 
-      {/* Uddannelse */}
+      {/* Parti Celle */}
       <div
-        className={`guess-data ${getFeedbackClass(
-          feedback[FeedbackFieldKeys.EDUCATION]
+        className={`${styles.guessData} ${getFeedbackClass(
+          feedback[FeedbackFieldKeys.PARTY],
+          result.isCorrectGuess
         )}`}
       >
-        {guessed.uddannelse || "-"}
+        {renderPartyIndicator()}
+      </div>
+
+      {/* Alder Celle */}
+      <div
+        className={`${styles.guessData} ${getFeedbackClass(
+          feedback[FeedbackFieldKeys.AGE],
+          result.isCorrectGuess
+        )}`}
+      >
+        <span style={{ fontSize: "1.2em", fontWeight: "bold" }}>
+          {guessed.age}
+        </span>
+        {renderAgeFeedback()}
+      </div>
+
+      {/* Region Celle */}
+      <div
+        className={`${styles.guessData} ${getFeedbackClass(
+          feedback[FeedbackFieldKeys.REGION],
+          result.isCorrectGuess
+        )}`}
+      >
+        <span style={{ fontSize: "0.9em" }}>{guessed.region || "-"}</span>
+      </div>
+
+      {/* Uddannelse Celle */}
+      <div
+        className={`${styles.guessData} ${getFeedbackClass(
+          feedback[FeedbackFieldKeys.EDUCATION],
+          result.isCorrectGuess
+        )}`}
+      >
+        <span style={{ fontSize: "0.9em" }}>{guessed.uddannelse || "-"}</span>
       </div>
     </div>
   );

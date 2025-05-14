@@ -3,7 +3,6 @@ using System.Collections.Generic; // Required
 using System.Text.Json;          // Required
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq;
-using System.Text.Json; // Required
 using backend.DTO.Calendar;
 using backend.DTO.LearningEnvironment;
 using backend.Enums;
@@ -11,13 +10,11 @@ using backend.Models;
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
+using backend.Data.SeedData;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using BCrypt.Net;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace backend.Data
 {
@@ -362,11 +359,13 @@ namespace backend.Data
             // ***************************************************
 
             // --- PoliticianQuote Configuration ---
-            modelBuilder
-                .Entity<PoliticianQuote>()
-                .HasOne(pq => pq.Politician) // En Quote har én Politician (Aktor)
-                .WithMany(a => a.Quotes) // En Aktor har mange Quotes (Sørg for at Aktor.Quotes eksisterer og er korrekt stavet)
-                .HasForeignKey(pq => pq.AktorId); // Fremmednøglen er AktorId i PoliticianQuote
+            modelBuilder.Entity<PoliticianQuote>(entity =>
+            {
+                entity.Property(e => e.QuoteId).ValueGeneratedNever();
+                entity.HasOne(pq => pq.Politician)
+                    .WithMany(a => a.Quotes) // Sørg for Aktor.Quotes er defineret
+                    .HasForeignKey(pq => pq.AktorId);
+            });
 
             // --- GamemodeTracker Configuration ---
             // 1. Definer Sammensat Primærnøgle
@@ -414,6 +413,7 @@ namespace backend.Data
             // --- SEED DATA ---
             SeedLearningEnvironmentData(modelBuilder);
             SeedPollData(modelBuilder);
+            QuoteSeeder.SeedQuotes(modelBuilder); // Kald din QuoteSeeder
         }
 
         // Helper method til JSON konvertering for at undgå gentagelse
