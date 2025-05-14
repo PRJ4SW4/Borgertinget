@@ -13,7 +13,7 @@ using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
-using backend.Services.fetchService; 
+using backend.Services.Politician; 
 using backend.Services.LearningEnvironment;
 using backend.Services.Search;
 using backend.utils;

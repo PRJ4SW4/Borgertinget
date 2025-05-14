@@ -8,7 +8,7 @@ using backend.Models;
 using backend.Data;
 using backend.DTO.FT;
 using System.Text.Json;
-using backend.Services.fetchService;
+using backend.Services.Politician;
 using Microsoft.Extensions.Configuration;
 namespace backend.Controllers;
 
