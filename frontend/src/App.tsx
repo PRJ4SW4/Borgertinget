@@ -20,6 +20,7 @@ import PartiesPage from "./pages/PartiesPage"; // Displays a list of parties.
 import LandingPage from "./pages/LandingPage/LandingPage";
 import FeedPage from './pages/FeedPage';
 import EmailVerification from "./utils/useEmailVerification"; // Handles email verification logic.
+import ResetPasswordVerification from "./utils/resetPassword";
 // Navbar and Footer are rendered via MainLayout.
 // The main application component.
 function App() {
@@ -72,7 +73,7 @@ function App() {
       {/* Post-login success/callback route. */}
       <Route path="/login-success" element={<></>}/>
       <Route path="/verify" element={<EmailVerification onVerified={() => {}} onError={() => {}}/>} />
-
+      <Route path="/reset-password" element={<ResetPasswordVerification/>} />
 
       {/* --- Protected Routes using MainLayout --- */}
       {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}

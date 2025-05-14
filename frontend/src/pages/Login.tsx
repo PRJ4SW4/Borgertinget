@@ -7,7 +7,7 @@ interface LoginProps {
   setToken: (token: string | null) => void;
 }
 
-const Login: React.FC<LoginProps> = ({ setToken }) => {  
+const Login: React.FC<LoginProps> = ({ setToken }) => {
   const [loginUsername, setLoginUsername] = useState<string>("");
   const [loginPassword, setLoginPassword] = useState<string>("");
   const [registerUsername, setRegisterUsername] = useState<string>("");
@@ -18,24 +18,37 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState<string>("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [startSlide, setStartSlide] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleVerificationMessage = useCallback(() => {
+  const handleLink = useCallback(() => {
     const params = new URLSearchParams(location.search);
     const message = params.get("message");
     const status = params.get("status");
+    const userId = params.get("userId");
+    const token = params.get("token");
+
+    if (userId && token) {
+      setStatusHeader("Nulstil adgangskode");
+      setStatusMessage("");
+      setShowResetPassword(true);
+    }
+
     if (message && status) {
       setStatusMessage(message);
       setStatusHeader(status === "success" ? "Succes" : "Fejl");
       setShowPopup(true);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [location.search]);
+  }, [location.search, location.pathname]);
+
   useEffect(() => {
-    handleVerificationMessage();
-  }, [handleVerificationMessage]); // Call it in the useEffect
+    handleLink();
+  }, [handleLink]); // Call it in the useEffect
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -137,6 +150,35 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
         setShowForgotPassword(false);
       }
     };
+
+  const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const params = new URLSearchParams(location.search);
+    const userId = params.get("userId");
+    const token = params.get("token");
+    try {
+      const response = await axios.put(`http://localhost:5218/api/users/reset-password?userId=${userId}&token=${token}`, { 
+        NewPassword: newPassword,
+        ConfirmPassword: confirmPassword
+      });
+      setStatusMessage(response.data.message);
+      setStatusHeader("Succes");
+      setShowPopup(true);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.error || "Noget gik galt. Prøv igen.";
+        setStatusHeader("Fejl");
+        setStatusMessage(errorMessage);
+        setShowPopup(true);
+      } else {
+        setStatusHeader("Fejl");
+        setStatusMessage("Ingen forbindelse til serveren.");
+        setShowPopup(true);
+      }
+    } finally {
+      setShowResetPassword(false);
+    }
+  };
 
   const handleGoogleLogin = () => {
     const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -288,7 +330,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
           <button className={styles.closeButton} onClick={() => setShowForgotPassword(false)}>
             &times;
           </button>
-          <h2>Nulstil adgangskode</h2>
+          <h2>Glemt adgangskode</h2>
           <form onSubmit={handleForgotPassword} className={styles.formContainer}>
             <div className={styles.formGroup}>
               <p>Email</p>
@@ -301,13 +343,49 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
                 required
               />
             </div>
-            <button className={`${styles.button} ${styles.forgotPasswordButton}`} type="submit">Send nulstillingslink</button>
+            <button className={`${styles.button} ${styles.forgotPasswordButton}`} type="submit">Send link</button>
           </form>
         </div>
       </div>
     )};
+
+    {showResetPassword && (
+      <div className={styles.popupOverlay} onClick={() => setShowResetPassword(false)}>
+        <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+          <button className={styles.closeButton} onClick={() => setShowResetPassword(false)}>
+            &times;
+          </button>
+          <h2>Nulstil adgangskode</h2>
+          <form onSubmit={handleResetPassword} className={styles.formContainer}>
+            <div className={styles.formGroup}>
+              <p>Ny adgangskode</p>
+              <input
+                className={styles.inputField}
+                type="password"
+                placeholder="Indtast ny adgangskode"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <p>Bekræft adgangskode</p>
+              <input
+                className={styles.inputField}
+                type="password"
+                placeholder="Indtast adgangskode igen"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+          <button className={`${styles.button} ${styles.forgotPasswordButton}`} type="submit">Nulstil adgangskode</button>
+        </form>
+      </div>
+    </div>
+  )};
   </div>
-  );
+);
 };
 
 export default Login;
