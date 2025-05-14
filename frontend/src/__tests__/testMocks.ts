@@ -1,22 +1,26 @@
 // src/__tests__/testMocks.ts
-import axios from 'axios';
-import {Mocked, vi} from 'vitest';
-import { AxiosError, AxiosHeaders, InternalAxiosRequestConfig, AxiosResponse } from "axios";
+import axios from "axios";
+import { Mocked, vi } from "vitest";
+import {
+  AxiosError,
+  AxiosHeaders,
+  InternalAxiosRequestConfig,
+  AxiosResponse,
+} from "axios";
 
 // Export shared mocks
 export const mockNavigate = vi.fn();
 export const mockedAxios = axios as Mocked<typeof axios>;
 export const mockGetItem = vi.fn();
 
-(
-  mockedAxios.isAxiosError as unknown as (val: unknown) => val is AxiosError
-) = (val): val is AxiosError =>
+(mockedAxios.isAxiosError as unknown as (val: unknown) => val is AxiosError) = (
+  val
+): val is AxiosError =>
   typeof val === "object" &&
   val !== null &&
   "isAxiosError" in val &&
   (val as { isAxiosError?: unknown }).isAxiosError === true;
 
-  
 // Mock local storage
 export function mockLocalStorage() {
   const localStorageMock = (() => {
@@ -38,7 +42,7 @@ export function mockLocalStorage() {
     };
   })();
 
-  Object.defineProperty(window, 'localStorage', {
+  Object.defineProperty(window, "localStorage", {
     value: localStorageMock,
     writable: true,
   });
@@ -50,9 +54,12 @@ export function mockAlert() {
 }
 
 // Mock Axios Error
+// Simulating real HTTP error responses
 export function createAxiosError(status: number, message: string): AxiosError {
+  // Create empty headers
   const headers = new AxiosHeaders();
 
+  // Create a minimal dummy request config object
   const dummyConfig: InternalAxiosRequestConfig = {
     headers,
     method: "GET",
@@ -67,7 +74,7 @@ export function createAxiosError(status: number, message: string): AxiosError {
         statusText: "OK",
         headers,
         config: {} as InternalAxiosRequestConfig,
-      } as AxiosResponse),
+      } as AxiosResponse), // dummy adapter
     data: undefined,
     params: undefined,
     responseType: "json",
@@ -76,9 +83,12 @@ export function createAxiosError(status: number, message: string): AxiosError {
     signal: undefined,
   };
 
+  // Create an AxiosError instance using its prototype
   const error = Object.create(axios.AxiosError.prototype) as AxiosError;
+  // Call the AxiosError constructor with the dummy config
   axios.AxiosError.call(error, message, "ERR_BAD_REQUEST", dummyConfig);
 
+  // Attach a fake response to simulate a real HTTP failure
   error.response = {
     status,
     data: {},
@@ -87,6 +97,7 @@ export function createAxiosError(status: number, message: string): AxiosError {
     config: dummyConfig,
   };
 
+  // Mark the error as an Axios error so axios.isAxiosError() returns true
   error.isAxiosError = true;
 
   return error;

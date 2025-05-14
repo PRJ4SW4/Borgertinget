@@ -39,8 +39,13 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
 
   if (token) {
     try {
+      // split by "." since JWT is a three Base-64-encoded header.payload.signature
+      // [1] take payload part
+      // atob() decodes the Base-64 string back to its raw JSON
+      // JSON.parse() converts that JSON text into a JavaScript object 
       const payload = JSON.parse(atob(token.split(".")[1]));
       const roles = payload["role"]; 
+      // If "role" is an array, look for "Admin"; if it’s a string, compare directly
       isAdmin = Array.isArray(roles) ? roles.includes("Admin") : roles === "Admin";
     } catch (err) {
       console.error("Invalid token", err);
