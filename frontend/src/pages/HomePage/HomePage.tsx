@@ -28,7 +28,6 @@ const HomePage: React.FC = () => {
           </p>
           <a href="#features" className="hero-scroll-down" aria-label="Scroll down">
             ↓
-            ↓
           </a>
         </div>
       </section>
