@@ -16,9 +16,8 @@ using Microsoft.EntityFrameworkCore;
 public class AdministratorController : ControllerBase
 {
     private readonly IAdministratorService _service;
-    private readonly DataContext _context;
 
-    public AdministratorController(IAdministratorService service, DataContext context)
+    public AdministratorController(IAdministratorService service)
     {
         _service = service;
     }

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 
 namespace Tests.Controllers
@@ -34,9 +35,7 @@ namespace Tests.Controllers
         }
 
         [TearDown]
-        public void TearDown()
-        {
-        }
+        public void TearDown() { }
 
         [Test]
         public async Task CreateEvent_ValidEvent_ReturnsCreatedAtActionResult()
@@ -68,7 +67,7 @@ namespace Tests.Controllers
             Assert.That(actionResult, Is.Not.Null);
             Assert.That(actionResult.StatusCode, Is.EqualTo(201));
             Assert.That(actionResult.ActionName, Is.EqualTo("GetEventById"));
-            Assert.That(actionResult.RouteValues["id"], Is.EqualTo(createdEventDtoFromService.Id));
+            Assert.That(actionResult.RouteValues!["id"], Is.EqualTo(createdEventDtoFromService.Id));
             var returnedDto = actionResult.Value as CalendarEventDTO;
             Assert.That(returnedDto, Is.Not.Null);
             Assert.That(returnedDto.Id, Is.EqualTo(createdEventDtoFromService.Id));
@@ -93,7 +92,6 @@ namespace Tests.Controllers
             _mockCalendarService
                 .CreateEventAsync(newEventDto)
                 .ThrowsAsync(new ArgumentException(exceptionMessage));
-
 
             var result = await _uut.CreateEvent(newEventDto);
 
@@ -144,7 +142,10 @@ namespace Tests.Controllers
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
             Assert.That(badRequestResult.StatusCode, Is.EqualTo(400));
-            Assert.That(badRequestResult.Value, Is.EqualTo("Mismatched event ID in route and request body."));
+            Assert.That(
+                badRequestResult.Value,
+                Is.EqualTo("Mismatched event ID in route and request body.")
+            );
             await _mockCalendarService
                 .DidNotReceive()
                 .UpdateEventAsync(Arg.Any<int>(), Arg.Any<CalendarEventDTO>());
@@ -197,7 +198,10 @@ namespace Tests.Controllers
             Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
             var notFoundResult = result as NotFoundObjectResult;
             Assert.That(notFoundResult, Is.Not.Null);
-            Assert.That(notFoundResult.Value, Is.EqualTo($"Event with ID {nonExistentEventId} not found."));
+            Assert.That(
+                notFoundResult.Value,
+                Is.EqualTo($"Event with ID {nonExistentEventId} not found.")
+            );
             await _mockCalendarService.Received(1).UpdateEventAsync(nonExistentEventId, eventDto);
         }
 
@@ -206,9 +210,7 @@ namespace Tests.Controllers
         {
             var eventId = 1;
 
-            _mockCalendarService
-                .DeleteEventAsync(eventId)
-                .Returns(Task.FromResult(true));
+            _mockCalendarService.DeleteEventAsync(eventId).Returns(Task.FromResult(true));
 
             var result = await _uut.DeleteEvent(eventId);
 
@@ -229,7 +231,10 @@ namespace Tests.Controllers
             Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
             var notFoundResult = result as NotFoundObjectResult;
             Assert.That(notFoundResult, Is.Not.Null);
-            Assert.That(notFoundResult.Value, Is.EqualTo($"Event with ID {nonExistentEventId} not found."));
+            Assert.That(
+                notFoundResult.Value,
+                Is.EqualTo($"Event with ID {nonExistentEventId} not found.")
+            );
             await _mockCalendarService.Received(1).DeleteEventAsync(nonExistentEventId);
         }
     }

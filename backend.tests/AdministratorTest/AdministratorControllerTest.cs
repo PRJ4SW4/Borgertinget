@@ -16,24 +16,12 @@ namespace Tests.Controllers
     {
         private AdministratorController _controller;
         private IAdministratorService _service;
-        private DataContext _context;
 
         [SetUp]
         public void Setup()
         {
             _service = Substitute.For<IAdministratorService>();
-            var options = new DbContextOptionsBuilder<DataContext>()
-                .UseInMemoryDatabase(databaseName: "TestDb")
-                .Options;
-            _context = new DataContext(options);
-            _controller = new AdministratorController(_service, _context);
-        }
-
-        [TearDown]
-        public void Teardown()
-        {
-            _context.Database.EnsureDeleted(); // clean after each test
-            _context.Dispose();
+            _controller = new AdministratorController(_service);
         }
 
         #region Flashcard Collection POST
