@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using backend.Services.Search;
 
 namespace backend.Controllers
 {
@@ -16,14 +17,20 @@ namespace backend.Controllers
     {
         private readonly IOpenSearchClient _openSearchClient;
         private readonly ILogger<SearchController> _logger;
+        private readonly SearchIndexingService _searchIndexingService; // Injected SearchIndexingService
+        private readonly IServiceProvider _serviceProvider;
         private const string IndexName = "borgertinget-search";
         private const int TopNResults = 5;
         private const string SuggestionName = "search-suggester"; // Name for our suggester
 
-        public SearchController(IOpenSearchClient openSearchClient, ILogger<SearchController> logger)
+        public SearchController(IOpenSearchClient openSearchClient, ILogger<SearchController> logger, 
+            SearchIndexingService searchIndexingService,
+            IServiceProvider serviceProvider)
         {
             _openSearchClient = openSearchClient;
             _logger = logger;
+            _searchIndexingService = searchIndexingService;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -159,6 +166,32 @@ namespace backend.Controllers
             {
                 _logger.LogError(ex, "An exception occurred during suggest operation:");
                 return StatusCode(500, "An internal server error occurred while fetching suggestions.");
+            }
+        }
+        [HttpPost("ensure-and-reindex")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> EnsureAndReindex()
+        {
+            _logger.LogInformation("Ensure and Reindex endpoint called.");
+            try
+            {
+                // Step 1 & 2: Ensure the index is created, if not run EnsureIndexExistsWithMapping
+                _logger.LogInformation("Ensuring OpenSearch index '{IndexName}' exists with mapping.", IndexName);
+                await SearchIndexSetup.EnsureIndexExistsWithMapping(_serviceProvider); //
+                _logger.LogInformation("Index check/creation with mapping complete for '{IndexName}'.", IndexName);
+
+                // Step 3: Run a full indexing
+                _logger.LogInformation("Triggering full background indexing task for '{IndexName}'.", IndexName);
+                await _searchIndexingService.RunFullIndexAsync(); //
+                _logger.LogInformation("Full indexing task triggered successfully for '{IndexName}'.", IndexName);
+
+                return Ok(new { message = $"Index '{IndexName}' ensured and full re-indexing process initiated." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical(ex, "A critical error occurred during the ensure and reindex process for '{IndexName}'.", IndexName);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred during the ensure and reindex process.", error = ex.Message });
             }
         }
     }
