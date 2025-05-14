@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent, KeyboardEvent, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {SearchDocument} from '../types/searchResult';
-import './SearchBar.css'; // Ensure this CSS file exists and is styled
+import './Searchbar.css'; // Ensure this CSS file exists and is styled
 
 // Placeholder for SearchDocument type
 
