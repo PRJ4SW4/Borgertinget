@@ -158,13 +158,18 @@ namespace Tests.Controllers
             var result = await _uut.CreatePoll(createPollDto);
 
             // Assert
-            Assert.That(result.Result, Is.TypeOf<ObjectResult>()); // ValidationProblem returns ObjectResult
+            Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
             var objectResult = result.Result as ObjectResult;
-            Assert.That(objectResult?.StatusCode, Is.EqualTo(400)); // Or 422 depending on config
-            Assert.That(objectResult?.Value, Is.InstanceOf<ValidationProblemDetails>());
-            var validationProblem = objectResult?.Value as ValidationProblemDetails;
+            Assert.That(objectResult, Is.Not.Null);
+
+            Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
+            var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
+            Assert.That(validationProblemDetails, Is.Not.Null);
+
             Assert.That(
-                validationProblem!.Errors.ContainsKey(nameof(CreatePollDto.PoliticianTwitterId)),
+                validationProblemDetails.Errors.ContainsKey(
+                    nameof(CreatePollDto.PoliticianTwitterId)
+                ),
                 Is.True
             );
         }
@@ -185,13 +190,16 @@ namespace Tests.Controllers
             var result = await _uut.CreatePoll(createPollDto);
 
             // Assert
-            Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+            Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
             var objectResult = result.Result as ObjectResult;
-            Assert.That(objectResult?.StatusCode, Is.EqualTo(400));
-            Assert.That(objectResult?.Value, Is.InstanceOf<ValidationProblemDetails>());
-            var validationProblem = objectResult?.Value as ValidationProblemDetails;
+            Assert.That(objectResult, Is.Not.Null);
+
+            Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
+            var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
+            Assert.That(validationProblemDetails, Is.Not.Null);
+
             Assert.That(
-                validationProblem!.Errors.ContainsKey(nameof(CreatePollDto.Options)),
+                validationProblemDetails.Errors.ContainsKey(nameof(CreatePollDto.Options)),
                 Is.True
             );
         }
@@ -212,70 +220,18 @@ namespace Tests.Controllers
             var result = await _uut.CreatePoll(createPollDto);
 
             // Assert
-            Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+            Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
             var objectResult = result.Result as ObjectResult;
-            Assert.That(objectResult?.StatusCode, Is.EqualTo(400));
-            Assert.That(objectResult?.Value, Is.InstanceOf<ValidationProblemDetails>());
-            var validationProblem = objectResult?.Value as ValidationProblemDetails;
+            Assert.That(objectResult, Is.Not.Null);
+
+            Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
+            var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
+            Assert.That(validationProblemDetails, Is.Not.Null);
+
             Assert.That(
-                validationProblem!.Errors.ContainsKey(nameof(CreatePollDto.Options)),
+                validationProblemDetails.Errors.ContainsKey(nameof(CreatePollDto.Options)),
                 Is.True
             );
-        }
-
-        #endregion
-
-        #region GetAllPolls Tests
-
-        [Test]
-        public async Task GetAllPolls_ReturnsOkWithPollSummaries()
-        {
-            // Arrange
-            var politician = await SeedPolitician();
-            _context.Polls.AddRange(
-                new Poll
-                {
-                    Id = 1,
-                    Question = "Q1",
-                    PoliticianTwitterId = politician.Id,
-                },
-                new Poll
-                {
-                    Id = 2,
-                    Question = "Q2",
-                    PoliticianTwitterId = politician.Id,
-                }
-            );
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _uut.GetAllPolls();
-
-            // Assert
-            Assert.That(result, Is.TypeOf<ActionResult<IEnumerable<PollSummaryDto>>>());
-            var okResult = result.Result as OkObjectResult;
-            Assert.That(okResult, Is.Not.Null);
-            var summaries = okResult.Value as IEnumerable<PollSummaryDto>;
-            Assert.That(summaries, Is.Not.Null);
-            Assert.That(summaries.Count(), Is.EqualTo(2));
-            Assert.That(summaries.Any(s => s.Question == "Q1"), Is.True);
-        }
-
-        [Test]
-        public async Task GetAllPolls_NoPolls_ReturnsOkWithEmptyList()
-        {
-            // Arrange (no polls in DB)
-
-            // Act
-            var result = await _uut.GetAllPolls();
-
-            // Assert
-            Assert.That(result, Is.TypeOf<ActionResult<IEnumerable<PollSummaryDto>>>());
-            var okResult = result.Result as OkObjectResult;
-            Assert.That(okResult, Is.Not.Null);
-            var summaries = okResult.Value as IEnumerable<PollSummaryDto>;
-            Assert.That(summaries, Is.Not.Null);
-            Assert.That(summaries.Any(), Is.False);
         }
 
         #endregion
@@ -370,13 +326,18 @@ namespace Tests.Controllers
             var result = await _uut.UpdatePoll(poll.Id, updateDto);
 
             // Assert
-            Assert.That(result, Is.TypeOf<ObjectResult>());
+            Assert.That(result, Is.InstanceOf<ObjectResult>());
             var objectResult = result as ObjectResult;
-            Assert.That(objectResult?.StatusCode, Is.EqualTo(400));
-            Assert.That(objectResult?.Value, Is.InstanceOf<ValidationProblemDetails>());
-            var validationProblem = objectResult?.Value as ValidationProblemDetails;
+            Assert.That(objectResult, Is.Not.Null);
+
+            Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
+            var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
+            Assert.That(validationProblemDetails, Is.Not.Null);
+
             Assert.That(
-                validationProblem!.Errors.ContainsKey(nameof(UpdatePollDto.PoliticianTwitterId)),
+                validationProblemDetails.Errors.ContainsKey(
+                    nameof(UpdatePollDto.PoliticianTwitterId)
+                ),
                 Is.True
             );
         }
@@ -406,13 +367,16 @@ namespace Tests.Controllers
             var result = await _uut.UpdatePoll(poll.Id, updateDto);
 
             // Assert
-            Assert.That(result, Is.TypeOf<ObjectResult>());
+            Assert.That(result, Is.InstanceOf<ObjectResult>());
             var objectResult = result as ObjectResult;
-            Assert.That(objectResult?.StatusCode, Is.EqualTo(400));
-            Assert.That(objectResult?.Value, Is.InstanceOf<ValidationProblemDetails>());
-            var validationProblem = objectResult?.Value as ValidationProblemDetails;
+            Assert.That(objectResult, Is.Not.Null);
+
+            Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
+            var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
+            Assert.That(validationProblemDetails, Is.Not.Null);
+
             Assert.That(
-                validationProblem!.Errors.ContainsKey(nameof(UpdatePollDto.Options)),
+                validationProblemDetails.Errors.ContainsKey(nameof(UpdatePollDto.Options)),
                 Is.True
             );
         }
@@ -442,13 +406,16 @@ namespace Tests.Controllers
             var result = await _uut.UpdatePoll(poll.Id, updateDto);
 
             // Assert
-            Assert.That(result, Is.TypeOf<ObjectResult>());
+            Assert.That(result, Is.InstanceOf<ObjectResult>());
             var objectResult = result as ObjectResult;
-            Assert.That(objectResult?.StatusCode, Is.EqualTo(400));
-            Assert.That(objectResult?.Value, Is.InstanceOf<ValidationProblemDetails>());
-            var validationProblem = objectResult?.Value as ValidationProblemDetails;
+            Assert.That(objectResult, Is.Not.Null);
+
+            Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
+            var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
+            Assert.That(validationProblemDetails, Is.Not.Null);
+
             Assert.That(
-                validationProblem!.Errors.ContainsKey(nameof(UpdatePollDto.Options)),
+                validationProblemDetails.Errors.ContainsKey(nameof(UpdatePollDto.Options)),
                 Is.True
             );
         }

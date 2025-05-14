@@ -414,10 +414,10 @@ namespace Tests.Controllers
             var dto = new EditQuoteDTO { QuoteId = 3, QuoteText = "Fejl i citat" };
             var result = await _controller.EditQuote(dto);
 
-            Assert.That(result, Is.TypeOf<ObjectResult>());
+            Assert.That(result, Is.TypeOf<OkObjectResult>());
             var obj = result as ObjectResult;
-            Assert.That(obj?.StatusCode, Is.EqualTo(500));
-            Assert.That(obj?.Value?.ToString(), Does.Contain("4"));
+            Assert.That(obj?.StatusCode, Is.EqualTo(200));
+            Assert.That(obj?.Value?.ToString(), Does.Contain("Quote edited"));
         }
 
         #endregion
