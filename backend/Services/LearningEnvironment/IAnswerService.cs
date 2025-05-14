@@ -1,4 +1,4 @@
-namespace backend.Services.LearningEnvironmentServices;
+namespace backend.Services.LearningEnvironment;
 
 using System.Threading.Tasks;
 using backend.DTO.LearningEnvironment;

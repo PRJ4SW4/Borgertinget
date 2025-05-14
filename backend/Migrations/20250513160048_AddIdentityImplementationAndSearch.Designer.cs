@@ -13,13 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-<<<<<<<< HEAD:backend/Migrations/20250513170756_Addmette.Designer.cs
-    [Migration("20250513170756_Addmette")]
-    partial class Addmette
-========
-    [Migration("20250513160738_PoliticianTwitterIdSeeding")]
-    partial class PoliticianTwitterIdSeeding
->>>>>>>> origin/main:backend/Migrations/20250513160738_PoliticianTwitterIdSeeding.Designer.cs
+    [Migration("20250513160048_AddIdentityImplementationAndSearch")]
+    partial class AddIdentityImplementationAndSearch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -758,30 +753,6 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("PoliticianTwitterIds");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AktorId = 138,
-                            Name = "Statsministeriet",
-                            TwitterHandle = "Statsmin",
-                            TwitterUserId = "806068174567460864"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Venstre, Danmarks Liberale Parti",
-                            TwitterHandle = "venstredk",
-                            TwitterUserId = "123868861"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Troels Lund Poulsen",
-                            TwitterHandle = "troelslundp",
-                            TwitterUserId = "2965907578"
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.Poll", b =>

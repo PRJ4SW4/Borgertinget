@@ -1,11 +1,11 @@
-namespace backend.Services.AutomationServices.Parsing;
+namespace backend.Services.Calendar.Parsing;
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using backend.Models.Calendar;
-using backend.Services.AutomationServices;
+using backend.Repositories.Calendar;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 

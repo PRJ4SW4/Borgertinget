@@ -10,11 +10,11 @@ using backend.Models;
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
+using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking; // For ValueComparer
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace backend.Data
 {
@@ -48,8 +48,11 @@ namespace backend.Data
         // --- Calendar Setup ---
         public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
-        public DbSet<Party> Party {get; set;}
-    // --- /Calendar Setup ---
+        public DbSet<Party> Party { get; set; }
+
+        public DbSet<Party> Party { get; set; }
+
+
 
         public DbSet<Aktor> Aktor { get; set; }
 
@@ -177,58 +180,89 @@ namespace backend.Data
                     )
                 );
 
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.PublicationTitles)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.Ministers)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 );
-            modelBuilder.Entity<Aktor>()
-                 .Property(a => a.Spokesmen)
-                 .HasConversion(
-                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                 ); 
-            
+            modelBuilder
+                .Entity<Aktor>()
+                .Property(a => a.PublicationTitles)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v =>
+                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                        ?? new List<string>()
+                );
+            modelBuilder
+                .Entity<Aktor>()
+                .Property(a => a.Ministers)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v =>
+                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                        ?? new List<string>()
+                );
+            modelBuilder
+                .Entity<Aktor>()
+                .Property(a => a.Spokesmen)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v =>
+                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                        ?? new List<string>()
+                );
+
             modelBuilder.Entity<Party>(entity =>
             {
                 // Configure Role relationships (as shown previously)
-                 entity.HasOne(p => p.chairman)
-                      .WithMany()
-                      .HasForeignKey(p => p.chairmanId)
-                      .OnDelete(DeleteBehavior.SetNull);
-                 // ... configure other roles (ViceChairman, Secretary, Spokesman) ...
+                entity
+                    .HasOne(p => p.chairman)
+                    .WithMany()
+                    .HasForeignKey(p => p.chairmanId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                // ... configure other roles (ViceChairman, Secretary, Spokesman) ...
 
-                 // Configure Stats List conversion (if kept)
-                 entity.Property(p => p.stats) // Assuming PascalCase naming
-                       .HasConversion(
-                           v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                           v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                       );
+                // Configure Stats List conversion (if kept)
+                entity
+                    .Property(p => p.stats) // Assuming PascalCase naming
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                        v =>
+                            JsonSerializer.Deserialize<List<string>>(
+                                v,
+                                (JsonSerializerOptions?)null
+                            ) ?? new List<string>()
+                    );
 
                 // *** Add Configuration for memberIds List ***
-                entity.Property(p => p.memberIds) // Use PascalCase property name
-                      .HasConversion(
-                          // Convert List<int> to JSON string for DB
-                          v => JsonSerializer.Serialize(v ?? new List<int>(), (JsonSerializerOptions?)null),
-                          // Convert JSON string from DB back to List<int>
-                          v => JsonSerializer.Deserialize<List<int>>(v, (JsonSerializerOptions?)null) ?? new List<int>(),
-                          // Add a ValueComparer to help EF Core detect changes correctly
-                          new ValueComparer<List<int>?>(
-                              (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                              c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                              c => c == null ? null : c.ToList()))
-                      .HasColumnType("text"); // Use jsonb for efficient querying in PostgreSQL if needed, or "text"
+                entity
+                    .Property(p => p.memberIds) // Use PascalCase property name
+                    .HasConversion(
+                        // Convert List<int> to JSON string for DB
+                        v =>
+                            JsonSerializer.Serialize(
+                                v ?? new List<int>(),
+                                (JsonSerializerOptions?)null
+                            ),
+                        // Convert JSON string from DB back to List<int>
+                        v =>
+                            JsonSerializer.Deserialize<List<int>>(v, (JsonSerializerOptions?)null)
+                            ?? new List<int>(),
+                        // Add a ValueComparer to help EF Core detect changes correctly
+                        new ValueComparer<List<int>?>(
+                            (c1, c2) =>
+                                (c1 == null && c2 == null)
+                                || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                            c =>
+                                c == null
+                                    ? 0
+                                    : c.Aggregate(
+                                        0,
+                                        (a, v) => HashCode.Combine(a, v.GetHashCode())
+                                    ),
+                            c => c == null ? null : c.ToList()
+                        )
+                    )
+                    .HasColumnType("text"); // Use jsonb for efficient querying in PostgreSQL if needed, or "text"
                 // *** End Configuration for memberIds List ***
             });
 
-            
             modelBuilder.Entity<PoliticianTwitterId>(entity =>
             {
                 entity.HasIndex(p => p.TwitterUserId).IsUnique();
@@ -294,7 +328,6 @@ namespace backend.Data
                 entity.Property(t => t.TwitterTweetId).IsRequired();
                 entity.Property(t => t.Text).IsRequired();
             });
-
 
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");

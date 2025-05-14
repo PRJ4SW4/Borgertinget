@@ -715,7 +715,7 @@ namespace backend.Migrations
 
                     b.HasIndex("viceChairmanId");
 
-                    b.ToTable("Party");
+                    b.ToTable("Party", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>

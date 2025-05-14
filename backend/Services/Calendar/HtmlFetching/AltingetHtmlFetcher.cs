@@ -1,4 +1,4 @@
-namespace backend.Services.AutomationServices.HtmlFetching;
+namespace backend.Services.Calendar.HtmlFetching;
 
 using System;
 using System.Net.Http;
