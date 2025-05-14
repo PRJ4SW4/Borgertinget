@@ -19,6 +19,7 @@ using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
+using backend.Services.Politician; 
 using backend.Services.LearningEnvironment;
 using backend.Services.Mapping;
 using backend.Services.Search;
@@ -42,7 +43,7 @@ using OpenSearch.Net;
 
 // for .env secrets
 DotNetEnv.Env.Load();
-
+         
 var builder = WebApplication.CreateBuilder(args);
 
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
@@ -298,6 +299,7 @@ builder.Services.AddSwaggerGen(options =>
 // --- EKSISTERENDE SERVICES ---
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<HttpService>();
+builder.Services.AddScoped<IFetchService, FetchService>(); 
 
 builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHostedService<DailySelectionJob>();
@@ -413,6 +415,7 @@ app.UseRouting();
 
 // For static images from wwwroot folder
 app.UseStaticFiles();
+
 
 if (app.Environment.IsDevelopment())
 {
