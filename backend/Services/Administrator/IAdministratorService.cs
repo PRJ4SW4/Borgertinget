@@ -24,5 +24,8 @@ namespace backend.Services
         Task<List<EditQuoteDTO>> GetAllQuotesAsync();
         Task<EditQuoteDTO> GetQuoteByIdAsync(int id);
         Task EditQuoteAsync(int quoteId, string quoteText);
+
+        // Politician
+        Task<int?> GetAktorIdByTwitterIdAsync(int twitterId);
     }
 }
