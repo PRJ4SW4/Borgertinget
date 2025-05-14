@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, KeyboardEvent, useCallback, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {SearchDocument} from '../types/searchResult';
 import './SearchBar.css'; // Ensure this CSS file exists and is styled
 

@@ -31,7 +31,7 @@ namespace backend.Models
         public string? BackImagePath { get; set; }
 
         // Suggestion field for autocomplete (optional but recommended)
-        public CompletionField Suggest { get; set; }
+        public CompletionField? Suggest { get; set; }
 
         public string? partyName {get; set;} = string.Empty;
         

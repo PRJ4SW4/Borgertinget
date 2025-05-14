@@ -2,9 +2,10 @@
     background-color: #f8f8f8; /* Light grey background */
     padding: 20px;
     border-radius: 8px;
-    max-width: 350px; /* Adjust width as needed */
-    margin: 20px auto; /* Center the card for demo */
-    font-family: sans-serif; /* Basic font */
+    /* max-width: 350px; */ /* Adjust width as needed - Commented out for dynamic width */
+    width: fit-content; /* Makes the card's width adjust to its content */
+    min-width: 250px; /* Optional: set a minimum width if very short names look too narrow */
+    margin: 20px auto; /* Center the card within its column if column is wider */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     color: #333; /* Default text color */
   }
@@ -15,7 +16,8 @@
     font-weight: bold;
     text-align: center;
     margin-top: 0;
-    margin-bottom: 5px;
+    margin-bottom: 5px;/* Prevents the party name itself from wrapping if fit-content is used */
+                         /* Or use 'normal' if you want the name to wrap and the box to expand accordingly */
   }
   
   .party-info-slogan {

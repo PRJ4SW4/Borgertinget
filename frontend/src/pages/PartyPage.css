@@ -8,19 +8,29 @@
   font-family: Arial, sans-serif;
 }
 
-/* Navigation link styling */
 .party-page-nav {
-  margin-bottom: 20px;
+  width: 100%; /* Make the nav take full width */
+  margin-bottom: 20px; /* Existing margin-bottom */
+  /* order: 0; /* Not strictly necessary here unless party-page becomes a flex container like politician-page */
 }
 
 .party-page-nav a {
-  color: #007bff;
+  display: inline-block; /* Allows padding and other block-level properties */
   text-decoration: none;
-  font-weight: bold;
+  background-color: #950018; /* Borgertinget primary red from Navbar.css */
+  color: #FFFFFF; /* White text from Navbar.css */
+  padding: 0.5rem 1rem; /* Padding from Navbar.css */
+  border-radius: 20px; /* Pill-shaped corners from Navbar.css */
+  transition: background-color 0.2s ease, color 0.2s ease; /* Smooths color changes on hover */
+  font-weight: 500; /* Medium font weight from Navbar.css */
+  font-size: 0.95rem; /* Font size from Navbar.css */
+  white-space: nowrap; /* Prevents link text from wrapping */
 }
 
 .party-page-nav a:hover {
-  text-decoration: underline;
+  background-color: #f0f0f0; /* Light grey background on hover from Navbar.css */
+  color: #8B0000; /* Dark red text on hover from Navbar.css */
+  text-decoration: none; /* Remove underline on hover to match navbar style */
 }
 
 /* --- TWO-COLUMN LAYOUT --- */
@@ -43,7 +53,7 @@
 /* Right column for the info card and potentially other info blocks */
 .party-infobox-column {
   flex: 1; /* Takes up less space (e.g., 1/4) */
-  min-width: 280px; /* Minimum width */
+  min-width: fit-content; /* Minimum width */
   order: 2; /* Appears second visually */
 }
 
@@ -53,7 +63,7 @@
   margin-left: 0;
   margin-right: 0;
   width: 100%;
-  max-width: none; /* Override max-width from PartyInfoCard.css */
+  max-width: fit-content; /* Override max-width from PartyInfoCard.css */
 }
 
 /* --- Styling for Detail Sections (Program, Politics, History) --- */
