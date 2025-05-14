@@ -12,7 +12,6 @@ namespace backend.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            /*
             migrationBuilder.InsertData(
                 table: "Flashcards",
                 columns: new[] { "FlashcardId", "BackContentType", "BackImagePath", "BackText", "CollectionId", "DisplayOrder", "FrontContentType", "FrontImagePath", "FrontText" },
@@ -24,13 +23,11 @@ namespace backend.Migrations
                     { 4, 0, null, "Folkestyre", 2, 1, 0, null, "Hvad betyder 'Demokrati'?" },
                     { 5, 0, null, "Statens budget for det kommende år", 2, 2, 0, null, "Hvad er 'Finansloven'?" }
                 });
-            */
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            /*
             migrationBuilder.DeleteData(
                 table: "Flashcards",
                 keyColumn: "FlashcardId",
@@ -55,7 +52,6 @@ namespace backend.Migrations
                 table: "Flashcards",
                 keyColumn: "FlashcardId",
                 keyValue: 5);
-            */
         }
     }
 }
