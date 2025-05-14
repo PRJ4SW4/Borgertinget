@@ -19,48 +19,6 @@ const PoliticianPage: React.FC = () => {
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [twitterId, setTwitterId] = useState<number | null>(null);
 
-  const defaultImageUrl = DefaultPic; // Use the imported default image
-
-  // --- Helper: Calculate Age ---
-  const calculateAge = (birthDateString?: string | null): number | null => {
-    if (!birthDateString) return null;
-    // Attempt to handle different date formats if necessary, assuming YYYY-MM-DD or similar
-    try {
-      // More robust parsing might be needed depending on actual 'born' format
-      const birthDate = new Date(birthDateString);
-      if (isNaN(birthDate.getTime())) return null; // Invalid date parsed
-
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      return age;
-    } catch (e) {
-      console.error("Error parsing birth date:", e);
-      return null;
-    }
-  };
-
-  // --- Helper: Format Birth Date ---
-  const formatBirthDate = (birthDateString?: string | null): string => {
-    if (!birthDateString) return "Ikke angivet";
-    try {
-      const date = new Date(birthDateString);
-      if (isNaN(date.getTime())) return "Ugyldig dato";
-      // Format as DD-MM-YYYY (adjust locale and options as needed)
-      return date.toLocaleDateString("da-DK", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    } catch (e) {
-      console.error("Error formatting birth date:", e);
-      return "Formateringsfejl";
-    }
-  };
-
   useEffect(() => {
     const fetchPolitician = async () => {
       if (!id || isNaN(Number(id))) { // Check if id exists and is a number
