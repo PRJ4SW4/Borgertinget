@@ -187,31 +187,50 @@ builder
             },
         };
     })
-    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
-    {
-        IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleOAuth");
-        options.ClientId = googleAuthNSection["ClientId"] ?? throw new InvalidOperationException("Google ClientId ikke fundet.");
-        options.ClientSecret = googleAuthNSection["ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret ikke fundet.");
-        options.CallbackPath = "/signin-google"; 
-        options.Events.OnTicketReceived = ctx => 
+    .AddGoogle(
+        GoogleDefaults.AuthenticationScheme,
+        options =>
         {
-            return Task.CompletedTask;
-        };
-        options.Events.OnRemoteFailure = context => {
-            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogError("Google Remote Failure: {FailureMessage}", context.Failure?.Message);
-            context.Response.Redirect("/error?message=" + HttpUtility.UrlEncode("Google login fejlede."));
-            context.HandleResponse(); // Stop videre behandling
-            return Task.CompletedTask;
-        };
-    });//.AddCookie(IdentityConstants.ExternalScheme);
+            IConfigurationSection googleAuthNSection = builder.Configuration.GetSection(
+                "GoogleOAuth"
+            );
+            options.ClientId =
+                googleAuthNSection["ClientId"]
+                ?? throw new InvalidOperationException("Google ClientId ikke fundet.");
+            options.ClientSecret =
+                googleAuthNSection["ClientSecret"]
+                ?? throw new InvalidOperationException("Google ClientSecret ikke fundet.");
+            options.CallbackPath = "/signin-google";
+            options.Events.OnTicketReceived = ctx =>
+            {
+                return Task.CompletedTask;
+            };
+            options.Events.OnRemoteFailure = context =>
+            {
+                var logger = context.HttpContext.RequestServices.GetRequiredService<
+                    ILogger<Program>
+                >();
+                logger.LogError(
+                    "Google Remote Failure: {FailureMessage}",
+                    context.Failure?.Message
+                );
+                context.Response.Redirect(
+                    "/error?message=" + HttpUtility.UrlEncode("Google login fejlede.")
+                );
+                context.HandleResponse(); // Stop videre behandling
+                return Task.CompletedTask;
+            };
+        }
+    ); //.AddCookie(IdentityConstants.ExternalScheme);
 
 // ASP.NET Core Identity bruger cookies til at håndtere det *eksterne login flow* i led af Oauth.
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(5); 
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
     options.SlidingExpiration = true;
 
     // Forhindr Identity i at redirecte API-kald til login-sider
@@ -322,6 +341,12 @@ builder.Services.AddSingleton<
     backend.Services.Utility.DateTimeProvider
 >();
 builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
+
+//Search indexing service
+builder.Services.AddScoped<SearchIndexingService>();
+
+builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
 
 //Search indexing service
 builder.Services.AddScoped<SearchIndexingService>();

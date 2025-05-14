@@ -7,10 +7,12 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
+using System.Text.Json;
+using BCrypt.Net;
+using System.Net.Http;
 using System.Linq;
 using System.Net;
-using backend.Data;
+using backend.Services;
 using backend.DTOs;
 using backend.Models;
 using backend.Services;
@@ -358,6 +360,8 @@ namespace backend.Controllers
 
             var localJwtToken = await GenerateJwtToken(appUser); 
             _logger.LogInformation("JWT genereret for en bruger.");
+
+            await _signInManager.SignOutAsync();
 
             string frontendBaseUrl = _config["FrontendBaseUrl"] ?? "http://localhost:5173";
             string loginSuccessPathOnFrontend = "/login-success"; 

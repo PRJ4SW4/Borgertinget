@@ -288,31 +288,6 @@ namespace backend.Migrations
                     b.ToTable("CalendarEvents");
                 });
 
-            modelBuilder.Entity("backend.Models.DailySelection", b =>
-                {
-                    b.Property<DateOnly>("SelectionDate")
-                        .HasColumnType("date")
-                        .HasColumnName("selection_date");
-
-                    b.Property<string>("GameMode")
-                        .HasColumnType("text")
-                        .HasColumnName("gamemode");
-
-                    b.Property<int>("SelectedPolitikerID")
-                        .HasColumnType("integer")
-                        .HasColumnName("selected_politiker_id");
-
-                    b.Property<string>("SelectedQuoteText")
-                        .HasColumnType("text")
-                        .HasColumnName("selected_quote_text");
-
-                    b.HasKey("SelectionDate", "GameMode");
-
-                    b.HasIndex("SelectedPolitikerID");
-
-                    b.ToTable("daily_selections");
-                });
-
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
                 {
                     b.Property<int>("FlashcardId")
@@ -763,6 +738,7 @@ namespace backend.Migrations
 
                     b.HasIndex("viceChairmanId");
 
+                    b.ToTable("Party");
                     b.ToTable("Party");
                 });
 

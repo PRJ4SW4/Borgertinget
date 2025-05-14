@@ -11,7 +11,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 namespace backend.Controllers;
 
-
+// TO DO: CHANGE CONSOLE.WriteLine -> use logger
 [ApiController]
 [Route("api/[controller]")]
 public class AktorController : ControllerBase{
@@ -43,11 +43,8 @@ public class AktorController : ControllerBase{
     {
         try
         {
-            // Find the Aktor by primary key (Id)
-            // FindAsync is efficient for lookup by primary key
             var aktor = await _context.Aktor.FindAsync(id);
 
-            // Check if an Aktor with the given id was found
             if (aktor == null)
             {
                 // Return 404 Not Found if no match
@@ -59,12 +56,12 @@ public class AktorController : ControllerBase{
         }
         catch (Exception ex)
         {
-            //(consider using a proper logging framework) use the logger
             Console.WriteLine($"Error fetching politician with ID {id}: {ex.Message}");
             // Return a generic 500 Internal Server Error
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
+
     //sender politikere med samme partyName, bruger aktorDetailDto
     [HttpGet("GetParty/{partyName}")]
     public async Task<ActionResult<IEnumerable<Aktor>>> GetParty(string partyName)
@@ -89,46 +86,15 @@ public class AktorController : ControllerBase{
                 .Select(a => AktorDetailDto.FromAktor(a))
                 .ToListAsync();
 
-            // Return the list of found politicians with 200 OK status
             return Ok(filteredPoliticians);
         }
         catch (Exception ex)
         {
-            // Log the exception details (consider using a proper logging framework)
             Console.WriteLine($"Error fetching politicians for party {partyName}: {ex.Message}");
-            // Return a generic 500 Internal Server Error
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
-    [HttpGet("GetParties")] // Route definition: api/Aktor/GetParties
-    public async Task<ActionResult<IEnumerable<string>>> GetParties()
-    {
-        try
-        {
-            // Query the Aktor table
-            var parties = await _context.Aktor
-                // Select the 'Party' field (assuming this is the full name you want to list)
-                .Select(a => a.Party)
-                // Ensure the party name is not null or just whitespace
-                .Where(partyName => !string.IsNullOrWhiteSpace(partyName))
-                // Get only unique names
-                .Distinct()
-                // Order them alphabetically
-                .OrderBy(partyName => partyName)
-                // Execute the query
-                .ToListAsync();
-
-            // Return the distinct list of party names
-            return Ok(parties);
-        }
-        catch (Exception ex)
-        {
-            // Log the exception details
-            Console.WriteLine($"Error fetching distinct party names: {ex.Message}");
-            // Return a generic 500 Internal Server Error
-            return StatusCode(500, "An error occurred while fetching the list of parties.");
-        }
-    }
+    
     //https://oda.ft.dk/api/Akt%C3%B8r?$inlinecount=allpages endpoint der skal bruges i hvert fald
     //----------------------------------------//
     //                To DO:                  //
@@ -159,7 +125,7 @@ public class AktorController : ControllerBase{
         {
             // --- STEP 1: Fetch Ministerial Titles ---
             _logger.LogInformation("Fetching ministerial titles...");
-            string? nextTitlesLink = ministerTitlesApiUrl + "&$format=json"; // Ensure JSON format
+            string? nextTitlesLink = ministerTitlesApiUrl + "&$format=json";
             while (!string.IsNullOrEmpty(nextTitlesLink))
             {
                 var titleResponse = await _httpService.GetJsonAsync<ODataResponse<MinisterialTitleDto>>(nextTitlesLink);
@@ -185,7 +151,7 @@ public class AktorController : ControllerBase{
 
             // --- STEP 2: Fetch Current Minister Relationships ---
              _logger.LogInformation("Fetching minister relationships...");
-            string? nextRelationsLink = ministerRelationsApiUrl + "&$format=json"; // Ensure JSON format
+            string? nextRelationsLink = ministerRelationsApiUrl + "&$format=json";
             while (!string.IsNullOrEmpty(nextRelationsLink))
             {
                  var relationResponse = await _httpService.GetJsonAsync<ODataResponse<MinisterRelationshipDto>>(nextRelationsLink);
@@ -193,7 +159,6 @@ public class AktorController : ControllerBase{
                  {
                     foreach (var relation in relationResponse.Value)
                     {
-                        // TODO: check If multiple roles are possible and needed, change value to List<int>
                         ministerRelationshipsMap[relation.FraAktorId] = relation.TilAktorId;
                     }
                      _logger.LogInformation("Fetched {Count} relationships from page: {Url}", relationResponse.Value.Count, nextRelationsLink);
@@ -202,7 +167,7 @@ public class AktorController : ControllerBase{
                  else
                  {
                      _logger.LogWarning("Received null or invalid response for relationships from {Url}", nextRelationsLink);
-                     nextRelationsLink = null; // Stop pagination on error/null
+                     nextRelationsLink = null; 
                  }
             }
              _logger.LogInformation("Finished fetching relationships. Total relationships found: {Count}", ministerRelationshipsMap.Count);
@@ -220,7 +185,7 @@ public class AktorController : ControllerBase{
         int totalAddedCount = 0;
         int totalUpdatedCount = 0;
         int totalDeletedCount = 0;
-        string? nextPolitikerLink = initialPolitikerApiUrl + "&$format=json"; // Start withpoliticians URL
+        string? nextPolitikerLink = initialPolitikerApiUrl + "&$format=json";
 
         var processedParties = new Dictionary<string, Party>();
 
@@ -270,14 +235,14 @@ public class AktorController : ControllerBase{
 
                                 if (existingAktor == null) // ADD
                                 {
-                                    currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle); // Use helper
+                                    currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle); // helper
                                     _context.Aktor.Add(currentAktor);
                                     addedCount++;
                                      _logger.LogDebug("Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}", currentAktor.Id, currentAktor.navn, currentAktor.MinisterTitel);
                                 }
                                 else // UPDATE
                                 {
-                                    currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle, existingAktor); // Use helper to update
+                                    currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle, existingAktor); // helper
                                     updatedCount++;
                                      _logger.LogDebug("Updating Aktor ID: {Id}, Name: {Name}, Title: {Title}", existingAktor.Id, existingAktor.navn, existingAktor.MinisterTitel);
                                 }
@@ -325,7 +290,7 @@ public class AktorController : ControllerBase{
                                         foreach(var party in partiesContainingAktor)
                                         {
                                             party.memberIds?.Remove(existingAktor.Id);
-                                            _context.Entry(party).State = EntityState.Modified; // Mark as modified
+                                            _context.Entry(party).State = EntityState.Modified; // Mark as modified to update according to value comparer
                                         }
 
                                         _context.Aktor.Remove(existingAktor);
@@ -368,14 +333,13 @@ public class AktorController : ControllerBase{
             }
             catch (HttpRequestException httpEx){
                  _logger.LogError(httpEx, "HTTP Request error fetching data from {Url}", nextPolitikerLink ?? "Unknown");
-                 nextPolitikerLink = null; // Stop pagination on error
+                 nextPolitikerLink = null; 
             }
             catch (Exception ex)
             {
                  _logger.LogError(ex, "General error fetching or processing data from {Url}", nextPolitikerLink ?? "Unknown");
-                // Consider whether to stop pagination or try to continue
                 nextPolitikerLink = null; // Stop pagination on unexpected errors
-                // return StatusCode(500, $"Error processing data: {ex.Message}"); // Or handle differently
+                return StatusCode(500, $"Error processing data: {ex.Message}"); // Or handle differently
             }
         }
 
@@ -388,17 +352,16 @@ public class AktorController : ControllerBase{
     {
         var aktor = existingAktor ?? new Aktor(); // Create new or use existing
 
-        aktor.Id = dto.Id; // Set ID always (PK)
+        aktor.Id = dto.Id;
         aktor.navn = dto.navn;
         aktor.fornavn = dto.fornavn;
         aktor.efternavn = dto.efternavn;
         aktor.biografi = dto.biografi;
 
-        // Ensure DateTimeKind is set to Utc if values exist
         aktor.startdato = dto.startdato.HasValue ? DateTime.SpecifyKind(dto.startdato.Value, DateTimeKind.Utc) : null;
         aktor.slutdato = dto.slutdato.HasValue ? DateTime.SpecifyKind(dto.slutdato.Value, DateTimeKind.Utc) : null;
         aktor.opdateringsdato = DateTime.UtcNow; // Always update timestamp
-        aktor.typeid = 5; // Assuming this fetch is only for politicians (typeid=5)
+        aktor.typeid = 5;
 
         // Map parsed fields
         aktor.Party = bioDetails.GetValueOrDefault("Party") as string;
