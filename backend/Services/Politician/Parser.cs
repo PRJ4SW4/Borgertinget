@@ -62,12 +62,8 @@ namespace backend.Services.Politician
                 extractedData["PartyShortname"] = memberElement.Element("partyShortname")?.Value ?? "";
                 extractedData["Born"] = memberElement.Element("born")?.Value ?? "";
                 extractedData["PictureMiRes"] = memberElement.Element("pictureMiRes")?.Value ?? "";
-                // Note: firstname & lastname are handled by the main API fields, but parsed here if needed elsewhere
                 extractedData["firstname_from_bio"] = memberElement.Element("firstname")?.Value ?? "";
                 extractedData["lastname_from_bio"] = memberElement.Element("lastname")?.Value ?? "";
-                 // Add other direct elements if needed (e.g., PhoneFolketinget, OccupationStatistic)
-                // extractedData["PhoneFolketinget"] = memberElement.Element("phoneFolketinget")?.Value ?? "";
-                // extractedData["OccupationStatistic"] = memberElement.Element("occupationStatistic")?.Value ?? "";
 
                 // --- Nested Elements ---
 
@@ -76,7 +72,7 @@ namespace backend.Services.Politician
 
                 // Personal Information -> Function
                 XElement? function = memberElement.Element("personalInformation")?.Element("function");
-                extractedData["FunctionFormattedTitle"] = function?.Element("formattedTitle")?.Value ?? ""; // Or formattedTitles if preferred
+                extractedData["FunctionFormattedTitle"] = function?.Element("formattedTitle")?.Value ?? "";
                 extractedData["FunctionStartDate"] = function?.Element("functionStartDate")?.Value ?? "";
 
                 // Career Elements
@@ -99,7 +95,7 @@ namespace backend.Services.Politician
                 // Parliamentary Positions Of Trust (List) - Fixed Parsing
                 extractedData["ParliamentaryPositionsOfTrust"] = career?.Element("parliamentaryPositionsOfTrust")
                                                                    ?.Elements("parliamentaryPositionOfTrust")
-                                                                   .Select(el => Regex.Replace(el.Value, "<.*?>", string.Empty).Trim()) // Basic HTML tag stripping
+                                                                   .Select(el => Regex.Replace(el.Value, "<.*?>", string.Empty).Trim())
                                                                    .Where(s => !string.IsNullOrEmpty(s))
                                                                    .ToList() ?? new List<string>();
                 // Add Ministers if needed
@@ -121,7 +117,7 @@ namespace backend.Services.Politician
                                                .ToList() ?? new List<string>();
 
                 // Positions Of Trust (Single Text Field - might contain HTML)
-                extractedData["PositionsOfTrust"] = memberElement.Element("positionsOfTrust")?.Element("editorFormattedText")?.Value ?? // Check if positionOfTrust element exists instead sometimes
+                extractedData["PositionsOfTrust"] = memberElement.Element("positionsOfTrust")?.Element("editorFormattedText")?.Value ??
                                                     memberElement.Element("positionsOfTrust")?.Element("positionOfTrust")?.Value ?? "";
 
                 // Publications
