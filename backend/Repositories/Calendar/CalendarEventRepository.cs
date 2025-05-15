@@ -96,11 +96,11 @@ public class CalendarEventRepository : ICalendarEventRepository
     public void UpdateEvent(CalendarEvent existingEvent)
     {
         _context.CalendarEvents.Update(existingEvent); // Mark for update.
-        _logger.LogDebug(
-            "Marked existing calendar event for update: ID={EventId}, Title='{EventTitle}'",
-            existingEvent.Id,
-            existingEvent.Title
-        );
+        // _logger.LogDebug(
+        //     "Marked existing calendar event for update: ID={EventId}, Title='{EventTitle}'",
+        //     existingEvent.Id,
+        //     existingEvent.Title
+        // );
     }
 
     // Marks a collection of CalendarEvents for deletion.
