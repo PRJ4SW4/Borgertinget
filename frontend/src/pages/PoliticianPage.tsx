@@ -3,8 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { IAktor } from '../types/Aktor';
 import "./PoliticianPage.css";
 // Consider adding a default image import if you need one for onError
-// import DefaultPic from "../images/defaultPic.jpg";
-import DefaultPic from "../images/defaultPic.jpg"; // Import your default picture
 //Af Jakob, dette er til subscribe knappen
 import SubscribeButton from "../components/FeedComponents/SubscribeButton";
 import { getSubscriptions } from "../services/tweetService";
@@ -337,12 +335,6 @@ const PoliticianPage: React.FC = () => {
   );
 };
 
-// Helper function to render info box items consistently
-const renderInfoItem = (label: string, value: React.ReactNode) => (
-  <div className="info-box-item">
-    <span className="info-box-label">{label}:</span>
-    <span className="info-box-value">{value}</span>
-  </div>
-);
+
 
 export default PoliticianPage;
