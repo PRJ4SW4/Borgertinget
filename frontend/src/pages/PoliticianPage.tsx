@@ -232,35 +232,6 @@ const PoliticianPage: React.FC = () => {
           </p>
         </section>
 
-        {/* Display other lists NOT in the info-box */}
-        {politician.publicationTitles &&
-          politician.publicationTitles.length > 0 && (
-            <>
-              <section className="detail-section">
-                <h3>Baggrund</h3>
-                <p className="detail-content-placeholder">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
-                  id commodo dolor. Class aptent taciti sociosqu ad litora
-                  torquent per conubia nostra, per inceptos himenaeos.
-                  Suspendisse fermentum nisi a venenatis hendrerit. Curabitur
-                  mauris nunc, sodales ac lacinia eget, consectetur et arcu.
-                </p>
-                {/* Add more placeholder text or logic to extract from biografi */}
-              </section>
-            </>
-          )}
-
-        <section className="detail-section">
-          <h3>Begyndende politisk karriere</h3>
-          <p className="detail-content-placeholder">
-            Integer feugiat tempus venenatis. Sed tempor massa tortor, fringilla
-            suscipit ante eleifend ac. Proin sit amet vestibulum nulla. Maecenas
-            et turpis sit amet lectus commodo facilisis ac sed leo. Donec a
-            lacinia libero, id placerat urna.
-            {/* Add more placeholder text or logic to extract from biografi */}
-          </p>
-        </section>
-
         {/* --- Existing Sections Moved Here --- */}
         {politician.ministertitel && (
           <section className="detail-section">
