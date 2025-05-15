@@ -163,154 +163,279 @@ namespace backend.Services
              return result;
         }
 
-        public async Task SelectAndSaveDailyPoliticiansAsync(DateOnly date)
+        //TODO: Change to select new each call
+public async Task SelectAndSaveDailyPoliticiansAsync(DateOnly date, bool overwriteExisting = false)
+{
+    _logger.LogInformation("METHOD_START: SelectAndSaveDailyPoliticiansAsync for {Date}. Overwrite: {Overwrite}", date, overwriteExisting);
+
+    using var transaction = await _context.Database.BeginTransactionAsync();
+    try
+    {
+        // ... (din kode for at tjekke ExistsForDateAsync og hente allPoliticiansData - antaget at den virker) ...
+        if (await _dailySelectionRepository.ExistsForDateAsync(date))
         {
-            _logger.LogInformation("Starting daily selection process for {Date}", date);
-
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            if (overwriteExisting)
             {
-                // ... (din kode for at tjekke ExistsForDateAsync og hente allPoliticiansData) ...
-                if (await _dailySelectionRepository.ExistsForDateAsync(date)) {
-                    _logger.LogWarning("Daily selections already exist for {Date}. Skipping generation.", date);
-                    await transaction.RollbackAsync();
-                    return;
-                }
-
-                var allPoliticiansData = await _aktorRepository.GetAllWithDetailsForSelectionAsync();
-                if (!allPoliticiansData.Any()) {
-                    _logger.LogError("No politicians found. Cannot generate selections for {Date}.", date);
-                    await transaction.RollbackAsync();
-                    return;
-                }
-                _logger.LogInformation("Total Aktors fetched from repository: {Count}", allPoliticiansData.Count);
-                // ... (din logning for politiciansWithQuotesCount) ...
-
-                var candidatesClassic = allPoliticiansData
-                    .Select(p => new CandidateData(p, p.GamemodeTrackings?.FirstOrDefault(t => t.GameMode == GamemodeTypes.Klassisk)))
-                    .ToList();
-                // ... (opret candidatesQuote og candidatesPhoto) ...
-
-                // --- Vælg Classic Politician ---
-                var classicPolitician = _selectionAlgorithm.SelectWeightedRandomCandidate(candidatesClassic, date, GamemodeTypes.Klassisk);
-                if (classicPolitician == null)
-                {
-                    _logger.LogError("CRITICAL: Could not select any classic politician for {Date}. Aborting selection process.", date);
-                    await transaction.RollbackAsync();
-                    throw new InvalidOperationException($"Unable to select a classic politician for {date}.");
-                }
-                _logger.LogInformation("Classic Politician selected for {Date}: ID {AktorId} ({AktorNavn})", date, classicPolitician.Id, classicPolitician.navn);
-
-                // --- Vælg Citat Politician og Citat ---
-                Aktor? quotePolitician = null; // Start som null
-                PoliticianQuote? selectedQuote = null;
-
-                var candidatesQuote = allPoliticiansData // Sørg for at denne er defineret korrekt
-                    .Where(p => p.Quotes != null && p.Quotes.Any(q => !string.IsNullOrWhiteSpace(q.QuoteText)))
-                    .Select(p => new CandidateData(p, p.GamemodeTrackings?.FirstOrDefault(t => t.GameMode == GamemodeTypes.Citat)))
-                    .ToList();
-
-                if (candidatesQuote.Any())
-                {
-                    quotePolitician = _selectionAlgorithm.SelectWeightedRandomCandidate(candidatesQuote, date, GamemodeTypes.Citat);
-                }
-
-                if (quotePolitician != null)
-                {
-                    // ... (din logik for at vælge selectedQuote fra quotePolitician.Quotes) ...
-                    var validQuotesOnSelected = quotePolitician.Quotes?.Where(q => !string.IsNullOrWhiteSpace(q.QuoteText)).ToList();
-                    if (validQuotesOnSelected?.Any() ?? false)
-                    {
-                        selectedQuote = validQuotesOnSelected[_randomProvider.Next(validQuotesOnSelected.Count)];
-                    }
-                }
-                
-                // Fallback for quotePolitician HVIS den stadig er null
-                if (quotePolitician == null) {
-                    _logger.LogWarning("Quote politician was not selected or had no quotes. Using classic politician as fallback for Quote Aktor on {Date}.", date);
-                    quotePolitician = classicPolitician; // Fallback til classic
-                    // Prøv igen at finde et citat på classicPolitician
-                    var fallbackValidQuotes = quotePolitician.Quotes?.Where(q => !string.IsNullOrWhiteSpace(q.QuoteText)).ToList();
-                    if (fallbackValidQuotes?.Any() ?? false)
-                    {
-                        selectedQuote = fallbackValidQuotes[_randomProvider.Next(fallbackValidQuotes.Count)];
-                        _logger.LogInformation("Selected a quote from fallback Aktor {AktorId} for Citat mode: '{QuoteText}'", quotePolitician.Id, selectedQuote.QuoteText);
-                    } else {
-                        _logger.LogWarning("Fallback Aktor {AktorId} for Citat mode also has no valid quotes.", quotePolitician.Id);
-                        selectedQuote = null; // Ingen citat fundet
-                    }
-                }
-
-
-                // --- Vælg Foto Politician ---
-                Aktor? photoPolitician = null; // Start som null
-
-                var candidatesPhoto = allPoliticiansData // Sørg for at denne er defineret korrekt
-                    .Where(p => !string.IsNullOrWhiteSpace(p.PictureMiRes))
-                    .Select(p => new CandidateData(p, p.GamemodeTrackings?.FirstOrDefault(t => t.GameMode == GamemodeTypes.Foto)))
-                    .ToList();
-
-                if (candidatesPhoto.Any())
-                {
-                    photoPolitician = _selectionAlgorithm.SelectWeightedRandomCandidate(candidatesPhoto, date, GamemodeTypes.Foto);
-                }
-                
-                // Fallback for photoPolitician HVIS den stadig er null
-                if (photoPolitician == null) {
-                    _logger.LogWarning("Photo politician was not selected. Using classic politician as fallback for Photo Aktor on {Date}.", date);
-                    photoPolitician = classicPolitician; // Fallback til classic
-                }
-
-
-                // --- Logning før oprettelse af DailySelection (LINJE 238 området) ---
-                // Gør værdierne klar til logning, håndter nulls eksplicit
-                var classicIdLog = classicPolitician.Id; // Vi ved classicPolitician ikke er null her
-                var quoteAktorIdLog = quotePolitician.Id; // Vi har sikret quotePolitician ikke er null her (fallback til classic)
-                var quoteTextLog = selectedQuote?.QuoteText ?? "INGEN_CITAT_VALGT";
-                var photoAktorIdLog = photoPolitician.Id; // Vi har sikret photoPolitician ikke er null her (fallback til classic)
-
-                _logger.LogInformation(
-                    "Preparing DailySelection entities for {Date}. Classic: {ClassicId}, Quote Aktor: {QuoteAktorId} (Quote: '{QuoteText}'), Photo Aktor: {PhotoAktorId}",
-                    date,
-                    classicIdLog,
-                    quoteAktorIdLog,
-                    quoteTextLog, // Log den forberedte streng
-                    photoAktorIdLog
-                );
-
-                var dailySelections = new List<DailySelection>
-                {
-                    new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Klassisk, SelectedPolitikerID = classicPolitician.Id },
-                    new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Citat, SelectedPolitikerID = quotePolitician.Id, SelectedQuoteText = selectedQuote?.QuoteText },
-                    new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Foto, SelectedPolitikerID = photoPolitician.Id }
-                };
-                await _dailySelectionRepository.AddManyAsync(dailySelections);
-                // ... (Opdater Trackers) ...
-                await _trackerRepository.UpdateOrCreateForAktorAsync(classicPolitician, GamemodeTypes.Klassisk, date);
-                await _trackerRepository.UpdateOrCreateForAktorAsync(quotePolitician, GamemodeTypes.Citat, date); // quotePolitician er nu garanteret ikke null
-                await _trackerRepository.UpdateOrCreateForAktorAsync(photoPolitician, GamemodeTypes.Foto, date); // photoPolitician er nu garanteret ikke null
-
-
-                int changesSaved = await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                // --- Logning efter commit (LINJE 343 området) ---
-                _logger.LogInformation(
-                    "Final selections - Classic: {ClassicId}, Quote Aktor: {QuoteAktorId}, Photo Aktor: {PhotoAktorId}",
-                    classicPolitician.Id, // classicPolitician er ikke null
-                    quotePolitician.Id,   // quotePolitician er ikke null
-                    photoPolitician.Id    // photoPolitician er ikke null
-                );
-                _logger.LogInformation("Successfully selected, saved daily politicians, and committed transaction for {Date}. Changes saved to DB: {ChangesCount}", date, changesSaved);
+                _logger.LogWarning("Overwrite requested for {Date}. Deleting existing.", date);
+                await _dailySelectionRepository.DeleteByDateAsync(date);
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Error during daily selection process for {Date}. Rolling back transaction.", date);
+                _logger.LogWarning("Selections for {Date} exist and overwrite is false. Skipping.", date);
                 await transaction.RollbackAsync();
-                throw;
+                return;
             }
         }
 
+        var allPoliticiansData = await _aktorRepository.GetAllWithDetailsForSelectionAsync();
+        if (!allPoliticiansData.Any())
+        {
+            _logger.LogError("No politicians in DB for {Date}.", date);
+            await transaction.RollbackAsync();
+            throw new InvalidOperationException($"No politicians in DB for {date}.");
+        }
+        // ... (din logik for kandidatlister) ...
+        var candidatesClassic = allPoliticiansData.Select(p => new CandidateData(p, p.GamemodeTrackings?.FirstOrDefault(t => t.GameMode == GamemodeTypes.Klassisk))).ToList();
+
+        var classicPolitician = _selectionAlgorithm.SelectWeightedRandomCandidate(candidatesClassic, date, GamemodeTypes.Klassisk);
+        if (classicPolitician == null)
+        {
+            _logger.LogError("CRITICAL_ERROR: classicPolitician is NULL for {Date}.", date);
+            await transaction.RollbackAsync();
+            throw new InvalidOperationException($"Cannot select classic politician for {date}.");
+        }
+        // Nu er classicPolitician garanteret ikke null
+
+        // --- Citat Logik ---
+        Aktor quoteAktorForSelection = classicPolitician; // Default til classic
+        PoliticianQuote? selectedQuote = null;
+        var candidatesQuoteInternal = allPoliticiansData
+            .Where(p => p.Quotes != null && p.Quotes.Any(q => !string.IsNullOrWhiteSpace(q.QuoteText)))
+            .Select(p => new CandidateData(p, p.GamemodeTrackings?.FirstOrDefault(t => t.GameMode == GamemodeTypes.Citat)))
+            .ToList();
+
+        if (candidatesQuoteInternal.Any())
+        {
+            var initiallySelectedQuoteAktor = _selectionAlgorithm.SelectWeightedRandomCandidate(candidatesQuoteInternal, date, GamemodeTypes.Citat);
+            if (initiallySelectedQuoteAktor != null)
+            {
+                quoteAktorForSelection = initiallySelectedQuoteAktor; // Brug den specifikt valgte
+                var validQuotes = quoteAktorForSelection.Quotes?.Where(q => !string.IsNullOrWhiteSpace(q.QuoteText)).ToList();
+                if (validQuotes?.Any() ?? false)
+                {
+                    selectedQuote = validQuotes[_randomProvider.Next(validQuotes.Count)];
+                } else {
+                     _logger.LogWarning("Aktor {AktorId} for Citat had no valid quotes, selectedQuote remains null.", quoteAktorForSelection.Id);
+                }
+            } else {
+                 _logger.LogWarning("Algorithm returned null for Citat candidates. Using classic for Citat Aktor.");
+            }
+        } else {
+            _logger.LogWarning("No candidates with quotes. Using classic for Citat Aktor.");
+        }
+        // Hvis selectedQuote stadig er null efter ovenstående, og Aktor for Citat er classic, prøv igen på classic:
+        if (selectedQuote == null && quoteAktorForSelection.Id == classicPolitician.Id) {
+            var classicValidQuotes = classicPolitician.Quotes?.Where(q => !string.IsNullOrWhiteSpace(q.QuoteText)).ToList();
+            if (classicValidQuotes?.Any() ?? false) {
+                selectedQuote = classicValidQuotes[_randomProvider.Next(classicValidQuotes.Count)];
+                 _logger.LogInformation("Selected quote from Classic Aktor for Citat mode as fallback.");
+            }
+        }
+
+
+        // --- Foto Logik ---
+        Aktor photoAktorForSelection = classicPolitician; // Default til classic
+         var candidatesPhotoInternal = allPoliticiansData
+            .Where(p => !string.IsNullOrWhiteSpace(p.PictureMiRes))
+            .Select(p => new CandidateData(p, p.GamemodeTrackings?.FirstOrDefault(t => t.GameMode == GamemodeTypes.Foto)))
+            .ToList();
+        if(candidatesPhotoInternal.Any()){
+            var initiallySelectedPhotoAktor = _selectionAlgorithm.SelectWeightedRandomCandidate(candidatesPhotoInternal, date, GamemodeTypes.Foto);
+            if(initiallySelectedPhotoAktor != null){
+                photoAktorForSelection = initiallySelectedPhotoAktor;
+            } else {
+                _logger.LogWarning("Algorithm returned null for Foto candidates. Using classic for Foto Aktor.");
+            }
+        } else {
+            _logger.LogWarning("No candidates with pictures. Using classic for Foto Aktor.");
+        }
+
+
+        // --- Forbered Værdier til Logning (Linje 241 område) ---
+        string logDate = date.ToString("yyyy-MM-dd");
+        string logClassicId = classicPolitician.Id.ToString();
+        string logClassicName = classicPolitician.navn ?? "IKKE_ANGIVET_NAVN_CLASSIC";
+        string logQuoteAktorId = quoteAktorForSelection.Id.ToString();
+        string logQuoteAktorName = quoteAktorForSelection.navn ?? "IKKE_ANGIVET_NAVN_QUOTE";
+        string logQuoteText = selectedQuote?.QuoteText ?? "INGEN_CITAT_VALGT";
+        string logPhotoAktorId = photoAktorForSelection.Id.ToString();
+        string logPhotoAktorName = photoAktorForSelection.navn ?? "IKKE_ANGIVET_NAVN_FOTO";
+
+        // Tjek antal placeholders: 8 (Date, ClassicId, ClassicName, QuoteAktorId, QuoteAktorName, QuoteText, PhotoAktorId, PhotoAktorName)
+        // Tjek antal argumenter: 8
+        _logger.LogInformation(
+            "PREP_DS: Date:{Date}, ClsId:{ClassicId}({ClassicName}), QteAktorId:{QuoteAktorId}({QuoteAktorName}), QteTxt:'{QuoteText}', PhoAktorId:{PhotoAktorId}({PhotoAktorName})",
+            logDate,
+            logClassicId,
+            logClassicName,
+            logQuoteAktorId,
+            logQuoteAktorName,
+            logQuoteText,
+            logPhotoAktorId,
+            logPhotoAktorName
+        );
+
+        var dailySelections = new List<DailySelection>
+        {
+            new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Klassisk, SelectedPolitikerID = classicPolitician.Id },
+            new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Citat, SelectedPolitikerID = quoteAktorForSelection.Id, SelectedQuoteText = selectedQuote?.QuoteText },
+            new DailySelection { SelectionDate = date, GameMode = GamemodeTypes.Foto, SelectedPolitikerID = photoAktorForSelection.Id }
+        };
+        await _dailySelectionRepository.AddManyAsync(dailySelections);
+        _logger.LogInformation("DS_ADDED_CTX: DailySelections for {Date} prepared for context.", date);
+
+        await _trackerRepository.UpdateOrCreateForAktorAsync(classicPolitician, GamemodeTypes.Klassisk, date);
+        await _trackerRepository.UpdateOrCreateForAktorAsync(quoteAktorForSelection, GamemodeTypes.Citat, date);
+        await _trackerRepository.UpdateOrCreateForAktorAsync(photoAktorForSelection, GamemodeTypes.Foto, date);
+        _logger.LogInformation("TRACKERS_UPDATED: Trackers for {Date} updated.", date);
+
+        int changesSaved = await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+        _logger.LogInformation("CHANGES_SAVED: {ChangesCount} for {Date}", changesSaved, date);
+
+
+        // --- Forbered Værdier til Slut-Logning (Linje 341/345 område) ---
+        // Bruger de samme log-variabler som ovenfor, da de er garanteret non-null Aktor objekter
+        string finalChangesSavedStr = changesSaved.ToString();
+
+        // Tjek antal placeholders: 8 (Date, ClassicId, ClassicName, QuoteAktorId, QuoteAktorName, PhotoAktorId, PhotoAktorName, ChangesCount)
+        // Tjek antal argumenter: 8
+        _logger.LogInformation(
+            "FINAL_SELECTIONS: Date:{Date} - ClsId:{ClassicId}({ClassicName}), QteAktorId:{QuoteAktorId}({QuoteAktorName}), PhoAktorId:{PhotoAktorId}({PhotoAktorName}). Changes:{ChangesCount}",
+            logDate,
+            logClassicId,
+            logClassicName,
+            logQuoteAktorId,
+            logQuoteAktorName,
+            logPhotoAktorId,
+            logPhotoAktorName,
+            finalChangesSavedStr
+        );
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "ERROR_PROCESS: Daily selection for {Date} (Overwrite:{Overwrite}) failed. Rolling back.", date, overwriteExisting);
+        await transaction.RollbackAsync();
+        throw; // Vigtigt at kaste videre, så controlleren ved, at noget gik galt
+    }
+}
+
+        //*FIXED: Implement method for seeding Quotes to Aktors
+        private static readonly List<string> GenericQuotesForSeeding = new List<string>
+        {
+            "Fremtiden kræver modige beslutninger og fælles ansvar.",
+            "Vi skal sikre et Danmark i balance, både socialt og økonomisk.",
+            // ... (indsæt resten af dine 20+ generiske citater her) ...
+            "En stærk velfærdsstat er fundamentet for tryghed og lige muligheder.",
+            "Investering i uddannelse og forskning er investering i vores fremtid.",
+            "Den grønne omstilling er en nødvendighed, vi må gribe som en mulighed.",
+            "Dialog og samarbejde på tværs af partiskel er vejen frem.",
+            "Det lokale engagement er drivkraften i et levende demokrati.",
+            "Vi skal turde tænke nyt for at løse fremtidens udfordringer.",
+            "Et konkurrencedygtigt erhvervsliv skaber arbejdspladser og velstand.",
+            "Alle borgere fortjener respekt og en fair behandling af systemet.",
+            "Transparens og åbenhed er afgørende for tilliden til det politiske system.",
+            "Vi skal værne om de danske værdier og vores kulturelle arv.",
+            "Internationalt samarbejde er essentielt i en globaliseret verden.",
+            "En robust økonomi giver os råderum til at investere i velfærd.",
+            "Børns trivsel og udvikling skal altid have førsteprioritet.",
+            "Vi må sikre en værdig ældrepleje for dem, der har bygget vores samfund.",
+            "Digitalisering byder på store muligheder, men kræver også omtanke.",
+            "Et stærkt civilsamfund bidrager til et rigere og mere mangfoldigt Danmark.",
+            "Retssikkerhed og lighed for loven er grundpiller i vores demokrati.",
+            "Vi skal lytte til borgerne og inddrage dem mere i de politiske processer.",
+            "Innovation og iværksætteri er nøglen til fremtidig vækst.",
+            "En effektiv offentlig sektor er en service for borgerne.",
+            "Kunst og kultur beriger vores liv og styrker vores fællesskabsfølelse.",
+            "Vi har et ansvar for at efterlade en bedre verden til de næste generationer.",
+            "Forebyggelse er ofte bedre og billigere end reparation."
+        };
+
+        public async Task<string> SeedQuotesForAllAktorsAsync()
+        {
+            _logger.LogInformation("Starting to seed quotes for all Aktors.");
+            if (!GenericQuotesForSeeding.Any() || GenericQuotesForSeeding.Count < 2)
+            {
+                const string errorMsg = "Not enough generic quotes available for seeding (need at least 2).";
+                _logger.LogError(errorMsg);
+                return errorMsg;
+            }
+
+            var allAktors = await _context.Aktor // Brug _context direkte her, eller _aktorRepository
+                .Include(a => a.Quotes) // Vigtigt at inkludere eksisterende citater
+                .Where(a => a.typeid == 5) // Antager du kun vil have citater for typeid 5
+                .ToListAsync();
+
+            if (!allAktors.Any())
+            {
+                const string msg = "No Aktors (typeid 5) found in the database to seed quotes for.";
+                _logger.LogWarning(msg);
+                return msg;
+            }
+
+            int aktorsProcessed = 0;
+            int quotesAddedTotal = 0;
+            int genericQuotePoolSize = GenericQuotesForSeeding.Count;
+            int currentGenericQuoteIndex = _randomProvider.Next(genericQuotePoolSize);
+
+            List<PoliticianQuote> quotesToAdd = new List<PoliticianQuote>();
+
+            foreach (var aktor in allAktors)
+            {
+                // Tæl kun gyldige, eksisterende citater
+                int existingValidQuotesCount = aktor.Quotes?.Count(q => !string.IsNullOrWhiteSpace(q.QuoteText)) ?? 0;
+                int quotesNeeded = 2 - existingValidQuotesCount;
+
+                if (quotesNeeded > 0)
+                {
+                    _logger.LogDebug("Aktor {AktorId} ('{AktorNavn}') needs {QuotesNeeded} quotes. Currently has {CurrentCount} valid quotes.",
+                        aktor.Id, aktor.navn, quotesNeeded, existingValidQuotesCount);
+
+                    for (int i = 0; i < quotesNeeded; i++)
+                    {
+                        string quoteText = GenericQuotesForSeeding[currentGenericQuoteIndex % genericQuotePoolSize];
+                        currentGenericQuoteIndex++;
+
+                        var newQuote = new PoliticianQuote
+                        {
+                            // INGEN QuoteId her - databasen skal generere den
+                            AktorId = aktor.Id,
+                            QuoteText = quoteText
+                            // Politician navigation property sættes automatisk af EF Core pga. AktorId
+                        };
+                        quotesToAdd.Add(newQuote); // Tilføj til en liste først
+                        quotesAddedTotal++;
+                    }
+                    aktorsProcessed++;
+                }
+            }
+
+            if (quotesToAdd.Any())
+            {
+                // Tilføj alle nye citater til context i én omgang
+                _context.PoliticianQuotes.AddRange(quotesToAdd); // <<< BRUG AddRange
+                await _context.SaveChangesAsync(); // Gem alle nye citater
+                string successMsg = $"Successfully added {quotesAddedTotal} quotes for {aktorsProcessed} Aktors.";
+                _logger.LogInformation(successMsg);
+                return successMsg;
+            }
+            else
+            {
+                const string noActionMsg = "No Aktors needed new quotes, or no Aktors (typeid 5) found.";
+                _logger.LogInformation(noActionMsg);
+                return noActionMsg;
+            }
+        }
         // --- Private Helper Methods ---
 
         private void CalculateClassicFeedback(GuessResultDto result, DailyPoliticianDto correctDto, DailyPoliticianDto guessedDto)

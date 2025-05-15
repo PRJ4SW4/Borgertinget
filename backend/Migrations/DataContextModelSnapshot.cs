@@ -769,7 +769,10 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
                 {
                     b.Property<int>("QuoteId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuoteId"));
 
                     b.Property<int>("AktorId")
                         .HasColumnType("integer");

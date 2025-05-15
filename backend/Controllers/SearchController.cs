@@ -6,12 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using backend.Models; // Assuming your SearchDocument is here
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using backend.Services.Search;
-using OpenSearch.Client;
 
 namespace backend.Controllers
 {
