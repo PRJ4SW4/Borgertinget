@@ -10,11 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:backend/Migrations/20250515103244_LilleMigration.cs
-    public partial class LilleMigration : Migration
-========
-    public partial class MainMigration : Migration
->>>>>>>> main:backend/Migrations/20250515102658_MainMigration.cs
+    public partial class DenSidsteNadver : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
