@@ -49,22 +49,104 @@ public class LearningPageService : ILearningPageService
     }
 
     // Asynchronously retrieves the detailed content of a specific learning page.
+    // Returns a PageDetailDTO, or null if the page is not found.
+    // Will call the BuildTraversalOrderRecursiveInMemory method to get the order of pages.
+    // This is done every time a page is requested, which is not optimal.
+    // Ideally, this would be cached or stored in the database. But those options come with their own struggles ;(
+    // So, for now, this is the simplest and most straightforward way to do it. T2his should work for all but very large page trees.
     public async Task<PageDetailDTO?> GetPageDetailAsync(int pageId)
     {
-        // Retrieves the specified page by its ID, including its related questions and their answer options.
+        // 1. Fetch the current page with its details including associated questions and their options.
+        //    The Include and ThenInclude methods are used to eagerly load related entities.
         var page = await _context
             .Pages.Include(p => p.AssociatedQuestions)
-            .ThenInclude(q => q.AnswerOptions.OrderBy(ao => ao.DisplayOrder)) // AnswerOptions have DisplayOrder
+            .ThenInclude(q => q.AnswerOptions.OrderBy(ao => ao.DisplayOrder))
             .FirstOrDefaultAsync(p => p.Id == pageId);
 
-        // If the page is not found, returns null.
         if (page == null)
         {
             _logger.LogWarning("Page with ID {PageId} not found.", pageId);
             return null;
         }
 
-        // Maps the Page entity and its related data to a PageDetailDTO.
+        // 2. Determine the ultimate root page of the current page
+        //    And fetch all pages to build the tree structure efficiently in memory.
+        List<Page> allDbPages = await _context.Pages.AsNoTracking().ToListAsync(); // AsNoTracking, practically means read-only, we cant modify these entities
+        // Just better performance as we don't need to change the state of these entities
+
+        Page ultimateRootPageEntity = page; // Start with the current page
+        if (page.ParentPageId.HasValue) // If the page has a parent
+        {
+            // Traverse upwards to find the actual root
+            var currentParentIdInPath = page.ParentPageId;
+            while (currentParentIdInPath.HasValue)
+            {
+                var parentInPath = allDbPages.FirstOrDefault(p => // We find the parent in our retrieved list of all pages
+                    p.Id == currentParentIdInPath.Value
+                );
+                if (parentInPath == null) // We already checked if the page was null, so this is a parent that
+                // doesn't exist which would not be great if it somehow reaches this
+                {
+                    _logger.LogWarning(
+                        "Data inconsistency: Parent page with ID {ParentId} not found for page {PageId}.",
+                        currentParentIdInPath.Value,
+                        ultimateRootPageEntity.Id
+                    );
+                    // Fallback: Treat current 'ultimateRootPageEntity' as root if path breaks. This page would be an orphan.
+                    // Or, if 'page' was the starting point, and its parent wasn't found, 'page' itself might be treated as root in this broken scenario.
+                    // For safety, i'll stick with the highest valid ancestor found.
+                    break;
+                }
+                ultimateRootPageEntity = parentInPath;
+                currentParentIdInPath = parentInPath.ParentPageId; // Move up the tree
+            }
+        }
+        // At this point, ultimateRootPageEntity is the highest ancestor found for this learning section.
+
+        // 3. Now we start at that root and generate the traversal order list for the identified root's tree
+        List<int> traversalOrder = new List<int>();
+        if (ultimateRootPageEntity != null)
+        {
+            BuildTraversalOrderRecursiveInMemory( // Here we call the recursive function below to build the order. Shoutout to the data structures an algorithms course ;)
+                // this is a depth-first traversal
+                ultimateRootPageEntity,
+                traversalOrder,
+                allDbPages
+            );
+        }
+        else
+        {
+            // This case should ideally not be hit if 'page' was found and 'allDbPages' contains it.
+            // If ultimateRootPageEntity ended up null due to some very extreme data corruption ;() where 'page' had a ParentPageId
+            // but no such parent existed in allDbPages, then i'm just gonna assume we only have the current page to work with.
+            _logger.LogWarning(
+                "Could not determine a valid root for page {PageId}. Navigation will be limited.",
+                pageId
+            );
+            if (page != null)
+                traversalOrder.Add(page.Id);
+        }
+
+        // 4. Determine Previous and Next page IDs from the traversal list
+        int? previousPageIdInTraversal = null;
+        int? nextPageIdInTraversal = null;
+
+        if (traversalOrder.Any()) // Make sure we actually got a traversal order. If not the values will just be null and the buttons will be grayed out.
+        // Gracefully handled As Fuck
+        {
+            int currentIndexInTraversal = traversalOrder.IndexOf(page.Id);
+
+            if (currentIndexInTraversal > 0) // If not the first page in the traversal
+            {
+                previousPageIdInTraversal = traversalOrder[currentIndexInTraversal - 1]; // Set previous page ID
+            }
+            if (currentIndexInTraversal >= 0 && currentIndexInTraversal < traversalOrder.Count - 1) // If not the last page
+            {
+                nextPageIdInTraversal = traversalOrder[currentIndexInTraversal + 1]; // Set next page ID
+            }
+        }
+
+        // 5. Map to DTO
         var pageDetailDto = new PageDetailDTO
         {
             Id = page.Id,
@@ -87,10 +169,33 @@ public class LearningPageService : ILearningPageService
                         .ToList(),
                 })
                 .ToList(),
+            PreviousSiblingId = previousPageIdInTraversal,
+            NextSiblingId = nextPageIdInTraversal,
         };
 
-        // Returns the PageDetailDTO.
         return pageDetailDto;
+    }
+
+    /// Recursively builds a depth-first traversal list of page IDs for a given root's hierarchy.
+    /// Uses a pre-fetched list of all pages for efficient lookups.
+    public void BuildTraversalOrderRecursiveInMemory(
+        Page currentPage,
+        List<int> listToUse,
+        List<Page> listOfallPages
+    )
+    {
+        listToUse.Add(currentPage.Id); // First add the current page ID to the list, as this is the root
+
+        var children = listOfallPages // Get all children of the current page from the pre-fetched list and order them by DisplayOrder.
+            .Where(p => p.ParentPageId == currentPage.Id)
+            .OrderBy(p => p.DisplayOrder)
+            .ToList();
+
+        foreach (var child in children) // For each child found, recursively call this method to build the order for its subtree.
+        // This is a depth-first traversal, so we go as deep as possible before backtracking.
+        {
+            BuildTraversalOrderRecursiveInMemory(child, listToUse, listOfallPages);
+        }
     }
 
     // Asynchronously retrieves the display order of pages within a section.
