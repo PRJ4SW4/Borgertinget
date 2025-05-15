@@ -44,7 +44,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
       setShowPopup(true);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [location.search, location.pathname]);
+  }, [location.search]);
 
   useEffect(() => {
     handleLink();

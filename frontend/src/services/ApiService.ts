@@ -154,8 +154,8 @@ export async function toggleEventInterest(eventId: number): Promise<{ isInterest
     } else {
       throw new Error(`API request failed with status ${response.status}`);
     }
-  } catch (error: any) {
-    console.error('Error in toggleEventInterest:', error);
-    throw error;
+  } catch (error: unknown) { 
+  console.error('Error in toggleEventInterest:', error);
+  throw error;
   }
 }

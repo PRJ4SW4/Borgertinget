@@ -91,9 +91,23 @@ function CalendarView() {
             : event
         )
       );
-    } catch (apiError: any) {
-      console.error("Fejl ved opdatering af interesse:", apiError);
-      setError(apiError.response?.data?.message || apiError.message || "Kunne ikke opdatere din interesse. Prøv igen.");
+    } catch (error: unknown) {
+      console.error("Fejl ved opdatering af interesse:", error);
+      let errorMessage = "Kunne ikke opdatere din interesse. Prøv igen."; 
+
+      if (typeof error === 'object' && error !== null) {
+        const potentialApiError = error as { response?: { data?: { message?: string } }, message?: string };
+
+        if (potentialApiError.response?.data?.message && typeof potentialApiError.response.data.message === 'string') {
+          errorMessage = potentialApiError.response.data.message;
+        } else if (potentialApiError.message && typeof potentialApiError.message === 'string') {
+          errorMessage = potentialApiError.message;
+        }
+      }
+      else if (typeof error === 'string') {
+          errorMessage = error;
+      }
+  setError(errorMessage);
     } finally {
       setTogglingInterestFor(null);
     }
