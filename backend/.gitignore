@@ -117,4 +117,5 @@ tmp/
 *.bak
 *.temp
 
+global.json
 # End of file

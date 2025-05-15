@@ -79,30 +79,27 @@ namespace backend.Services.Mapping
           // (Kan også flyttes til en statisk DateUtils klasse)
           private int CalculateAge(string? dateOfBirthString, DateOnly referenceDate)
           {
-              if (string.IsNullOrEmpty(dateOfBirthString)) return 0; // Eller kast fejl?
+            if (string.IsNullOrEmpty(dateOfBirthString)){
+                return 0;
+            }
 
-              try
-              {
-                  // Forsøg at parse strengen. Antag UTC hvis ingen offset.
-                  if (DateTime.TryParse(dateOfBirthString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AllowWhiteSpaces, out var dob))
-                  {
-                      DateOnly dateOfBirth = DateOnly.FromDateTime(dob);
-                      int age = referenceDate.Year - dateOfBirth.Year;
-                      if (referenceDate.DayOfYear < dateOfBirth.DayOfYear) { age--; }
-                      return Math.Max(0, age);
-                  }
-                  else
-                  {
-                      _logger.LogWarning("Could not parse DateOfBirth string '{DateOfBirthString}'. Returning age 0.", dateOfBirthString);
-                      return 0;
-                  }
-              }
-              catch (Exception ex)
-              {
-                  _logger.LogError(ex, "Error calculating age from Born='{DateOfBirthString}'. Returning age 0.", dateOfBirthString);
-                  return 0;
-                  // Kast evt. videre som InvalidOperationException hvis alder er kritisk for DTO'en
-              }
+            try{
+                if(DateTime.TryParse(dateOfBirthString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AllowWhiteSpaces, out var dobDateTime)){
+                    DateOnly dateOfBirth = DateOnly.FromDateTime(dobDateTime);
+
+                    int age = referenceDate.Year - dateOfBirth.Year;
+
+                    if(referenceDate.Year < dateOfBirth.DayOfYear){
+                        --age;
+                    }
+
+                    return Math.Max(0, age);
+                } else{
+                    return 0;
+                }
+            }catch(Exception ex){
+                return 0;
+            }
           }
     }
 }
