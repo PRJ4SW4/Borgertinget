@@ -18,6 +18,11 @@ export default function AdminIndhold() {
   const [eventsMessage, setEventsMessage] = useState("");
   const [eventsUpdateSuccess, setEventsUpdateSuccess] = useState(false);
 
+  // State for fetching search
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchMessage, setSearchMessage] = useState("");
+  const [searchUpdateSuccess, setSearchUpdateSuccess] = useState(false);
+
   const matchProp = { path: location.pathname };
   const handleFetchActors = async () => {
     const token = localStorage.getItem("jwt");
@@ -29,9 +34,11 @@ export default function AdminIndhold() {
     setActorsLoading(true);
     setActorsMessage("");
     setActorsUpdateSuccess(false);
-    // Clear event message when starting actor fetch
+    // Clear event and search message when starting actor fetch
     setEventsMessage("");
     setEventsUpdateSuccess(false);
+    setSearchMessage("");
+    setSearchUpdateSuccess(false);
 
     try {
       await axios.post("/api/aktor/fetch", null, {
@@ -59,9 +66,11 @@ export default function AdminIndhold() {
     setEventsLoading(true);
     setEventsMessage("");
     setEventsUpdateSuccess(false);
-    // Clear actor message when starting event fetch
+    // Clear actor and search message when starting event fetch
     setActorsMessage("");
     setActorsUpdateSuccess(false);
+    setSearchMessage("");
+    setSearchUpdateSuccess(false);
 
     try {
       await axios.post("/api/calendar/run-calendar-scraper", null, {
@@ -76,6 +85,38 @@ export default function AdminIndhold() {
       setEventsUpdateSuccess(false);
     } finally {
       setEventsLoading(false);
+    }
+  };
+
+  const handleFetchSearch = async () => {
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      alert("Du er ikke logget ind.");
+      return;
+    }
+
+    setSearchLoading(true);
+    setSearchMessage("");
+    setSearchUpdateSuccess(false);
+    // Clear actor and event message when starting event fetch
+    setActorsMessage("");
+    setActorsUpdateSuccess(false);
+    setEventsMessage("");
+    setEventsUpdateSuccess(false);
+
+    try {
+      await axios.post("/api/Search/ensure-and-reindex", null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setSearchMessage("Search blev forsikret og indexing er færdig!");
+      setSearchUpdateSuccess(true);
+    } catch (error) {
+      console.error("Fejl ved opdatering af search indexing", error);
+      setSearchMessage("Fejl: Kunne ikke opdatere search index.");
+      setSearchUpdateSuccess(false);
+    } finally {
+      setSearchLoading(false);
     }
   };
 
@@ -121,6 +162,12 @@ export default function AdminIndhold() {
         <button onClick={() => navigate("/admin/Indhold/sletBegivenhed")} className="Button">
           Slet Begivenhed
         </button>
+        <br />
+        <button onClick={handleFetchSearch} className={`Button ${searchUpdateSuccess ? "Button-success" : ""}`} disabled={searchLoading}>
+          {searchLoading ? "Opdaterer..." : "Genkør Search indexeringen"}
+        </button>
+
+        {searchMessage && <p style={{ marginTop: "1rem", fontWeight: "bold", color: searchUpdateSuccess ? "green" : "red" }}>{searchMessage}</p>}
       </div>
     </div>
   );
