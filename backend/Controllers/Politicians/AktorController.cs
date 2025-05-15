@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO.FT;
 using backend.Models;
+using backend.Services;
 using backend.Services.Politician;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -120,7 +121,7 @@ public class AktorController : ControllerBase
     //                                        //
     //----------------------------------------//
 
-    [HttpPost("fetch")] // Changed to POST if it modifies data, GET if it only fetches and returns status
+    [HttpGet("fetch")] // Changed to POST if it modifies data, GET if it only fetches and returns status
     public async Task<IActionResult> UpdateAktorsFromExternal()
     {
         _logger.LogInformation(
