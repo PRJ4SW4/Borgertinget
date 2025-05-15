@@ -304,7 +304,7 @@ namespace backend.Controllers
                 bypassTwoFactor: true
             );
 
-            User appUser;
+            User? appUser;
             if (signInResult.Succeeded)
             {
                 appUser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);

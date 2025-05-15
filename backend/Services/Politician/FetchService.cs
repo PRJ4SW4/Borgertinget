@@ -246,7 +246,7 @@ namespace backend.Services.Politician
 
                                     // Link Aktor.Id to PoliticianTwitterId.AktorId based on matching names
                                     if (
-                                        currentAktor != null
+                                        currentAktor != null // Add null check for currentAktor
                                         && !string.IsNullOrWhiteSpace(currentAktor.navn)
                                     )
                                     {
@@ -303,16 +303,24 @@ namespace backend.Services.Politician
                                             partyEnt.memberIds ??= new List<int>(); // Ensure list is initialized
                                             processedParties[partyNameFromBio] = partyEnt;
                                         }
-                                        if (!partyEnt.memberIds.Contains(currentAktor.Id))
+                                        // Ensure partyEnt is not null and its memberIds is initialized before use
+                                        if (partyEnt != null)
                                         {
-                                            partyEnt.memberIds.Add(currentAktor.Id);
+                                            partyEnt.memberIds ??= new List<int>(); // Initialize if from cache and memberIds was null
+                                            if (
+                                                currentAktor != null
+                                                && !partyEnt.memberIds.Contains(currentAktor.Id)
+                                            ) // Add null check for currentAktor
+                                            {
+                                                partyEnt.memberIds.Add(currentAktor.Id);
+                                            }
                                         }
                                     }
                                     else
                                     {
                                         _logger.LogWarning(
                                             "[AktorUpdateService] Aktor ID: {Id} has no party name in biography.",
-                                            currentAktor.Id
+                                            currentAktor?.Id // Use null-conditional access for currentAktor.Id
                                         );
                                     }
                                 }
@@ -328,7 +336,11 @@ namespace backend.Services.Politician
                                             .ToListAsync();
                                         foreach (var party in partiesContainingAktor)
                                         {
-                                            party.memberIds?.Remove(existingAktor.Id);
+                                            // party.memberIds is guaranteed non-null here due to the .Where(p => p.memberIds != null ...) clause
+                                            if (party.memberIds != null) // Add explicit null check for party.memberIds
+                                            {
+                                                party.memberIds.Remove(existingAktor.Id);
+                                            }
                                             _context.Entry(party).State = EntityState.Modified;
                                         }
                                         _context.Aktor.Remove(existingAktor);

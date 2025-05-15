@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import { BrowserRouter } from "react-router-dom";
 import DeletePoll from "../../components/AdminPages/DeletePoll";
 import { mockNavigate, mockedAxios, mockGetItem } from "../testMocks";
