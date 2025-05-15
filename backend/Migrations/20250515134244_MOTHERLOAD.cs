@@ -623,7 +623,7 @@ namespace backend.Migrations
                 columns: new[] { "Id", "AktorId", "Name", "TwitterHandle", "TwitterUserId" },
                 values: new object[,]
                 {
-                    { 1, null, "Statsministeriet", "Statsmin", "806068174567460864" },
+                    { 1, null, "Mette Frederiksen", "Statsmin", "806068174567460864" },
                     { 2, null, "Venstre, Danmarks Liberale Parti", "venstredk", "123868861" },
                     { 3, null, "Troels Lund Poulsen", "troelslundp", "2965907578" }
                 });
