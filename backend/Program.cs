@@ -374,6 +374,7 @@ builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>(
 builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository>();
 builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
 builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
+builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 
 builder.Services.AddRouting();
 
