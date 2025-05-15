@@ -1,8 +1,8 @@
-using System; // For DateOnly
+using backend.DTO;       // Namespace for DTOs
+using backend.Models;    // Namespace for GamemodeTypes (eller backend.Enums, hvis du flyttede den)
+using System;           // For DateOnly
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using backend.DTO; // Namespace for DTOs
-using backend.Models; // Namespace for GamemodeTypes (eller backend.Enums, hvis du flyttede den)
 
 namespace backend.Interfaces.Services // Sørg for at namespacet matcher din projektstruktur
 {

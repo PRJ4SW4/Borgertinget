@@ -57,7 +57,9 @@ const Infobox: React.FC<InfoboxProps> = ({ title = "Infoboks" }) => {
         {/* Selve boksen med grå baggrund */}
         {legendItems.map((item) => (
           <div className={styles.item} key={item.id}>
-            <div className={`${styles.indikator} ${item.indicatorClassName}`}>{item.icon && <span className={styles.icon}>{item.icon}</span>}</div>
+            <div className={`${styles.indikator} ${item.indicatorClassName}`}>
+              {item.icon && <span className={styles.icon}>{item.icon}</span>}
+            </div>
             <div className={styles.label}>{item.label}</div>
           </div>
         ))}
