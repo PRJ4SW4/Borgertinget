@@ -130,7 +130,7 @@ const PoliticianPage: React.FC = () => {
   return (
     <div className="politician-page">
       <nav>
-        {}
+        { }
         {politician.party ? (
           <Link to={`/party/${encodeURIComponent(politician.party)}`}>
             ← Tilbage til {politician.party}
@@ -363,17 +363,6 @@ const PoliticianPage: React.FC = () => {
             </ul>
           </section>
         )}
-        {politician.positionsOfTrust &&
-          politician.positionsOfTrust.length > 0 && (
-            <section className="detail-section">
-              <h3>Tillidshverv (ikke-parliamentarisk)</h3>
-              <ul>
-                {politician.positionsOfTrust.map((trust, index) => (
-                  <li key={`trust-${index}`}>{trust}</li>
-                ))}
-              </ul>
-            </section>
-          )}
 
         {politician.parliamentaryPositionsOfTrust &&
           politician.parliamentaryPositionsOfTrust.length > 0 && (
