@@ -1,0 +1,43 @@
+.admin-bruger-container {
+    background: var(--Background-element-red, #80273080);
+    padding: 3rem;
+    margin: 5rem auto;
+    width: fit-content;
+    border-radius: 12px;
+    text-align: center;
+  }
+  
+  .input-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+  }
+  
+  .input-group input {
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 250px;
+    font-size: 14px;
+  }
+  
+  .Button {
+    width: 300px;
+    height: 40px;
+    border-radius: 8px;
+    padding: 8px 16px;
+    background: #950018E5;
+    box-shadow: 0px 4px 4px 0px #00000040;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .Button:hover {
+    background: #7b0015e5;
+  }
+  

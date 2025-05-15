@@ -1,15 +1,15 @@
 // backend.Controllers/SubscriptionController.cs
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using backend.Data;
 // using backend.DTOs; // Bruger kun SubscribeDto defineret nedenfor
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System; 
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace backend.Controllers
 {
@@ -33,43 +33,51 @@ namespace backend.Controllers
         public async Task<IActionResult> Subscribe([FromBody] SubscribeDto subscribeDto)
         {
             // Change from "userId" to standard claims
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId)) 
-            { 
-                return Unauthorized("Kunne ikke identificere brugeren."); 
+            var userIdString =
+                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            if (
+                string.IsNullOrEmpty(userIdString)
+                || !int.TryParse(userIdString, out int currentUserId)
+            )
+            {
+                return Unauthorized("Kunne ikke identificere brugeren.");
             }
-            
+
             int politicianTwitterId = subscribeDto.PoliticianId;
-            var politicianExists = await _context.PoliticianTwitterIds.AnyAsync(p => p.Id == politicianTwitterId);
-            
-            if (!politicianExists) 
-            { 
-                return BadRequest($"Politiker med ID {politicianTwitterId} findes ikke."); 
+            var politicianExists = await _context.PoliticianTwitterIds.AnyAsync(p =>
+                p.Id == politicianTwitterId
+            );
+
+            if (!politicianExists)
+            {
+                return BadRequest($"Politiker med ID {politicianTwitterId} findes ikke.");
             }
-            
-            bool alreadySubscribed = await _context.Subscriptions.AnyAsync(
-                s => s.UserId == currentUserId && s.PoliticianTwitterId == politicianTwitterId);
-                
-            if (alreadySubscribed) 
-            { 
-                return Conflict("Du abonnerer allerede på denne politiker."); 
+
+            bool alreadySubscribed = await _context.Subscriptions.AnyAsync(s =>
+                s.UserId == currentUserId && s.PoliticianTwitterId == politicianTwitterId
+            );
+
+            if (alreadySubscribed)
+            {
+                return Conflict("Du abonnerer allerede på denne politiker.");
             }
-            
-            var newSubscription = new Subscription { 
-                UserId = currentUserId, 
-                PoliticianTwitterId = politicianTwitterId 
+
+            var newSubscription = new Subscription
+            {
+                UserId = currentUserId,
+                PoliticianTwitterId = politicianTwitterId,
             };
-            
-            try 
-            { 
-                _context.Subscriptions.Add(newSubscription); 
-                await _context.SaveChangesAsync(); 
-                return Ok("Abonnement oprettet."); 
+
+            try
+            {
+                _context.Subscriptions.Add(newSubscription);
+                await _context.SaveChangesAsync();
+                return Ok("Abonnement oprettet.");
             }
-            catch (DbUpdateException ex) 
-            { 
-                Console.WriteLine($"Fejl ved oprettelse af abonnement: {ex}"); 
-                return StatusCode(500, "Intern fejl ved oprettelse af abonnement."); 
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"Fejl ved oprettelse af abonnement: {ex}");
+                return StatusCode(500, "Intern fejl ved oprettelse af abonnement.");
             }
         }
 
@@ -81,41 +89,48 @@ namespace backend.Controllers
         public async Task<IActionResult> Unsubscribe(int politicianTwitterId)
         {
             // Change from "userId" to standard claims
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId)) 
-            { 
-                return Unauthorized("Kunne ikke identificere brugeren."); 
+            var userIdString =
+                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            if (
+                string.IsNullOrEmpty(userIdString)
+                || !int.TryParse(userIdString, out int currentUserId)
+            )
+            {
+                return Unauthorized("Kunne ikke identificere brugeren.");
             }
-            
-            var subscription = await _context.Subscriptions.FirstOrDefaultAsync(
-                s => s.UserId == currentUserId && s.PoliticianTwitterId == politicianTwitterId);
-                
-            if (subscription == null) 
-            { 
-                return NotFound("Abonnement ikke fundet."); 
+
+            var subscription = await _context.Subscriptions.FirstOrDefaultAsync(s =>
+                s.UserId == currentUserId && s.PoliticianTwitterId == politicianTwitterId
+            );
+
+            if (subscription == null)
+            {
+                return NotFound("Abonnement ikke fundet.");
             }
-            
-            try 
-            { 
-                _context.Subscriptions.Remove(subscription); 
-                await _context.SaveChangesAsync(); 
-                return Ok("Abonnement slettet."); 
+
+            try
+            {
+                _context.Subscriptions.Remove(subscription);
+                await _context.SaveChangesAsync();
+                return Ok("Abonnement slettet.");
             }
-            catch (DbUpdateException ex) 
-            { 
-                Console.WriteLine($"Fejl ved sletning af abonnement: {ex}"); 
-                return StatusCode(500, "Intern fejl ved sletning af abonnement."); 
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"Fejl ved sletning af abonnement: {ex}");
+                return StatusCode(500, "Intern fejl ved sletning af abonnement.");
             }
         }
 
         // Lookup: Oversætter mellem AktorId og PoliticianTwitterId
-        // - Tager et AktorId 
+        // - Tager et AktorId
         // - Søger i databasen efter den tilsvarende politiker
         // - Returnerer tilhørende PoliticianTwitterId hvis fundet
         // - Bruges til integration mellem Folketingets data og applikationens politiker-data
         [HttpGet("lookup/politicianTwitterId")]
-        [Authorize] 
-        public async Task<ActionResult<object>> GetPoliticianTwitterIdByAktorId([FromQuery] int aktorId)
+        [Authorize]
+        public async Task<ActionResult<object>> GetPoliticianTwitterIdByAktorId(
+            [FromQuery] int aktorId
+        )
         {
             if (aktorId <= 0)
             {
@@ -125,38 +140,44 @@ namespace backend.Controllers
 
             try
             {
-                
-                Console.WriteLine($"DEBUG Lookup: Attempting to find PoliticianTwitterId for AktorId = {aktorId}");
+                Console.WriteLine(
+                    $"DEBUG Lookup: Attempting to find PoliticianTwitterId for AktorId = {aktorId}"
+                );
 
-                var politicianInfo = await _context.PoliticianTwitterIds
-                    .AsNoTracking()
+                var politicianInfo = await _context
+                    .PoliticianTwitterIds.AsNoTracking()
                     .Where(p => p.AktorId == aktorId) // Finder match på AktorId
                     .Select(p => new { politicianTwitterId = p.Id }) // Vælger kun ID'et
                     .FirstOrDefaultAsync();
 
-                Console.WriteLine($"DEBUG Lookup: Result from DB lookup (politicianInfo): " +
-                    $"{(politicianInfo == null ? "NULL" : $"Found ID {politicianInfo.politicianTwitterId}")}");
+                Console.WriteLine(
+                    $"DEBUG Lookup: Result from DB lookup (politicianInfo): "
+                        + $"{(politicianInfo == null ? "NULL" : $"Found ID {politicianInfo.politicianTwitterId}")}"
+                );
 
                 if (politicianInfo == null)
                 {
-                
-                    Console.WriteLine($"DEBUG Lookup: Returning 404 Not Found because politicianInfo was null.");
-                    return NotFound($"Ingen tilknyttet 'PoliticianTwitterId' fundet for Aktor ID {aktorId}. " +
-                        $"Er data linket i databasen?");
+                    Console.WriteLine(
+                        $"DEBUG Lookup: Returning 404 Not Found because politicianInfo was null."
+                    );
+                    return NotFound(
+                        $"Ingen tilknyttet 'PoliticianTwitterId' fundet for Aktor ID {aktorId}. "
+                            + $"Er data linket i databasen?"
+                    );
                 }
 
-      
-                Console.WriteLine($"DEBUG Lookup: Returning 200 OK with politicianTwitterId = {politicianInfo.politicianTwitterId}");
+                Console.WriteLine(
+                    $"DEBUG Lookup: Returning 200 OK with politicianTwitterId = {politicianInfo.politicianTwitterId}"
+                );
                 return Ok(politicianInfo);
             }
             catch (Exception ex)
             {
-                
-                Console.WriteLine($"Fejl ved opslag af PoliticianTwitterId for AktorId {aktorId}: {ex}");
+                Console.WriteLine(
+                    $"Fejl ved opslag af PoliticianTwitterId for AktorId {aktorId}: {ex}"
+                );
                 return StatusCode(500, "Intern fejl ved opslag.");
             }
         }
     }
-
-   
 }

@@ -35,12 +35,12 @@ const partyLogoMap: { [key: string]: string } = {
   "Danmarksdemokraterne": danmarksLogo,
   "Dansk Folkeparti": DFLogo,
   "Det Konservative Folkeparti": konsvertiveLogo,
-  "Enhedslisten": enhedslistenLogo,
+  Enhedslisten: enhedslistenLogo,
   "Inuit Ataqatigiit": inuitLogo,
-  "Javnaðarflokkurin": javnaLogo,
+  Javnaðarflokkurin: javnaLogo,
   "Kristeligt Folkeparti": kristeligtLogo,
   "Liberal Alliance": LALogo,
-  "Naleraq": naleraq,
+  Naleraq: naleraq,
   "Radikale Venstre": radikale,
   "Sambandsflokkurin": sambands,
   "Socialistisk Folkeparti": SF
@@ -110,7 +110,7 @@ const PartiesPage: React.FC = () => {
   return (
     <div className="parties-page">
       <nav>
-          <Link to="/">← Tilbage</Link>
+        <Link to="/">← Tilbage</Link>
       </nav>
       <h2>Partier</h2>
 

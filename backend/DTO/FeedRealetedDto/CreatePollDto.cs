@@ -13,10 +13,9 @@ namespace backend.DTOs
 
         [Required]
         [MinLength(2, ErrorMessage = "Der skal være mindst 2 svarmuligheder.")]
-        [MaxLength(4, ErrorMessage = "Der kan højst være 4 svarmuligheder.")] 
+        [MaxLength(4, ErrorMessage = "Der kan højst være 4 svarmuligheder.")]
         public List<string> Options { get; set; } = new List<string>();
 
-        
         [Required(ErrorMessage = "Politiker ID mangler.")]
         public int PoliticianTwitterId { get; set; } // ID på den politiker, det omhandler
 

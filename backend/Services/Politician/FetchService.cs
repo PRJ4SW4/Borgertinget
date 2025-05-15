@@ -1,17 +1,19 @@
-using backend.Data;
-using backend.DTO.FT;
-using backend.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using backend.Data;
+using backend.DTO.FT;
+using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
-namespace backend.Services.Politician{
-    public class FetchService : IFetchService{
+namespace backend.Services.Politician
+{
+    public class FetchService : IFetchService
+    {
         private readonly DataContext _context;
         private readonly HttpService _httpService; // Assuming HttpService is still used
         private readonly IConfiguration _configuration;
@@ -21,7 +23,8 @@ namespace backend.Services.Politician{
             DataContext context,
             HttpService httpService,
             IConfiguration configuration,
-            ILogger<FetchService> logger)
+            ILogger<FetchService> logger
+        )
         {
             _context = context;
             _httpService = httpService;
@@ -29,7 +32,11 @@ namespace backend.Services.Politician{
             _logger = logger;
         }
 
-        public async Task<(int totalAdded, int totalUpdated, int totalDeleted)> FetchAndUpdateAktorsAsync()
+        public async Task<(
+            int totalAdded,
+            int totalUpdated,
+            int totalDeleted
+        )> FetchAndUpdateAktorsAsync()
         {
             _logger.LogInformation("Starting Aktor update process via AktorUpdateService...");
 
@@ -37,11 +44,19 @@ namespace backend.Services.Politician{
             string? ministerTitlesApiUrl = _configuration["Api:OdaApiMinisterTitles"];
             string? ministerRelationsApiUrl = _configuration["Api:OdaApiMinisterRelationships"];
 
-            if (string.IsNullOrEmpty(initialPolitikerApiUrl) || string.IsNullOrEmpty(ministerTitlesApiUrl) || string.IsNullOrEmpty(ministerRelationsApiUrl))
+            if (
+                string.IsNullOrEmpty(initialPolitikerApiUrl)
+                || string.IsNullOrEmpty(ministerTitlesApiUrl)
+                || string.IsNullOrEmpty(ministerRelationsApiUrl)
+            )
             {
-                _logger.LogError("One or more required API URLs are missing in configuration for AktorUpdateService.");
+                _logger.LogError(
+                    "One or more required API URLs are missing in configuration for AktorUpdateService."
+                );
                 // Consider throwing a specific exception or returning a failure indicator
-                throw new InvalidOperationException("API URL configuration for Aktor update is incomplete.");
+                throw new InvalidOperationException(
+                    "API URL configuration for Aktor update is incomplete."
+                );
             }
 
             var ministerTitlesMap = new Dictionary<int, string>();
@@ -54,7 +69,9 @@ namespace backend.Services.Politician{
                 string? nextTitlesLink = ministerTitlesApiUrl + "&$format=json";
                 while (!string.IsNullOrEmpty(nextTitlesLink))
                 {
-                    var titleResponse = await _httpService.GetJsonAsync<ODataResponse<MinisterialTitleDto>>(nextTitlesLink);
+                    var titleResponse = await _httpService.GetJsonAsync<
+                        ODataResponse<MinisterialTitleDto>
+                    >(nextTitlesLink);
                     if (titleResponse?.Value != null)
                     {
                         foreach (var title in titleResponse.Value)
@@ -64,43 +81,68 @@ namespace backend.Services.Politician{
                                 ministerTitlesMap[title.Id] = title.GruppenavnKort;
                             }
                         }
-                        _logger.LogInformation("[AktorUpdateService] Fetched {Count} titles from page: {Url}", titleResponse.Value.Count, nextTitlesLink);
+                        _logger.LogInformation(
+                            "[AktorUpdateService] Fetched {Count} titles from page: {Url}",
+                            titleResponse.Value.Count,
+                            nextTitlesLink
+                        );
                         nextTitlesLink = titleResponse.NextLink;
                     }
                     else
                     {
-                        _logger.LogWarning("[AktorUpdateService] Received null or invalid response for titles from {Url}", nextTitlesLink);
+                        _logger.LogWarning(
+                            "[AktorUpdateService] Received null or invalid response for titles from {Url}",
+                            nextTitlesLink
+                        );
                         nextTitlesLink = null;
                     }
                 }
-                _logger.LogInformation("[AktorUpdateService] Finished fetching titles. Total distinct titles found: {Count}", ministerTitlesMap.Count);
+                _logger.LogInformation(
+                    "[AktorUpdateService] Finished fetching titles. Total distinct titles found: {Count}",
+                    ministerTitlesMap.Count
+                );
 
                 // --- STEP 2: Fetch Current Minister Relationships ---
                 _logger.LogInformation("[AktorUpdateService] Fetching minister relationships...");
                 string? nextRelationsLink = ministerRelationsApiUrl + "&$format=json";
                 while (!string.IsNullOrEmpty(nextRelationsLink))
                 {
-                    var relationResponse = await _httpService.GetJsonAsync<ODataResponse<MinisterRelationshipDto>>(nextRelationsLink);
+                    var relationResponse = await _httpService.GetJsonAsync<
+                        ODataResponse<MinisterRelationshipDto>
+                    >(nextRelationsLink);
                     if (relationResponse?.Value != null)
                     {
                         foreach (var relation in relationResponse.Value)
                         {
                             ministerRelationshipsMap[relation.FraAktorId] = relation.TilAktorId;
                         }
-                        _logger.LogInformation("[AktorUpdateService] Fetched {Count} relationships from page: {Url}", relationResponse.Value.Count, nextRelationsLink);
+                        _logger.LogInformation(
+                            "[AktorUpdateService] Fetched {Count} relationships from page: {Url}",
+                            relationResponse.Value.Count,
+                            nextRelationsLink
+                        );
                         nextRelationsLink = relationResponse.NextLink;
                     }
                     else
                     {
-                        _logger.LogWarning("[AktorUpdateService] Received null or invalid response for relationships from {Url}", nextRelationsLink);
+                        _logger.LogWarning(
+                            "[AktorUpdateService] Received null or invalid response for relationships from {Url}",
+                            nextRelationsLink
+                        );
                         nextRelationsLink = null;
                     }
                 }
-                _logger.LogInformation("[AktorUpdateService] Finished fetching relationships. Total relationships found: {Count}", ministerRelationshipsMap.Count);
+                _logger.LogInformation(
+                    "[AktorUpdateService] Finished fetching relationships. Total relationships found: {Count}",
+                    ministerRelationshipsMap.Count
+                );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[AktorUpdateService] Error during initial fetch of titles or relationships.");
+                _logger.LogError(
+                    ex,
+                    "[AktorUpdateService] Error during initial fetch of titles or relationships."
+                );
                 throw; // Re-throw to be handled by the controller or a higher-level error handler
             }
 
@@ -116,121 +158,254 @@ namespace backend.Services.Politician{
             {
                 try
                 {
-                    _logger.LogDebug("[AktorUpdateService] Fetching politician page: {Url}", nextPolitikerLink);
-                    var responseJson = await _httpService.GetJsonAsync<JsonElement>(nextPolitikerLink);
+                    _logger.LogDebug(
+                        "[AktorUpdateService] Fetching politician page: {Url}",
+                        nextPolitikerLink
+                    );
+                    var responseJson = await _httpService.GetJsonAsync<JsonElement>(
+                        nextPolitikerLink
+                    );
 
-                    if (responseJson.ValueKind == JsonValueKind.Object &&
-                        responseJson.TryGetProperty("value", out var valueProperty) &&
-                        valueProperty.ValueKind == JsonValueKind.Array)
+                    if (
+                        responseJson.ValueKind == JsonValueKind.Object
+                        && responseJson.TryGetProperty("value", out var valueProperty)
+                        && valueProperty.ValueKind == JsonValueKind.Array
+                    )
                     {
-                        var externalAktors = JsonSerializer.Deserialize<List<CreateAktor>>(valueProperty.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        var externalAktors = JsonSerializer.Deserialize<List<CreateAktor>>(
+                            valueProperty.GetRawText(),
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                        );
 
                         if (externalAktors != null)
                         {
-                            int pageAdded = 0, pageUpdated = 0, pageDeleted = 0;
+                            int pageAdded = 0,
+                                pageUpdated = 0,
+                                pageDeleted = 0;
 
                             foreach (var aktorDto in externalAktors)
                             {
                                 var bioDetails = BioParser.ParseBiografiXml(aktorDto.biografi);
-                                string? apiStatus = bioDetails.GetValueOrDefault("Status") as string;
-                                string? partyNameFromBio = bioDetails.GetValueOrDefault("Party") as string;
-                                string? partyShortnameFromBio = bioDetails.GetValueOrDefault("PartyShortname") as string;
+                                string? apiStatus =
+                                    bioDetails.GetValueOrDefault("Status") as string;
+                                string? partyNameFromBio =
+                                    bioDetails.GetValueOrDefault("Party") as string;
+                                string? partyShortnameFromBio =
+                                    bioDetails.GetValueOrDefault("PartyShortname") as string;
 
-                                var existingAktor = await _context.Aktor.FirstOrDefaultAsync(a => a.Id == aktorDto.Id);
+                                var existingAktor = await _context.Aktor.FirstOrDefaultAsync(a =>
+                                    a.Id == aktorDto.Id
+                                );
                                 Aktor currentAktor;
 
                                 if (apiStatus == "1") // Active Politician
                                 {
                                     string? ministerTitle = null;
-                                    if (ministerRelationshipsMap.TryGetValue(aktorDto.Id, out int titleId))
+                                    if (
+                                        ministerRelationshipsMap.TryGetValue(
+                                            aktorDto.Id,
+                                            out int titleId
+                                        )
+                                    )
                                     {
                                         ministerTitlesMap.TryGetValue(titleId, out ministerTitle);
                                     }
 
                                     if (existingAktor == null)
                                     {
-                                        currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle);
+                                        currentAktor = MapAktor(
+                                            aktorDto,
+                                            bioDetails,
+                                            ministerTitle
+                                        );
                                         _context.Aktor.Add(currentAktor);
                                         pageAdded++;
-                                        _logger.LogDebug("[AktorUpdateService] Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}", currentAktor.Id, currentAktor.navn, currentAktor.MinisterTitel);
+                                        _logger.LogDebug(
+                                            "[AktorUpdateService] Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}",
+                                            currentAktor.Id,
+                                            currentAktor.navn,
+                                            currentAktor.MinisterTitel
+                                        );
                                     }
                                     else
                                     {
-                                        currentAktor = MapAktor(aktorDto, bioDetails, ministerTitle, existingAktor);
+                                        currentAktor = MapAktor(
+                                            aktorDto,
+                                            bioDetails,
+                                            ministerTitle,
+                                            existingAktor
+                                        );
                                         pageUpdated++;
-                                         _logger.LogDebug("[AktorUpdateService] Updating Aktor ID: {Id}, Name: {Name}, Title: {Title}", existingAktor.Id, existingAktor.navn, existingAktor.MinisterTitel);
+                                        _logger.LogDebug(
+                                            "[AktorUpdateService] Updating Aktor ID: {Id}, Name: {Name}, Title: {Title}",
+                                            existingAktor.Id,
+                                            existingAktor.navn,
+                                            existingAktor.MinisterTitel
+                                        );
+                                    }
+
+                                    // Link Aktor.Id to PoliticianTwitterId.AktorId based on matching names
+                                    if (
+                                        currentAktor != null // Add null check for currentAktor
+                                        && !string.IsNullOrWhiteSpace(currentAktor.navn)
+                                    )
+                                    {
+                                        // Assuming _context.PoliticianTwitterIds is the DbSet for PoliticianTwitterId entities
+                                        var politicianTwitterEntry =
+                                            await _context.PoliticianTwitterIds.FirstOrDefaultAsync(
+                                                p => p.Name == currentAktor.navn
+                                            );
+
+                                        if (politicianTwitterEntry != null)
+                                        {
+                                            // Check if an update is needed to avoid unnecessary database operations/logging
+                                            if (politicianTwitterEntry.AktorId != currentAktor.Id)
+                                            {
+                                                politicianTwitterEntry.AktorId = currentAktor.Id;
+                                                // EF Core's change tracker should detect this modification.
+                                                // If issues arise, you might need: _context.Entry(politicianTwitterEntry).State = EntityState.Modified;
+                                                _logger.LogInformation(
+                                                    $"Updated PoliticianTwitterId.AktorId for '{politicianTwitterEntry.Name}' (PoliticianTwitterId: {politicianTwitterEntry.Id}) to Aktor ID: {currentAktor.Id}."
+                                                );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            _logger.LogWarning(
+                                                $"No PoliticianTwitterId record found with Name '{currentAktor.navn}' to link with Aktor ID {currentAktor.Id}."
+                                            );
+                                        }
                                     }
 
                                     if (!string.IsNullOrWhiteSpace(partyNameFromBio))
                                     {
                                         Party? partyEnt;
-                                        if (!processedParties.TryGetValue(partyNameFromBio, out partyEnt))
+                                        if (
+                                            !processedParties.TryGetValue(
+                                                partyNameFromBio,
+                                                out partyEnt
+                                            )
+                                        )
                                         {
-                                            partyEnt = await _context.Party.FirstOrDefaultAsync(p => p.partyName == partyNameFromBio);
+                                            partyEnt = await _context.Party.FirstOrDefaultAsync(p =>
+                                                p.partyName == partyNameFromBio
+                                            );
                                             if (partyEnt == null)
                                             {
-                                                partyEnt = new Party {
+                                                partyEnt = new Party
+                                                {
                                                     partyName = partyNameFromBio,
                                                     partyShortName = partyShortnameFromBio,
-                                                    memberIds = new List<int>()
+                                                    memberIds = new List<int>(),
                                                 };
                                                 _context.Party.Add(partyEnt);
                                             }
                                             partyEnt.memberIds ??= new List<int>(); // Ensure list is initialized
                                             processedParties[partyNameFromBio] = partyEnt;
                                         }
-                                        if (!partyEnt.memberIds.Contains(currentAktor.Id))
+                                        // Ensure partyEnt is not null and its memberIds is initialized before use
+                                        if (partyEnt != null)
                                         {
-                                            partyEnt.memberIds.Add(currentAktor.Id);
+                                            partyEnt.memberIds ??= new List<int>(); // Initialize if from cache and memberIds was null
+                                            if (
+                                                currentAktor != null
+                                                && !partyEnt.memberIds.Contains(currentAktor.Id)
+                                            ) // Add null check for currentAktor
+                                            {
+                                                partyEnt.memberIds.Add(currentAktor.Id);
+                                            }
                                         }
-                                    } else {
-                                         _logger.LogWarning("[AktorUpdateService] Aktor ID: {Id} has no party name in biography.", currentAktor.Id);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning(
+                                            "[AktorUpdateService] Aktor ID: {Id} has no party name in biography.",
+                                            currentAktor?.Id // Use null-conditional access for currentAktor.Id
+                                        );
                                     }
                                 }
                                 else // Inactive Politician
                                 {
                                     if (existingAktor != null)
                                     {
-                                        var partiesContainingAktor = await _context.Party
-                                            .Where(p => p.memberIds != null && p.memberIds.Contains(existingAktor.Id))
+                                        var partiesContainingAktor = await _context
+                                            .Party.Where(p =>
+                                                p.memberIds != null
+                                                && p.memberIds.Contains(existingAktor.Id)
+                                            )
                                             .ToListAsync();
-                                        foreach(var party in partiesContainingAktor)
+                                        foreach (var party in partiesContainingAktor)
                                         {
-                                            party.memberIds?.Remove(existingAktor.Id);
-                                             _context.Entry(party).State = EntityState.Modified;
+                                            // party.memberIds is guaranteed non-null here due to the .Where(p => p.memberIds != null ...) clause
+                                            if (party.memberIds != null) // Add explicit null check for party.memberIds
+                                            {
+                                                party.memberIds.Remove(existingAktor.Id);
+                                            }
+                                            _context.Entry(party).State = EntityState.Modified;
                                         }
                                         _context.Aktor.Remove(existingAktor);
                                         pageDeleted++;
-                                         _logger.LogDebug("[AktorUpdateService] Deleting Aktor ID: {Id}, Name: {Name}", existingAktor.Id, existingAktor.navn);
+                                        _logger.LogDebug(
+                                            "[AktorUpdateService] Deleting Aktor ID: {Id}, Name: {Name}",
+                                            existingAktor.Id,
+                                            existingAktor.navn
+                                        );
                                     }
                                 }
                             }
                             totalAddedCount += pageAdded;
                             totalUpdatedCount += pageUpdated;
                             totalDeletedCount += pageDeleted;
-                            _logger.LogInformation("[AktorUpdateService] Processed page. Added: {Added}, Updated: {Updated}, Deleted: {Deleted}", pageAdded, pageUpdated, pageDeleted);
+                            _logger.LogInformation(
+                                "[AktorUpdateService] Processed page. Added: {Added}, Updated: {Updated}, Deleted: {Deleted}",
+                                pageAdded,
+                                pageUpdated,
+                                pageDeleted
+                            );
                         }
-                        else {
-                            _logger.LogWarning("[AktorUpdateService] Deserialization of 'value' array resulted in null for URL: {Url}", nextPolitikerLink);
+                        else
+                        {
+                            _logger.LogWarning(
+                                "[AktorUpdateService] Deserialization of 'value' array resulted in null for URL: {Url}",
+                                nextPolitikerLink
+                            );
                         }
-                    } else {
-                         _logger.LogWarning("[AktorUpdateService] Response JSON was not an object or did not contain a 'value' array for URL: {Url}", nextPolitikerLink);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "[AktorUpdateService] Response JSON was not an object or did not contain a 'value' array for URL: {Url}",
+                            nextPolitikerLink
+                        );
                     }
 
-                    if (responseJson.ValueKind == JsonValueKind.Object && responseJson.TryGetProperty("odata.nextLink", out var nextLinkProperty) && nextLinkProperty.ValueKind == JsonValueKind.String)
+                    if (
+                        responseJson.ValueKind == JsonValueKind.Object
+                        && responseJson.TryGetProperty("odata.nextLink", out var nextLinkProperty)
+                        && nextLinkProperty.ValueKind == JsonValueKind.String
+                    )
                     {
                         nextPolitikerLink = nextLinkProperty.GetString();
-                        _logger.LogDebug("[AktorUpdateService] Next politician page link found: {Url}", nextPolitikerLink);
+                        _logger.LogDebug(
+                            "[AktorUpdateService] Next politician page link found: {Url}",
+                            nextPolitikerLink
+                        );
                     }
                     else
                     {
                         nextPolitikerLink = null;
-                        _logger.LogInformation("[AktorUpdateService] No more politician pages found.");
+                        _logger.LogInformation(
+                            "[AktorUpdateService] No more politician pages found."
+                        );
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "[AktorUpdateService] Error fetching or processing data from {Url}", nextPolitikerLink ?? "Unknown");
+                    _logger.LogError(
+                        ex,
+                        "[AktorUpdateService] Error fetching or processing data from {Url}",
+                        nextPolitikerLink ?? "Unknown"
+                    );
                     // Decide if you want to stop the whole process on a page error or continue
                     // For now, we'll log and continue to the next link if one was previously found,
                     // or stop if this was the first page error.
@@ -239,11 +414,21 @@ namespace backend.Services.Politician{
                 }
             }
             await _context.SaveChangesAsync(); // Save all accumulated changes
-            _logger.LogInformation("[AktorUpdateService] Aktor update process finished. Total Added: {Added}, Total Updated: {Updated}, Total Deleted: {Deleted}", totalAddedCount, totalUpdatedCount, totalDeletedCount);
+            _logger.LogInformation(
+                "[AktorUpdateService] Aktor update process finished. Total Added: {Added}, Total Updated: {Updated}, Total Deleted: {Deleted}",
+                totalAddedCount,
+                totalUpdatedCount,
+                totalDeletedCount
+            );
             return (totalAddedCount, totalUpdatedCount, totalDeletedCount);
         }
 
-        private Aktor MapAktor(CreateAktor dto, Dictionary<string, object> bioDetails, string? ministerTitle, Aktor? existingAktor = null)
+        private Aktor MapAktor(
+            CreateAktor dto,
+            Dictionary<string, object> bioDetails,
+            string? ministerTitle,
+            Aktor? existingAktor = null
+        )
         {
             var aktor = existingAktor ?? new Aktor();
 
@@ -253,8 +438,12 @@ namespace backend.Services.Politician{
             aktor.efternavn = dto.efternavn;
             aktor.biografi = dto.biografi; // Store the raw XML biography
 
-            aktor.startdato = dto.startdato.HasValue ? DateTime.SpecifyKind(dto.startdato.Value, DateTimeKind.Utc) : null;
-            aktor.slutdato = dto.slutdato.HasValue ? DateTime.SpecifyKind(dto.slutdato.Value, DateTimeKind.Utc) : null;
+            aktor.startdato = dto.startdato.HasValue
+                ? DateTime.SpecifyKind(dto.startdato.Value, DateTimeKind.Utc)
+                : null;
+            aktor.slutdato = dto.slutdato.HasValue
+                ? DateTime.SpecifyKind(dto.slutdato.Value, DateTimeKind.Utc)
+                : null;
             aktor.opdateringsdato = DateTime.UtcNow;
             aktor.typeid = 5; // Default to 5 for person
 
@@ -266,19 +455,31 @@ namespace backend.Services.Politician{
             aktor.EducationStatistic = bioDetails.GetValueOrDefault("EducationStatistic") as string;
             aktor.PictureMiRes = bioDetails.GetValueOrDefault("PictureMiRes") as string;
             aktor.Email = bioDetails.GetValueOrDefault("Email") as string;
-            aktor.FunctionFormattedTitle = bioDetails.GetValueOrDefault("FunctionFormattedTitle") as string;
+            aktor.FunctionFormattedTitle =
+                bioDetails.GetValueOrDefault("FunctionFormattedTitle") as string;
             aktor.FunctionStartDate = bioDetails.GetValueOrDefault("FunctionStartDate") as string;
             aktor.PositionsOfTrust = bioDetails.GetValueOrDefault("PositionsOfTrust") as string;
             aktor.MinisterTitel = ministerTitle; // Assign the looked-up title
 
-            aktor.ParliamentaryPositionsOfTrust = bioDetails.GetValueOrDefault("ParliamentaryPositionsOfTrust") as List<string> ?? new List<string>();
-            aktor.Constituencies = bioDetails.GetValueOrDefault("Constituencies") as List<string> ?? new List<string>();
-            aktor.Nominations = bioDetails.GetValueOrDefault("Nominations") as List<string> ?? new List<string>();
-            aktor.Educations = bioDetails.GetValueOrDefault("Educations") as List<string> ?? new List<string>();
-            aktor.Occupations = bioDetails.GetValueOrDefault("Occupations") as List<string> ?? new List<string>();
-            aktor.PublicationTitles = bioDetails.GetValueOrDefault("PublicationTitles") as List<string> ?? new List<string>();
-            aktor.Ministers = bioDetails.GetValueOrDefault("Ministers") as List<string> ?? new List<string>();
-            aktor.Spokesmen = bioDetails.GetValueOrDefault("Spokesmen") as List<string> ?? new List<string>();
+            aktor.ParliamentaryPositionsOfTrust =
+                bioDetails.GetValueOrDefault("ParliamentaryPositionsOfTrust") as List<string>
+                ?? new List<string>();
+            aktor.Constituencies =
+                bioDetails.GetValueOrDefault("Constituencies") as List<string>
+                ?? new List<string>();
+            aktor.Nominations =
+                bioDetails.GetValueOrDefault("Nominations") as List<string> ?? new List<string>();
+            aktor.Educations =
+                bioDetails.GetValueOrDefault("Educations") as List<string> ?? new List<string>();
+            aktor.Occupations =
+                bioDetails.GetValueOrDefault("Occupations") as List<string> ?? new List<string>();
+            aktor.PublicationTitles =
+                bioDetails.GetValueOrDefault("PublicationTitles") as List<string>
+                ?? new List<string>();
+            aktor.Ministers =
+                bioDetails.GetValueOrDefault("Ministers") as List<string> ?? new List<string>();
+            aktor.Spokesmen =
+                bioDetails.GetValueOrDefault("Spokesmen") as List<string> ?? new List<string>();
 
             return aktor;
         }

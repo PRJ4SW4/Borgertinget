@@ -1,6 +1,5 @@
 // src/App.tsx
 import { useState, useEffect, JSX } from "react";
-// Imports components from react-router-dom for routing.
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Layout Components: Provide consistent page structure.
@@ -28,14 +27,34 @@ import FotoBlurMode from "./pages/PolidlePage/FotoBlurMode/FotoBlurMode";
 
 import EmailVerification from "./utils/useEmailVerification"; // Handles email verification logic.
 import LoginSuccessPage from "./pages/LoginSuccessPage"; // Handles post-login redirection.
+// Admin Pages
+import CreateFlashcardCollection from "./components/AdminPages/AddFlashcardCollection";
+import AdminPage from "./components/AdminPages/AdminPage";
+import AdminBruger from "./components/AdminPages/AdminBruger";
+import AdminIndhold from "./components/AdminPages/AdminIndhold";
+import RedigerIndhold from "./components/AdminPages/RedigerIndhold";
+import AddEvent from "./components/AdminPages/AddEvent";
+import EditEvent from "./components/AdminPages/EditEvent";
+import DeleteEvent from "./components/AdminPages/DeleteEvent";
+import AdminLearing from "./components/AdminPages/AdminLearing";
+import AdminPolls from "./components/AdminPages/AdminPolls";
+import EditFlashcardCollection from "./components/AdminPages/EditFlashcardCollection";
+import EditQuotes from "./components/AdminPages/EditCitatMode";
+import AddPoll from "./components/AdminPages/AddPolls";
+import EditPoll from "./components/AdminPages/EditPoll";
+import DeletePoll from "./components/AdminPages/DeletePoll";
+import DeleteFlashcardCollection from "./components/AdminPages/DeleteFlashcardCollection";
+import AddLearningPage from "./components/AdminPages/AddLearningPage";
+import EditLearningPage from "./components/AdminPages/EditLearningPage";
+import DeleteLearningPage from "./components/AdminPages/DeleteLearningPage";
+
 // Navbar and Footer are rendered via MainLayout.
 // The main application component.
+
 function App() {
   // State hook for the JWT authentication token.
   // Initializes state from localStorage to persist login status.
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("jwt")
-  );
+  const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
   const handleSetToken = (newToken: string | null) => {
     setToken(newToken);
     if (newToken) {
@@ -59,9 +78,7 @@ function App() {
   // --- Protected Route Component ---
   // Wraps routes that require user authentication.
   // Renders the child component if a token exists, otherwise redirects to /login.
-  const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({
-    children,
-  }) => {
+  const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
     return token ? children : <Navigate to="/login" />;
   };
 
@@ -79,10 +96,7 @@ function App() {
       {/* Login page route. */}
       <Route path="/login" element={<Login setToken={handleSetToken} />} />
       {/* Post-login success/callback route. */}
-      <Route
-        path="/login-success"
-        element={<LoginSuccessPage setToken={handleSetToken} />}
-      />
+      <Route path="/login-success" element={<LoginSuccessPage setToken={handleSetToken} />} />
       <Route
         path="/verify"
         element={
@@ -102,16 +116,14 @@ function App() {
           <ProtectedRoute>
             <MainLayout />
           </ProtectedRoute>
-        }
-      >
+        }>
         {/* Root path ("/") route, shows HomePage for logged-in users. */}
         {/* Standard HomePage after login */}
         <Route path="/homepage" element={<HomePage />} />
         {/* Root path ("/") route, shows HomePage for logged-in users. */}
         {/* Calendar route (requires login). */}
         <Route path="/kalender" element={<CalendarView />} />
-        <Route path="/feed" element={<FeedPage />} />{" "}
-        {/* Other routes requiring login and using MainLayout. */}
+        <Route path="/feed" element={<FeedPage />} /> {/* Other routes requiring login and using MainLayout. */}
         <Route path="/parties" element={<PartiesPage />} />
         {/* ':partyName' is a dynamic URL parameter. */}
         <Route path="/party/:partyName" element={<PartyPage />} />
@@ -123,12 +135,7 @@ function App() {
         <Route path="/learning" element={<LearningLayout />}>
           {" "}
           {/* Default content shown at "/learning". */}
-          <Route
-            index
-            element={
-              <p>Velkommen til læringsområdet! Vælg et emne i menuen.</p>
-            }
-          />
+          <Route index element={<p>Velkommen til læringsområdet! Vælg et emne i menuen.</p>} />
           {/* Route for specific learning pages, e.g., "/learning/topic-1". */}
           <Route path=":pageId" element={<PageContent />} />
           {/* ':pageId' is a dynamic URL parameter. */}
@@ -140,22 +147,35 @@ function App() {
         {/* --- START: Polidle Routes (Beskyttet & i MainLayout) --- */}
         <Route path="/polidle" element={<PolidlePage />} />
         <Route path="/ClassicMode" element={<ClassicMode />} />
-        <Route path="/CitatMode" element={<QuoteMode />} />{" "}
-        <Route path="/FotoBlurMode" element={<FotoBlurMode />} />{" "}
+        <Route path="/CitatMode" element={<QuoteMode />} /> <Route path="/FotoBlurMode" element={<FotoBlurMode />} />{" "}
         {/* --- END: Polidle Routes --- */}
+        {/* Admin routes */}
+        <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
+        <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/redigerIndhold" element={token ? <RedigerIndhold /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/tilføjBegivenhed" element={token ? <AddEvent /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/redigerBegivenhed" element={token ? <EditEvent /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/sletBegivenhed" element={token ? <DeleteEvent /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls/addPoll" element={token ? <AddPoll /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls/editPoll" element={token ? <EditPoll /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls/deletePoll" element={token ? <DeletePoll /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/editcitatmode" element={token ? <EditQuotes /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/deleteFlashcardCollection" element={token ? <DeleteFlashcardCollection /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/addLearningPage" element={token ? <AddLearningPage /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/editLearningPage" element={token ? <EditLearningPage /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/deleteLearningPage" element={token ? <DeleteLearningPage /> : <Navigate to="/home" />} />{" "}
       </Route>{" "}
       {/* End of Protected MainLayout routes */}
       {/* Matches any URL not previously defined. */}
       {/* Redirects based on authentication status: "/" if logged in, "/login" if not. */}
-      <Route
-        path="/"
-        element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />}
-      />
+      <Route path="/" element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />} />
       {/* Catch-all for unkown roots: if logged in -> /homepage, or -> /landingpage */}
-      <Route
-        path="*"
-        element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />}
-      />
+      <Route path="*" element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />} />
     </Routes>
   );
 }
