@@ -72,6 +72,7 @@ namespace backend.Controllers
             var result = await _userManager.CreateAsync(user, dto.Password);
             
             if (result.Succeeded) {
+                // var roleResult = await _userManager.AddToRoleAsync(user, "User");
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
@@ -209,34 +210,28 @@ namespace backend.Controllers
         }
 
         [HttpPut("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto, [FromQuery] int userId, [FromQuery] string token)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
         {
 
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null)
             {
                 return BadRequest(new { error = "Bruger findes ikke." });
             }
 
-            if (dto.NewPassword != dto.ConfirmPassword)
-            {
-                return BadRequest(new { error = "Adgangskoderne skal matche." });
-            }
-
             try
             {
-                var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
+                var decodedTokenBytes = WebEncoders.Base64UrlDecode(dto.Token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
             
                 var result = await _userManager.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
                 if(result.Succeeded)
                 {
-                    return Ok(new { message = "Adgangskoden er blevet ændret." });
+                    return Ok(new { message = "Adgangskoden er blevet nulstillet." });
                 }
                 else 
                 {
-                    var errors = result.Errors.Select(e => e.Description);
-                    return BadRequest(new { errors });
+                    return StatusCode(500, new { error = "Ugyldigt eller udløbet nulstillingslink" });
                 }
             }
             catch (Exception ex)
