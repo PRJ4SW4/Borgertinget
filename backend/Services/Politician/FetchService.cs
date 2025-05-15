@@ -244,6 +244,39 @@ namespace backend.Services.Politician
                                         );
                                     }
 
+                                    // Link Aktor.Id to PoliticianTwitterId.AktorId based on matching names
+                                    if (
+                                        currentAktor != null // Add null check for currentAktor
+                                        && !string.IsNullOrWhiteSpace(currentAktor.navn)
+                                    )
+                                    {
+                                        // Assuming _context.PoliticianTwitterIds is the DbSet for PoliticianTwitterId entities
+                                        var politicianTwitterEntry =
+                                            await _context.PoliticianTwitterIds.FirstOrDefaultAsync(
+                                                p => p.Name == currentAktor.navn
+                                            );
+
+                                        if (politicianTwitterEntry != null)
+                                        {
+                                            // Check if an update is needed to avoid unnecessary database operations/logging
+                                            if (politicianTwitterEntry.AktorId != currentAktor.Id)
+                                            {
+                                                politicianTwitterEntry.AktorId = currentAktor.Id;
+                                                // EF Core's change tracker should detect this modification.
+                                                // If issues arise, you might need: _context.Entry(politicianTwitterEntry).State = EntityState.Modified;
+                                                _logger.LogInformation(
+                                                    $"Updated PoliticianTwitterId.AktorId for '{politicianTwitterEntry.Name}' (PoliticianTwitterId: {politicianTwitterEntry.Id}) to Aktor ID: {currentAktor.Id}."
+                                                );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            _logger.LogWarning(
+                                                $"No PoliticianTwitterId record found with Name '{currentAktor.navn}' to link with Aktor ID {currentAktor.Id}."
+                                            );
+                                        }
+                                    }
+
                                     if (!string.IsNullOrWhiteSpace(partyNameFromBio))
                                     {
                                         Party? partyEnt;
