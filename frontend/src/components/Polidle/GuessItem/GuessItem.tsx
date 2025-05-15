@@ -15,7 +15,7 @@ interface GuessItemProps {
 const FeedbackFieldKeys = {
   NAME: "Navn",
   GENDER: "Køn",
-  PARTY: "Parti",
+  PARTYSHORTNAME: "PartyShortname",
   AGE: "Alder",
   REGION: "Region",
   EDUCATION: "Uddannelse",
@@ -77,11 +77,13 @@ const GuessItem: React.FC<GuessItemProps> = ({ result }) => {
   };
 
   const renderPartyIndicator = () => {
-    if (guessed.parti) {
-      //TODO .parti should be changed to partyShortname
-      return <span className={styles.partyLogo}>{guessed.parti}</span>; //TODO .parti should be changed to partyShortname
+    if (guessed.partyShortname) {
+      //*FIXED .parti should be changed to partyShortname
+      return <span className={styles.partyLogo}>{guessed.partyShortname}</span>; //*FIXED .parti should be changed to partyShortname
     }
-    return <span className={styles.valueText}>{guessed.parti || "-"}</span>;
+    return (
+      <span className={styles.valueText}>{guessed.partyShortname || "-"}</span>
+    );
   };
 
   return (
@@ -127,7 +129,7 @@ const GuessItem: React.FC<GuessItemProps> = ({ result }) => {
       {/* Parti Celle */}
       <div
         className={`${styles.guessData} ${getFeedbackClass(
-          feedback[FeedbackFieldKeys.PARTY],
+          feedback[FeedbackFieldKeys.PARTYSHORTNAME],
           result.isCorrectGuess
         )}`}
       >
