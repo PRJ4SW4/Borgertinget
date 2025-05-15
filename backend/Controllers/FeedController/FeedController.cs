@@ -69,8 +69,7 @@ namespace backend.Controllers
         // Returnerer den PaginatedFeedResult DTO, som nu har Tweets og LatestPolls
         public async Task<ActionResult<PaginatedFeedResult>> GetMyFeed(
             // Paginering: page og pageSize standardværdier, vi starter på page 1 og 5 tweets pr. side
-            [FromQuery]
-                int page = 1,
+            [FromQuery] int page = 1,
             [FromQuery] int pageSize = 5,
             [FromQuery] int? politicianId = null
         )
@@ -161,7 +160,6 @@ namespace backend.Controllers
                 // 2. For side 2: Skip (2-1)*5 = 5 tweets (viser tweets 6-10)
                 // 3. For side 3: Skip (2-1)*5 = 10 tweets (viser tweets 11-15)
                 // Beregner også om der er flere tweets at hente (hasMoreTweets)
-
 
                 int totalTweets = tweetsToPaginate.Count;
                 int skipAmountTweets = (page - 1) * pageSize;

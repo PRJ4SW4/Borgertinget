@@ -1,5 +1,5 @@
-using backend.Interfaces.Utility;
 using System;
+using backend.Interfaces.Utility;
 
 namespace backend.Services.Utility
 {

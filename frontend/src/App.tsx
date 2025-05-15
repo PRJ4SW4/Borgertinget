@@ -48,6 +48,7 @@ import AddLearningPage from "./components/AdminPages/AddLearningPage";
 import EditLearningPage from "./components/AdminPages/EditLearningPage";
 import DeleteLearningPage from "./components/AdminPages/DeleteLearningPage";
 
+import ResetPasswordVerification from "./utils/resetPassword";
 // Navbar and Footer are rendered via MainLayout.
 // The main application component.
 
@@ -108,6 +109,7 @@ function App() {
           />
         }
       />
+      <Route path="/reset-password" element={<ResetPasswordVerification />} />
       {/* --- Protected Routes using MainLayout --- */}
       {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}
       {/* All nested routes inherit the layout and protection. */}

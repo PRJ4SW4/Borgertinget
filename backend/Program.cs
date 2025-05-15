@@ -66,7 +66,6 @@ builder.Services.AddSingleton<IOpenSearchClient>(new OpenSearchClient(settings))
 
 // --- ADD OPENSEARCH CONFIGURATION AND REGISTRATION END ---
 
-
 // Enable detailed error messages for JWT validation
 IdentityModelEventSource.ShowPII = true;
 
@@ -331,7 +330,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient(); // General HttpClient factory registration (Used by OAuth and AltingetFetcher
 
 // note af Jakob, put option id virkede med det her der er uddokumenteret, men da jeg havde det til, så virkede feed og partier ikke, jeg har ikke den post til pools på min git, derfor håber jeg det virker uden dette,
-
 
 // Registrer Controllers
 builder.Services.AddControllers(); /* .AddJsonOptions(options =>

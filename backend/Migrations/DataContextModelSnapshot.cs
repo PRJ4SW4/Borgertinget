@@ -316,6 +316,30 @@ namespace backend.Migrations
                     b.ToTable("CalendarEvents");
                 });
 
+            modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
+                {
+                    b.Property<int>("EventInterestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EventInterestId"));
+
+                    b.Property<int>("CalendarEventId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("EventInterestId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CalendarEventId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("EventInterests");
+                });
+
             modelBuilder.Entity("backend.Models.DailySelection", b =>
                 {
                     b.Property<DateOnly>("SelectionDate")
@@ -1227,6 +1251,25 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
+                {
+                    b.HasOne("backend.Models.Calendar.CalendarEvent", "CalendarEvent")
+                        .WithMany("InterestedUsers")
+                        .HasForeignKey("CalendarEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CalendarEvent");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("backend.Models.DailySelection", b =>
                 {
                     b.HasOne("backend.Models.Aktor", "SelectedPolitiker")
@@ -1427,6 +1470,11 @@ namespace backend.Migrations
                     b.Navigation("GamemodeTrackings");
 
                     b.Navigation("Quotes");
+                });
+
+            modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
+                {
+                    b.Navigation("InterestedUsers");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>

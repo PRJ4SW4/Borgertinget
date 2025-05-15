@@ -24,5 +24,4 @@ public interface IAdministratorRepository
 
     // Politician
     Task<int?> GetAktorIdByTwitterIdAsync(int twitterId);
-
 }

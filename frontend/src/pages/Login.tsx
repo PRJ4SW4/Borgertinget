@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./Login.css";
+import styles from "./Login.module.css";
 import loginImage from "../images/LoginImage.png";
 interface LoginProps {
   setToken: (token: string | null) => void;
@@ -16,27 +16,39 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   const [statusMessage, setStatusMessage] = useState<string | null>("");
   const [statusHeader, setStatusHeader] = useState<string | null>("Fejl");
   const [showPopup, setShowPopup] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState<string>("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [startSlide, setStartSlide] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleVerificationMessage = useCallback(() => {
+  const handleLink = useCallback(() => {
     const params = new URLSearchParams(location.search);
     const message = params.get("message");
     const status = params.get("status");
+    const userId = params.get("userId");
+    const token = params.get("token");
+
+    if (userId && token) {
+      setStatusHeader("Nulstil adgangskode");
+      setStatusMessage("");
+      setShowResetPassword(true);
+    }
+
     if (message && status) {
       setStatusMessage(message);
       setStatusHeader(status === "success" ? "Succes" : "Fejl");
       setShowPopup(true);
-      // Remove the parameters from the URL.  Important to do this *after*
-      //  you've read the parameters.
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [location.search]); // location.search is the dependency
+  }, [location.search]);
 
   useEffect(() => {
-    handleVerificationMessage();
-  }, [handleVerificationMessage]); // Call it in the useEffect
+    handleLink();
+  }, [handleLink]); // Call it in the useEffect
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -105,6 +117,60 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("http://localhost:5218/api/users/forgot-password", { 
+        Email: forgotPasswordEmail
+      });
+      setStatusMessage(response.data.message);
+      setStatusHeader("Succes");
+      setShowPopup(true);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.error || "Noget gik galt. Prøv igen.";
+        setStatusHeader("Fejl");
+        setStatusMessage(errorMessage);
+        setShowPopup(true);
+      } else {
+        setStatusHeader("Fejl");
+        setStatusMessage("Ingen forbindelse til serveren.");
+        setShowPopup(true);
+      }
+    } finally {
+        setShowForgotPassword(false);
+      }
+    };
+
+  const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const params = new URLSearchParams(location.search);
+    const userId = params.get("userId");
+    const token = params.get("token");
+    try {
+      const response = await axios.put(`http://localhost:5218/api/users/reset-password?userId=${userId}&token=${token}`, { 
+        NewPassword: newPassword,
+        ConfirmPassword: confirmPassword
+      });
+      setStatusMessage(response.data.message);
+      setStatusHeader("Succes");
+      setShowPopup(true);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.error || "Noget gik galt. Prøv igen.";
+        setStatusHeader("Fejl");
+        setStatusMessage(errorMessage);
+        setShowPopup(true);
+      } else {
+        setStatusHeader("Fejl");
+        setStatusMessage("Ingen forbindelse til serveren.");
+        setShowPopup(true);
+      }
+    } finally {
+      setShowResetPassword(false);
+    }
+  };
+
   const handleGoogleLogin = () => {
     
     const backendGoogleSigninPath = 'http://localhost:5218/api/Users/login-google';
@@ -114,23 +180,23 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
   };
 
   return (
-    <div className="outer-wrapper">
-      <div className={`login-container ${startSlide ? "shifted" : ""}`}>
+    <div className={styles.outerWrapper}>
+      <div className={`${styles.loginContainer} ${startSlide ? styles.shifted : ""}`}>
+        
         {/* Login Form Section */}
-
-        <div className="login-form">
-          <h1>Velkommen til Borgertinget</h1>
-          <div className="form-content">
-            <p className="slogan">
-              Din stemme <span className="ball"></span> Din viden <span className="ball"></span> Din fremtid
+        
+        <div className={styles.loginForm}>
+        <h1>Velkommen til Borgertinget</h1>
+          <div className={styles.formContent}>
+            <p className={styles.slogan}>
+              Din stemme <span className={styles.ball}></span> Din viden <span className={styles.ball}></span> Din fremtid
             </p>
-
-            <form onSubmit={handleLogin} className="form-container">
-              <div className="form-group">
-                <label htmlFor="loginUsername">Email/brugernavn</label>
+  
+            <form onSubmit={handleLogin} className={styles.formContainer}>
+              <div className={styles.formGroup}>
+                <p>Email/brugernavn</p>
                 <input
-                  id="loginUsername"
-                  className="input-field"
+                  className={styles.inputField}
                   type="text"
                   placeholder="Indtast email eller brugernavn"
                   value={loginUsername}
@@ -138,12 +204,11 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
                   required
                 />
               </div>
-
-              <div className="form-group">
-                <label htmlFor="loginPassword">Adgangskode</label>
+  
+              <div className={styles.formGroup}>
+                <p>Adgangskode</p>
                 <input
-                  id="loginPassword"
-                  className="input-field"
+                  className={styles.inputField}
                   type="password"
                   placeholder="Indtast adgangskode"
                   value={loginPassword}
@@ -151,96 +216,153 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
                   required
                 />
               </div>
-
-              <button className="button" type="submit">
-                Log på
-              </button>
+  
+              <button className={styles.button} type="submit">Log på</button>
             </form>
-
-            <p className="forgot-password">Glemt adgangskode?</p>
+  
+            <p className={styles.linkText} onClick={() => setShowForgotPassword(true)}>Glemt adgangskode?</p>
             <p>Log på med</p>
-            <button type="button" onClick={handleGoogleLogin} className="google-login-button" aria-label="Log på med Google"></button>
-            <p className="no-account">
-              Har du ikke en konto? Opret en{" "}
-              <span className="link-text" onClick={() => setStartSlide(true)}>
-                her
-              </span>
+            <button
+              type="button"
+              onClick={handleGoogleLogin} 
+              className={styles.googleLoginButton}
+              aria-label="Log på med Google" 
+            >
+            </button>
+            <p className={styles.noAccount}>
+              Har du ikke en konto? Opret en <span className={styles.linkText} onClick={() => setStartSlide(true)}>her</span>
             </p>
           </div>
         </div>
 
         {/* Register Form Section */}
-        <div className="register-form">
-          <div className="form-content">
+        <div className={styles.registerForm}>
+          <div className={styles.formContent}>
             <h1>Opret en konto</h1>
             {/* {success && <p style={{ color: "green" }}>{success}</p>} */}
-            <form onSubmit={handleRegister} className="form-container">
-              <div className="form-group">
-                <label htmlFor="registerUsername">Brugernavn</label>
-                <input
-                  id="registerUsername"
-                  className="input-field"
-                  type="text"
-                  placeholder="Indtast brugernavn"
-                  value={registerUsername}
-                  onChange={(e) => setRegisterUsername(e.target.value)}
-                  required
-                />
+            <form onSubmit={handleRegister} className={styles.formContainer}>
+            <div className={styles.formGroup}>
+            <p>Brugernavn</p>
+              <input
+                className={styles.inputField}
+                type="text"
+                placeholder="Indtast brugernavn"
+                value={registerUsername}
+                onChange={(e) => setRegisterUsername(e.target.value)}
+                required
+              />
               </div>
-              <div className="form-group">
-                <label htmlFor="registerEmail">Email</label>
-                <input
-                  id="registerEmail"
-                  className="input-field"
-                  type="email"
-                  placeholder="Indtast email"
-                  value={registerEmail}
-                  onChange={(e) => setRegisterEmail(e.target.value)}
-                  required
-                />
+              <div className={styles.formGroup}>
+              <p>Email</p>
+              <input
+                className={styles.inputField}
+                type="email"
+                placeholder="Indtast email"
+                value={registerEmail}
+                onChange={(e) => setRegisterEmail(e.target.value)}
+                required
+              />
               </div>
-              <div className="form-group">
-                <label htmlFor="registerPassword">Adgangskode</label>
-                <input
-                  id="registerPassword"
-                  className="input-field"
-                  type="password"
-                  placeholder="Indtast adgangskode"
-                  value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
-                  required
-                />
+              <div className={styles.formGroup}>
+              <p>Adgangskode</p>
+              <input
+                className={styles.inputField}
+                type="password"
+                placeholder="Indtast adgangskode"
+                value={registerPassword}
+                onChange={(e) => setRegisterPassword(e.target.value)}
+                required
+              />
               </div>
-              <button className="button" type="submit">
-                Opret konto
-              </button>
+              <button className={styles.button} type="submit">Opret konto</button>
             </form>
-
-            <p className="link-text" onClick={() => setStartSlide(false)}>
+  
+            <p className={styles.linkText} onClick={() => setStartSlide(false)}>
               Tilbage til login
             </p>
           </div>
         </div>
 
         {/* Image Section */}
-        <div className="image-section">
-          <img src={loginImage} className="login-image" alt="Login visual" />
+        <div className={styles.imageSection}>
+          <img src={loginImage} className={styles.loginImage} alt="Login visual" />
         </div>
       </div>
 
-      {showPopup && statusMessage && statusHeader && (
-        <div className="popup-overlay" onClick={() => setShowPopup(false)}>
-          <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-            <button className="close-button" onClick={() => setShowPopup(false)}>
-              &times;
-            </button>
-            <h2>{statusHeader}</h2>
-            <p>{statusMessage}</p>
-          </div>
-        </div>
-      )}
+    {showPopup && statusMessage && statusHeader && (
+      <div className={styles.popupOverlay} onClick={() => setShowPopup(false)}>
+        <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+        <button className={styles.closeButton} onClick={() => setShowPopup(false)}>
+          &times;
+        </button>
+        <h2>{statusHeader}</h2>
+        <p>{statusMessage}</p>
     </div>
-  );
+    </div>
+    )}
+
+    {showForgotPassword && (
+      <div className={styles.popupOverlay} onClick={() => setShowForgotPassword(false)}>
+        <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+          <button className={styles.closeButton} onClick={() => setShowForgotPassword(false)}>
+            &times;
+          </button>
+          <h2>Glemt adgangskode</h2>
+          <form onSubmit={handleForgotPassword} className={styles.formContainer}>
+            <div className={styles.formGroup}>
+              <p>Email</p>
+              <input
+                className={styles.inputField}
+                type="email"
+                placeholder="Indtast email"
+                value={forgotPasswordEmail}
+                onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                required
+              />
+            </div>
+            <button className={`${styles.button} ${styles.forgotPasswordButton}`} type="submit">Send link</button>
+          </form>
+        </div>
+      </div>
+    )};
+
+    {showResetPassword && (
+      <div className={styles.popupOverlay} onClick={() => setShowResetPassword(false)}>
+        <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+          <button className={styles.closeButton} onClick={() => setShowResetPassword(false)}>
+            &times;
+          </button>
+          <h2>Nulstil adgangskode</h2>
+          <form onSubmit={handleResetPassword} className={styles.formContainer}>
+            <div className={styles.formGroup}>
+              <p>Ny adgangskode</p>
+              <input
+                className={styles.inputField}
+                type="password"
+                placeholder="Indtast ny adgangskode"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <p>Bekræft adgangskode</p>
+              <input
+                className={styles.inputField}
+                type="password"
+                placeholder="Indtast adgangskode igen"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+          <button className={`${styles.button} ${styles.forgotPasswordButton}`} type="submit">Nulstil adgangskode</button>
+        </form>
+      </div>
+    </div>
+  )};
+  </div>
+);
 };
 
 export default Login;

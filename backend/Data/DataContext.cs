@@ -12,6 +12,8 @@ using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
 using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking; // For ValueComparer
@@ -48,6 +50,8 @@ namespace backend.Data
 
         public DbSet<Party> Party { get; set; } = null!;
 
+        public DbSet<EventInterest> EventInterests { get; set; }
+
         // --- Core Political Data ---
         public DbSet<Aktor> Aktor { get; set; } = null!; // Navn er 'Aktor', men repræsenterer politikere osv.
 
@@ -65,6 +69,24 @@ namespace backend.Data
             // --- Calendar Setup ---
             // Index for the CalendarEvents SourceUrl to make syncing events faster
             modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
+
+            modelBuilder.Entity<EventInterest>(entity =>
+            {
+                entity.HasIndex(ei => new { ei.CalendarEventId, ei.UserId }).IsUnique();
+
+                entity
+                    .HasOne(ei => ei.User)
+                    .WithMany()
+                    .HasForeignKey(ei => ei.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity
+                    .HasOne(ei => ei.CalendarEvent)
+                    .WithMany(ce => ce.InterestedUsers)
+                    .HasForeignKey(ei => ei.CalendarEventId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             // --- /Calendar Setup ---
 
             // --- Learning Environment Setup ---
@@ -410,7 +432,6 @@ namespace backend.Data
             modelBuilder.Entity<UserVote>().HasIndex(uv => new { uv.UserId, uv.PollId }).IsUnique();
             // --- /Twitter Setup ---
 
-
             // ***************************************************
             // *** Polidle Configuration START              ***
             // ***************************************************
@@ -466,7 +487,6 @@ namespace backend.Data
             // ***************************************************
             // *** Polidle Configuration END                ***
             // ***************************************************
-
 
             // --- SEED DATA ---
             SeedLearningEnvironmentData(modelBuilder);

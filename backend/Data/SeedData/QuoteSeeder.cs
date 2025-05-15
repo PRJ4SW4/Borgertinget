@@ -1,9 +1,9 @@
 // Fil: Data/SeedData/QuoteSeeder.cs
-using backend.Models;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Data.SeedData
 {
@@ -37,7 +37,7 @@ namespace backend.Data.SeedData
             "En effektiv offentlig sektor er en service for borgerne.",
             "Kunst og kultur beriger vores liv og styrker vores fællesskabsfølelse.",
             "Vi har et ansvar for at efterlade en bedre verden til de næste generationer.",
-            "Forebyggelse er ofte bedre og billigere end reparation."
+            "Forebyggelse er ofte bedre og billigere end reparation.",
         };
 
         private static PoliticianQuote CreateQuote(int aktorId, string text)
@@ -46,7 +46,7 @@ namespace backend.Data.SeedData
             {
                 QuoteId = _nextQuoteId++, // Vi tildeler ID manuelt
                 AktorId = aktorId,
-                QuoteText = text
+                QuoteText = text,
             };
         }
 
@@ -288,15 +288,19 @@ namespace backend.Data.SeedData
                 21083,
                 21143,
                 21159,
-                21161
+                21161,
             };
 
             if (!aktorIdsToSeed.Any())
             {
-                Console.WriteLine("QuoteSeeder: Ingen Aktor ID'er specificeret i 'aktorIdsToSeed'. Skipper citat-seeding.");
+                Console.WriteLine(
+                    "QuoteSeeder: Ingen Aktor ID'er specificeret i 'aktorIdsToSeed'. Skipper citat-seeding."
+                );
                 // Hvis filen er tom, og der ikke er quotes, så kald HasData med en tom liste for at undgå fejl,
                 // eller bare return. For at undgå fejl ved tomme 'quotes' senere:
-                if (!quotes.Any() && aktorIdsToSeed.Any()) { /* Dette sker kun hvis GenericQuotes er tom */ }
+                if (!quotes.Any() && aktorIdsToSeed.Any())
+                { /* Dette sker kun hvis GenericQuotes er tom */
+                }
                 else if (!quotes.Any())
                 {
                     modelBuilder.Entity<PoliticianQuote>().HasData(new List<PoliticianQuote>()); // Undgå fejl med tom HasData
@@ -305,31 +309,42 @@ namespace backend.Data.SeedData
             }
             if (!GenericQuotes.Any())
             {
-                 Console.WriteLine("QuoteSeeder: Ingen generiske citater defineret. Skipper citat-seeding.");
-                 modelBuilder.Entity<PoliticianQuote>().HasData(new List<PoliticianQuote>()); // Undgå fejl med tom HasData
-                 return;
+                Console.WriteLine(
+                    "QuoteSeeder: Ingen generiske citater defineret. Skipper citat-seeding."
+                );
+                modelBuilder.Entity<PoliticianQuote>().HasData(new List<PoliticianQuote>()); // Undgå fejl med tom HasData
+                return;
             }
 
             int genericQuoteIndex = 0;
             foreach (var aktorId in aktorIdsToSeed)
             {
                 // Sikrer at vi ikke går out of bounds på GenericQuotes, hvis der er færre citater end aktorId'er * 2
-                if (GenericQuotes.Count == 0) break; // Stop hvis der ingen generiske citater er
+                if (GenericQuotes.Count == 0)
+                    break; // Stop hvis der ingen generiske citater er
 
-                quotes.Add(CreateQuote(aktorId, GenericQuotes[genericQuoteIndex % GenericQuotes.Count]));
+                quotes.Add(
+                    CreateQuote(aktorId, GenericQuotes[genericQuoteIndex % GenericQuotes.Count])
+                );
                 genericQuoteIndex++;
-                quotes.Add(CreateQuote(aktorId, GenericQuotes[genericQuoteIndex % GenericQuotes.Count])); // <<< RETTET HER
+                quotes.Add(
+                    CreateQuote(aktorId, GenericQuotes[genericQuoteIndex % GenericQuotes.Count])
+                ); // <<< RETTET HER
                 genericQuoteIndex++;
             }
 
             if (quotes.Any())
             {
                 modelBuilder.Entity<PoliticianQuote>().HasData(quotes);
-                Console.WriteLine($"QuoteSeeder: Successfully prepared {quotes.Count} quotes for {aktorIdsToSeed.Count} Aktors for seeding.");
+                Console.WriteLine(
+                    $"QuoteSeeder: Successfully prepared {quotes.Count} quotes for {aktorIdsToSeed.Count} Aktors for seeding."
+                );
             }
             else
             {
-                Console.WriteLine("QuoteSeeder: No quotes were prepared for seeding (possibly due to empty Aktor ID list or empty generic quotes list).");
+                Console.WriteLine(
+                    "QuoteSeeder: No quotes were prepared for seeding (possibly due to empty Aktor ID list or empty generic quotes list)."
+                );
                 // Kald HasData med en tom liste for at EF Core er tilfreds, hvis det er nødvendigt
                 // afhængigt af hvordan din OnModelCreating ellers er bygget op.
                 // Typisk er det ikke nødvendigt hvis ingen data skal seedes for en tabel.

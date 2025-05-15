@@ -1,13 +1,12 @@
-using backend.Data;
-using backend.Interfaces.Repositories;
-using backend.Models;
-using backend.Enums;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using backend.Data;
+using backend.Enums;
+using backend.Interfaces.Repositories;
+using backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Persistence.Repositories
 {
@@ -20,15 +19,21 @@ namespace backend.Persistence.Repositories
             _context = context;
         }
 
-        public async Task<DailySelection?> GetByDateAndModeAsync(DateOnly date, GamemodeTypes gameMode, bool includeAktor = false)
+        public async Task<DailySelection?> GetByDateAndModeAsync(
+            DateOnly date,
+            GamemodeTypes gameMode,
+            bool includeAktor = false
+        )
         {
             var query = _context.DailySelections.AsQueryable();
             if (includeAktor)
             {
-                 query = query.Include(ds => ds.SelectedPolitiker);
-                     //.ThenInclude(a => a.Party); // Inkluder evt. parti her også
+                query = query.Include(ds => ds.SelectedPolitiker);
+                //.ThenInclude(a => a.Party); // Inkluder evt. parti her også
             }
-            return await query.FirstOrDefaultAsync(ds => ds.SelectionDate == date && ds.GameMode == gameMode);
+            return await query.FirstOrDefaultAsync(ds =>
+                ds.SelectionDate == date && ds.GameMode == gameMode
+            );
         }
 
         public async Task<bool> ExistsForDateAsync(DateOnly date)
@@ -38,15 +43,16 @@ namespace backend.Persistence.Repositories
 
         public async Task AddManyAsync(IEnumerable<DailySelection> selections)
         {
-             if (selections == null || !selections.Any()) return;
-             await _context.DailySelections.AddRangeAsync(selections);
-             // SaveChangesAsync kaldes centralt (f.eks. i service eller Unit of Work)
+            if (selections == null || !selections.Any())
+                return;
+            await _context.DailySelections.AddRangeAsync(selections);
+            // SaveChangesAsync kaldes centralt (f.eks. i service eller Unit of Work)
         }
 
         public async Task DeleteByDateAsync(DateOnly date)
         {
-            var selectionsToDelete = await _context.DailySelections
-                .Where(ds => ds.SelectionDate == date)
+            var selectionsToDelete = await _context
+                .DailySelections.Where(ds => ds.SelectionDate == date)
                 .ToListAsync();
 
             if (selectionsToDelete.Any())

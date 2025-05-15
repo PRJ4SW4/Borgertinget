@@ -7,6 +7,8 @@ export interface CalendarEventDto {
     startDateTimeUtc: string; // Received as ISO 8601 string
     location?: string | null;
     sourceUrl?: string | null;
+    interestedCount? : number;
+    isCurrentUserInterested?: boolean;
 }
 
 // TODO: Delete as RBC didnt work

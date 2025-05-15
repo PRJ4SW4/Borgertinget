@@ -12,10 +12,9 @@ public enum GamemodeTypes
 public enum FeedbackType
 {
     Undefined, // Bør ikke ske
-    Korrekt,   // Værdien er korrekt
-    Forkert,   // Værdien er forkert (bruges til Navn, Parti, Region, Køn, Uddannelse)
-    Højere,    // Den korrekte værdi er højere (bruges til Alder)
-    Lavere     // Den korrekte værdi er lavere (bruges til Alder)
+    Korrekt, // Værdien er korrekt
+    Forkert, // Værdien er forkert (bruges til Navn, Parti, Region, Køn, Uddannelse)
+    Højere, // Den korrekte værdi er højere (bruges til Alder)
+    Lavere, // Den korrekte værdi er lavere (bruges til Alder)
     // Overvej 'Delvis' for f.eks. region/parti hvis det giver mening
 }
-

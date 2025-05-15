@@ -1,8 +1,8 @@
-using backend.DTO;       // Namespace for DTOs
-using backend.Models;    // Namespace for GamemodeTypes (eller backend.Enums, hvis du flyttede den)
-using System;           // For DateOnly
+using System; // For DateOnly
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using backend.DTO; // Namespace for DTOs
+using backend.Models; // Namespace for GamemodeTypes (eller backend.Enums, hvis du flyttede den)
 
 namespace backend.Interfaces.Services // Sørg for at namespacet matcher din projektstruktur
 {
@@ -62,7 +62,7 @@ namespace backend.Interfaces.Services // Sørg for at namespacet matcher din pro
         Task SelectAndSaveDailyPoliticiansAsync(DateOnly date, bool overwriteExisting = false); // <<< TILFØJET overwriteExisting
 
         //TODO: Create an endpoint for seeding Aktor with Quotes
-        /* SOLUTION: 
+        /* SOLUTION:
         * Add two(2) quotes to all Aktor-objects in the DB.
         * Only adds if it DOES NOT have two quotes
         * <returns>Statusmessage about operation</returns>
