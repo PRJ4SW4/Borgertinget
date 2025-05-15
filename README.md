@@ -2,10 +2,39 @@
 
 Repository for project group 4 2025's Web-App: Borgertinget
 
+# Dependencies
 
+* Dotnet 9: https://dotnet.microsoft.com/en-us/download/dotnet/9.0
+* Docker Desktop: https://www.docker.com/products/docker-desktop/
+* Node.js: https://nodejs.org/en
 
-# TIL TEST AF POLITIKER, I SKAL LIGE RAMME 'http://localhost:5218/api/Aktor/fetch' FOR AT HENTE POLITIKERE TIL DATABASEN, kan gøres gennem swagger
+# Startup from scratch
 
-derfra kan der leges med frontenden
+## Backend Setup
+1. Open terminal within "Borgertinget/backend" folder
+2. Run ```docker compose up --build -d```
+3. Run ```dotnet ef database update```
+4. Run ```dotnet run```
+5. Open http://localhost:5218/swagger/index.html to access Swagger in browser.
 
-Model/Aktor.cs er hvad der bliver sendt til frontend, Aktor.dto bruges til oda.ft api
+### Reset backend & Database
+1. Run ```docker compose down -v``` within "backend" folder
+2. Continue from step 2 of Backend Setup
+
+## Frontend Setup
+1. Open terminal within "Borgertinget/frontend" folder
+2. Run ```npm install```
+3. Run ```npm run dev```
+4. Open http://localhost:5173/homepage in your browser.
+
+**Everything should now be running, but endpoints need to be called in order for all functionality to work**
+
+# Endpoint order
+
+1. Go to http://localhost:5218/swagger/index.html in a browser.
+2. Run the "/api/Aktor/fetch" endpoint
+3. Run the "/api/Calendar/run-calendar-scraper" endpoint
+4. Run the "/api/polidle/admin/seed-all-aktor-quotes" endpoint
+5. Run the "/api/polidle/admin/generate-today" endpoint
+
+**All functionality should now be working, the twitter feed will take a while to warm up as we can only pull from their API one politician at a time every 16 minutes**
