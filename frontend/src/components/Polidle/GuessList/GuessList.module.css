@@ -1,0 +1,54 @@
+/* src/components/Polidle/GuessList/GuessList.module.css */
+
+.guessListContainer {
+  width: 100%;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  border: 1px solid #e0e0e0; /* Border rundt om hele listen */
+  border-radius: 8px; /* Afrundede hjørner for hele listen */
+  overflow: hidden; /* For at afrundede hjørner virker på children */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.guessListHeader {
+  display: flex;
+  background-color: #f8f9fa; /* Lidt lysere header */
+  /* border-bottom: 2px solid #dee2e6; fjernet, da GuessItem har sin egen border-bottom */
+}
+
+.categoryHeader {
+  flex: 1;
+  padding: 10px 8px; /* Justeret padding */
+  text-align: center;
+  font-weight: 600; /* Lidt federe */
+  font-size: 0.85em; /* Mindre header tekst for at matche design */
+  color: #495057; /* Mørkere grå */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1px solid #f0f0f0; /* Lys separator mellem header celler */
+}
+.categoryHeader:last-child {
+  border-right: none;
+}
+
+.guessListItems {
+  /* Ingen specifik styling nødvendig her, da GuessItem håndterer rækkerne */
+}
+
+.guessListEmpty {
+  padding: 25px;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  background-color: #f8f9fa;
+  /* border-top: 1px solid #e0e0e0; hvis den skal have en top-linje når den vises alene */
+}
+
+.guessItemError {
+  /* Beholdes for fejl-tilfælde i listen */
+  padding: 10px;
+  text-align: center;
+  color: red;
+  background-color: #ffeeee;
+  border-bottom: 1px solid #e0e0e0;
+}

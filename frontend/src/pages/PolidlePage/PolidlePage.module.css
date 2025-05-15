@@ -1,0 +1,74 @@
+/* src/pages/Polidle/PolidlePage.module.css (tidligere Polidle.module.css) */
+.container {
+  text-align: center;
+  padding: 20px;
+  background-color: white;
+  color: black;
+}
+
+.heading {
+  font-size: 3em;
+  margin-bottom: 10px;
+  color: #e31836;
+}
+
+.subheading {
+  font-size: 1.2em;
+  margin-bottom: 20px;
+  color: black;
+}
+
+.gamemodeList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.gamemodeButton {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  margin: 10px 0;
+  background-color: #000000;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 500px;
+  box-shadow: 0 4px 8px rgb(255, 1, 1); /* Stadig meget rød skygge */
+  transition: background-color 0.2s ease; /* Tilføjet for hover effekt */
+}
+
+.gamemodeButton:hover {
+  background-color: #333333; /* Mørkere ved hover for mørk knap */
+}
+
+.gamemodeSymbol {
+  font-size: 2em;
+  margin-right: 20px;
+}
+
+.gamemodeText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.gamemodeName {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.gamemodeDescription {
+  font-size: 0.9em;
+  color: #bbb; /* Farven på beskrivelsen er nu lysere på sort baggrund */
+}
+
+/* Fjernet .backButton, da den blev fjernet fra komponentens logik */
+
+/* Fjernet .guess-result, .correct, .incorrect, .resultImage, .resultName, .citat
+   da disse hører til specifikke spilmodes eller result-visning,
+   ikke til PolidlePage.tsx hub-siden. Disse skal flyttes/håndteres
+   i deres respektive .module.css filer.
+*/

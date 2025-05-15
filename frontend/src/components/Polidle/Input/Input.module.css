@@ -1,0 +1,28 @@
+/* src/components/Polidle/Input/Input.css */
+.input-field {
+  /* Grundlæggende udseende */
+  padding: 10px;
+  border: 1px solid #ccc; /* Neutral border farve */
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+  width: 100%; /* Gør den responsiv til sin container som default */
+  margin-bottom: 10px; /* Standard margin i bunden, kan overskrives */
+  /* Fjern specifik baggrundsfarve og tekstfarve for placeholder her,
+     medmindre det skal være default for *alle* instanser af denne komponent.
+     Det er ofte bedre at styre dette via props eller eksterne klasser. */
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #007bff; /* En mere standard focus farve (f.eks. blå) */
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Standard bootstrap-agtig focus shadow */
+}
+
+/* Placeholder farve kan sættes via en ekstern klasse, hvis den skal variere,
+   eller du kan have en default her, hvis den er ens for de fleste. */
+/*
+.input-field::placeholder {
+  color: #6c757d; // En standard grålig placeholder farve
+}
+*/

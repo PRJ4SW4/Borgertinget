@@ -1,21 +1,21 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 using backend.Data;
 using backend.DTOs;
 using backend.Models;
 using backend.Services;
 using BCrypt.Net;
-using Microsoft.AspNetCore.Identity; 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Linq; 
-using System.Threading.Tasks; 
 
 namespace backend.Controllers
 {
@@ -28,7 +28,10 @@ namespace backend.Controllers
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
 
-        public RBACController(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager)
+        public RBACController(
+            UserManager<User> userManager,
+            RoleManager<IdentityRole<int>> roleManager
+        )
         {
             //_context = context;
             _userManager = userManager;
@@ -59,14 +62,16 @@ namespace backend.Controllers
 
             if (user == null)
                 return NotFound(new { Message = "Bruger findes ikke." });
-            
+
             if (!await _userManager.IsInRoleAsync(user, "Admin"))
-            {                
+            {
                 var result = await _userManager.AddToRoleAsync(user, "Admin");
-                if(result.Succeeded)
+                if (result.Succeeded)
                 {
                     var roles = await _userManager.GetRolesAsync(user);
-                    return Ok(new { Message = "Administratorrolle tilføjet til bruger.", Roles = roles});
+                    return Ok(
+                        new { Message = "Administratorrolle tilføjet til bruger.", Roles = roles }
+                    );
                 }
                 else
                 {
@@ -74,8 +79,7 @@ namespace backend.Controllers
                 }
             }
 
-            return Ok(new {Message = "Bruger har allerede administratorrolle."});
-
+            return Ok(new { Message = "Bruger har allerede administratorrolle." });
 
             // if (result.Succeeded)
             // {
@@ -113,7 +117,9 @@ namespace backend.Controllers
                 if (result.Succeeded)
                 {
                     var roles = await _userManager.GetRolesAsync(user);
-                    return Ok(new { Message = "Administratorrolle fjernet fra bruger", Roles = roles });
+                    return Ok(
+                        new { Message = "Administratorrolle fjernet fra bruger", Roles = roles }
+                    );
                 }
                 else
                 {
@@ -124,16 +130,18 @@ namespace backend.Controllers
             return Ok(new { Message = "Bruger har ikke administratorrolle" });
         }
 
-            // if (user.Roles.Contains("Admin"))
-            // {
-            //     user.Roles.Remove("Admin"); // Fjerner admin rollen
-            //     _context.Users.Update(user); // EF burde gøre dette automatisk
-            //     await _context.SaveChangesAsync(); // Gem ændringerne i databasen
-            //     return Ok(new { Message = "Removed Admin role", Roles = user.Roles });
-            // }
-            // return Ok(new { Message = "User doesn't have admin status" });
-        }
-        public class UserEmailDto {
-            public string Email { get; set; } = string.Empty;
-        }
+        // if (user.Roles.Contains("Admin"))
+        // {
+        //     user.Roles.Remove("Admin"); // Fjerner admin rollen
+        //     _context.Users.Update(user); // EF burde gøre dette automatisk
+        //     await _context.SaveChangesAsync(); // Gem ændringerne i databasen
+        //     return Ok(new { Message = "Removed Admin role", Roles = user.Roles });
+        // }
+        // return Ok(new { Message = "User doesn't have admin status" });
     }
+
+    public class UserEmailDto
+    {
+        public string Email { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,253 @@
+/* src/components/Polidle/SharedPolidle.module.css (omdøb PolidleStyles.module.css) */
+
+/* Generel container for en spil-side */
+.gamePageContainer {
+  padding: 20px;
+  /* Tilføj andre fælles page-level styles her, f.eks. max-width, margin auto for centrering */
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center; /* Kan være default for spilsider */
+}
+
+.gameHeader {
+  font-size: 2.5em; /* Lidt mindre end PolidlePage.heading */
+  margin-bottom: 15px;
+  color: #e31836; /* Tema-farve */
+}
+
+.gameInstructions {
+  font-size: 1.1em;
+  margin-bottom: 25px;
+  color: #333;
+}
+
+/* --- Søge Sektion --- */
+.searchContainer {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px; /* Afstand mellem input, resultater og knap */
+}
+
+.searchInput {
+  /* Denne klasse bruges nu i Input-komponenten via className prop */
+  /* Du kan beholde den her, hvis den er specifik for Polidle-søgefelter */
+  /* Eller flytte relevante dele til Input.module.css hvis det er generelt */
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  width: 100%;
+  max-width: 400px; /* Begræns bredde */
+  box-sizing: border-box;
+}
+.searchInput:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.searchResults {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  max-height: 200px; /* Gør listen scrollable hvis for lang */
+  overflow-y: auto;
+  background-color: white;
+}
+
+.searchResultItem {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+.searchResultItem:last-child {
+  border-bottom: none;
+}
+.searchResultItem:hover {
+  background-color: #f0f0f0;
+}
+
+.searchResultImage {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+  background-color: #e0e0e0; /* Placeholder bg */
+}
+.searchResultImagePlaceholder {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #777;
+}
+
+.searchResultName {
+  font-size: 0.9em;
+}
+
+.searchLoader,
+.noResults,
+.searchError {
+  padding: 10px;
+  font-style: italic;
+  color: #555;
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+}
+.searchError {
+  color: red;
+}
+
+.guessButton {
+  padding: 10px 25px;
+  background-color: #007bff; /* Blå gæt-knap */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+.guessButton:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+.guessButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.guessError {
+  color: red;
+  margin-top: 10px;
+  font-size: 0.9em;
+}
+
+/* --- Gætte Historik --- */
+.guessListContainer,
+.citatGuessHistory, /* Beholder denne for CitatMode historik */
+.fotoGuessHistory {
+  /* Tilføjet for FotoMode historik (kan være samme styling) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+  width: 100%;
+}
+
+.historyHeader {
+  /* Til "Dine Gæt:" overskriften */
+  font-size: 1.2em;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+/* Styling for et enkelt historik-item i Citat/Foto mode */
+/* (GuessList/GuessItem har deres egen styling for Classic) */
+.citatGuessItem {
+  /* Denne klasse kan genbruges af Foto historik */
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: black;
+  background-color: #fff; /* Hvid baggrund for items */
+  border: 1px solid #eee;
+}
+
+.citatGuessItem.correct {
+  /* Genbruges */
+  background-color: #e6ffed; /* Lysere grøn */
+  border-color: #b2f2bb;
+}
+
+.citatGuessItem.incorrect {
+  /* Genbruges */
+  background-color: #ffe3e3; /* Lysere rød */
+  border-color: #ffc9c9;
+}
+
+.historyImage {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 15px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background-color: #eee;
+}
+
+.historyName {
+  font-weight: bold;
+  flex-grow: 1;
+  text-align: left;
+  font-size: 0.95em;
+}
+
+.historyIndicator {
+  font-size: 1.3em;
+  margin-left: 15px;
+  font-weight: bold;
+}
+.citatGuessItem.correct .historyIndicator {
+  color: #2f9e44;
+} /* Mørkere grøn for ikon */
+.citatGuessItem.incorrect .historyIndicator {
+  color: #c92a2a;
+} /* Mørkere rød for ikon */
+
+/* --- Game Won Message --- */
+.gameWonMessage {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #e6ffed;
+  border: 1px solid #b2f2bb;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.gameWonMessage p {
+  font-size: 1.2em;
+  color: #2f9e44;
+  margin: 0 0 15px 0;
+  font-weight: bold;
+}
+.playAgainButton {
+  padding: 8px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+}
+.playAgainButton:hover {
+  background-color: #0056b3;
+}
+
+/* Infobox container (hvis den skal have specifik placering/margin på spilsider) */
+.infoboxContainer {
+  margin-top: 30px;
+  /* Andre styles for at positionere infoboksen */
+}

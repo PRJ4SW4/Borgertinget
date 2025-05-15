@@ -1,66 +1,106 @@
-.politician-page{
-    padding: 1rem; /* Add some overall padding */ 
-    background-color: #aeaeaee3;
+.politician-page {
+    padding: 1rem;
+    background-color: #ffffff;
+    display: flex; /* Make this a flex container */
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+    gap: 1rem; /* Add some space between flex items */
 }
+.politician-page nav {
+    width: 100%; /* Make the nav take full width */
+    margin-bottom: 1rem; /* Add some space below the link */
+    order: 0; /* Ensure it appears at the top before flex items reorder */
+}
+
+.politician-page nav a {
+    display: inline-block; /* Allows padding and other block-level properties */
+    text-decoration: none;
+    background-color: #950018; /* Borgertinget primary red from Navbar.css */
+    color: #FFFFFF; /* White text from Navbar.css */
+    padding: 0.5rem 1rem; /* Padding from Navbar.css */
+    border-radius: 20px; /* Pill-shaped corners from Navbar.css */
+    transition: background-color 0.2s ease, color 0.2s ease; /* Smooths color changes on hover */
+    font-weight: 500; /* Medium font weight from Navbar.css */
+    font-size: 0.95rem; /* Font size from Navbar.css */
+    white-space: nowrap; /* Prevents link text from wrapping */
+}
+
+.politician-page nav a:hover {
+    background-color: #f0f0f0; /* Light grey background on hover from Navbar.css */
+    color: #8B0000; /* Dark red text on hover from Navbar.css */
+}
+
 .info-box {
-    background-color: #f0f0f0; /* Light gray background */
-    border-radius: 8px;       /* Optional rounded corners */
-    padding: 15px 20px;       /* Internal spacing (top/bottom, left/right) */
-    margin-bottom: 20px;    /* Space below the box */
-    color: black;
-    /* You might want to limit its width or align it */
-    max-width: 400px;
-    /* float: right; */ /* Example: float right */
-    /* margin-left: 20px; */ /* Example: margin if floating */
-  }
-  
-  /* Style for the photo specifically inside the info box */
-  .info-box-photo {
-    /* Circular styling */
-    width: 200px;    /* Adjust size */
-    height: 200px;   /* Adjust size */
+    background-color: #dededee3;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 20px; /* Can be kept for spacing when items wrap */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 2px solid #cccccc;
+    max-width: 400px; /* Keep max-width for the info box */
+    border: 2px;
+    order: 2; /* Info-box will appear on the right side */
+    flex: 1;  /* Defines how much space it takes relative to other flex items */
+    min-width: 300px; /* Minimum width before it wraps to a new line */
+}
+
+.politician-details {
+    /* padding-right: 130px; /* Consider removing or adjusting this based on new layout */
+    padding: 1rem; /* Added some padding for the details section */
+    order: 1; /* Politician-details will appear on the left side */
+    flex: 2;  /* Allows the details section to take up more space (twice as much as info-box) */
+    min-width: 400px;
+}
+
+/* Styles for the photo inside the info-box */
+.info-box-photo {
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
     object-fit: cover;
-    display: block; /* Make it a block element for margins */
-    margin-bottom: 15px; /* Space below the photo */
-    /* Optional: Center photo within the box */
+    display: block;
+    margin-bottom: 15px;
     margin-left: auto;
     margin-right: auto;
-  }
-  
-  /* Ensure the relative positioning for the page is removed if no longer needed */
-  /* .politician-page {
-    position: relative;
-  } */
-  
+}
 
-  
-  /* Adjust the main details area padding if needed (remove old padding-right) */
-  .politician-details {
-    /* padding-right: 130px; */ /* Remove this if it was added for absolute positioning */
-  }
-  
-  /* Basic styling for headings/paragraphs within the box */
-  .info-box h4 {
-      margin-top: 10px;
-      margin-bottom: 5px;
-      border-bottom: 1px solid #ddd; /* Optional separator */
-      padding-bottom: 3px;
-  }
-  .info-box h4:first-of-type {
-      margin-top: 0; /* Remove top margin for the first heading */
-  }
-  
-  .info-box p {
-      margin: 5px 0;
-      font-size: 0.9rem;
-  }
-  
-  .info-box ul {
-      margin: 5px 0 10px 0;
-      padding-left: 20px; /* Indent list */
-      font-size: 0.9rem;
-  }
-  .info-box li {
-      margin-bottom: 3px;
-  }
+/* Basic styling for headings/paragraphs within the info-box */
+.info-box h4 {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 3px;
+}
+.info-box h4:first-of-type {
+    margin-top: 0;
+}
+
+.info-box p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+
+.info-box ul {
+    margin: 5px 0 10px 0;
+    padding-left: 20px;
+    font-size: 0.9rem;
+}
+
+.info-box li {
+    margin-bottom: 3px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .politician-page {
+        flex-direction: column; /* Stack items vertically on smaller screens */
+    }
+    .info-box, .politician-details {
+        order: 0; /* Reset order to follow DOM order when stacked */
+        flex-basis: auto; /* Allow items to size based on their content height */
+        width: 100%; /* Make them take full width when stacked */
+        max-width: none; /* Remove max-width constraint when stacked if it causes issues */
+    }
+    .politician-details {
+        padding-right: 1rem; /* Adjust padding as needed when stacked */
+    }
+}

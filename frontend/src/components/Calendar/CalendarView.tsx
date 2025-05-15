@@ -1,5 +1,5 @@
 // src/components/CalendarView.tsx
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
 // --- date-fns Imports ---
 import { format } from 'date-fns';
@@ -8,7 +8,7 @@ import { da } from 'date-fns/locale';
 // --- date-fns-tz Import ---
 import { toZonedTime } from 'date-fns-tz';
 
-import { fetchCalendarEvents } from '../../services/ApiService';
+import { fetchCalendarEvents, toggleEventInterest } from '../../services/ApiService';
 import type { CalendarEventDto } from '../../types/calendarTypes';
 
 // Import CSS for this component
@@ -24,6 +24,7 @@ function CalendarView() {
   const [events, setEvents] = useState<CalendarEventDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [togglingInterestFor, setTogglingInterestFor] = useState<number | null>(null);
 
   // Fetch all events on initial mount
   useEffect(() => {
@@ -46,8 +47,10 @@ function CalendarView() {
       .finally(() => {
         setIsLoading(false);
       });
+
   // Empty dependency array means fetch only once on mount
   }, []);
+
 
   // Group events by date using useMemo for efficiency
   const groupedEvents = useMemo(() => {
@@ -73,6 +76,28 @@ function CalendarView() {
     return groups;
   }, [events]); // Re-group only when the events array changes
 
+  // --- Event Handler for Interest Toggle ---
+  const handleToggleInterest = useCallback(async (eventId: number) => {
+    try {
+      const updatedInterestData = await toggleEventInterest(eventId);
+      setEvents(prevEvents =>
+        prevEvents.map(event =>
+          event.id === eventId
+            ? {
+                ...event,
+                isCurrentUserInterested: updatedInterestData.isInterested,
+                interestedCount: updatedInterestData.interestedCount
+              }
+            : event
+        )
+      );
+    } catch (apiError: any) {
+      console.error("Fejl ved opdatering af interesse:", apiError);
+      setError(apiError.response?.data?.message || apiError.message || "Kunne ikke opdatere din interesse. Prøv igen.");
+    } finally {
+      setTogglingInterestFor(null);
+    }
+  }, [setEvents, setTogglingInterestFor, setError]);
 
   // --- Render Logic ---
   if (isLoading) {
@@ -104,7 +129,7 @@ function CalendarView() {
               const formattedTime = format(zonedStartTime, 'HH:mm');
               // Construct the full URL to Altinget
               const eventUrl = event.sourceUrl ? `${altingetBaseUrl}${event.sourceUrl}` : '#'; // Fallback href if URL missing
-
+              const isLoadingInterest = togglingInterestFor === event.id;
               return (
                 // List item for each event
                 <li key={event.id} className="event-item">
@@ -130,6 +155,18 @@ function CalendarView() {
                         )}
                     </div>
                   </a>
+                  <div className="event-interest">
+                    <button
+                      className={`interest-toggle-button ${event.isCurrentUserInterested ? 'interested' : 'not-interested'}`}
+                      onClick={() => handleToggleInterest(event.id)}
+                      aria-label={event.isCurrentUserInterested ? 'Deltag ikke' : 'Deltag'}
+                      aria-pressed={event.isCurrentUserInterested}>
+                        {isLoadingInterest ? 'Opdaterer...' : event.isCurrentUserInterested ? 'Deltager' : 'Deltag'}
+                    </button>
+                    <div className="event-interest-count">
+                      {event.interestedCount} {event.interestedCount === 1 ? 'person' : 'personer'} deltager
+                    </div>
+                  </div>
                 </li>
               );
             })}

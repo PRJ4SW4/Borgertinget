@@ -1,6 +1,32 @@
 .parties-page{
     padding: 1rem; /* Add some overall padding */
 }
+/* Updated navigation link styling */
+.parties-page nav {
+  width: 100%; /* Make the nav take full width */
+  margin-bottom: 20px; /* Existing margin-bottom */
+  /* order: 0; /* Not strictly necessary here unless party-page becomes a flex container like politician-page */
+}
+
+.parties-page nav a {
+  display: inline-block; /* Allows padding and other block-level properties */
+  text-decoration: none;
+  background-color: #950018; /* Borgertinget primary red from Navbar.css */
+  color: #FFFFFF; /* White text from Navbar.css */
+  padding: 0.5rem 1rem; /* Padding from Navbar.css */
+  border-radius: 20px; /* Pill-shaped corners from Navbar.css */
+  transition: background-color 0.2s ease, color 0.2s ease; /* Smooths color changes on hover */
+  font-weight: 500; /* Medium font weight from Navbar.css */
+  font-size: 0.95rem; /* Font size from Navbar.css */
+  white-space: nowrap; /* Prevents link text from wrapping */
+}
+
+.parties-page nav a:hover {
+  background-color: #f0f0f0; /* Light grey background on hover from Navbar.css */
+  color: #8B0000; /* Dark red text on hover from Navbar.css */
+  text-decoration: none; /* Remove underline on hover to match navbar style */
+}
+
 /* Grid container for the parties */
 .parties-grid-list {
     list-style: none;
