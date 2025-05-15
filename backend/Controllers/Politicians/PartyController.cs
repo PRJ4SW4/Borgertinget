@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Linq;
-using backend.Services;
-using backend.Models;
 using backend.Data;
 using backend.DTO.FT;
 using backend.Models;
+using backend.Models;
+using backend.Services;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +29,8 @@ public class PartyController : ControllerBase
     }
 
     [HttpGet("Parties")]
-    public async Task<ActionResult<IEnumerable<Party>>> getParties(){
+    public async Task<ActionResult<IEnumerable<Party>>> getParties()
+    {
         var parties = await _context.Party.OrderBy(p => p.partyName).ToListAsync();
         return Ok(parties);
     }
@@ -44,7 +45,9 @@ public class PartyController : ControllerBase
 
         try
         {
-            var party = await _context.Party.FirstOrDefaultAsync(p => p.partyName != null && p.partyName.ToLower() == partyName.ToLower());
+            var party = await _context.Party.FirstOrDefaultAsync(p =>
+                p.partyName != null && p.partyName.ToLower() == partyName.ToLower()
+            );
 
             if (party == null)
             {

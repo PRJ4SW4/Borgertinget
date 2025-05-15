@@ -89,7 +89,6 @@ public class AltingetScraperService : IScraperService
             ); // Mark past events for deletion.
             // --- End Delete Old Events ---
 
-
             // 1. Scrape current events
             List<ScrapedEventData> scrapedEvents = await FetchAndParseAltingetCalendarAsync(); // Fetch and parse events from Altinget.
             _logger.LogInformation("Scrape found {Count} events.", scrapedEvents.Count); // Log the number of scraped events.

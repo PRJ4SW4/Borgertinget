@@ -1,10 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using backend.Data;
 using backend.Interfaces.Repositories;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace backend.Persistence.Repositories
 {
@@ -24,26 +24,31 @@ namespace backend.Persistence.Repositories
             return await query.FirstOrDefaultAsync(a => a.Id == id);
         }
 
-        public async Task<List<Aktor>> GetAllForSummaryAsync(string? search = null, int maxResults = 15)
+        public async Task<List<Aktor>> GetAllForSummaryAsync(
+            string? search = null,
+            int maxResults = 15
+        )
         {
             var query = _context.Aktor.AsNoTracking();
             if (!string.IsNullOrWhiteSpace(search))
             {
                 string searchTermLower = search.ToLower().Trim();
-                query = query.Where(p => p.navn != null && p.navn.ToLower().Contains(searchTermLower));
+                query = query.Where(p =>
+                    p.navn != null && p.navn.ToLower().Contains(searchTermLower)
+                );
             }
             return await query.OrderBy(p => p.navn).Take(maxResults).ToListAsync();
         }
 
-         public async Task<List<Aktor>> GetAllWithDetailsForSelectionAsync()
-         {
-              // Inkluder alt nødvendigt for *alle* gamemodes' udvælgelse + tracker opdatering
-              return await _context.Aktor
-                  .Include(a => a.Quotes)
-                  .Include(a => a.GamemodeTrackings)
-                  // .Include(a => a.Party) // Hvis Party relation bruges direkte
-                  .Where(a => a.navn != null) // Eksempel på filter
-                  .ToListAsync();
-         }
+        public async Task<List<Aktor>> GetAllWithDetailsForSelectionAsync()
+        {
+            // Inkluder alt nødvendigt for *alle* gamemodes' udvælgelse + tracker opdatering
+            return await _context
+                .Aktor.Include(a => a.Quotes)
+                .Include(a => a.GamemodeTrackings)
+                // .Include(a => a.Party) // Hvis Party relation bruges direkte
+                .Where(a => a.navn != null) // Eksempel på filter
+                .ToListAsync();
+        }
     }
 }

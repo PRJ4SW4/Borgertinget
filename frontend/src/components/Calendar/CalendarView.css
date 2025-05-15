@@ -43,6 +43,9 @@
     border-radius: 6px;
     background-color: #ffffff;
     transition: box-shadow 0.2s ease-in-out;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   
   .event-item:hover {
@@ -70,7 +73,8 @@
   
   /* Container for title and location */
   .event-content {
-    flex-grow: 1; /* Allow content to take remaining space */
+    display: flex;
+    flex-direction: column;
   }
   
   /* Styling for the event title */
@@ -107,3 +111,49 @@
       font-weight: bold;
       font-style: normal;
   }
+
+  .interest-toggle-button {
+    padding: 6px 12px;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    min-width: 100px; 
+    transition: background-color 0.3s, color 0.3s ease;
+    text-align: center;
+  }
+
+  .interest-toggle-button.not-interested {
+  background-color: #f0f0f0; /* Lys grå baggrund for "ikke interesseret" */
+  color: #333;
+  border-color: #ccc;
+}
+
+.interest-toggle-button.not-interested:hover {
+  background-color: #e0e0e0;
+}
+
+.interest-toggle-button.interested {
+  background-color: #28a745; /* Grøn for "interesseret" */
+  color: white;
+}
+
+.interest-toggle-button.interested:hover {
+  background-color: #218838;
+}
+
+.event-interest {
+  padding-top: 10px;
+  display: flex; /* Gør denne div til en flex container */
+  flex-direction: column; /* Arranger tæller og knap vertikalt */
+  align-items: center; /* Juster indholdet (tæller og knap) til højre inden i denne div */
+  min-width: 120px;
+  margin-right: 4px;
+}
+
+.event-interest-count {
+  font-size: 0.8em;
+  color: #666;
+  margin-bottom: 5px; /* Lidt afstand ned til knappen */
+}

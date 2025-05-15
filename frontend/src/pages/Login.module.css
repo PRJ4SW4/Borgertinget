@@ -14,14 +14,14 @@ html, body {
 }
 
 /* ========== Containers & Layout ========== */
-.outer-wrapper {
+.outerWrapper {
   overflow: hidden;
   width: 100vw;
   height: 100vh;
   position: relative;
 }
 
-.login-container {
+.loginContainer {
   position: relative;
   overflow: hidden;
   min-width: 100vw;
@@ -32,13 +32,13 @@ html, body {
   font-family: 'Arial';
 }
 
-.login-container.shifted .image-section {
+.loginContainer.shifted .imageSection {
   transform: translateX(-100%);
 }
 
 /* ========== Login & Register Form Sections ========== */
-.login-form,
-.register-form {
+.loginForm,
+.registerForm {
   width: 50vw;
   min-height: 100%;
   padding: 2rem;
@@ -50,25 +50,25 @@ html, body {
   z-index: 1;
 }
 
-.login-form {
+.loginForm {
   flex-direction: column;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.login-form h1 {
+.loginForm h1 {
   margin-bottom: 0.5rem;
   font-size: 2rem;
   text-align: center;
 }
 
-.login-form h3 {
+.loginForm h3 {
   margin-bottom: 1rem;
   font-size: 1.5rem;
   text-align: center;
 }
 
 /* ========== Forms ========== */
-.form-container {
+.formContainer {
   width: 100%;
   max-width: 400px;
   display: flex;
@@ -77,7 +77,7 @@ html, body {
   align-items: center;
 }
 
-.form-content {
+.formContent {
   width: 100%;
   max-width: 400px;
   display: flex;
@@ -85,7 +85,7 @@ html, body {
   align-items: center;
 }
 
-.form-group {
+.formGroup {
   display: flex;
   flex-direction: column;
   margin-bottom: 0.5rem;
@@ -93,7 +93,7 @@ html, body {
   width: 100%;
 }
 
-.input-field {
+.inputField {
   width: 100%;
   padding: 12px;
   border: 1px solid #d1d5db;
@@ -118,19 +118,16 @@ html, body {
   transition: background-color 0.3s ease;
 }
 
+.forgotPasswordButton {
+  width: fit-content;
+}
+
 .button:hover {
   background-color: #b82626;
 }
 
 /* ========== Text & Links ========== */
-.forgot-password {
-  color: #882434;
-  margin-top: 8px;
-  font-weight: bold;
-  font-size: 0.8rem;
-}
-
-.link-text {
+.linkText {
   color: #882434;
   cursor: pointer;
   text-decoration: none;
@@ -138,11 +135,11 @@ html, body {
   font-weight: bold;
 }
 
-.link-text:hover {
+.linkText:hover {
   color: #b82626;
 }
 
-.no-account {
+.noAccount {
   width: 100%;
   text-align: center;
 }
@@ -164,7 +161,7 @@ html, body {
 }
 
 /* ========== Image Section ========== */
-.image-section {
+.imageSection {
   position: absolute;
   top: 0;
   left: 50vw;
@@ -179,7 +176,7 @@ html, body {
   pointer-events: none;
 }
 
-.image-section {
+.imageSection {
   width: 50%;
   vertical-align: middle;
   height: 100vh;
@@ -189,14 +186,14 @@ html, body {
   background-color: #c0bcbc;
 }
 
-.login-image {
+.loginImage {
   max-width: 80%;
   max-height: 80%;
   object-fit: contain;
 }
 
 /* ========== Google Login Button ========== */
-.google-login-button {
+.googleLoginButton {
   background-color: transparent;
   border: none;
   padding: 0;
@@ -212,17 +209,17 @@ html, body {
   transition: box-shadow 0.2s ease-in-out;
 }
 
-.google-login-button:hover {
+.googleLoginButton:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.google-login-button:focus {
+.googleLoginButton:focus {
   outline: 2px solid dodgerblue;
   outline-offset: 2px;
 }
 
 /* ========== Popup Modal ========== */
-.popup-overlay {
+.popupOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -235,7 +232,7 @@ html, body {
   z-index: 10;
 }
 
-.popup-content {
+.popupContent {
   position: relative;
   background-color: white;
   padding: 20px 30px;
@@ -246,7 +243,7 @@ html, body {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-.close-button {
+.closeButton {
   position: absolute;
   top: 10px;
   right: 15px;
@@ -257,7 +254,7 @@ html, body {
   color: #888;
 }
 
-.close-button:hover {
+.closeButton:hover {
   color: #000;
 }
 
@@ -292,7 +289,7 @@ html, body {
   color: #6b7280;
 }
 
-.move-right {
+.moveRight {
   z-index: 2;
   position: absolute;
   left: 50%;

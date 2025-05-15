@@ -3,7 +3,8 @@ namespace backend.Repositories.Calendar;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using backend.Models.Calendar; // For CalendarEvent
+using backend.Models;
+using backend.Models.Calendar;
 
 // Defines a contract for repository operations related to CalendarEvent entities.
 public interface ICalendarEventRepository
@@ -41,4 +42,14 @@ public interface ICalendarEventRepository
     // Method to retrieve all CalendarEvents from the data store.
     // This method is asynchronous and returns a collection of CalendarEvent objects.
     Task<IEnumerable<CalendarEvent>> GetAllEventsAsync();
+
+    Task<EventInterest?> RetrieveInterestPairsAsync(int eventId, string userId);
+
+    void AddEventInterest(EventInterest eventInterest);
+
+    void RemoveEventInterest(EventInterest eventInterest);
+
+    Task<User?> GetUserModelByIdStringAsync(string userId);
+
+    Task<int> GetInterestedUsersAsync(int eventId);
 }

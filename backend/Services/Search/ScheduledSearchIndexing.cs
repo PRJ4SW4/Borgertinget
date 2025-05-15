@@ -208,7 +208,6 @@ namespace backend.Services.Search // Adjust namespace if needed
             }
             // --- END TEMPORARY ---
 
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 TimeSpan delay; // Declare delay variable

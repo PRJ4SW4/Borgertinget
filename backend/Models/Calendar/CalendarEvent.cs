@@ -26,4 +26,8 @@ public class CalendarEvent
 
     // Track when the scraper last verified this event's data
     public DateTimeOffset LastScrapedUtc { get; set; }
+
+    // give reference til EventInterest
+    public virtual ICollection<EventInterest> InterestedUsers { get; set; } =
+        new List<EventInterest>();
 }

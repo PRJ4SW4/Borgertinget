@@ -1,6 +1,6 @@
 // Fil: Services/Utility/RandomProvider.cs
-using backend.Interfaces.Utility;
 using System;
+using backend.Interfaces.Utility;
 
 namespace backend.Services.Utility
 {
@@ -13,11 +13,12 @@ namespace backend.Services.Utility
         // private static Random Instance => _localRandom ??= new Random();
 
         // Simplere singleton approach (mindre robust ved høj concurrency)
-         private static readonly Random _random = new Random();
-
+        private static readonly Random _random = new Random();
 
         public int Next(int maxValue) => _random.Next(maxValue);
+
         public int Next(int minValue, int maxValue) => _random.Next(minValue, maxValue);
+
         public double NextDouble() => _random.NextDouble();
     }
 }
