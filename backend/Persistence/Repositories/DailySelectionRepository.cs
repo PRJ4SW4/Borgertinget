@@ -42,5 +42,18 @@ namespace backend.Persistence.Repositories
              await _context.DailySelections.AddRangeAsync(selections);
              // SaveChangesAsync kaldes centralt (f.eks. i service eller Unit of Work)
         }
+
+        public async Task DeleteByDateAsync(DateOnly date)
+        {
+            var selectionsToDelete = await _context.DailySelections
+                .Where(ds => ds.SelectionDate == date)
+                .ToListAsync();
+
+            if (selectionsToDelete.Any())
+            {
+                _context.DailySelections.RemoveRange(selectionsToDelete);
+                // SaveChangesAsync kaldes centralt i servicen indenfor transaktionen
+            }
+        }
     }
 }
