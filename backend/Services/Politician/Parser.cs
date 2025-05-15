@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 namespace backend.Services.Politician
 {
@@ -49,124 +49,84 @@ namespace backend.Services.Politician
 
                 if (memberElement == null || memberElement.Name != "member")
                 {
-                    // Optionally log or handle cases where the root is not <member>
-                    Console.WriteLine(
-                        "Warning: Biography XML root element is not <member> or is null."
-                    );
-                    return extractedData; // Return empty if structure is unexpected
+                     // Optionally log or handle cases where the root is not <member>
+                     Console.WriteLine("Warning: Biography XML root element is not <member> or is null.");
+                     return extractedData; // Return empty if structure is unexpected
                 }
 
                 // --- Direct Elements ---
                 extractedData["Status"] = memberElement.Element("status")?.Value ?? "";
                 extractedData["Sex"] = memberElement.Element("sex")?.Value ?? "";
-                extractedData["EducationStatistic"] =
-                    memberElement.Element("educationStatistic")?.Value ?? "";
+                extractedData["EducationStatistic"] = memberElement.Element("educationStatistic")?.Value ?? "";
                 extractedData["Party"] = memberElement.Element("party")?.Value ?? "";
-                extractedData["PartyShortname"] =
-                    memberElement.Element("partyShortname")?.Value ?? "";
+                extractedData["PartyShortname"] = memberElement.Element("partyShortname")?.Value ?? "";
                 extractedData["Born"] = memberElement.Element("born")?.Value ?? "";
                 extractedData["PictureMiRes"] = memberElement.Element("pictureMiRes")?.Value ?? "";
-                // Note: firstname & lastname are handled by the main API fields, but parsed here if needed elsewhere
-                extractedData["firstname_from_bio"] =
-                    memberElement.Element("firstname")?.Value ?? "";
+                extractedData["firstname_from_bio"] = memberElement.Element("firstname")?.Value ?? "";
                 extractedData["lastname_from_bio"] = memberElement.Element("lastname")?.Value ?? "";
-                // Add other direct elements if needed (e.g., PhoneFolketinget, OccupationStatistic)
-                // extractedData["PhoneFolketinget"] = memberElement.Element("phoneFolketinget")?.Value ?? "";
-                // extractedData["OccupationStatistic"] = memberElement.Element("occupationStatistic")?.Value ?? "";
 
                 // --- Nested Elements ---
 
                 // Email (Single)
-                extractedData["Email"] =
-                    memberElement.Element("emails")?.Element("email")?.Value ?? "";
+                extractedData["Email"] = memberElement.Element("emails")?.Element("email")?.Value ?? "";
 
                 // Personal Information -> Function
-                XElement? function = memberElement
-                    .Element("personalInformation")
-                    ?.Element("function");
-                extractedData["FunctionFormattedTitle"] =
-                    function?.Element("formattedTitle")?.Value ?? ""; // Or formattedTitles if preferred
-                extractedData["FunctionStartDate"] =
-                    function?.Element("functionStartDate")?.Value ?? "";
+                XElement? function = memberElement.Element("personalInformation")?.Element("function");
+                extractedData["FunctionFormattedTitle"] = function?.Element("formattedTitle")?.Value ?? "";
+                extractedData["FunctionStartDate"] = function?.Element("functionStartDate")?.Value ?? "";
 
                 // Career Elements
                 XElement? career = memberElement.Element("career");
 
                 // Constituencies (List)
-                extractedData["Constituencies"] =
-                    career
-                        ?.Element("constituencies")
-                        ?.Elements("constituency")
-                        .Select(el => el.Value.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList() ?? new List<string>();
+                extractedData["Constituencies"] = career?.Element("constituencies")
+                                                   ?.Elements("constituency")
+                                                   .Select(el => el.Value.Trim())
+                                                   .Where(s => !string.IsNullOrEmpty(s))
+                                                   .ToList() ?? new List<string>();
 
                 // Nominations (List)
-                extractedData["Nominations"] =
-                    career
-                        ?.Element("nominations")
-                        ?.Elements("nomination")
-                        .Select(el => el.Value.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList() ?? new List<string>();
+                extractedData["Nominations"] = career?.Element("nominations")
+                                                 ?.Elements("nomination")
+                                                 .Select(el => el.Value.Trim())
+                                                 .Where(s => !string.IsNullOrEmpty(s))
+                                                 .ToList() ?? new List<string>();
 
                 // Parliamentary Positions Of Trust (List) - Fixed Parsing
-                extractedData["ParliamentaryPositionsOfTrust"] =
-                    career
-                        ?.Element("parliamentaryPositionsOfTrust")
-                        ?.Elements("parliamentaryPositionOfTrust")
-                        .Select(el => Regex.Replace(el.Value, "<.*?>", string.Empty).Trim()) // Basic HTML tag stripping
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList() ?? new List<string>();
+                extractedData["ParliamentaryPositionsOfTrust"] = career?.Element("parliamentaryPositionsOfTrust")
+                                                                   ?.Elements("parliamentaryPositionOfTrust")
+                                                                   .Select(el => Regex.Replace(el.Value, "<.*?>", string.Empty).Trim())
+                                                                   .Where(s => !string.IsNullOrEmpty(s))
+                                                                   .ToList() ?? new List<string>();
                 // Add Ministers if needed
-                extractedData["Ministers"] =
-                    career
-                        ?.Element("ministers")
-                        ?.Elements("minister")
-                        .Select(el => el.Value.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList() ?? new List<string>();
+                extractedData["Ministers"] = career?.Element("ministers")?.Elements("minister").Select(el => el.Value.Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList() ?? new List<string>();
+
 
                 // Educations (List)
-                extractedData["Educations"] =
-                    memberElement
-                        .Element("educations")
-                        ?.Elements("education")
-                        .Select(el => el.Value.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList() ?? new List<string>();
+                extractedData["Educations"] = memberElement.Element("educations")
+                                                ?.Elements("education")
+                                                .Select(el => el.Value.Trim())
+                                                .Where(s => !string.IsNullOrEmpty(s))
+                                                .ToList() ?? new List<string>();
 
                 // Occupations (List)
-                extractedData["Occupations"] =
-                    memberElement
-                        .Element("occupations")
-                        ?.Elements("occupation")
-                        .Select(el => el.Value.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList() ?? new List<string>();
+                extractedData["Occupations"] = memberElement.Element("occupations")
+                                               ?.Elements("occupation")
+                                               .Select(el => el.Value.Trim())
+                                               .Where(s => !string.IsNullOrEmpty(s))
+                                               .ToList() ?? new List<string>();
 
                 // Positions Of Trust (Single Text Field - might contain HTML)
-                extractedData["PositionsOfTrust"] =
-                    memberElement.Element("positionsOfTrust")?.Element("editorFormattedText")?.Value
-                    ?? // Check if positionOfTrust element exists instead sometimes
-                    memberElement.Element("positionsOfTrust")?.Element("positionOfTrust")?.Value
-                    ?? "";
+                extractedData["PositionsOfTrust"] = memberElement.Element("positionsOfTrust")?.Element("editorFormattedText")?.Value ??
+                                                    memberElement.Element("positionsOfTrust")?.Element("positionOfTrust")?.Value ?? "";
 
                 // Publications
-                string? publicationsText = memberElement
-                    .Element("publications")
-                    ?.Element("editorFormattedText")
-                    ?.Value;
+                string? publicationsText = memberElement.Element("publications")?.Element("editorFormattedText")?.Value;
                 extractedData["PublicationTitles"] = ExtractPublicationTitles(publicationsText);
 
-                // Add Spokesmen if needed
-                extractedData["Spokesmen"] =
-                    memberElement
-                        .Element("spokesmen")
-                        ?.Elements("spokesman")
-                        .Select(el => el.Value.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList() ?? new List<string>();
+                 // Add Spokesmen if needed
+                extractedData["Spokesmen"] = memberElement.Element("spokesmen")?.Elements("spokesman").Select(el => el.Value.Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList() ?? new List<string>();
+
             }
             catch (System.Xml.XmlException ex)
             {
@@ -175,9 +135,7 @@ namespace backend.Services.Politician
             }
             catch (Exception ex) // Catch other potential errors during parsing
             {
-                Console.WriteLine(
-                    $"An unexpected error occurred during biography parsing: {ex.Message}"
-                );
+                 Console.WriteLine($"An unexpected error occurred during biography parsing: {ex.Message}");
             }
 
             return extractedData;

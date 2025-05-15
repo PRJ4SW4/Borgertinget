@@ -18,7 +18,7 @@ using OpenSearch.Net;
 
 namespace backend.Services.Search
 {
-    public class SearchIndexingService
+    public class SearchIndexingService : ISearchIndexService
     {
         private readonly IOpenSearchClient _openSearchClient;
         private readonly DataContext _dbContext;
