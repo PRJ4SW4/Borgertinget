@@ -32,9 +32,10 @@ Repository for project group 4 2025's Web-App: Borgertinget
 # Endpoint order
 
 1. Go to http://localhost:5218/swagger/index.html in a browser.
-2. Run the "/api/Aktor/fetch" endpoint
-3. Run the "/api/Calendar/run-calendar-scraper" endpoint
-4. Run the "/api/polidle/admin/seed-all-aktor-quotes" endpoint
-5. Run the "/api/polidle/admin/generate-today" endpoint
+2. Run the _"/api/Aktor/fetch"_ endpoint
+3. Run the _"/api/Calendar/run-calendar-scraper"_ endpoint
+4. Run the _"/api/polidle/admin/seed-all-aktor-quotes"_ endpoint
+5. Run the _"/api/polidle/admin/generate-today"_ endpoint
+6. Run the _"/api/search/ensure-and-reindex"_ endpoint
 
 **All functionality should now be working, the twitter feed will take a while to warm up as we can only pull from their API one politician at a time every 16 minutes**
