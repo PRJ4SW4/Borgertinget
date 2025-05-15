@@ -9,9 +9,13 @@ namespace backend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; } // Unik id
         public string? biografi { get; set; } = string.Empty; // Biografi for personen eller gruppen
+        public string? biografi { get; set; } = string.Empty; // Biografi for personen eller gruppen
         public string? fornavn { get; set; } = string.Empty; //fornavn for personen
         public string? efternavn { get; set; } = string.Empty; //efternavn for personen
         public int? typeid { get; set; } //Type(Udvalg, Parlamentarisk forsamling, Anden gruppe, Folketingsgruppe, Kommission, Ministerområde, Ministertitel)
+        public string? gruppeNavnKort { get; set; } = string.Empty; //Forkortelse - hvis aktøren er en gruppe (udvalg, kommission, folketingsgruppe)
+        public string? navn { get; set; } = string.Empty; //Personens for- og efternavn - ellers lang form af navn
+        public DateTime opdateringsdato { get; set; } // Dato for opdatering
         public string? gruppeNavnKort { get; set; } = string.Empty; //Forkortelse - hvis aktøren er en gruppe (udvalg, kommission, folketingsgruppe)
         public string? navn { get; set; } = string.Empty; //Personens for- og efternavn - ellers lang form af navn
         public DateTime opdateringsdato { get; set; } // Dato for opdatering
@@ -33,6 +37,7 @@ namespace backend.Models
         public string? Email { get; set; }
 
         public string? MinisterTitel { get; set; }
+        public string? MinisterTitel { get; set; }
 
         // json collections
         public List<string>? Ministers { get; set; }
@@ -40,6 +45,7 @@ namespace backend.Models
         public List<string>? ParliamentaryPositionsOfTrust { get; set; }
         public List<string>? Constituencies { get; set; }
         public List<string>? Nominations { get; set; }
+        public List<string>? Educations { get; set; }
         public List<string>? Educations { get; set; }
         public List<string>? Occupations { get; set; }
         public List<string>? PublicationTitles { get; set; }
@@ -49,11 +55,19 @@ namespace backend.Models
         public virtual ICollection<PoliticianQuote> Quotes { get; set; } =
             new List<PoliticianQuote>();
 
+        public virtual ICollection<PoliticianQuote> Quotes { get; set; } =
+            new List<PoliticianQuote>();
+
         //* GamemodeTracker
         public virtual ICollection<GamemodeTracker> GamemodeTrackings { get; set; } =
             new List<GamemodeTracker>();
 
+        public virtual ICollection<GamemodeTracker> GamemodeTrackings { get; set; } =
+            new List<GamemodeTracker>();
+
         //* DailySelection
+        public virtual ICollection<DailySelection> DailySelections { get; set; } =
+            new List<DailySelection>();
         public virtual ICollection<DailySelection> DailySelections { get; set; } =
             new List<DailySelection>();
         #endregion

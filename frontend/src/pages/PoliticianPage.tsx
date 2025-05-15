@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { IAktor } from '../types/Aktor';
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { IAktor } from "../types/Aktor";
 import "./PoliticianPage.css";
 // Consider adding a default image import if you need one for onError
-// import DefaultPic from "../images/defaultPic.jpg";
-
 //Af Jakob, dette er til subscribe knappen
-import SubscribeButton from '../components/FeedComponents/SubscribeButton';
-import { getSubscriptions } from '../services/tweetService';
+import SubscribeButton from "../components/FeedComponents/SubscribeButton";
+import { getSubscriptions } from "../services/tweetService";
 
 const PoliticianPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -46,14 +44,11 @@ const PoliticianPage: React.FC = () => {
               errorMsg = errorBody.message || errorBody.title || errorMsg;
             } catch { //Deliberately empty
             }
-            throw new Error(errorMsg); // Throw the consolidated error message
+            throw new Error(errorMsg);
           }
         }
-
-        // Only parse JSON if response is OK
         const data: IAktor = await response.json();
         setPolitician(data);
-
       } catch (err: unknown) {
         console.error("Fetch error:", err);
         let message = `Kunne ikke hente data for politiker ${id}`;
@@ -72,14 +67,15 @@ const PoliticianPage: React.FC = () => {
     fetchPolitician();
   }, [id]);
 
-
   // Af Jakob, dette er til subscribe knappen
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
-      if (politician && politician.id) { // KORREKT: aktørId → id
+      if (politician && politician.id) {
+        // KORREKT: aktørId → id
         try {
           // Hent brugerens eksisterende abonnementer
           const subscriptions = await getSubscriptions();
+
 
           // Find Twitter ID via lookup-API'et (behold aktorId som parameter i URL)
           const token = localStorage.getItem('jwt');
@@ -90,30 +86,48 @@ const PoliticianPage: React.FC = () => {
             headers: {
               'Authorization': `Bearer ${cleanToken}`
             }
-          });
+          );
 
           if (lookupResponse.ok) {
             const lookupData = await lookupResponse.json();
             setTwitterId(lookupData.politicianTwitterId);
 
+
             // Tjek om politikeren allerede følges
-            setIsSubscribed(subscriptions.some(sub => sub.id === lookupData.politicianTwitterId));
+            setIsSubscribed(
+              subscriptions.some(
+                (sub) => sub.id === lookupData.politicianTwitterId
+              )
+            );
           } else {
-            console.error('Kunne ikke finde Twitter ID for denne politiker');
+            console.error("Kunne ikke finde Twitter ID for denne politiker");
           }
         } catch (error) {
-          console.error('Fejl ved tjek af abonnementsstatus:', error);
+          console.error("Fejl ved tjek af abonnementsstatus:", error);
         }
       }
     };
 
+
     checkSubscriptionStatus();
   }, [politician]);
 
-
-  if (loading) return <div className="loading-message">Henter politiker detaljer...</div>;
-  if (error) return <div className="error-message">Fejl: {error} <Link to="/">Tilbage til forsiden</Link></div>;
-  if (!politician) return <div className="info-message">Politikerdata er ikke tilgængelig. <Link to="/">Tilbage til forsiden</Link></div>;
+  // --- Loading & Error States ---
+  if (loading)
+    return <div className="loading-message">Henter politiker detaljer...</div>;
+  if (error)
+    return (
+      <div className="error-message">
+        Fejl: {error} <Link to="/">Tilbage til forsiden</Link>
+      </div>
+    );
+  if (!politician)
+    return (
+      <div className="info-message">
+        Politikerdata er ikke tilgængelig.{" "}
+        <Link to="/">Tilbage til forsiden</Link>
+      </div>
+    );
 
   return (
     <div className="politician-page">
@@ -125,13 +139,12 @@ const PoliticianPage: React.FC = () => {
           <Link to="/parties">← Tilbage til partioversigt</Link> // Fallback to general parties list
         )}
       </nav>
-
       {/* Gray Information Box */}
       <div className="info-box">
         {politician.pictureMiRes ? ( // Use ternary for cleaner conditional rendering
           <img
             src={politician.pictureMiRes}
-            alt={`Portræt af ${politician.navn || 'Politiker'}`} // Danish alt text
+            alt={`Portræt af ${politician.navn || "Politiker"}`} // Danish alt text
             className="info-box-photo"
             onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
               const imgElement = e.target as HTMLImageElement;
@@ -141,11 +154,14 @@ const PoliticianPage: React.FC = () => {
           />
         ) : (
           <div className="info-box-photo-placeholder">Intet billede</div> // Danish
+          <div className="info-box-photo-placeholder">Intet billede</div> // Danish
         )}
         <h4>Navn</h4>
-        <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : (politician.navn || 'Ukendt')}</p>
-
-
+        <p>
+          {politician.fornavn && politician.efternavn
+            ? `${politician.fornavn} ${politician.efternavn}`
+            : politician.navn || "Ukendt"}
+        </p>
 
         {/*Subscribe*/}
         {twitterId !== null && (
@@ -165,11 +181,17 @@ const PoliticianPage: React.FC = () => {
               {politician.party}
             </Link>
           ) : (
-            politician.partyShortname || 'Partiløs/Ukendt' // Show shortname or indicate independent/unknown
+            politician.partyShortname || "Partiløs/Ukendt" // Show shortname or indicate independent/unknown
           )}
         </p>
         <h4>Email</h4>
-        <p>{politician.email ? <a href={`mailto:${politician.email}`}>{politician.email}</a> : 'Ikke tilgængelig'}</p>
+        <p>
+          {politician.email ? (
+            <a href={`mailto:${politician.email}`}>{politician.email}</a>
+          ) : (
+            "Ikke tilgængelig"
+          )}
+        </p>
 
         {/* Conditional rendering for lists inside the info-box */}
         {politician.educations && politician.educations.length > 0 && (
@@ -204,14 +226,90 @@ const PoliticianPage: React.FC = () => {
         </section>
 
         {/* Display other lists NOT in the info-box */}
-        {politician.publicationTitles && politician.publicationTitles.length > 0 && (
+        {politician.publicationTitles &&
+          politician.publicationTitles.length > 0 && (
+            <>
+              <section className="detail-section">
+                <h3>Baggrund</h3>
+                <p className="detail-content-placeholder">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
+                  id commodo dolor. Class aptent taciti sociosqu ad litora
+                  torquent per conubia nostra, per inceptos himenaeos.
+                  Suspendisse fermentum nisi a venenatis hendrerit. Curabitur
+                  mauris nunc, sodales ac lacinia eget, consectetur et arcu.
+                </p>
+                {/* Add more placeholder text or logic to extract from biografi */}
+              </section>
+            </>
+          )}
+
+        <section className="detail-section">
+          <h3>Begyndende politisk karriere</h3>
+          <p className="detail-content-placeholder">
+            Integer feugiat tempus venenatis. Sed tempor massa tortor, fringilla
+            suscipit ante eleifend ac. Proin sit amet vestibulum nulla. Maecenas
+            et turpis sit amet lectus commodo facilisis ac sed leo. Donec a
+            lacinia libero, id placerat urna.
+            {/* Add more placeholder text or logic to extract from biografi */}
+          </p>
+        </section>
+
+        {/* --- Existing Sections Moved Here --- */}
+        {politician.ministertitel && (
           <section className="detail-section">
-            <h3>Forfatterskab</h3>
+            <h3>Nuværende minister post</h3>
+            <p>{politician.ministertitel}</p>
+          </section>
+        )}
+        {politician.ministers && politician.ministers.length > 0 && (
+          <section className="detail-section">
+            <h3>Ministerposter</h3>
             <ul>
-              {politician.publicationTitles.map((title, index) => <li key={`pub-${index}`}>{title}</li>)}
+              {politician.ministers.map((min, index) => (
+                <li key={`min-${index}`}>{min}</li>
+              ))}
             </ul>
           </section>
         )}
+        {politician.spokesmen && politician.spokesmen.length > 0 && (
+          <section className="detail-section">
+            <h3>Ordførerskaber</h3>
+            <ul>
+              {politician.spokesmen.map((spk, index) => (
+                <li key={`spk-${index}`}>{spk}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {politician.parliamentaryPositionsOfTrust &&
+          politician.parliamentaryPositionsOfTrust.length > 0 && (
+            <section className="detail-section">
+              <h3>Forfatterskab</h3>
+              <ul>
+                {politician.parliamentaryPositionsOfTrust.map(
+                  (ptrust, index) => (
+                    <li key={`ptrust-${index}`}>{ptrust}</li>
+                  )
+                )}
+              </ul>
+            </section>
+          )}
+        {politician.positionsOfTrust &&
+          politician.positionsOfTrust.length > 0 && (
+            <section className="detail-section">
+              <h3>Tillidshverv (ikke-parliamentarisk)</h3>
+              {/* Check if it's a simple string or needs mapping */}
+              {typeof politician.positionsOfTrust === "string" ? (
+                <p>{politician.positionsOfTrust}</p> // Render directly if string
+              ) : (
+                <ul>
+                  {politician.positionsOfTrust.map((trust, index) => (
+                    <li key={`trust-${index}`}>{trust}</li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
         {politician.nominations && politician.nominations.length > 0 && (
           <section className="detail-section">
             <h3>Kandidaturer</h3>
@@ -223,8 +321,11 @@ const PoliticianPage: React.FC = () => {
         {politician.occupations && politician.occupations.length > 0 && (
           <section className="detail-section">
             <h3>Beskæftigelse</h3>
+            <h3>Beskæftigelse</h3>
             <ul>
-              {politician.occupations.map((occ, index) => <li key={`occ-${index}`}>{occ}</li>)}
+              {politician.occupations.map((occ, index) => (
+                <li key={`occ-${index}`}>{occ}</li>
+              ))}
             </ul>
           </section>
         )}

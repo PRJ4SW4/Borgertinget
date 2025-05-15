@@ -130,7 +130,6 @@ namespace backend.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Roles = table.Column<List<string>>(type: "text[]", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -239,7 +238,8 @@ namespace backend.Migrations
                 name: "PoliticianQuotes",
                 columns: table => new
                 {
-                    QuoteId = table.Column<int>(type: "integer", nullable: false),
+                    QuoteId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     QuoteText = table.Column<string>(type: "text", nullable: false),
                     AktorId = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -583,8 +583,8 @@ namespace backend.Migrations
                 columns: new[] { "CollectionId", "Description", "DisplayOrder", "Title" },
                 values: new object[,]
                 {
-                    { 1, null, 1, "Politikerne og deres navne" },
-                    { 2, null, 2, "Politiske begreber" }
+                    { 1, "Kendte danske politikere", 1, "Politikere" },
+                    { 2, "Grundlæggende politiske termer", 2, "Politiske Begreber" }
                 });
 
             migrationBuilder.InsertData(
@@ -601,6 +601,20 @@ namespace backend.Migrations
                     { 2, null, "Venstre, Danmarks Liberale Parti", "venstredk", "123868861" },
                     { 3, null, "Troels Lund Poulsen", "troelslundp", "2965907578" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { 1, "92399EC2-C4C4-4E0C-B9C1-A45A2A17A52C", "Admin", "ADMIN" },
+                    { 2, "A7D8F9A0-E1B2-4C3D-8E4F-5A6B7C8D9E0F", "User", "USER" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
+                values: new object[] { 100, 0, "9a90d138-772e-44b1-b052-18d591edef58", "superuser@borgertinget.dk", true, false, null, "SUPERUSER@BORGERTINGET.DK", "BORGERTINGET_SUPERUSER", "AQAAAAIAAYagAAAAEKkiDske0hqRbm0MzBQA++YPro6ISatyzOkYw3/ub4jrRtunkiomRLA2H3vP1i6E9A==", null, false, "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH", false, "borgertinget_superuser" });
 
             migrationBuilder.InsertData(
                 table: "Flashcards",
@@ -624,8 +638,8 @@ namespace backend.Migrations
                 columns: new[] { "Id", "CreatedAt", "EndedAt", "PoliticianTwitterId", "Question" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2025, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc), null, 1, "Hvad synes du om den nye bro?" },
-                    { 2, new DateTime(2025, 4, 28, 14, 30, 0, 0, DateTimeKind.Utc), null, 1, "Skal Danmark øge investeringer i vedvarende energi?" }
+                    { 1, new DateTime(2025, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc), null, 3, "Hvad synes du om den nye bro?" },
+                    { 2, new DateTime(2025, 4, 28, 14, 30, 0, 0, DateTimeKind.Utc), null, 3, "Skal Danmark øge investeringer i vedvarende energi?" }
                 });
 
             migrationBuilder.InsertData(
@@ -635,6 +649,15 @@ namespace backend.Migrations
                 {
                     { 1, 1, "Hvad beskæftiger politologi sig primært med?" },
                     { 2, 1, "Hvilket begreb dækker over fordelingen af autoritet i et samfund?" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "UserRoles",
+                columns: new[] { "RoleId", "UserId" },
+                values: new object[,]
+                {
+                    { 1, 100 },
+                    { 2, 100 }
                 });
 
             migrationBuilder.InsertData(

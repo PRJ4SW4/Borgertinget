@@ -23,7 +23,12 @@ namespace backend.Services
             var emailSettings = _config.GetSection("Email");
 
             var host = emailSettings["SmtpServer"];
-            var port = int.Parse(emailSettings["SmtpPort"]);
+            var portString = emailSettings["SmtpPort"];
+            if (string.IsNullOrEmpty(portString))
+            {
+                throw new ArgumentNullException("SmtpPort", "SMTP port is not configured.");
+            }
+            var port = int.Parse(portString);
             var username = emailSettings["Username"];
             var password = emailSettings["Password"];
             var fromEmail = emailSettings["FromEmail"];

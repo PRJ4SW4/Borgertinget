@@ -18,7 +18,7 @@ namespace backend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -50,6 +50,22 @@ namespace backend.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("Roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ConcurrencyStamp = "92399EC2-C4C4-4E0C-B9C1-A45A2A17A52C",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ConcurrencyStamp = "A7D8F9A0-E1B2-4C3D-8E4F-5A6B7C8D9E0F",
+                            Name = "User",
+                            NormalizedName = "USER"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -134,6 +150,18 @@ namespace backend.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("UserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 100,
+                            RoleId = 1
+                        },
+                        new
+                        {
+                            UserId = 100,
+                            RoleId = 2
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -433,14 +461,16 @@ namespace backend.Migrations
                         new
                         {
                             CollectionId = 1,
+                            Description = "Kendte danske politikere",
                             DisplayOrder = 1,
-                            Title = "Politikerne og deres navne"
+                            Title = "Politikere"
                         },
                         new
                         {
                             CollectionId = 2,
+                            Description = "Grundlæggende politiske termer",
                             DisplayOrder = 2,
-                            Title = "Politiske begreber"
+                            Title = "Politiske Begreber"
                         });
                 });
 
@@ -878,14 +908,14 @@ namespace backend.Migrations
                         {
                             Id = 1,
                             CreatedAt = new DateTime(2025, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PoliticianTwitterId = 1,
+                            PoliticianTwitterId = 3,
                             Question = "Hvad synes du om den nye bro?"
                         },
                         new
                         {
                             Id = 2,
                             CreatedAt = new DateTime(2025, 4, 28, 14, 30, 0, 0, DateTimeKind.Utc),
-                            PoliticianTwitterId = 1,
+                            PoliticianTwitterId = 3,
                             Question = "Skal Danmark øge investeringer i vedvarende energi?"
                         });
                 });
@@ -1077,10 +1107,6 @@ namespace backend.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
-                    b.PrimitiveCollection<List<string>>("Roles")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
@@ -1101,6 +1127,24 @@ namespace backend.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 100,
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "9a90d138-772e-44b1-b052-18d591edef58",
+                            Email = "superuser@borgertinget.dk",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "SUPERUSER@BORGERTINGET.DK",
+                            NormalizedUserName = "BORGERTINGET_SUPERUSER",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKkiDske0hqRbm0MzBQA++YPro6ISatyzOkYw3/ub4jrRtunkiomRLA2H3vP1i6E9A==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH",
+                            TwoFactorEnabled = false,
+                            UserName = "borgertinget_superuser"
+                        });
                 });
 
             modelBuilder.Entity("backend.Models.UserVote", b =>

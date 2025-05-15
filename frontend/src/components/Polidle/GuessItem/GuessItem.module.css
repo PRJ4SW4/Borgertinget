@@ -61,12 +61,12 @@
   width: 60px;
   height: 60px;
   border-radius: 4px;
-  background-color: #e0e0e0;
+  background-color: black;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  color: #777;
+  color: black;
   font-size: 1.5em;
   margin-bottom: 5px;
 }
@@ -74,24 +74,24 @@
 /* Farver for feedback på individuelle celler */
 .correct {
   background-color: #a7f3d0; /* Lysegrøn */
-  color: #065f46; /* Mørkere grøn tekst */
+  color: black; /* Mørkere grøn tekst */
 }
 
 .incorrect {
   background-color: #fecaca; /* Lyserød */
-  color: #991b1b; /* Mørkere rød tekst */
+  color: black; /* Mørkere rød tekst */
 }
 
 .higher,
 .lower {
-  background-color: #ef4444; /* Rød baggrund for højere/lavere indikation */
-  color: white; /* Hvid tekst/tal for kontrast */
+  background-color: #fecaca; /* Rød baggrund for højere/lavere indikation */
+  color: black; /* Hvid tekst/tal for kontrast */
 }
 
 .arrow {
   font-size: 1.5em;
   line-height: 1;
-  color: white; /* Sørg for at pilen også er hvid på rød baggrund */
+  color: black; /* Sørg for at pilen også er hvid på rød baggrund */
 }
 
 .unknownFeedback {

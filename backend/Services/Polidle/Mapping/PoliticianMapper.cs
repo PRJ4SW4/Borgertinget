@@ -31,9 +31,10 @@ namespace backend.Services.Mapping
              string? region = aktor.Constituencies?.FirstOrDefault(); // Tag første valgkreds
              string? uddannelse = aktor.Educations?.FirstOrDefault() ?? aktor.EducationStatistic; // Tag første udd. eller statistik
 
-             // Hent parti navn
-             // string partiNavn = aktor.Party?.Name ?? "Ukendt Parti"; // Hvis Party er navigation property
-              string partiNavn = aktor.Party ?? "Ukendt Parti"; // Hvis Party er string property
+             // Use PartyShortname if available, otherwise fallback to full Party name, then "Ukendt Parti"
+            string partyDisplayValue = !string.IsNullOrWhiteSpace(aktor.PartyShortname) 
+                                        ? aktor.PartyShortname 
+                                        : (!string.IsNullOrWhiteSpace(aktor.Party) ? aktor.Party : "Ukendt Parti");
 
 
              int age = CalculateAge(aktor.Born, _dateTimeProvider.TodayUtc); // Brug IDateTimeProvider
@@ -45,7 +46,7 @@ namespace backend.Services.Mapping
                  PolitikerNavn = aktor.navn ?? "N/A",
                  PictureUrl = aktor.PictureMiRes,
                  Køn = aktor.Sex,
-                 Parti = partiNavn,
+                 PartyShortname = partyDisplayValue,
                  Age = age,
                  Region = region,
                  Uddannelse = uddannelse,
@@ -79,30 +80,27 @@ namespace backend.Services.Mapping
           // (Kan også flyttes til en statisk DateUtils klasse)
           private int CalculateAge(string? dateOfBirthString, DateOnly referenceDate)
           {
-              if (string.IsNullOrEmpty(dateOfBirthString)) return 0; // Eller kast fejl?
+            if (string.IsNullOrEmpty(dateOfBirthString)){
+                return 0;
+            }
 
-              try
-              {
-                  // Forsøg at parse strengen. Antag UTC hvis ingen offset.
-                  if (DateTime.TryParse(dateOfBirthString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AllowWhiteSpaces, out var dob))
-                  {
-                      DateOnly dateOfBirth = DateOnly.FromDateTime(dob);
-                      int age = referenceDate.Year - dateOfBirth.Year;
-                      if (referenceDate.DayOfYear < dateOfBirth.DayOfYear) { age--; }
-                      return Math.Max(0, age);
-                  }
-                  else
-                  {
-                      _logger.LogWarning("Could not parse DateOfBirth string '{DateOfBirthString}'. Returning age 0.", dateOfBirthString);
-                      return 0;
-                  }
-              }
-              catch (Exception ex)
-              {
-                  _logger.LogError(ex, "Error calculating age from Born='{DateOfBirthString}'. Returning age 0.", dateOfBirthString);
-                  return 0;
-                  // Kast evt. videre som InvalidOperationException hvis alder er kritisk for DTO'en
-              }
+            try{
+                if(DateTime.TryParse(dateOfBirthString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AllowWhiteSpaces, out var dobDateTime)){
+                    DateOnly dateOfBirth = DateOnly.FromDateTime(dobDateTime);
+
+                    int age = referenceDate.Year - dateOfBirth.Year;
+
+                    if(referenceDate.Year < dateOfBirth.DayOfYear){
+                        --age;
+                    }
+
+                    return Math.Max(0, age);
+                } else{
+                    return 0;
+                }
+            }catch(Exception ex){
+                return 0;
+            }
           }
     }
 }

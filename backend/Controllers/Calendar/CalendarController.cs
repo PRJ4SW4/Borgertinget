@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using backend.DTO.Calendar;
 using backend.Services.Calendar;
 using backend.Services.Calendar.Scraping;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -82,4 +83,138 @@ public class CalendarController : ControllerBase
             return StatusCode(500, "An internal error occurred while fetching events.");
         }
     }
+
+    #region Admin Endpoints Post/Put/Delete
+
+    // Defines an HTTP POST endpoint for creating a new calendar event.
+    [HttpPost("events")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<CalendarEventDTO>> CreateEvent(
+        [FromBody] CalendarEventDTO calendarEventDto
+    )
+    {
+        // Logs an information message indicating that the attempt to create a new calendar event has started.
+        _logger.LogInformation("Attempting to create a new calendar event via service.");
+
+        if (string.IsNullOrEmpty(calendarEventDto.SourceUrl))
+        {
+            _logger.LogWarning("SourceUrl is required but was not provided.");
+            return BadRequest("SourceUrl is required.");
+        }
+
+        try
+        {
+            var createdEventDto = await _calendarService.CreateEventAsync(calendarEventDto);
+
+            // Returns an HTTP 201 Created response with the created event DTO.
+            return CreatedAtAction(
+                nameof(GetEvents),
+                new { id = createdEventDto.Id },
+                createdEventDto
+            );
+        }
+        catch (Exception ex)
+        {
+            // Logs any errors that occur during the creation process.
+            _logger.LogError(
+                ex,
+                "An error occurred while creating a new calendar event via service."
+            );
+            // Returns an HTTP 500 Internal Server Error response with a generic error message.
+            return StatusCode(500, "An internal error occurred while creating the event.");
+        }
+    }
+
+    // Defines an HTTP PUT endpoint for updating an existing calendar event.
+    [HttpPut("events/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateEvent(
+        int id,
+        [FromBody] CalendarEventDTO calendarEventDto
+    )
+    {
+        _logger.LogInformation($"Attempting to update calendar event with ID: {id} via service.");
+
+        if (id != calendarEventDto.Id)
+        {
+            _logger.LogWarning($"Mismatched ID in URL ({id}) and body ({calendarEventDto.Id}).");
+            return BadRequest("ID in URL and body must match.");
+        }
+
+        if (string.IsNullOrEmpty(calendarEventDto.SourceUrl))
+        {
+            _logger.LogWarning($"SourceUrl is required but was not provided for event ID: {id}.");
+            return BadRequest("SourceUrl is required.");
+        }
+
+        try
+        {
+            var success = await _calendarService.UpdateEventAsync(id, calendarEventDto);
+
+            if (!success)
+            {
+                _logger.LogWarning(
+                    $"Calendar event with ID: {id} not found for update via service, or update failed."
+                );
+                return NotFound(); // Or appropriate error if update failed for other reasons
+            }
+
+            _logger.LogInformation(
+                $"Successfully updated calendar event with ID: {id} via service."
+            );
+            return NoContent(); // Or return Ok(calendarEventDto) if you want to return the updated object
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogError(
+                ex,
+                $"A concurrency error occurred while updating calendar event with ID: {id} via service."
+            );
+            return StatusCode(500, "A concurrency error occurred while updating the event.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                $"An error occurred while updating calendar event with ID: {id} via service."
+            );
+            return StatusCode(500, "An internal error occurred while updating the event.");
+        }
+    }
+
+    // Defines an HTTP DELETE endpoint for deleting a calendar event.
+    [HttpDelete("events/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteEvent(int id)
+    {
+        _logger.LogInformation($"Attempting to delete calendar event with ID: {id} via service.");
+
+        try
+        {
+            var success = await _calendarService.DeleteEventAsync(id);
+
+            if (!success)
+            {
+                _logger.LogWarning(
+                    $"Calendar event with ID: {id} not found for deletion via service, or delete failed."
+                );
+                return NotFound();
+            }
+
+            _logger.LogInformation(
+                $"Successfully deleted calendar event with ID: {id} via service."
+            );
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                $"An error occurred while deleting calendar event with ID: {id} via service."
+            );
+            return StatusCode(500, "An internal error occurred while deleting the event.");
+        }
+    }
+
+    #endregion
 }
