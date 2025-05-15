@@ -95,6 +95,7 @@ function App() {
           />
         }
       />
+      <Route path="/reset-password" element={<ResetPasswordVerification />} />
       {/* --- Protected Routes using MainLayout --- */}
       {/* This Route group uses MainLayout and requires authentication via ProtectedRoute. */}
       {/* All nested routes inherit the layout and protection. */}

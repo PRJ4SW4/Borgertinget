@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250515085535_TheGreatPurge")]
-    partial class TheGreatPurge
+    [Migration("20250515091222_plsWork")]
+    partial class plsWork
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
