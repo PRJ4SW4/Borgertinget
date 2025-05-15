@@ -1,7 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace backend.Models{
+namespace backend.Models
+{
     public class Aktor
     {
         [Key]
@@ -18,6 +19,7 @@ namespace backend.Models{
         public int periodeid { get; set; } //Kun for udvalg, Folketinget og kommissioner og hverv. I disse tilfælde angiver det gruppens tilknytning til periodetypen 'samling'
         public DateTime? slutdato { get; set; } //Kun for grupper, ministertitler- og -områder
         public DateTime? startdato { get; set; } //kun for grupper, ministertitler- og -områder
+
         // --- Parsed Biography Data ---
         public string? Party { get; set; }
         public string? PartyShortname { get; set; }
@@ -44,11 +46,16 @@ namespace backend.Models{
 
         #region Realations
         //* Quotes
-        public virtual ICollection<PoliticianQuote> Quotes  { get; set; } = new List<PoliticianQuote>();
+        public virtual ICollection<PoliticianQuote> Quotes { get; set; } =
+            new List<PoliticianQuote>();
+
         //* GamemodeTracker
-        public virtual ICollection<GamemodeTracker> GamemodeTrackings { get; set; } = new List<GamemodeTracker>();
+        public virtual ICollection<GamemodeTracker> GamemodeTrackings { get; set; } =
+            new List<GamemodeTracker>();
+
         //* DailySelection
-        public virtual ICollection<DailySelection> DailySelections { get; set; } = new List<DailySelection>();
+        public virtual ICollection<DailySelection> DailySelections { get; set; } =
+            new List<DailySelection>();
         #endregion
     }
 
