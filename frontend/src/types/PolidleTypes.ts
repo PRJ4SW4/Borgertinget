@@ -39,14 +39,14 @@ export interface SearchListDto {
  * Svarer til backend's DailyPoliticianDto.
  */
 export interface DailyPoliticianDto {
-	id: number;
-	politikerNavn: string;
-	pictureUrl?: string;
-	køn?: string;
-	parti?: string;
-	age: number;
-	region?: string;
-	uddannelse?: string;
+  id: number;
+  politikerNavn: string;
+  pictureUrl?: string;
+  køn?: string;
+  partyShortname?: string;
+  age: number;
+  region?: string;
+  uddannelse?: string;
 }
 
 /**

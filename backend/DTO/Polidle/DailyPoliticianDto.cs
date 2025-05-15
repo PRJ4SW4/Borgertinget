@@ -22,7 +22,7 @@ namespace backend.DTO
 
         /// Politikerens parti (fulde navn, fra Aktor.Party).
         /// Bruges som ledetråd og til sammenligning.
-        public string? Parti { get; set; }
+        public string? PartyShortname { get; set; } // Changed from Parti to PartyShortname
 
         /// Politikerens beregnede alder (baseret på Aktor.Born).
         /// Bruges som ledetråd og til sammenligning (højere/lavere/lig).
