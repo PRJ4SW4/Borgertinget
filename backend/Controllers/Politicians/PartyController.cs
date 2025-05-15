@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using backend.Services;
-using backend.Models; 
+using backend.Models;
 using backend.Data;
 using backend.DTO.FT;
 using System.Text.Json;
@@ -13,25 +13,23 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PartyController : ControllerBase{
+public class PartyController : ControllerBase
+{
     private readonly DataContext _context;
     private readonly ILogger<PartyController> _logger;
 
-    public PartyController(DataContext context, ILogger<PartyController> logger){
+    public PartyController(DataContext context, ILogger<PartyController> logger)
+    {
         _context = context;
         _logger = logger;
     }
 
-
-
     [HttpGet("Parties")]
     public async Task<ActionResult<IEnumerable<Party>>> getParties(){
-        var parties = await _context.Party.
-                                    OrderBy(p => p.partyName).
-                                    ToListAsync();
+        var parties = await _context.Party.OrderBy(p => p.partyName).ToListAsync();
         return Ok(parties);
     }
-    
+
     [HttpGet("Party/{partyName}")]
     public async Task<ActionResult<Party>> GetPartyByName(string partyName)
     {
@@ -42,8 +40,7 @@ public class PartyController : ControllerBase{
 
         try
         {
-            var party = await _context.Party
-                                    .FirstOrDefaultAsync(p => p.partyName != null && p.partyName.ToLower() == partyName.ToLower());
+            var party = await _context.Party.FirstOrDefaultAsync(p => p.partyName != null && p.partyName.ToLower() == partyName.ToLower());
 
             if (party == null)
             {
@@ -73,7 +70,7 @@ public class PartyController : ControllerBase{
 
         if (partyId <= 0)
         {
-                return BadRequest("Invalid Party ID.");
+            return BadRequest("Invalid Party ID.");
         }
 
         // --- Fetch Existing Entity ---
@@ -97,13 +94,13 @@ public class PartyController : ControllerBase{
                 {
                     existingParty.partyProgram = updateDto.partyProgram;
                     changesMade = true;
-                        _logger.LogInformation("Updating PartyProgram for Party ID.");
+                    _logger.LogInformation("Updating PartyProgram for Party ID.");
                 }
             }
 
             if (updateDto.history != null)
             {
-                    if (existingParty.history != updateDto.history)
+                if (existingParty.history != updateDto.history)
                 {
                     existingParty.history = updateDto.history;
                     changesMade = true;
@@ -113,11 +110,11 @@ public class PartyController : ControllerBase{
 
             if (updateDto.politics != null)
             {
-                    if (existingParty.politics != updateDto.politics)
+                if (existingParty.politics != updateDto.politics)
                 {
                     existingParty.politics = updateDto.politics;
                     changesMade = true;
-                        _logger.LogInformation("Updating Poilitics for Party ID.");
+                    _logger.LogInformation("Updating Poilitics for Party ID.");
                 }
             }
 
