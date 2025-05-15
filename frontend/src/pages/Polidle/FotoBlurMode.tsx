@@ -10,7 +10,7 @@ import {
   PhotoDto, // Specifik for FotoMode
   GameMode,
   // Importer FeedbackType hvis du skal bruge den (f.eks. i CitatGuessHistoryItem hvis den genbruges)
-} from "../../types/polidleTypes"; // <-- !! JUSTER STIEN !!
+} from "../../types/PolidleTypes"; // <-- !! JUSTER STIEN !!
 
 // Importer styles
 import styles from "./Polidle.module.css"; // Generelle page styles
@@ -24,10 +24,7 @@ interface FotoGuessHistoryItem {
 }
 
 // --- Helper Funktion (Genbrugt - Flyt evt. til utils.ts) ---
-function convertByteArrayToDataUrl(
-  byteArray: number[],
-  mimeType = "image/png"
-): string {
+function convertByteArrayToDataUrl(byteArray: number[], mimeType = "image/png"): string {
   if (!byteArray || byteArray.length === 0) return "placeholder.png"; // Sørg for at have en placeholder i /public mappen
   try {
     const uint8Array = new Uint8Array(byteArray);
@@ -59,9 +56,7 @@ const FotoBlurMode: React.FC = () => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // State for Valgt Politiker
-  const [selectedPoliticianId, setSelectedPoliticianId] = useState<
-    number | null
-  >(null);
+  const [selectedPoliticianId, setSelectedPoliticianId] = useState<number | null>(null);
 
   // State for Gæt Processering
   const [isGuessing, setIsGuessing] = useState<boolean>(false);
@@ -82,21 +77,15 @@ const FotoBlurMode: React.FC = () => {
       try {
         const token = localStorage.getItem("jwt");
         const headers: HeadersInit = {
-          "Content-Type":
-            "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
+          "Content-Type": "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
         };
         const response = await fetch(apiUrl, { headers });
         if (!response.ok) {
-          throw new Error(
-            `Fejl ${response.status}: Kunne ikke hente dagens foto.`
-          );
+          throw new Error(`Fejl ${response.status}: Kunne ikke hente dagens foto.`);
         }
         const data: PhotoDto = await response.json();
         // Sammensæt fuld Data URL hvis backend kun sender Base64-delen
-        if (
-          data.portraitBase64 &&
-          !data.portraitBase64.startsWith("data:image")
-        ) {
+        if (data.portraitBase64 && !data.portraitBase64.startsWith("data:image")) {
           setPhotoBase64(`data:image/png;base64,${data.portraitBase64}`); // Antager png, juster hvis nødvendigt
         } else {
           setPhotoBase64(data.portraitBase64); // Antager backend sender fuld URL
@@ -135,8 +124,7 @@ const FotoBlurMode: React.FC = () => {
         try {
           const token = localStorage.getItem("jwt");
           const headers: HeadersInit = {
-            "Content-Type":
-              "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
+            "Content-Type": "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
           };
           const response = await fetch(apiUrl, { headers });
           if (!response.ok) {
@@ -194,8 +182,7 @@ const FotoBlurMode: React.FC = () => {
     try {
       const token = localStorage.getItem("jwt");
       const headers: HeadersInit = {
-        "Content-Type":
-          "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
+        "Content-Type": "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
       };
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -206,9 +193,7 @@ const FotoBlurMode: React.FC = () => {
         let errorMsg = `Fejl ${response.status}.`;
         try {
           const errorData = await response.json();
-          errorMsg = `${errorMsg} ${
-            errorData.message || errorData.title || ""
-          }`;
+          errorMsg = `${errorMsg} ${errorData.message || errorData.title || ""}`;
         } catch (e) {}
         throw new Error(errorMsg);
       }
@@ -254,9 +239,7 @@ const FotoBlurMode: React.FC = () => {
       <div className={polidleStyles.photoContainer}>
         <p className={styles.paragraph}>Hvem er på billedet?</p>
         {isLoadingPhoto && <p>Henter dagens billede...</p>}
-        {photoError && (
-          <p className={polidleStyles.errorText}>Fejl: {photoError}</p>
-        )}
+        {photoError && <p className={polidleStyles.errorText}>Fejl: {photoError}</p>}
         {!isLoadingPhoto && !photoError && photoBase64 && (
           <img
             src={photoBase64}
@@ -265,11 +248,7 @@ const FotoBlurMode: React.FC = () => {
             // style={{ filter: `blur(${blurLevel}px)` }} // Tilføj når blur state er klar
           />
         )}
-        {!isLoadingPhoto && !photoError && !photoBase64 && (
-          <p style={{ color: "orange" }}>
-            Kunne ikke finde et billede for i dag.
-          </p>
-        )}
+        {!isLoadingPhoto && !photoError && !photoBase64 && <p style={{ color: "orange" }}>Kunne ikke finde et billede for i dag.</p>}
       </div>
       {/* --------------- */}
 
@@ -287,73 +266,40 @@ const FotoBlurMode: React.FC = () => {
           />
           {searchText && selectedPoliticianId === null && (
             <>
-              {isSearching && (
-                <div className={polidleStyles.searchLoader}>Søger...</div>
-              )}
-              {searchError && (
-                <div className={polidleStyles.searchError}>
-                  Fejl: {searchError}
-                </div>
-              )}
-              {!isSearching && !searchError && searchResults.length === 0 && (
-                <div className={polidleStyles.noResults}>
-                  Ingen match fundet.
-                </div>
-              )}
+              {isSearching && <div className={polidleStyles.searchLoader}>Søger...</div>}
+              {searchError && <div className={polidleStyles.searchError}>Fejl: {searchError}</div>}
+              {!isSearching && !searchError && searchResults.length === 0 && <div className={polidleStyles.noResults}>Ingen match fundet.</div>}
               {!isSearching && !searchError && searchResults.length > 0 && (
                 <ul className={polidleStyles.searchResults}>
                   {searchResults.map((option) => (
-                    <li
-                      key={option.id}
-                      onClick={() => handleOptionSelect(option)}
-                      className={polidleStyles.searchResultItem}
-                    >
+                    <li key={option.id} onClick={() => handleOptionSelect(option)} className={polidleStyles.searchResultItem}>
                       <img
                         src={convertByteArrayToDataUrl(option.portraet)}
                         alt={option.politikerNavn}
                         className={polidleStyles.searchResultImage}
                         loading="lazy"
                       />
-                      <span className={polidleStyles.searchResultName}>
-                        {option.politikerNavn}
-                      </span>
+                      <span className={polidleStyles.searchResultName}>{option.politikerNavn}</span>
                     </li>
                   ))}
                 </ul>
               )}
             </>
           )}
-          <button
-            onClick={handleMakeGuess}
-            disabled={isGuessing || selectedPoliticianId === null || isGameWon}
-            className={polidleStyles.guessButton}
-          >
+          <button onClick={handleMakeGuess} disabled={isGuessing || selectedPoliticianId === null || isGameWon} className={polidleStyles.guessButton}>
             {isGuessing ? "Gætter..." : "Gæt"}
           </button>
-          {guessError && (
-            <div className={polidleStyles.guessError}>Fejl: {guessError}</div>
-          )}
+          {guessError && <div className={polidleStyles.guessError}>Fejl: {guessError}</div>}
         </div>
       )}
-      {isGameWon && (
-        <div className={polidleStyles.gameWonMessage}>
-          Godt gået! Du fandt politikeren!
-        </div>
-      )}
+      {isGameWon && <div className={polidleStyles.gameWonMessage}>Godt gået! Du fandt politikeren!</div>}
       {/* --------------------------- */}
 
       {/* --- Vis Gætte-Historik for Foto Mode --- */}
       <div className={polidleStyles.fotoGuessHistory}>
         {fotoGuesses.length > 0 && <h3>Dine Gæt:</h3>}
         {fotoGuesses.map((guessItem, index) => (
-          <div
-            key={index}
-            className={`${polidleStyles.citatGuessItem} ${
-              guessItem.isCorrect
-                ? polidleStyles.correcta
-                : polidleStyles.incorrect
-            }`}
-          >
+          <div key={index} className={`${polidleStyles.citatGuessItem} ${guessItem.isCorrect ? polidleStyles.correcta : polidleStyles.incorrect}`}>
             {guessItem.guessedInfo?.portraet && (
               <img
                 src={convertByteArrayToDataUrl(guessItem.guessedInfo.portraet)}
@@ -361,12 +307,8 @@ const FotoBlurMode: React.FC = () => {
                 className={polidleStyles.historyImage}
               />
             )}
-            <span className={polidleStyles.historyName}>
-              {guessItem.guessedInfo?.politikerNavn ?? "Ukendt"}
-            </span>
-            <span className={polidleStyles.historyIndicator}>
-              {guessItem.isCorrect ? "✓" : "✕"}
-            </span>
+            <span className={polidleStyles.historyName}>{guessItem.guessedInfo?.politikerNavn ?? "Ukendt"}</span>
+            <span className={polidleStyles.historyIndicator}>{guessItem.isCorrect ? "✓" : "✕"}</span>
           </div>
         ))}
       </div>

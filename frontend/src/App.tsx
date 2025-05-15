@@ -54,9 +54,7 @@ import DeleteLearningPage from "./components/AdminPages/DeleteLearningPage";
 function App() {
   // State hook for the JWT authentication token.
   // Initializes state from localStorage to persist login status.
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("jwt")
-  );
+  const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
   const handleSetToken = (newToken: string | null) => {
     setToken(newToken);
     if (newToken) {
@@ -80,9 +78,7 @@ function App() {
   // --- Protected Route Component ---
   // Wraps routes that require user authentication.
   // Renders the child component if a token exists, otherwise redirects to /login.
-  const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({
-    children,
-  }) => {
+  const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
     return token ? children : <Navigate to="/login" />;
   };
 
@@ -100,10 +96,7 @@ function App() {
       {/* Login page route. */}
       <Route path="/login" element={<Login setToken={handleSetToken} />} />
       {/* Post-login success/callback route. */}
-      <Route
-        path="/login-success"
-        element={<LoginSuccessPage setToken={handleSetToken} />}
-      />
+      <Route path="/login-success" element={<LoginSuccessPage setToken={handleSetToken} />} />
       <Route
         path="/verify"
         element={
@@ -123,16 +116,14 @@ function App() {
           <ProtectedRoute>
             <MainLayout />
           </ProtectedRoute>
-        }
-      >
+        }>
         {/* Root path ("/") route, shows HomePage for logged-in users. */}
         {/* Standard HomePage after login */}
         <Route path="/homepage" element={<HomePage />} />
         {/* Root path ("/") route, shows HomePage for logged-in users. */}
         {/* Calendar route (requires login). */}
         <Route path="/kalender" element={<CalendarView />} />
-        <Route path="/feed" element={<FeedPage />} />{" "}
-        {/* Other routes requiring login and using MainLayout. */}
+        <Route path="/feed" element={<FeedPage />} /> {/* Other routes requiring login and using MainLayout. */}
         <Route path="/parties" element={<PartiesPage />} />
         {/* ':partyName' is a dynamic URL parameter. */}
         <Route path="/party/:partyName" element={<PartyPage />} />
@@ -144,12 +135,7 @@ function App() {
         <Route path="/learning" element={<LearningLayout />}>
           {" "}
           {/* Default content shown at "/learning". */}
-          <Route
-            index
-            element={
-              <p>Velkommen til læringsområdet! Vælg et emne i menuen.</p>
-            }
-          />
+          <Route index element={<p>Velkommen til læringsområdet! Vælg et emne i menuen.</p>} />
           {/* Route for specific learning pages, e.g., "/learning/topic-1". */}
           <Route path=":pageId" element={<PageContent />} />
           {/* ':pageId' is a dynamic URL parameter. */}
@@ -161,8 +147,7 @@ function App() {
         {/* --- START: Polidle Routes (Beskyttet & i MainLayout) --- */}
         <Route path="/polidle" element={<PolidlePage />} />
         <Route path="/ClassicMode" element={<ClassicMode />} />
-        <Route path="/CitatMode" element={<QuoteMode />} />{" "}
-        <Route path="/FotoBlurMode" element={<FotoBlurMode />} />{" "}
+        <Route path="/CitatMode" element={<QuoteMode />} /> <Route path="/FotoBlurMode" element={<FotoBlurMode />} />{" "}
         {/* --- END: Polidle Routes --- */}
         {/* Admin routes */}
         <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
@@ -188,20 +173,9 @@ function App() {
       {/* End of Protected MainLayout routes */}
       {/* Matches any URL not previously defined. */}
       {/* Redirects based on authentication status: "/" if logged in, "/login" if not. */}
-      <Route
-        path="/"
-        element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />}
-      />
+      <Route path="/" element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />} />
       {/* Catch-all for unkown roots: if logged in -> /homepage, or -> /landingpage */}
-      <Route
-        path="*"
-        element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />}
-      />
-      {/* Game Modes */}
-      <Route path="/Polidle" element={<Polidle />} />
-      <Route path="/ClassicMode" element={<ClassicMode />} />
-      <Route path="/CitatMode" element={<CitatMode citat="Sample Citat" correctPolitiker="Sample Politician" />} />
-      <Route path="/FotoBlurMode" element={<FotoBlurMode imageUrl="sample-image-url.jpg" correctPolitiker="Sample Politician" />} />
+      <Route path="*" element={<Navigate to={token ? "/homepage" : "/landingpage"} replace />} />
     </Routes>
   );
 }

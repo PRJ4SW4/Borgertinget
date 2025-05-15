@@ -20,9 +20,9 @@ using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
-using backend.Services.Politician; 
 using backend.Services.LearningEnvironment;
 using backend.Services.Mapping;
+using backend.Services.Politician;
 using backend.Services.Search;
 using backend.Services.Selection;
 using backend.Services.Utility;
@@ -43,7 +43,7 @@ using OpenSearch.Net;
 
 // for .env secrets
 DotNetEnv.Env.Load();
-         
+
 var builder = WebApplication.CreateBuilder(args);
 
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
@@ -81,17 +81,7 @@ var key = Encoding.UTF8.GetBytes(
 );
 
 // Authorization for Admin and User roles
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(
-        "RequireAdministratorRole",
-        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
-    );
-    options.AddPolicy(
-        "UserOrAdmin",
-        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
-    );
-});
+builder.Services.AddAuthorization();
 
 // EF Core Database Context
 builder.Services.AddDbContext<DataContext>(options =>
@@ -212,8 +202,6 @@ builder
                 return Task.CompletedTask;
             },
         };
-    });
-        };
     })
     .AddGoogle(
         GoogleDefaults.AuthenticationScheme,
@@ -249,7 +237,7 @@ builder
                 return Task.CompletedTask;
             };
         }
-    ); //.AddCookie(IdentityConstants.ExternalScheme);
+    );
 
 // ASP.NET Core Identity bruger cookies til at håndtere det *eksterne login flow* i led af Oauth.
 builder.Services.ConfigureApplicationCookie(options =>
@@ -316,7 +304,7 @@ builder.Services.AddSwaggerGen(options =>
 // --- EKSISTERENDE SERVICES ---
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<HttpService>();
-builder.Services.AddScoped<IFetchService, FetchService>(); 
+builder.Services.AddScoped<IFetchService, FetchService>();
 
 builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHostedService<DailySelectionJob>();
@@ -360,19 +348,6 @@ builder.Services.AddSingleton<
 >();
 builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
 
-builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
-
-//builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
-builder.Services.AddSingleton<
-    backend.Interfaces.Utility.IDateTimeProvider,
-    backend.Services.Utility.DateTimeProvider
->();
-builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
-
-//Search indexing service
-builder.Services.AddScoped<SearchIndexingService>();
-
-builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
 
 // For altinget scraping
@@ -390,18 +365,17 @@ builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 // Flashcard Services
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
+//Search indexing service
+builder.Services.AddScoped<SearchIndexingService>();
+
 // Polidle
 builder.Services.AddScoped<IAktorRepository, AktorRepository>();
 builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>();
 builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository>();
 builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
 builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
-builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 
 builder.Services.AddRouting();
-builder.Services.AddHostedService<TestScheduledIndexService>();
-
-builder.Services.AddScoped<AdministratorService>();
 
 // Search Services
 builder.Services.AddHostedService<ScheduledIndexService>();
@@ -447,7 +421,6 @@ app.UseRouting();
 
 // For static images from wwwroot folder
 app.UseStaticFiles();
-
 
 if (app.Environment.IsDevelopment())
 {

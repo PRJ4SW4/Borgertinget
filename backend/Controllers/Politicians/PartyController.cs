@@ -1,37 +1,37 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
-using backend.Services;
-using backend.Models; 
+using System.Text.Json;
+using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO.FT;
-using System.Text.Json;
+using backend.Models;
+using backend.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+
 namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PartyController : ControllerBase{
+public class PartyController : ControllerBase
+{
     private readonly DataContext _context;
     private readonly ILogger<PartyController> _logger;
 
-    public PartyController(DataContext context, ILogger<PartyController> logger){
+    public PartyController(DataContext context, ILogger<PartyController> logger)
+    {
         _context = context;
         _logger = logger;
     }
 
-
-
     [HttpGet("Parties")]
-    public async Task<ActionResult<IEnumerable<Party>>> getParties(){
-        var parties = await _context.Party.
-                                    OrderBy(p => p.partyName).
-                                    ToListAsync();
+    public async Task<ActionResult<IEnumerable<Party>>> getParties()
+    {
+        var parties = await _context.Party.OrderBy(p => p.partyName).ToListAsync();
         return Ok(parties);
     }
-    
+
     [HttpGet("Party/{partyName}")]
     public async Task<ActionResult<Party>> GetPartyByName(string partyName)
     {
@@ -42,8 +42,9 @@ public class PartyController : ControllerBase{
 
         try
         {
-            var party = await _context.Party
-                                    .FirstOrDefaultAsync(p => p.partyName != null && p.partyName.ToLower() == partyName.ToLower());
+            var party = await _context.Party.FirstOrDefaultAsync(p =>
+                p.partyName != null && p.partyName.ToLower() == partyName.ToLower()
+            );
 
             if (party == null)
             {
@@ -63,7 +64,10 @@ public class PartyController : ControllerBase{
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Party>> UpdatePartyDetails(int partyId, [FromBody] PartyDto updateDto)
+    public async Task<ActionResult<Party>> UpdatePartyDetails(
+        int partyId,
+        [FromBody] PartyDto updateDto
+    )
     {
         // --- Input Validation ---
         if (updateDto == null)
@@ -73,7 +77,7 @@ public class PartyController : ControllerBase{
 
         if (partyId <= 0)
         {
-                return BadRequest("Invalid Party ID.");
+            return BadRequest("Invalid Party ID.");
         }
 
         // --- Fetch Existing Entity ---
@@ -97,13 +101,13 @@ public class PartyController : ControllerBase{
                 {
                     existingParty.partyProgram = updateDto.partyProgram;
                     changesMade = true;
-                        _logger.LogInformation("Updating PartyProgram for Party ID.");
+                    _logger.LogInformation("Updating PartyProgram for Party ID.");
                 }
             }
 
             if (updateDto.history != null)
             {
-                    if (existingParty.history != updateDto.history)
+                if (existingParty.history != updateDto.history)
                 {
                     existingParty.history = updateDto.history;
                     changesMade = true;
@@ -113,11 +117,11 @@ public class PartyController : ControllerBase{
 
             if (updateDto.politics != null)
             {
-                    if (existingParty.politics != updateDto.politics)
+                if (existingParty.politics != updateDto.politics)
                 {
                     existingParty.politics = updateDto.politics;
                     changesMade = true;
-                        _logger.LogInformation("Updating Poilitics for Party ID.");
+                    _logger.LogInformation("Updating Poilitics for Party ID.");
                 }
             }
 
@@ -137,8 +141,8 @@ public class PartyController : ControllerBase{
         }
         catch (DbUpdateConcurrencyException dbEx) // Handle potential concurrency issues
         {
-                _logger.LogError(dbEx, "Concurrency error occurred while updating party ID.");
-                return StatusCode(500, "A concurrency error occurred while updating the party.");
+            _logger.LogError(dbEx, "Concurrency error occurred while updating party ID.");
+            return StatusCode(500, "A concurrency error occurred while updating the party.");
         }
         catch (DbUpdateException dbEx)
         {

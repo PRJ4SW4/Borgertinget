@@ -3,9 +3,9 @@
  * Værdierne (0, 1, 2) skal matche backend's C# GamemodeTypes enum.
  */
 export enum GamemodeTypes {
-  Klassisk = 0,
-  Citat = 1,
-  Foto = 2,
+	Klassisk = 0,
+	Citat = 1,
+	Foto = 2,
 }
 
 /**
@@ -13,11 +13,11 @@ export enum GamemodeTypes {
  * Værdierne (0-4) skal matche backend's C# FeedbackType enum.
  */
 export enum FeedbackType {
-  Undefined = 0,
-  Korrekt = 1,
-  Forkert = 2,
-  Højere = 3, // Korrekt værdi er højere end gættet (bruges f.eks. til Alder)
-  Lavere = 4, // Korrekt værdi er lavere end gættet (bruges f.eks. til Alder)
+	Undefined = 0,
+	Korrekt = 1,
+	Forkert = 2,
+	Højere = 3, // Korrekt værdi er højere end gættet (bruges f.eks. til Alder)
+	Lavere = 4, // Korrekt værdi er lavere end gættet (bruges f.eks. til Alder)
 }
 
 /**
@@ -26,9 +26,9 @@ export enum FeedbackType {
  * Svarer til backend's DailyPoliticianDto (som tidligere blev kaldt PoliticianSummaryDto på backend).
  */
 export interface SearchListDto {
-  id: number;
-  politikerNavn: string;
-  pictureUrl?: string;
+	id: number;
+	politikerNavn: string;
+	pictureUrl?: string;
 }
 
 /**
@@ -39,14 +39,14 @@ export interface SearchListDto {
  * Svarer til backend's DailyPoliticianDto.
  */
 export interface DailyPoliticianDto {
-  id: number;
-  politikerNavn: string;
-  pictureUrl?: string;
-  køn?: string;
-  parti?: string;
-  age: number;
-  region?: string;
-  uddannelse?: string;
+	id: number;
+	politikerNavn: string;
+	pictureUrl?: string;
+	køn?: string;
+	parti?: string;
+	age: number;
+	region?: string;
+	uddannelse?: string;
 }
 
 /**
@@ -54,7 +54,7 @@ export interface DailyPoliticianDto {
  * Svarer til backend's QuoteDto.
  */
 export interface QuoteDto {
-  quoteText: string;
+	quoteText: string;
 }
 
 /**
@@ -62,7 +62,7 @@ export interface QuoteDto {
  * Svarer til backend's PhotoDto.
  */
 export interface PhotoDto {
-  photoUrl?: string;
+	photoUrl?: string;
 }
 
 /**
@@ -70,8 +70,8 @@ export interface PhotoDto {
  * Svarer til backend's GuessRequestDto.
  */
 export interface GuessRequestDto {
-  guessedPoliticianId: number;
-  gameMode: GamemodeTypes;
+	guessedPoliticianId: number;
+	gameMode: GamemodeTypes;
 }
 
 /**
@@ -79,14 +79,14 @@ export interface GuessRequestDto {
  * Svarer til backend's GuessResultDto (forenklet til ubegrænsede gæt).
  */
 export interface GuessResultDto {
-  isCorrectGuess: boolean;
-  feedback: Record<string, FeedbackType>;
-  /**
-   * Detaljer om den politiker, der blev gættet på.
-   * Hvis isCorrectGuess er true, er dette den korrekte politiker.
-   * Skal være DailyPoliticianDto for at give fuld info til feedback-visning.
-   */
-  guessedPolitician?: DailyPoliticianDto; // <<< OPDATERET til at bruge det nye DTO-navn
+	isCorrectGuess: boolean;
+	feedback: Record<string, FeedbackType>;
+	/**
+	 * Detaljer om den politiker, der blev gættet på.
+	 * Hvis isCorrectGuess er true, er dette den korrekte politiker.
+	 * Skal være DailyPoliticianDto for at give fuld info til feedback-visning.
+	 */
+	guessedPolitician?: DailyPoliticianDto; // <<< OPDATERET til at bruge det nye DTO-navn
 }
 
 // ------ UI-Specifikke Typer (kan udvides) ------
@@ -102,8 +102,8 @@ export type ClassicGuessHistoryItem = GuessResultDto;
  * hvor vi måske kun viser navn, billede og om det var korrekt.
  */
 export interface SimpleGuessHistoryItem {
-  guessedPoliticianName: string;
-  guessedPoliticianPictureUrl?: string;
-  isCorrect: boolean;
-  // guessedPoliticianId: number; // Kan tilføjes hvis nødvendigt
+	guessedPoliticianName: string;
+	guessedPoliticianPictureUrl?: string;
+	isCorrect: boolean;
+	// guessedPoliticianId: number; // Kan tilføjes hvis nødvendigt
 }

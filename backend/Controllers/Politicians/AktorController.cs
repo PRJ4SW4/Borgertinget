@@ -4,10 +4,11 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO.FT;
-using System.Text.Json;
+using backend.Models;
 using backend.Services.Politician;
-using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace backend.Controllers;
 
@@ -22,7 +23,14 @@ public class AktorController : ControllerBase
     private readonly IFetchService _FetchService;
     private readonly ILogger<AktorController> _logger; // Add Logger
 
-    public AktorController(DataContext context, HttpService httpService, IConfiguration conf, IFetchService fetcher ,ILogger<AktorController> logger){
+    public AktorController(
+        DataContext context,
+        HttpService httpService,
+        IConfiguration conf,
+        IFetchService fetcher,
+        ILogger<AktorController> logger
+    )
+    {
         _context = context;
         _httpService = httpService;
         _configuration = conf;
@@ -103,7 +111,7 @@ public class AktorController : ControllerBase
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
-    
+
     //https://oda.ft.dk/api/Akt%C3%B8r?$inlinecount=allpages endpoint der skal bruges i hvert fald
     //----------------------------------------//
     //                To DO:                  //
@@ -113,25 +121,50 @@ public class AktorController : ControllerBase
     //----------------------------------------//
 
     [HttpPost("fetch")] // Changed to POST if it modifies data, GET if it only fetches and returns status
-        public async Task<IActionResult> UpdateAktorsFromExternal()
+    public async Task<IActionResult> UpdateAktorsFromExternal()
+    {
+        _logger.LogInformation(
+            "[AktorController] Received request to update Aktors from external source."
+        );
+        try
         {
-            _logger.LogInformation("[AktorController] Received request to update Aktors from external source.");
-            try
-            {
-                var (added, updated, deleted) = await _FetchService.FetchAndUpdateAktorsAsync();
-                _logger.LogInformation("[AktorController] Aktor update process completed. Added: {Added}, Updated: {Updated}, Deleted: {Deleted}", added, updated, deleted);
-                return Ok($"Successfully added {added}, updated {updated}, and deleted {deleted} aktors.");
-            }
-            catch (InvalidOperationException ioe) // Catch specific configuration errors
-            {
-                _logger.LogError(ioe, "[AktorController] Configuration error during Aktor update.");
-                return StatusCode(500, new { message = "Server configuration error for Aktor update.", error = ioe.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[AktorController] An error occurred while updating Aktors from external source.");
-                return StatusCode(500, new { message = "An error occurred during the Aktor update process.", error = ex.Message });
-            }
+            var (added, updated, deleted) = await _FetchService.FetchAndUpdateAktorsAsync();
+            _logger.LogInformation(
+                "[AktorController] Aktor update process completed. Added: {Added}, Updated: {Updated}, Deleted: {Deleted}",
+                added,
+                updated,
+                deleted
+            );
+            return Ok(
+                $"Successfully added {added}, updated {updated}, and deleted {deleted} aktors."
+            );
         }
-    
+        catch (InvalidOperationException ioe) // Catch specific configuration errors
+        {
+            _logger.LogError(ioe, "[AktorController] Configuration error during Aktor update.");
+            return StatusCode(
+                500,
+                new
+                {
+                    message = "Server configuration error for Aktor update.",
+                    error = ioe.Message,
+                }
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "[AktorController] An error occurred while updating Aktors from external source."
+            );
+            return StatusCode(
+                500,
+                new
+                {
+                    message = "An error occurred during the Aktor update process.",
+                    error = ex.Message,
+                }
+            );
+        }
+    }
 }

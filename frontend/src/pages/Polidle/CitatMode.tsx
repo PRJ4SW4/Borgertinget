@@ -9,7 +9,7 @@ import {
   GuessResultDto,
   QuoteDto, // Specifik for CitatMode
   GameMode,
-} from "../../types/polidleTypes"; // <-- !! VIGTIGT: Juster stien så den peger korrekt på din types fil !!
+} from "../../types/PolidleTypes"; // <-- !! VIGTIGT: Juster stien så den peger korrekt på din types fil !!
 
 // Importer styles - opret/brug evt. separate filer
 import styles from "./Polidle.module.css"; // Antager generelle page styles her
@@ -23,10 +23,7 @@ interface CitatGuessHistoryItem {
 }
 
 // --- Helper Funktion (Flyt evt. til en utils.ts fil) ---
-function convertByteArrayToDataUrl(
-  byteArray: number[],
-  mimeType = "image/png"
-): string {
+function convertByteArrayToDataUrl(byteArray: number[], mimeType = "image/png"): string {
   if (!byteArray || byteArray.length === 0) return "placeholder.png"; // Sørg for at have en placeholder i /public mappen
   try {
     const uint8Array = new Uint8Array(byteArray);
@@ -57,9 +54,7 @@ const CitatMode: React.FC = () => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // State for Valgt Politiker
-  const [selectedPoliticianId, setSelectedPoliticianId] = useState<
-    number | null
-  >(null);
+  const [selectedPoliticianId, setSelectedPoliticianId] = useState<number | null>(null);
 
   // State for Gæt Processering
   const [isGuessing, setIsGuessing] = useState<boolean>(false);
@@ -81,8 +76,7 @@ const CitatMode: React.FC = () => {
       try {
         const token = localStorage.getItem("jwt");
         const headers: HeadersInit = {
-          "Content-Type":
-            "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
+          "Content-Type": "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
         };
         const response = await fetch(apiUrl, { headers });
         if (!response.ok) {
@@ -124,8 +118,7 @@ const CitatMode: React.FC = () => {
         try {
           const token = localStorage.getItem("jwt");
           const headers: HeadersInit = {
-            "Content-Type":
-              "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
+            "Content-Type": "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
           };
           const response = await fetch(apiUrl, { headers });
           if (!response.ok) {
@@ -183,8 +176,7 @@ const CitatMode: React.FC = () => {
     try {
       const token = localStorage.getItem("jwt");
       const headers: HeadersInit = {
-        "Content-Type":
-          "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
+        "Content-Type": "application/json" /*...(token ? { 'Authorization': `Bearer ${token}` } : {})*/,
       };
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -195,9 +187,7 @@ const CitatMode: React.FC = () => {
         let errorMsg = `Fejl ${response.status}.`;
         try {
           const errorData = await response.json();
-          errorMsg = `${errorMsg} ${
-            errorData.message || errorData.title || ""
-          }`;
+          errorMsg = `${errorMsg} ${errorData.message || errorData.title || ""}`;
         } catch (e) {}
         throw new Error(errorMsg);
       }
@@ -238,17 +228,9 @@ const CitatMode: React.FC = () => {
       <div className={polidleStyles.quoteContainer}>
         <p className={styles.paragraph}>Hvem sagde dette citat?</p>
         {isLoadingQuote && <p>Henter dagens citat...</p>}
-        {quoteError && (
-          <p className={polidleStyles.errorText}>Fejl: {quoteError}</p>
-        )}
-        {!isLoadingQuote && !quoteError && quote && (
-          <p className={styles.citat}>"{quote}"</p>
-        )}
-        {!isLoadingQuote && !quoteError && !quote && (
-          <p style={{ color: "orange" }}>
-            Kunne ikke finde et citat for i dag.
-          </p>
-        )}
+        {quoteError && <p className={polidleStyles.errorText}>Fejl: {quoteError}</p>}
+        {!isLoadingQuote && !quoteError && quote && <p className={styles.citat}>"{quote}"</p>}
+        {!isLoadingQuote && !quoteError && !quote && <p style={{ color: "orange" }}>Kunne ikke finde et citat for i dag.</p>}
       </div>
       {/* --------------- */}
 
@@ -267,36 +249,20 @@ const CitatMode: React.FC = () => {
           {/* Viser søgeresultater / loading / fejl */}
           {searchText && selectedPoliticianId === null && (
             <>
-              {isSearching && (
-                <div className={polidleStyles.searchLoader}>Søger...</div>
-              )}
-              {searchError && (
-                <div className={polidleStyles.searchError}>
-                  Fejl: {searchError}
-                </div>
-              )}
-              {!isSearching && !searchError && searchResults.length === 0 && (
-                <div className={polidleStyles.noResults}>
-                  Ingen match fundet.
-                </div>
-              )}
+              {isSearching && <div className={polidleStyles.searchLoader}>Søger...</div>}
+              {searchError && <div className={polidleStyles.searchError}>Fejl: {searchError}</div>}
+              {!isSearching && !searchError && searchResults.length === 0 && <div className={polidleStyles.noResults}>Ingen match fundet.</div>}
               {!isSearching && !searchError && searchResults.length > 0 && (
                 <ul className={polidleStyles.searchResults}>
                   {searchResults.map((option) => (
-                    <li
-                      key={option.id}
-                      onClick={() => handleOptionSelect(option)}
-                      className={polidleStyles.searchResultItem}
-                    >
+                    <li key={option.id} onClick={() => handleOptionSelect(option)} className={polidleStyles.searchResultItem}>
                       <img
                         src={convertByteArrayToDataUrl(option.portraet)}
                         alt={option.politikerNavn}
                         className={polidleStyles.searchResultImage}
                         loading="lazy"
                       />
-                      <span className={polidleStyles.searchResultName}>
-                        {option.politikerNavn}
-                      </span>
+                      <span className={polidleStyles.searchResultName}>{option.politikerNavn}</span>
                     </li>
                   ))}
                 </ul>
@@ -304,38 +270,21 @@ const CitatMode: React.FC = () => {
             </>
           )}
           {/* Knap og Fejl for Gæt */}
-          <button
-            onClick={handleMakeGuess}
-            disabled={isGuessing || selectedPoliticianId === null || isGameWon}
-            className={polidleStyles.guessButton}
-          >
+          <button onClick={handleMakeGuess} disabled={isGuessing || selectedPoliticianId === null || isGameWon} className={polidleStyles.guessButton}>
             {isGuessing ? "Gætter..." : "Gæt"}
           </button>
-          {guessError && (
-            <div className={polidleStyles.guessError}>Fejl: {guessError}</div>
-          )}
+          {guessError && <div className={polidleStyles.guessError}>Fejl: {guessError}</div>}
         </div>
       )}
       {/* Vis besked hvis spillet er vundet */}
-      {isGameWon && (
-        <div className={polidleStyles.gameWonMessage}>
-          Godt gået! Du fandt politikeren!
-        </div>
-      )}
+      {isGameWon && <div className={polidleStyles.gameWonMessage}>Godt gået! Du fandt politikeren!</div>}
       {/* --------------------------- */}
 
       {/* --- Vis Gætte-Historik for Citat Mode --- */}
       <div className={polidleStyles.citatGuessHistory}>
         {citatGuesses.length > 0 && <h3>Dine Gæt:</h3>}
         {citatGuesses.map((guessItem, index) => (
-          <div
-            key={index}
-            className={`${polidleStyles.citatGuessItem} ${
-              guessItem.isCorrect
-                ? polidleStyles.correct
-                : polidleStyles.incorrect
-            }`}
-          >
+          <div key={index} className={`${polidleStyles.citatGuessItem} ${guessItem.isCorrect ? polidleStyles.correct : polidleStyles.incorrect}`}>
             {/* Brug de CSS klasser du definerede */}
             {guessItem.guessedInfo?.portraet && (
               <img
@@ -344,12 +293,8 @@ const CitatMode: React.FC = () => {
                 className={polidleStyles.historyImage}
               />
             )}
-            <span className={polidleStyles.historyName}>
-              {guessItem.guessedInfo?.politikerNavn ?? "Ukendt"}
-            </span>
-            <span className={polidleStyles.historyIndicator}>
-              {guessItem.isCorrect ? "✓" : "✕"}
-            </span>
+            <span className={polidleStyles.historyName}>{guessItem.guessedInfo?.politikerNavn ?? "Ukendt"}</span>
+            <span className={polidleStyles.historyIndicator}>{guessItem.isCorrect ? "✓" : "✕"}</span>
           </div>
         ))}
       </div>
