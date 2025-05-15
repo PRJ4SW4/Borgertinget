@@ -327,9 +327,9 @@ namespace backend.Data
                     {
                         Id = 1,
                         TwitterUserId = "806068174567460864",
-                        Name = "Statsministeriet",
+                        Name = "Mette Frederiksen",
                         TwitterHandle = "Statsmin",
-                        AktorId = null,
+                        AktorId = 138,
                     },
                     new PoliticianTwitterId
                     {
@@ -345,7 +345,7 @@ namespace backend.Data
                         TwitterUserId = "2965907578",
                         Name = "Troels Lund Poulsen",
                         TwitterHandle = "troelslundp",
-                        AktorId = null,
+                        AktorId = 206,
                     }
                 );
             });
