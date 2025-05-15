@@ -43,7 +43,7 @@ export interface DailyPoliticianDto {
   politikerNavn: string;
   pictureUrl?: string;
   køn?: string;
-  parti?: string;
+  partyShortname?: string;
   age: number;
   region?: string;
   uddannelse?: string;

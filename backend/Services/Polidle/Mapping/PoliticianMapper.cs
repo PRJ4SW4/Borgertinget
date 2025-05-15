@@ -31,9 +31,10 @@ namespace backend.Services.Mapping
              string? region = aktor.Constituencies?.FirstOrDefault(); // Tag første valgkreds
              string? uddannelse = aktor.Educations?.FirstOrDefault() ?? aktor.EducationStatistic; // Tag første udd. eller statistik
 
-             // Hent parti navn
-             // string partiNavn = aktor.Party?.Name ?? "Ukendt Parti"; // Hvis Party er navigation property
-              string partiNavn = aktor.Party ?? "Ukendt Parti"; // Hvis Party er string property
+             // Use PartyShortname if available, otherwise fallback to full Party name, then "Ukendt Parti"
+            string partyDisplayValue = !string.IsNullOrWhiteSpace(aktor.PartyShortname) 
+                                        ? aktor.PartyShortname 
+                                        : (!string.IsNullOrWhiteSpace(aktor.Party) ? aktor.Party : "Ukendt Parti");
 
 
              int age = CalculateAge(aktor.Born, _dateTimeProvider.TodayUtc); // Brug IDateTimeProvider
@@ -45,7 +46,7 @@ namespace backend.Services.Mapping
                  PolitikerNavn = aktor.navn ?? "N/A",
                  PictureUrl = aktor.PictureMiRes,
                  Køn = aktor.Sex,
-                 Parti = partiNavn,
+                 PartyShortname = partyDisplayValue,
                  Age = age,
                  Region = region,
                  Uddannelse = uddannelse,

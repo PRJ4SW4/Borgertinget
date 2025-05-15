@@ -21,7 +21,7 @@ namespace backend.Services
         // --- Konstanter ---
         private static class FeedbackKeys
         {
-            public const string Party = "Parti";
+            public const string PartyShortname = "PartyShortname";
             public const string Gender = "Køn";
             public const string Region = "Region";
             public const string Education = "Uddannelse";
@@ -443,7 +443,7 @@ public async Task SelectAndSaveDailyPoliticiansAsync(DateOnly date, bool overwri
              // Antager at IsCorrectGuess allerede er sat, og at result.Feedback er initialiseret
              if (result.IsCorrectGuess) return; // Ingen grund til feedback hvis gættet er korrekt
 
-             result.Feedback[FeedbackKeys.Party] = string.Equals(correctDto.Parti, guessedDto.Parti) ? FeedbackType.Korrekt : FeedbackType.Forkert;
+             result.Feedback[FeedbackKeys.PartyShortname] = string.Equals(correctDto.PartyShortname, guessedDto.PartyShortname) ? FeedbackType.Korrekt : FeedbackType.Forkert;
              result.Feedback[FeedbackKeys.Gender] = string.Equals(correctDto.Køn, guessedDto.Køn, StringComparison.OrdinalIgnoreCase) ? FeedbackType.Korrekt : FeedbackType.Forkert;
              result.Feedback[FeedbackKeys.Region] = string.Equals(correctDto.Region, guessedDto.Region, StringComparison.OrdinalIgnoreCase) ? FeedbackType.Korrekt : FeedbackType.Forkert;
              result.Feedback[FeedbackKeys.Education] = string.Equals(correctDto.Uddannelse, guessedDto.Uddannelse, StringComparison.OrdinalIgnoreCase) ? FeedbackType.Korrekt : FeedbackType.Forkert;
