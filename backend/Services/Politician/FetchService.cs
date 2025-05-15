@@ -244,6 +244,39 @@ namespace backend.Services.Politician
                                         );
                                     }
 
+                                    // Link Aktor.Id to PoliticianTwitterId.AktorId based on matching names
+                                    if (
+                                        currentAktor != null // Add null check for currentAktor
+                                        && !string.IsNullOrWhiteSpace(currentAktor.navn)
+                                    )
+                                    {
+                                        // Assuming _context.PoliticianTwitterIds is the DbSet for PoliticianTwitterId entities
+                                        var politicianTwitterEntry =
+                                            await _context.PoliticianTwitterIds.FirstOrDefaultAsync(
+                                                p => p.Name == currentAktor.navn
+                                            );
+
+                                        if (politicianTwitterEntry != null)
+                                        {
+                                            // Check if an update is needed to avoid unnecessary database operations/logging
+                                            if (politicianTwitterEntry.AktorId != currentAktor.Id)
+                                            {
+                                                politicianTwitterEntry.AktorId = currentAktor.Id;
+                                                // EF Core's change tracker should detect this modification.
+                                                // If issues arise, you might need: _context.Entry(politicianTwitterEntry).State = EntityState.Modified;
+                                                _logger.LogInformation(
+                                                    $"Updated PoliticianTwitterId.AktorId for '{politicianTwitterEntry.Name}' (PoliticianTwitterId: {politicianTwitterEntry.Id}) to Aktor ID: {currentAktor.Id}."
+                                                );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            _logger.LogWarning(
+                                                $"No PoliticianTwitterId record found with Name '{currentAktor.navn}' to link with Aktor ID {currentAktor.Id}."
+                                            );
+                                        }
+                                    }
+
                                     if (!string.IsNullOrWhiteSpace(partyNameFromBio))
                                     {
                                         Party? partyEnt;
@@ -270,16 +303,24 @@ namespace backend.Services.Politician
                                             partyEnt.memberIds ??= new List<int>(); // Ensure list is initialized
                                             processedParties[partyNameFromBio] = partyEnt;
                                         }
-                                        if (!partyEnt.memberIds.Contains(currentAktor.Id))
+                                        // Ensure partyEnt is not null and its memberIds is initialized before use
+                                        if (partyEnt != null)
                                         {
-                                            partyEnt.memberIds.Add(currentAktor.Id);
+                                            partyEnt.memberIds ??= new List<int>(); // Initialize if from cache and memberIds was null
+                                            if (
+                                                currentAktor != null
+                                                && !partyEnt.memberIds.Contains(currentAktor.Id)
+                                            ) // Add null check for currentAktor
+                                            {
+                                                partyEnt.memberIds.Add(currentAktor.Id);
+                                            }
                                         }
                                     }
                                     else
                                     {
                                         _logger.LogWarning(
                                             "[AktorUpdateService] Aktor ID: {Id} has no party name in biography.",
-                                            currentAktor.Id
+                                            currentAktor?.Id // Use null-conditional access for currentAktor.Id
                                         );
                                     }
                                 }
@@ -295,7 +336,11 @@ namespace backend.Services.Politician
                                             .ToListAsync();
                                         foreach (var party in partiesContainingAktor)
                                         {
-                                            party.memberIds?.Remove(existingAktor.Id);
+                                            // party.memberIds is guaranteed non-null here due to the .Where(p => p.memberIds != null ...) clause
+                                            if (party.memberIds != null) // Add explicit null check for party.memberIds
+                                            {
+                                                party.memberIds.Remove(existingAktor.Id);
+                                            }
                                             _context.Entry(party).State = EntityState.Modified;
                                         }
                                         _context.Aktor.Remove(existingAktor);
