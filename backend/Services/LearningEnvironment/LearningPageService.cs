@@ -178,7 +178,7 @@ public class LearningPageService : ILearningPageService
 
     /// Recursively builds a depth-first traversal list of page IDs for a given root's hierarchy.
     /// Uses a pre-fetched list of all pages for efficient lookups.
-    private void BuildTraversalOrderRecursiveInMemory(
+    public void BuildTraversalOrderRecursiveInMemory(
         Page currentPage,
         List<int> listToUse,
         List<Page> listOfallPages
@@ -194,7 +194,7 @@ public class LearningPageService : ILearningPageService
         foreach (var child in children) // For each child found, recursively call this method to build the order for its subtree.
         // This is a depth-first traversal, so we go as deep as possible before backtracking.
         {
-            BuildTraversalOrderRecursiveInMemory(child, orderedIdList, allSystemPages);
+            BuildTraversalOrderRecursiveInMemory(child, listToUse, listOfallPages);
         }
     }
 
