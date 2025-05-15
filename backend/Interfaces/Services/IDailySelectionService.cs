@@ -55,11 +55,20 @@ namespace backend.Interfaces.Services // Sørg for at namespacet matcher din pro
 
         /// <summary>
         /// Udfører logikken til at udvælge og gemme dagens politikere for *alle* spiltyper for en given dato.
-        /// Bruges typisk af et baggrundsjob. Sikrer at eksisterende valg for datoen ikke overskrives.
         /// </summary>
         /// <param name="date">Datoen der skal genereres valg for.</param>
+        /// <param name="overwriteExisting">Hvis true, slettes eksisterende valg for datoen før nye genereres.</param>
         /// <returns>En asynkron opgave, der fuldføres når processen er afsluttet.</returns>
-        /// <exception cref="InvalidOperationException">Kastes hvis f.eks. ingen politikere kan vælges.</exception>
-        Task SelectAndSaveDailyPoliticiansAsync(DateOnly date);
+        Task SelectAndSaveDailyPoliticiansAsync(DateOnly date, bool overwriteExisting = false); // <<< TILFØJET overwriteExisting
+
+        //TODO: Create an endpoint for seeding Aktor with Quotes
+        /* SOLUTION: 
+        * Add two(2) quotes to all Aktor-objects in the DB.
+        * Only adds if it DOES NOT have two quotes
+        * <returns>Statusmessage about operation</returns>
+        */
+        Task<string> SeedQuotesForAllAktorsAsync();
+
+        //TODO: Create an endpoint for adding a Quote to a specific Aktor
     }
 }
