@@ -97,7 +97,7 @@ export default function DeletePoll() {
           {
             id: pollData.id,
             question: pollData.question,
-            options: pollData.options.map((o: any) => ({
+            options: pollData.options.map((o: PollOption) => ({
               id: o.id,
               optionText: o.optionText,
             })),

@@ -16,7 +16,7 @@ const mockCollection = {
 describe("DeleteFlashcardCollection component", () => {
   beforeEach(() => {
     mockLocalStorage(); // Mock localStorage for token
-    mockAlert();        // Prevent real alert popups
+    mockAlert(); // Prevent real alert popups
     localStorage.setItem("jwt", "fake-token");
 
     mockedAxios.get.mockReset();
@@ -62,12 +62,20 @@ describe("DeleteFlashcardCollection component", () => {
     await waitFor(() => {
       expect(mockedAxios.get).toHaveBeenCalledWith(
         "/api/administrator/GetFlashcardCollectionByTitle?title=Serie%20A",
-        expect.any(Object)
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: "Bearer fake-token",
+          }),
+        })
       );
 
       expect(mockedAxios.delete).toHaveBeenCalledWith(
         "/api/administrator/DeleteFlashcardCollection?collectionId=1",
-        expect.any(Object)
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: "Bearer fake-token",
+          }),
+        })
       );
 
       expect(window.alert).toHaveBeenCalledWith("Flashcard serie slettet!");

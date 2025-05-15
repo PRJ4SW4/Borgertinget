@@ -63,7 +63,12 @@ describe("AdminBruger component", () => {
       expect(mockedAxios.put).toHaveBeenCalledWith(
         "/api/administrator/123",
         { userName: "newuser" },
-        expect.any(Object)
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "Content-Type": "application/json",
+            Authorization: "Bearer fake-token",
+          }),
+        })
       );
 
       expect(window.alert).toHaveBeenCalledWith("Brugernavn opdateret!");
@@ -102,7 +107,6 @@ describe("AdminBruger component", () => {
     // Simulate success for GET, failure for PUT
     mockedAxios.get.mockResolvedValueOnce({ data: 456 });
     mockedAxios.put.mockRejectedValueOnce(createAxiosError(500, "Internal Server Error"));
-
 
     render(
       <BrowserRouter>

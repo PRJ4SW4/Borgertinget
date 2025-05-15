@@ -18,7 +18,7 @@ export default function AddPolls() {
   const [questions, setQuestions] = useState<Question[]>([{ question: "", options: ["", ""] }]);
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);
-  const [twitterId, setTwitterId] = useState<number | null>(null);
+  // const [twitterId, setTwitterId] = useState<number | null>(null); Uncomment this line when TwitterUserIds are available
   const [endDate, setEndDate] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +45,7 @@ export default function AddPolls() {
     fetchPoliticians();
   }, []);
 
-  useEffect(() => {
+  /*useEffect(() => {
     const fetchTwitterId = async () => {
       if (!selectedPoliticianId) return;
 
@@ -63,7 +63,7 @@ export default function AddPolls() {
 
     fetchTwitterId();
   }, [selectedPoliticianId]);
-
+*/
   const handleQuestionChange = (index: number, value: string) => {
     const newQuestions = [...questions];
     newQuestions[index].question = value;

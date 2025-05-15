@@ -14,7 +14,20 @@ const mockPoliticiansList = [
   { id: "aktor2", navn: "Politician Dos" },
 ];
 
-const mockSelectedPollDetails: any = {
+interface MockPollOption {
+  id: number;
+  optionText: string;
+}
+
+interface MockPollDetails {
+  id: number;
+  question: string;
+  options: MockPollOption[];
+  endedAt: string;
+  politicianId: string;
+}
+
+const mockSelectedPollDetails: MockPollDetails = {
   id: 1,
   question: "Poll To Delete Question Detailed",
   options: [
@@ -38,10 +51,7 @@ describe("DeletePoll", () => {
       if (url === `/api/polls/${mockSelectedPollDetails.id}`) {
         return Promise.resolve({ data: mockSelectedPollDetails });
       }
-      if (
-        url ===
-        `/api/administrator/lookup/aktorId?twitterId=${mockSelectedPollDetails.politicianId}`
-      ) {
+      if (url === `/api/administrator/lookup/aktorId?twitterId=${mockSelectedPollDetails.politicianId}`) {
         return Promise.resolve({
           data: { aktorId: mockSelectedPollDetails.politicianId },
         });
@@ -59,21 +69,11 @@ describe("DeletePoll", () => {
     );
     expect(screen.getByText("Slet Poll")).toBeInTheDocument();
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        "/api/polls",
-        expect.anything()
-      );
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        "/api/aktor/all",
-        expect.anything()
-      );
+      expect(mockedAxios.get).toHaveBeenCalledWith("/api/polls", expect.anything());
+      expect(mockedAxios.get).toHaveBeenCalledWith("/api/aktor/all", expect.anything());
     });
-    mockPollsSummaryList.forEach((p) =>
-      expect(screen.getByText(p.question)).toBeInTheDocument()
-    );
-    expect(
-      screen.queryByText("Slet Poll", { selector: "button" })
-    ).not.toBeInTheDocument();
+    mockPollsSummaryList.forEach((p) => expect(screen.getByText(p.question)).toBeInTheDocument());
+    expect(screen.queryByText("Slet Poll", { selector: "button" })).not.toBeInTheDocument();
   });
 
   it("fetches and displays poll details (disabled) when a poll is selected", async () => {
@@ -82,11 +82,7 @@ describe("DeletePoll", () => {
         <DeletePoll />
       </BrowserRouter>
     );
-    await waitFor(() =>
-      expect(
-        screen.getByText(mockPollsSummaryList[0].question)
-      ).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
 
     const pollSelect = screen.getByLabelText("Vælg Poll") as HTMLSelectElement;
     fireEvent.change(pollSelect, {
@@ -94,38 +90,23 @@ describe("DeletePoll", () => {
     });
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        `/api/polls/${mockSelectedPollDetails.id}`,
-        expect.anything()
-      );
+      expect(mockedAxios.get).toHaveBeenCalledWith(`/api/polls/${mockSelectedPollDetails.id}`, expect.anything());
     });
 
     await waitFor(() => {
-      const questionInput = screen.getByPlaceholderText(
-        "Skriv spørgsmålet her..."
-      ) as HTMLInputElement;
+      const questionInput = screen.getByPlaceholderText("Skriv spørgsmålet her...") as HTMLInputElement;
       expect(questionInput).toHaveValue(mockSelectedPollDetails.question);
       expect(questionInput).toBeDisabled();
 
-      const optionInput = screen.getByPlaceholderText(
-        "Svarmulighed 1"
-      ) as HTMLInputElement;
-      expect(optionInput).toHaveValue(
-        mockSelectedPollDetails.options[0].optionText
-      );
+      const optionInput = screen.getByPlaceholderText("Svarmulighed 1") as HTMLInputElement;
+      expect(optionInput).toHaveValue(mockSelectedPollDetails.options[0].optionText);
       expect(optionInput).toBeDisabled();
 
-      const politicianSelect = screen.getByLabelText(
-        "Vælg Politiker"
-      ) as HTMLSelectElement;
-      expect(politicianSelect).toHaveValue(
-        mockSelectedPollDetails.politicianId
-      );
+      const politicianSelect = screen.getByLabelText("Vælg Politiker") as HTMLSelectElement;
+      expect(politicianSelect).toHaveValue(mockSelectedPollDetails.politicianId);
       expect(politicianSelect).toBeDisabled();
 
-      expect(
-        screen.getByText("Slet Poll", { selector: "button" })
-      ).toBeInTheDocument();
+      expect(screen.getByText("Slet Poll", { selector: "button" })).toBeInTheDocument();
     });
   });
 
@@ -136,30 +117,17 @@ describe("DeletePoll", () => {
         <DeletePoll />
       </BrowserRouter>
     );
-    await waitFor(() =>
-      expect(
-        screen.getByText(mockPollsSummaryList[0].question)
-      ).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText("Vælg Poll"), {
       target: { value: String(mockSelectedPollDetails.id) },
     });
 
-    await waitFor(() =>
-      expect(
-        screen.getByText("Slet Poll", { selector: "button" })
-      ).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Slet Poll", { selector: "button" })).toBeInTheDocument());
     fireEvent.click(screen.getByText("Slet Poll", { selector: "button" }));
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Er du sikker på, at du vil slette denne poll?"
-    );
+    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne poll?");
     await waitFor(() => {
-      expect(mockedAxios.delete).toHaveBeenCalledWith(
-        `/api/polls/${mockSelectedPollDetails.id}`,
-        expect.anything()
-      );
+      expect(mockedAxios.delete).toHaveBeenCalledWith(`/api/polls/${mockSelectedPollDetails.id}`, expect.anything());
     });
     expect(mockNavigate).toHaveBeenCalledWith("/admin/polls");
   });
@@ -171,25 +139,15 @@ describe("DeletePoll", () => {
         <DeletePoll />
       </BrowserRouter>
     );
-    await waitFor(() =>
-      expect(
-        screen.getByText(mockPollsSummaryList[0].question)
-      ).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText("Vælg Poll"), {
       target: { value: String(mockSelectedPollDetails.id) },
     });
 
-    await waitFor(() =>
-      expect(
-        screen.getByText("Slet Poll", { selector: "button" })
-      ).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Slet Poll", { selector: "button" })).toBeInTheDocument());
     fireEvent.click(screen.getByText("Slet Poll", { selector: "button" }));
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Er du sikker på, at du vil slette denne poll?"
-    );
+    expect(window.confirm).toHaveBeenCalledWith("Er du sikker på, at du vil slette denne poll?");
     expect(mockedAxios.delete).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });

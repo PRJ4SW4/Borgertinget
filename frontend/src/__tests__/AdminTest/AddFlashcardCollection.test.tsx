@@ -11,7 +11,6 @@ describe("CreateFlashcardCollection component", () => {
 
     mockedAxios.post.mockReset(); // Clean up between tests
     mockAlert(); // Avoid actual alerts
-    
   });
 
   it("renders without crashing", () => {
@@ -84,11 +83,27 @@ describe("CreateFlashcardCollection component", () => {
       expect(mockedAxios.post).toHaveBeenCalledWith(
         "/api/administrator/PostFlashcardCollection",
         expect.objectContaining({
+          collectionId: 0, // Added expected collectionId
           title: "Min samling",
           description: "En testbeskrivelse",
-          flashcards: expect.any(Array),
+          flashcards: expect.arrayContaining([
+            expect.objectContaining({
+              flashcardId: 0, // Added expected flashcardId
+              frontContentType: "Text", // Added expected frontContentType
+              frontText: "Hvad er AI?",
+              frontImagePath: null, // Added expected frontImagePath
+              backContentType: "Text", // Added expected backContentType
+              backText: "Kunstig intelligens",
+              backImagePath: null, // Added expected backImagePath
+            }),
+          ]),
         }),
-        expect.any(Object)
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "Content-Type": "application/json",
+            Authorization: "Bearer fake-jwt-token",
+          }),
+        })
       );
       expect(window.alert).toHaveBeenCalledWith("Flashcard serie er oprettet!!");
     });

@@ -42,7 +42,7 @@ export default function EditPoll() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);
-  const [twitterId, setTwitterId] = useState<number | null>(null);
+  // const [twitterId, setTwitterId] = useState<number | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -93,24 +93,24 @@ export default function EditPoll() {
     fetchPoliticians();
   }, []);
 
-  useEffect(() => {
-    const fetchTwitterId = async () => {
-      if (!selectedPoliticianId) return;
+  // useEffect(() => {
+  //   const fetchTwitterId = async () => {
+  //     if (!selectedPoliticianId) return;
 
-      try {
-        const token = localStorage.getItem("jwt");
-        const response = await axios.get(`/api/subscription/lookup/politicianTwitterId?aktorId=${selectedPoliticianId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTwitterId(response.data.politicianTwitterId);
-      } catch (error) {
-        console.error("Could not fetch politicianTwitterId", error);
-        setTwitterId(null);
-      }
-    };
+  //     try {
+  //       const token = localStorage.getItem("jwt");
+  //       const response = await axios.get(`/api/subscription/lookup/politicianTwitterId?aktorId=${selectedPoliticianId}`, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+  //       setTwitterId(response.data.politicianTwitterId);
+  //     } catch (error) {
+  //       console.error("Could not fetch politicianTwitterId", error);
+  //       setTwitterId(null);
+  //     }
+  //   };
 
-    fetchTwitterId();
-  }, [selectedPoliticianId]);
+  //   fetchTwitterId();
+  // }, [selectedPoliticianId]);
 
   // Fetch selected poll details
   useEffect(() => {

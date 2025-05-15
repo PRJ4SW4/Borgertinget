@@ -52,9 +52,7 @@ describe("EditFlashcardCollection component", () => {
 
   it("loads a flashcard collection on title click", async () => {
     // First GET for titles, then GET for collection
-    mockedAxios.get
-      .mockResolvedValueOnce({ data: mockTitles })
-      .mockResolvedValueOnce({ data: mockCollection });
+    mockedAxios.get.mockResolvedValueOnce({ data: mockTitles }).mockResolvedValueOnce({ data: mockCollection });
 
     render(
       <BrowserRouter>
@@ -75,9 +73,7 @@ describe("EditFlashcardCollection component", () => {
 
   it("updates flashcard collection and shows success alert", async () => {
     // Mock fetching and saving the collection
-    mockedAxios.get
-      .mockResolvedValueOnce({ data: mockTitles })
-      .mockResolvedValueOnce({ data: mockCollection });
+    mockedAxios.get.mockResolvedValueOnce({ data: mockTitles }).mockResolvedValueOnce({ data: mockCollection });
     mockedAxios.put.mockResolvedValueOnce({ status: 200 });
 
     render(
@@ -104,9 +100,24 @@ describe("EditFlashcardCollection component", () => {
         "/api/administrator/UpdateFlashcardCollection/1",
         expect.objectContaining({
           title: "Serie A",
-          flashcards: expect.any(Array),
+          flashcards: expect.arrayContaining([
+            expect.objectContaining({
+              flashcardId: 1,
+              frontContentType: "Text",
+              frontText: "Updated Front", // Check for the updated value
+              frontImagePath: null,
+              backContentType: "Text",
+              backText: "Back A",
+              backImagePath: null,
+            }),
+          ]),
         }),
-        expect.any(Object)
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "Content-Type": "application/json", // Assuming JSON content type
+            Authorization: "Bearer fake-token",
+          }),
+        })
       );
 
       // Check that the success alert is shown

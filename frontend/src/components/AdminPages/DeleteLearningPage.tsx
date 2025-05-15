@@ -7,6 +7,14 @@ import BackButton from "../Button/backbutton";
 import { fetchPagesStructure } from "../../services/ApiService";
 import type { PageSummaryDto, PageDetailDto as ApiPageDetailDto, QuestionDto as ApiQuestionDto } from "../../types/pageTypes";
 
+// Frontend state types for question/answer editing
+interface AnswerOptionFormState {
+  id: number; // Client-side temporary ID, or 0 for new backend item
+  optionText: string;
+  isCorrect: boolean;
+  displayOrder: number;
+}
+
 export default function DeleteLearningPage() {
   const [pages, setPages] = useState<PageSummaryDto[]>([]);
   const [selectedPageId, setSelectedPageId] = useState<number | null>(null);
@@ -123,7 +131,7 @@ export default function DeleteLearningPage() {
                         {question.options.map((option) => (
                           <li key={option.id}>
                             {option.optionText}
-                            {(option as any).isCorrect && <span className="correct-indicator"> (Korrekt)</span>}
+                            {(option as AnswerOptionFormState).isCorrect && <span className="correct-indicator"> (Korrekt)</span>}
                           </li>
                         ))}
                       </ul>
