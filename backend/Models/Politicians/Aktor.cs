@@ -44,11 +44,16 @@ namespace backend.Models{
 
         #region Realations
         //* Quotes
-        public virtual ICollection<PoliticianQuote> Quotes  { get; set; } = new List<PoliticianQuote>();
+        public virtual ICollection<PoliticianQuote> Quotes { get; set; } =
+            new List<PoliticianQuote>();
+
         //* GamemodeTracker
-        public virtual ICollection<GamemodeTracker> GamemodeTrackings { get; set; } = new List<GamemodeTracker>();
+        public virtual ICollection<GamemodeTracker> GamemodeTrackings { get; set; } =
+            new List<GamemodeTracker>();
+
         //* DailySelection
-        public virtual ICollection<DailySelection> DailySelections { get; set; } = new List<DailySelection>();
+        public virtual ICollection<DailySelection> DailySelections { get; set; } =
+            new List<DailySelection>();
         #endregion
     }
 

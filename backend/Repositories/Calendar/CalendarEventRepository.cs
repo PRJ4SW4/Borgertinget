@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using backend.Data; // For DataContext
 using backend.Models.Calendar; // For CalendarEvent
+using backend.Utils; // For LogSanitizer
 using backend.Models; // For User
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -56,11 +57,11 @@ public class CalendarEventRepository : ICalendarEventRepository
         if (oldEventsToDelete.Any())
         {
             _context.CalendarEvents.RemoveRange(oldEventsToDelete); // Mark for deletion.
-            _logger.LogInformation(
-                "Marked {Count} past calendar events (before {ThresholdUtc:O}) for deletion.",
-                oldEventsToDelete.Count,
-                utcThreshold
-            );
+            // _logger.LogInformation(
+            //     "Marked {Count} past calendar events (before {ThresholdUtc:O}) for deletion.",
+            //     oldEventsToDelete.Count,
+            //     utcThreshold
+            // );
             return oldEventsToDelete.Count;
         }
         _logger.LogInformation(
@@ -74,22 +75,40 @@ public class CalendarEventRepository : ICalendarEventRepository
     public async Task AddEventAsync(CalendarEvent newEvent)
     {
         await _context.CalendarEvents.AddAsync(newEvent); // Mark for addition.
+        // _logger.LogDebug(
+        //     "Marked new calendar event for addition: Title='{EventTitle}', SourceUrl='{SourceUrl}'",
+        //     newEvent.Title,
+        //     newEvent.SourceUrl
+        // );
+    }
+
+    // Retrieves a specific CalendarEvent by its ID.
+    public async Task<CalendarEvent?> GetEventByIdAsync(int id) // Added nullable return type
+    {
         _logger.LogDebug(
-            "Marked new calendar event for addition: Title='{EventTitle}', SourceUrl='{SourceUrl}'",
-            newEvent.Title,
-            newEvent.SourceUrl
+            "Fetching calendar event by ID: {EventId}",
+            LogSanitizer.Sanitize(id.ToString())
         );
+        var calendarEvent = await _context.CalendarEvents.FindAsync(id);
+        if (calendarEvent == null)
+        {
+            _logger.LogWarning(
+                "Calendar event with ID: {EventId} not found.",
+                LogSanitizer.Sanitize(id.ToString())
+            );
+        }
+        return calendarEvent;
     }
 
     // Updates an existing CalendarEvent.
     public void UpdateEvent(CalendarEvent existingEvent)
     {
         _context.CalendarEvents.Update(existingEvent); // Mark for update.
-        _logger.LogDebug(
-            "Marked existing calendar event for update: ID={EventId}, Title='{EventTitle}'",
-            existingEvent.Id,
-            existingEvent.Title
-        );
+        // _logger.LogDebug(
+        //     "Marked existing calendar event for update: ID={EventId}, Title='{EventTitle}'",
+        //     existingEvent.Id,
+        //     existingEvent.Title
+        // );
     }
 
     // Marks a collection of CalendarEvents for deletion.
@@ -97,6 +116,16 @@ public class CalendarEventRepository : ICalendarEventRepository
     {
         _context.CalendarEvents.RemoveRange(eventsToDelete); // Mark for deletion.
         _logger.LogDebug("Marked {Count} calendar events for deletion.", eventsToDelete.Count());
+    }
+
+    // Marks a single CalendarEvent for deletion.
+    public void DeleteEvent(CalendarEvent eventToDelete)
+    {
+        _context.CalendarEvents.Remove(eventToDelete);
+        _logger.LogDebug(
+            "Marked calendar event for deletion: ID={EventId}",
+            LogSanitizer.Sanitize(eventToDelete.Id.ToString())
+        );
     }
 
     // Persists all pending changes.

@@ -55,25 +55,23 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     setStatusHeader("Fejl");
     setStatusMessage(null);
     try {
-      const response = await axios.post("http://localhost:5218/api/users/login", { 
-        EmailOrUsername: loginUsername, 
-        Password: loginPassword 
+      const response = await axios.post("http://localhost:5218/api/users/login", {
+        EmailOrUsername: loginUsername,
+        Password: loginPassword,
       });
 
       const token = response.data.token;
       localStorage.setItem("jwt", token);
       setToken(token);
       navigate("/");
-    }
-    
-    catch (error) {
+    } catch (error) {
       if (axios.isAxiosError(error)) {
-          const errorMessage = error.response?.data?.error || "Noget gik galt. Prøv igen.";
-          setStatusMessage(errorMessage); // Sikrer at der altid er en fejlmeddelelse
-          setShowPopup(true);
+        const errorMessage = error.response?.data?.error || "Noget gik galt. Prøv igen.";
+        setStatusMessage(errorMessage); // Sikrer at der altid er en fejlmeddelelse
+        setShowPopup(true);
       } else {
-          setStatusMessage("Ingen forbindelse til serveren.");
-          setShowPopup(true);
+        setStatusMessage("Ingen forbindelse til serveren.");
+        setShowPopup(true);
       }
     }
   };
@@ -84,45 +82,38 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     setStatusHeader("Fejl");
 
     try {
-        const response = await axios.post("http://localhost:5218/api/users/register", { 
+      const response = await axios.post("http://localhost:5218/api/users/register", {
         Username: registerUsername,
-        Email: registerEmail, 
-        Password: registerPassword
+        Email: registerEmail,
+        Password: registerPassword,
       });
       setStatusMessage(response.data.message);
       setStatusHeader("Succes");
       setShowPopup(true);
-
-    } 
-    catch (error) {
+    } catch (error) {
       if (axios.isAxiosError(error)) {
-          const responseData = error.response?.data;
-          console.log("Response Data:", responseData); // Log responseData
-          console.log("Error:", error); // Log error
-          if (responseData?.error) {
-            setStatusMessage(responseData.error); // Fanger backend-fejlbesked
-            setShowPopup(true);
-          } else if (responseData?.errors) {
-            if (Array.isArray(responseData.errors)) {
-              setStatusMessage(responseData.errors[0]); // Fanger den første fejlmeddelelse
-              setShowPopup(true);
-            } else if (typeof responseData.errors === "object") {
-              const firstKey = Object.keys(responseData.errors)[0];
-              const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
+        const responseData = error.response?.data;
+        console.log("Response Data:", responseData); // Log responseData
+        console.log("Error:", error); // Log error
+        if (responseData?.error) {
+          setStatusMessage(responseData.error); // Fanger backend-fejlbesked
+          setShowPopup(true);
+        } else if (responseData?.errors) {
+          const firstKey = Object.keys(responseData.errors)[0];
+          const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
 
-              setStatusMessage(firstError); // Fanger backend-fejlbesked
-              setShowPopup(true);
-            } else {
-            console.log("Unexpected Axios error shape:", error.response?.data);
-            setStatusMessage("Noget gik galt. Prøv igen.");
-            setShowPopup(true);
-          }
+          setStatusMessage(firstError); // Fanger backend-fejlbesked
+          setShowPopup(true);
         } else {
-          console.log("No connection or unknown error:", error);
-          setStatusMessage("Ingen forbindelse til serveren.");
+          console.log("Unexpected Axios error shape:", error.response?.data);
+          setStatusMessage("Noget gik galt. Prøv igen.");
           setShowPopup(true);
         }
-      }  
+      } else {
+        console.log("No connection or unknown error:", error);
+        setStatusMessage("Ingen forbindelse til serveren.");
+        setShowPopup(true);
+      }
     }
   };
 
@@ -224,7 +215,6 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
                 />
-
               </div>
   
               <button className={styles.button} type="submit">Log på</button>
@@ -244,7 +234,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
             </p>
           </div>
         </div>
-  
+
         {/* Register Form Section */}
         <div className={styles.registerForm}>
           <div className={styles.formContent}>
@@ -292,7 +282,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
             </p>
           </div>
         </div>
-  
+
         {/* Image Section */}
         <div className={styles.imageSection}>
           <img src={loginImage} className={styles.loginImage} alt="Login visual" />
