@@ -2,6 +2,7 @@
 import type { PageSummaryDto, PageDetailDto } from '../types/pageTypes'; // Import types
 import type { FlashcardCollectionSummaryDto, FlashcardCollectionDetailDto } from '../types/flashcardTypes';
 import type { CalendarEventDto } from '../types/calendarTypes';
+import axios from 'axios';
 
 const API_BASE_URL = '/api';
 
@@ -94,7 +95,21 @@ export const fetchCalendarEvents = async (): Promise<CalendarEventDto[]> => {
   const url = `${API_BASE_URL}/calendar/events`;
   console.log("Fetching calendar events from:", url); // For debugging
 
-  const response = await fetch(url);
+  const token = localStorage.getItem('jwt');
+
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/json');
+
+  if (token) {
+      headers.append('Authorization', `Bearer ${token}`);
+  } else {
+      console.log("No JWT token found in localStorage");
+  }
+
+  const response = await fetch(url, {
+      method: 'GET',
+      headers: headers,
+  });
 
   if (!response.ok) {
       const errorText = await response.text();
@@ -103,3 +118,30 @@ export const fetchCalendarEvents = async (): Promise<CalendarEventDto[]> => {
   }
   return await response.json() as CalendarEventDto[];
 };
+
+export async function toggleEventInterest(eventId: number): Promise<{ isInterested: boolean, interestedCount: number }> {
+  try {
+
+    const token = localStorage.getItem('jwt');
+
+    const response = await axios.post(
+      `http://localhost:5218/api/calendar/events/toggle-interest/${eventId}`, // URL til API'en
+      {},
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+  } catch (error: any) {
+    console.error('Error in toggleEventInterest:', error);
+    throw error;
+  }
+}

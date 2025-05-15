@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250514141927_CalendarInterestMigration")]
-    partial class CalendarInterestMigration
+    [Migration("20250514231736_ForeignKeyToEventInterestModel")]
+    partial class ForeignKeyToEventInterestModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

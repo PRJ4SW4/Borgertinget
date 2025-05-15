@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250513160048_AddIdentityImplementationAndSearch")]
-    partial class AddIdentityImplementationAndSearch
+    [Migration("20250514204510_DatabaseCreation")]
+    partial class DatabaseCreation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -289,6 +289,30 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("CalendarEvents");
+                });
+
+            modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
+                {
+                    b.Property<int>("EventInterestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EventInterestId"));
+
+                    b.Property<int>("CalendarEventId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("EventInterestId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CalendarEventId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("EventInterests");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -753,6 +777,29 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("PoliticianTwitterIds");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Statsministeriet",
+                            TwitterHandle = "Statsmin",
+                            TwitterUserId = "806068174567460864"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Venstre, Danmarks Liberale Parti",
+                            TwitterHandle = "venstredk",
+                            TwitterUserId = "123868861"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Troels Lund Poulsen",
+                            TwitterHandle = "troelslundp",
+                            TwitterUserId = "2965907578"
+                        });
                 });
 
             modelBuilder.Entity("backend.Models.Poll", b =>
@@ -1093,6 +1140,25 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
+                {
+                    b.HasOne("backend.Models.Calendar.CalendarEvent", "CalendarEvent")
+                        .WithMany("InterestedUsers")
+                        .HasForeignKey("CalendarEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CalendarEvent");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
                 {
                     b.HasOne("backend.Models.Flashcards.FlashcardCollection", "FlashcardCollection")
@@ -1251,6 +1317,11 @@ namespace backend.Migrations
                     b.Navigation("Poll");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
+                {
+                    b.Navigation("InterestedUsers");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>

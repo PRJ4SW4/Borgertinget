@@ -75,9 +75,13 @@ public class CalendarController : ControllerBase
     public async Task<ActionResult<IEnumerable<CalendarEventDTO>>> GetEvents()
     {
         _logger.LogInformation("Attempting to fetch all calendar events via Service.");
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int.TryParse(userId, out int parsedUserId);
+
         try
         {
-            var eventDTOs = await _calendarService.GetAllEventsAsDTOAsync();
+            var eventDTOs = await _calendarService.GetAllEventsAsDTOAsync(parsedUserId);
             return Ok(eventDTOs);
         }
         catch (Exception ex)
@@ -89,8 +93,8 @@ public class CalendarController : ControllerBase
 
     // Bruger skal kunne deltage (subscribe) til kalenderevents
     [Authorize]
-    [HttpPost("/events/toggle-interest/{eventid}")]
-    public async Task<ActionResult> ToggleInterest(CalendarEventDTO dto)
+    [HttpPost("events/toggle-interest/{id}")]
+    public async Task<ActionResult> ToggleInterest([FromRoute] int id)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -99,10 +103,10 @@ public class CalendarController : ControllerBase
         }
         try
         {
-            var result = await _calendarService.ToggleInterestAsync(dto.Id, userId);
-            if (result)
+            var result = await _calendarService.ToggleInterestAsync(id, userId);
+            if (result.HasValue)
             {
-                return Ok("Interest toggled successfully.");
+                return Ok(new { isInterested = result.Value.IsInterested, interestedCount = result.Value.InterestedCount });
             }
             else
             {

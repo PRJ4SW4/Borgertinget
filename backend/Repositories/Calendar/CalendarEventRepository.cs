@@ -111,7 +111,7 @@ public class CalendarEventRepository : ICalendarEventRepository
     public async Task<IEnumerable<CalendarEvent>> GetAllEventsAsync()
     {
         _logger.LogInformation("Fetching all calendar events from database.");
-        var events = await _context.CalendarEvents.OrderBy(e => e.StartDateTimeUtc).ToListAsync();
+        var events = await _context.CalendarEvents.Include(ce => ce.InterestedUsers).OrderBy(e => e.StartDateTimeUtc).AsNoTracking().ToListAsync();
         _logger.LogInformation("Found {EventCount} total events.", events.Count);
         return events;
     }

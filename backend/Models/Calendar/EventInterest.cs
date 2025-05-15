@@ -18,6 +18,6 @@ public class EventInterest
     // Foreign key for User
     public int UserId { get; set; } 
 
-    // [ForeignKey("UserId")]
+    [ForeignKey("UserId")]
     public virtual User User { get; set; } = null!;
 }
