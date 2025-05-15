@@ -12,5 +12,6 @@ namespace backend.Interfaces.Repositories
         Task<bool> ExistsForDateAsync(DateOnly date);
         Task AddManyAsync(IEnumerable<DailySelection> selections);
         // SaveChangesAsync håndteres typisk af UnitOfWork eller centralt i service
+        Task DeleteByDateAsync(DateOnly date);
     }
 }
