@@ -23,7 +23,63 @@ export default function AdminIndhold() {
   const [searchMessage, setSearchMessage] = useState("");
   const [searchUpdateSuccess, setSearchUpdateSuccess] = useState(false);
 
+  // State for fetching all
+  const [allLoading, setAllLoading] = useState(false);
+  const [allMessage, setAllMessage] = useState("");
+  const [allUpdateSuccess, setAllUpdateSuccess] = useState(false);
+
   const matchProp = { path: location.pathname };
+
+  const handleFetchAll = async () => {
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      alert("Du er ikke logget ind.");
+      return;
+    }
+
+    setAllLoading(true);
+    setAllMessage("");
+    setAllUpdateSuccess(false);
+    // Clear individual messages when starting fetch all
+    setActorsMessage("");
+    setActorsUpdateSuccess(false);
+    setEventsMessage("");
+    setEventsUpdateSuccess(false);
+    setSearchMessage("");
+    setSearchUpdateSuccess(false);
+
+    try {
+      await axios.post("/api/aktor/fetch", null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      await axios.post("/api/Calendar/run-calendar-scraper", null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      await axios.post("/api/polidle/admin/seed-all-aktor-quotes", null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      await axios.post("/api/polidle/admin/generate-today", null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      await axios.post("/api/Search/ensure-and-reindex", null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setAllMessage("Alle data blev opdateret!");
+      setAllUpdateSuccess(true);
+    } catch (error) {
+      console.error("Fejl ved opdatering af alt indhold", error);
+      setAllMessage("Fejl: Kunne ikke opdatere alt indhold.");
+      setAllUpdateSuccess(false);
+    } finally {
+      setAllLoading(false);
+    }
+  };
+
   const handleFetchActors = async () => {
     const token = localStorage.getItem("jwt");
     if (!token) {
@@ -34,11 +90,13 @@ export default function AdminIndhold() {
     setActorsLoading(true);
     setActorsMessage("");
     setActorsUpdateSuccess(false);
-    // Clear event and search message when starting actor fetch
+    // Clear other messages when starting actor fetch
     setEventsMessage("");
     setEventsUpdateSuccess(false);
     setSearchMessage("");
     setSearchUpdateSuccess(false);
+    setAllMessage("");
+    setAllUpdateSuccess(false);
 
     try {
       await axios.post("/api/aktor/fetch", null, {
@@ -66,11 +124,13 @@ export default function AdminIndhold() {
     setEventsLoading(true);
     setEventsMessage("");
     setEventsUpdateSuccess(false);
-    // Clear actor and search message when starting event fetch
+    // Clear other messages when starting event fetch
     setActorsMessage("");
     setActorsUpdateSuccess(false);
     setSearchMessage("");
     setSearchUpdateSuccess(false);
+    setAllMessage("");
+    setAllUpdateSuccess(false);
 
     try {
       await axios.post("/api/calendar/run-calendar-scraper", null, {
@@ -98,11 +158,13 @@ export default function AdminIndhold() {
     setSearchLoading(true);
     setSearchMessage("");
     setSearchUpdateSuccess(false);
-    // Clear actor and event message when starting event fetch
+    // Clear other messages when starting search fetch
     setActorsMessage("");
     setActorsUpdateSuccess(false);
     setEventsMessage("");
     setEventsUpdateSuccess(false);
+    setAllMessage("");
+    setAllUpdateSuccess(false);
 
     try {
       await axios.post("/api/Search/ensure-and-reindex", null, {
@@ -134,22 +196,9 @@ export default function AdminIndhold() {
 
       <h1>Administrer Indhold</h1>
       <div className="button-group">
-        <button onClick={handleFetchActors} className={`Button ${actorsUpdateSuccess ? "Button-success" : ""}`} disabled={actorsLoading}>
-          {actorsLoading ? "Opdaterer..." : "Hent alle partier og politikere"}
-        </button>
-
-        {actorsMessage && <p style={{ marginTop: "1rem", fontWeight: "bold", color: actorsUpdateSuccess ? "green" : "red" }}>{actorsMessage}</p>}
-
-        <br />
         <button onClick={() => navigate("/admin/Indhold/redigerIndhold")} className="Button">
           Rediger Indhold
         </button>
-        <br />
-        <button onClick={handleFetchEvents} className={`Button ${eventsUpdateSuccess ? "Button-success" : ""}`} disabled={eventsLoading}>
-          {eventsLoading ? "Opdaterer..." : "Hent alle begivenheder fra Altinget"}
-        </button>
-
-        {eventsMessage && <p style={{ marginTop: "1rem", fontWeight: "bold", color: eventsUpdateSuccess ? "green" : "red" }}>{eventsMessage}</p>}
         <br />
         <button onClick={() => navigate("/admin/Indhold/tilføjBegivenhed")} className="Button">
           Tilføj Begivenhed
@@ -162,6 +211,24 @@ export default function AdminIndhold() {
         <button onClick={() => navigate("/admin/Indhold/sletBegivenhed")} className="Button">
           Slet Begivenhed
         </button>
+        <br />
+        <button onClick={handleFetchAll} className={`Button ${allUpdateSuccess ? "Button-success" : ""}`} disabled={allLoading}>
+          {allLoading ? "Henter alt..." : "Hent alt"}
+        </button>
+
+        {allMessage && <p style={{ marginTop: "1rem", fontWeight: "bold", color: allUpdateSuccess ? "green" : "red" }}>{allMessage}</p>}
+        <br />
+        <button onClick={handleFetchActors} className={`Button ${actorsUpdateSuccess ? "Button-success" : ""}`} disabled={actorsLoading}>
+          {actorsLoading ? "Opdaterer..." : "Hent alle partier og politikere"}
+        </button>
+
+        {actorsMessage && <p style={{ marginTop: "1rem", fontWeight: "bold", color: actorsUpdateSuccess ? "green" : "red" }}>{actorsMessage}</p>}
+        <br />
+        <button onClick={handleFetchEvents} className={`Button ${eventsUpdateSuccess ? "Button-success" : ""}`} disabled={eventsLoading}>
+          {eventsLoading ? "Opdaterer..." : "Hent alle begivenheder fra Altinget"}
+        </button>
+
+        {eventsMessage && <p style={{ marginTop: "1rem", fontWeight: "bold", color: eventsUpdateSuccess ? "green" : "red" }}>{eventsMessage}</p>}
         <br />
         <button onClick={handleFetchSearch} className={`Button ${searchUpdateSuccess ? "Button-success" : ""}`} disabled={searchLoading}>
           {searchLoading ? "Opdaterer..." : "Genkør Search indexeringen"}
