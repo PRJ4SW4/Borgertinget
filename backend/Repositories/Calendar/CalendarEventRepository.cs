@@ -145,18 +145,6 @@ public class CalendarEventRepository : ICalendarEventRepository
         return events;
     }
 
-    // Retrieves a CalendarEvent by its ID.
-    public async Task<CalendarEvent?> GetEventByIdAsync(int eventId){
-        var calendarEvent = await _context.CalendarEvents.FindAsync(eventId);
-        if (calendarEvent == null)
-        {
-            _logger.LogWarning("Calendar event with ID {EventId} not found.", eventId);
-            return null;
-        }
-        _logger.LogInformation("Found calendar event with ID {EventId}.", eventId);
-        return calendarEvent;
-    }
-
     // Retrieves EventInterests for a specific CalendarEvent and user.
     // Returns null if the event or user is not found.
     public async Task<EventInterest?> RetrieveInterestPairsAsync(int eventId, string userId)

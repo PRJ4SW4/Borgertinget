@@ -51,7 +51,5 @@ public interface ICalendarEventRepository
 
     Task<User?> GetUserModelByIdStringAsync(string userId);
 
-    Task<CalendarEvent?> GetEventByIdAsync(int eventId);
-
     Task<int> GetInterestedUsersAsync(int eventId);
 }
