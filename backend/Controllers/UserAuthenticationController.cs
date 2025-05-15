@@ -22,6 +22,7 @@ using backend.utils;
 using CoreTweet.Rest;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 namespace backend.Controllers
 {
     [ApiController]
@@ -245,6 +246,38 @@ namespace backend.Controllers
                 _logger.LogWarning(ex, "Fejl ved afkodning af token");
                 return BadRequest(new {message = "Ugyldigt token format"});
             }
+        }
+
+        [AllowAnonymous] 
+        [HttpGet("login-google")] 
+        public IActionResult LoginWithGoogle([FromQuery] string? clientReturnUrl = null)
+        {
+            var sanitizedClientReturnUrl = (clientReturnUrl ?? "/").Replace("\n", "").Replace("\r", "");
+            _logger.LogInformation("Start Google login process. Ønsket frontend returnUrl for efterfølgende redirect: {ClientReturnUrl}", sanitizedClientReturnUrl);
+
+            // Den URL, som SignInManager gemmer i AuthenticationProperties, for at vide hvor OnTicketReceived skal sende os hen.
+            // Denne URL (vores HandleGoogleCallback) vil så modtage den oprindelige clientReturnUrl som et query parameter.
+            var propertiesRedirectUri = Url.Action(
+                action: nameof(HandleGoogleCallback),
+                controller: "Users",
+                values: new { returnUrl = clientReturnUrl }, 
+                protocol: Request.Scheme
+            );
+
+            if (string.IsNullOrEmpty(propertiesRedirectUri))
+            {
+                _logger.LogError("Kunne ikke generere URL til HandleGoogleCallback via Url.Action.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Intern fejl: Kunne ikke starte Google login.");
+            }
+
+            _logger.LogDebug("Intern redirect URI for ConfigureExternalAuthenticationProperties (til HandleGoogleCallback): {PropertiesRedirectUri}", propertiesRedirectUri);
+
+            var authenticationProperties = _signInManager.ConfigureExternalAuthenticationProperties(
+                GoogleDefaults.AuthenticationScheme,
+                propertiesRedirectUri // Denne URL peger på vores HandleGoogleCallback med den oprindelige clientReturnUrl
+            );
+
+            return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
         }
 
         [HttpGet("HandleGoogleCallback")]

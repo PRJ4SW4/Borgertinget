@@ -9,20 +9,24 @@ const LoginSuccessPage: React.FC<LoginSuccessPageProps> = ({ setToken }) => {
   const location = useLocation(); // Giver adgang til den aktuelle URL's info
   const navigate = useNavigate(); // Bruges til at navigere programmatisk
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const token = searchParams.get('token'); 
+useEffect(() => {
+  const searchParams = new URLSearchParams(location.search);
+  const token = searchParams.get('token');
+  const originalReturnUrl = searchParams.get('originalReturnUrl'); 
 
-    if (token) {
-      console.log("Modtaget token fra Google login:", token); // Til debugging
-      localStorage.setItem('jwt', token);
-      setToken(token);
-      navigate('/', { replace: true });
-    } else {
-      console.error("Intet token fundet i URL efter Google login.");
-      navigate('/login'); // Eller vis en fejlside
-    }
-  }, [location, navigate, setToken]); // Dependency array sikrer, at effekten kører igen hvis disse ændres (selvom det næppe sker her)
+  if (token) {
+    console.log("LoginSuccessPage: Modtaget token:", token);
+    localStorage.setItem('jwt', token);
+    setToken(token);
+
+    const navigateTo = originalReturnUrl && originalReturnUrl.startsWith("/") ? originalReturnUrl : '/HomePage'; // Brug originalReturnUrl hvis den er valid, ellers default
+    console.log("LoginSuccessPage: Navigerer til:", navigateTo);
+    navigate(navigateTo, { replace: true });
+  } else {
+    console.error("LoginSuccessPage: Intet token fundet i URL.");
+    navigate('/login', { replace: true });
+  }
+}, [location, navigate, setToken]); // Dependency array sikrer, at effekten kører igen hvis disse ændres (selvom det næppe sker her)
 
   return (
     <div>
