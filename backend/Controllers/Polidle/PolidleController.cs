@@ -1,13 +1,13 @@
-using backend.Services;
-using backend.Interfaces.Services;
+using System; // For DateOnly
+using System.Collections.Generic; // For List og KeyNotFoundException
+using System.Threading.Tasks;
 using backend.DTO;
+using backend.Interfaces.Services;
+using backend.Models; // For PoliticianSummaryDto (hvis den ligger her)
+using backend.Services;
 using backend.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using System.Collections.Generic; // For List og KeyNotFoundException
-using System; // For DateOnly
-using backend.Models; // For PoliticianSummaryDto (hvis den ligger her)
 
 namespace backend.Controllers
 {
@@ -20,13 +20,16 @@ namespace backend.Controllers
         private readonly IDailySelectionService _selectionService;
         private readonly ILogger<PolidleController> _logger;
 
-        public PolidleController(IDailySelectionService selectionService, ILogger<PolidleController> logger)
+        public PolidleController(
+            IDailySelectionService selectionService,
+            ILogger<PolidleController> logger
+        )
         {
             _selectionService = selectionService;
             _logger = logger;
         }
     #endregion
-    #region List Poltician
+        #region List Poltician
         /// Henter en liste af politikere, som brugeren kan vælge imellem for at gætte.
         /// Kan filtreres med en søgestreng.
         /// <param name="search">Valgfri søgestreng til at filtrere politikernavne.</param>
@@ -34,13 +37,18 @@ namespace backend.Controllers
         [HttpGet("politicians")]
         [ProducesResponseType(typeof(List<SearchListDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<SearchListDto>>> GetAllPoliticians([FromQuery] string? search = null)
+        public async Task<ActionResult<List<SearchListDto>>> GetAllPoliticians(
+            [FromQuery] string? search = null
+        )
         {
-             // Rens 'search' før logning og før den sendes videre, HVIS den kun bruges til logning i service
+            // Rens 'search' før logning og før den sendes videre, HVIS den kun bruges til logning i service
             // Hvis service bruger den til DB query, skal den originale bruges dér, og servicen selv sanitize før logning.
             string sanitizedSearchForLog = LogSanitizer.Sanitize(search); // Rens kun til logning
 
-            _logger.LogInformation("Request received for politician summaries with search: '{SearchTerm}'.", sanitizedSearchForLog); // <<< RETTET HER
+            _logger.LogInformation(
+                "Request received for politician summaries with search: '{SearchTerm}'.",
+                sanitizedSearchForLog
+            ); // <<< RETTET HER
             try
             {
                 // Send den *originale* 'search' streng til servicen, da den skal bruges til at query databasen
@@ -49,12 +57,19 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching politicians with search term '{SearchTerm}'", sanitizedSearchForLog); // <<< RETTET HER
-                return StatusCode(StatusCodes.Status500InternalServerError, "An internal server error occurred while fetching politicians.");
+                _logger.LogError(
+                    ex,
+                    "Error fetching politicians with search term '{SearchTerm}'",
+                    sanitizedSearchForLog
+                ); // <<< RETTET HER
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An internal server error occurred while fetching politicians."
+                );
             }
         }
-    #endregion
-    #region Quote
+        #endregion
+        #region Quote
         /// Henter dagens udvalgte citat til Citat-gamemode.
         /// <returns>Et QuoteDto objekt med dagens citat.</returns>
         [HttpGet("quote/today")]
@@ -72,24 +87,33 @@ namespace backend.Controllers
             }
             catch (KeyNotFoundException knfex)
             {
-                _logger.LogWarning("Could not find today's quote selection: {Message}", knfex.Message);
+                _logger.LogWarning(
+                    "Could not find today's quote selection: {Message}",
+                    knfex.Message
+                );
                 // Returner en mere generel besked evt.
                 return NotFound("Today's quote selection could not be found.");
             }
             catch (InvalidOperationException ioex)
             {
-                _logger.LogWarning("Could not retrieve quote due to invalid state: {Message}", ioex.Message);
+                _logger.LogWarning(
+                    "Could not retrieve quote due to invalid state: {Message}",
+                    ioex.Message
+                );
                 // Returner en mere generel besked evt.
                 return BadRequest("Could not retrieve today's quote due to inconsistent data.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting today's quote.");
-                return StatusCode(StatusCodes.Status500InternalServerError, "An internal server error occurred while getting today's quote.");
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An internal server error occurred while getting today's quote."
+                );
             }
         }
-    #endregion
-    #region Photo
+        #endregion
+        #region Photo
         /// Henter URL'en til dagens udvalgte billede til Foto-gamemode.
         /// <returns>Et PhotoDto objekt med URL til dagens billede.</returns>
         [HttpGet("photo/today")]
@@ -107,22 +131,31 @@ namespace backend.Controllers
             }
             catch (KeyNotFoundException knfex)
             {
-                _logger.LogWarning("Could not find today's photo selection: {Message}", knfex.Message);
+                _logger.LogWarning(
+                    "Could not find today's photo selection: {Message}",
+                    knfex.Message
+                );
                 return NotFound("Today's photo selection could not be found.");
             }
             catch (InvalidOperationException ioex)
             {
-                _logger.LogWarning("Could not retrieve photo due to invalid state: {Message}", ioex.Message);
+                _logger.LogWarning(
+                    "Could not retrieve photo due to invalid state: {Message}",
+                    ioex.Message
+                );
                 return BadRequest("Could not retrieve today's photo due to inconsistent data.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting today's photo.");
-                return StatusCode(StatusCodes.Status500InternalServerError, "An internal server error occurred while getting today's photo.");
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An internal server error occurred while getting today's photo."
+                );
             }
         }
-    #endregion
-    #region Classic
+        #endregion
+        #region Classic
         /// Henter detaljerne for dagens udvalgte politiker til Classic-gamemode.
         /// Disse detaljer bruges som referencepunkt for brugerens gæt.
         /// <returns>Et PoliticianDetailsDto objekt med detaljer om dagens politiker.</returns>
@@ -133,7 +166,7 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<DailyPoliticianDto>> GetClassicDetails()
         {
-             _logger.LogInformation("Request received for today's classic mode politician details.");
+            _logger.LogInformation("Request received for today's classic mode politician details.");
             try
             {
                 // Antager at du tilføjer denne metode til IDailySelectionService
@@ -142,22 +175,33 @@ namespace backend.Controllers
             }
             catch (KeyNotFoundException knfex)
             {
-                _logger.LogWarning("Could not find today's classic selection: {Message}", knfex.Message);
+                _logger.LogWarning(
+                    "Could not find today's classic selection: {Message}",
+                    knfex.Message
+                );
                 return NotFound("Today's classic politician selection could not be found.");
             }
             catch (InvalidOperationException ioex) // F.eks. hvis Aktor.Born ikke kunne parses til Alder
             {
-                _logger.LogWarning("Could not retrieve classic details due to invalid state: {Message}", ioex.Message);
-                return BadRequest("Could not retrieve today's classic politician details due to inconsistent data.");
+                _logger.LogWarning(
+                    "Could not retrieve classic details due to invalid state: {Message}",
+                    ioex.Message
+                );
+                return BadRequest(
+                    "Could not retrieve today's classic politician details due to inconsistent data."
+                );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting today's classic politician details.");
-                return StatusCode(StatusCodes.Status500InternalServerError, "An internal server error occurred while getting today's classic politician details.");
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An internal server error occurred while getting today's classic politician details."
+                );
             }
         }
-    #endregion
-    #region Guess
+        #endregion
+        #region Guess
         /// Behandler et gæt fra en bruger for en specifik gamemode.
         /// <param name="guessDto">Data for gættet, inkl. gættet politiker ID og gamemode.</param>
         /// <returns>Et GuessResultDto objekt med feedback på gættet.</returns>
@@ -166,7 +210,9 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // Ved ugyldigt input eller inkonsistent data
         [ProducesResponseType(StatusCodes.Status404NotFound)] // Hvis dagens valg eller gættet politiker ikke findes
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<GuessResultDto>> PostGuess([FromBody] GuessRequestDto guessDto)
+        public async Task<ActionResult<GuessResultDto>> PostGuess(
+            [FromBody] GuessRequestDto guessDto
+        )
         {
             // Input validering (fra DTO attributter)
             if (!ModelState.IsValid)
@@ -175,8 +221,11 @@ namespace backend.Controllers
                 return BadRequest(ModelState); // Returnerer valideringsfejl
             }
 
-            _logger.LogInformation("Guess received for GameMode {GameMode} with GuessedPoliticianId {GuessedId}",
-                guessDto.GameMode, guessDto.GuessedPoliticianId);
+            _logger.LogInformation(
+                "Guess received for GameMode {GameMode} with GuessedPoliticianId {GuessedId}",
+                guessDto.GameMode,
+                guessDto.GuessedPoliticianId
+            );
 
             try
             {
@@ -195,11 +244,18 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while processing the guess for GameMode {GameMode}, GuessedId {GuessedId}",
-                    guessDto.GameMode, guessDto.GuessedPoliticianId);
-                return StatusCode(StatusCodes.Status500InternalServerError, "An internal server error occurred while processing your guess."); // Generisk besked
+                _logger.LogError(
+                    ex,
+                    "An error occurred while processing the guess for GameMode {GameMode}, GuessedId {GuessedId}",
+                    guessDto.GameMode,
+                    guessDto.GuessedPoliticianId
+                );
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An internal server error occurred while processing your guess."
+                ); // Generisk besked
             }
         }
     }
-    #endregion
+        #endregion
 }

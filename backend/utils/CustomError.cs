@@ -9,7 +9,7 @@ public class CostumErrorDescriber : IdentityErrorDescriber
         return new IdentityError
         {
             Code = "PasswordTooShort",
-            Description = $"Kodeordet skal være mindst {length} tegn langt."
+            Description = $"Kodeordet skal være mindst {length} tegn langt.",
         };
     }
 
@@ -18,7 +18,7 @@ public class CostumErrorDescriber : IdentityErrorDescriber
         return new IdentityError
         {
             Code = "PasswordRequiresDigit",
-            Description = "Kodeordet skal indeholde mindst ét tal."
+            Description = "Kodeordet skal indeholde mindst ét tal.",
         };
     }
 
@@ -27,7 +27,7 @@ public class CostumErrorDescriber : IdentityErrorDescriber
         return new IdentityError
         {
             Code = "PasswordRequiresLower",
-            Description = "Kodeordet skal indeholde mindst ét lille bogstav."
+            Description = "Kodeordet skal indeholde mindst ét lille bogstav.",
         };
     }
 
@@ -36,16 +36,16 @@ public class CostumErrorDescriber : IdentityErrorDescriber
         return new IdentityError
         {
             Code = "PasswordRequiresUpper",
-            Description = "Kodeordet skal indeholde mindst ét stort bogstav."
+            Description = "Kodeordet skal indeholde mindst ét stort bogstav.",
         };
     }
 
-     public override IdentityError DuplicateEmail(string email)
+    public override IdentityError DuplicateEmail(string email)
     {
         return new IdentityError
         {
             Code = "DuplicateEmail",
-            Description = $"Emailadressen '{email}' er allerede i brug."
+            Description = $"Emailadressen '{email}' er allerede i brug.",
         };
     }
 
@@ -54,7 +54,7 @@ public class CostumErrorDescriber : IdentityErrorDescriber
         return new IdentityError
         {
             Code = "DuplicateUserName",
-            Description = $"Brugernavnet '{userName}' er allerede i brug."
+            Description = $"Brugernavnet '{userName}' er allerede i brug.",
         };
     }
 }

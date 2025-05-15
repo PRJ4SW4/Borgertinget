@@ -28,5 +28,6 @@ public class CalendarEvent
     public DateTimeOffset LastScrapedUtc { get; set; }
 
     // give reference til EventInterest
-    public virtual ICollection<EventInterest> InterestedUsers { get; set; } = new List<EventInterest>();
+    public virtual ICollection<EventInterest> InterestedUsers { get; set; } =
+        new List<EventInterest>();
 }

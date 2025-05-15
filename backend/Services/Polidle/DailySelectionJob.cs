@@ -1,16 +1,16 @@
 // Fil: Jobs/DailySelectionJob.cs
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration; // Til konfiguration
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Globalization;
+using backend.Enums;
+using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility; // For IDateTimeProvider
-using backend.Interfaces.Repositories;
-using backend.Enums;
+using Microsoft.Extensions.Configuration; // Til konfiguration
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace backend.Jobs
 {
@@ -33,29 +33,36 @@ namespace backend.Jobs
         private volatile bool _isExecuting = false;
         private readonly object _lock = new object();
 
-
         public DailySelectionJob(
             ILogger<DailySelectionJob> logger,
             IServiceScopeFactory scopeFactory,
             IDateTimeProvider dateTimeProvider, // <<< TILFØJET
-            IConfiguration configuration) // <<< Tilføjet IConfiguration
-            // Alternativt inject IOptions<DailySelectionJobSettings>
+            IConfiguration configuration
+        ) // <<< Tilføjet IConfiguration
+        // Alternativt inject IOptions<DailySelectionJobSettings>
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
-            _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider)); // <<< TILFØJET
+            _dateTimeProvider =
+                dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider)); // <<< TILFØJET
 
             // Læs indstillinger fra konfiguration
-            _settings = configuration.GetSection("DailySelectionJob").Get<DailySelectionJobSettings>() ?? new DailySelectionJobSettings();
+            _settings =
+                configuration.GetSection("DailySelectionJob").Get<DailySelectionJobSettings>()
+                ?? new DailySelectionJobSettings();
             _checkInterval = TimeSpan.FromMinutes(_settings.RunCheckIntervalMinutes);
         }
 
         public Task StartAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Daily Selection Job starting up. Check interval: {CheckIntervalMinutes} minutes. Target Run Time (UTC): {RunTimeUtc}", _settings.RunCheckIntervalMinutes, _settings.RunTimeUtc);
+            _logger.LogInformation(
+                "Daily Selection Job starting up. Check interval: {CheckIntervalMinutes} minutes. Target Run Time (UTC): {RunTimeUtc}",
+                _settings.RunCheckIntervalMinutes,
+                _settings.RunTimeUtc
+            );
 
             // Start timer med det samme, men kørsel sker kun på det rigtige tidspunkt
-             _timer = new Timer(DoWorkWrapper, null, TimeSpan.FromSeconds(15), _checkInterval); // Start efter 15 sek, tjek hvert X minut
+            _timer = new Timer(DoWorkWrapper, null, TimeSpan.FromSeconds(15), _checkInterval); // Start efter 15 sek, tjek hvert X minut
 
             return Task.CompletedTask;
         }
@@ -63,31 +70,43 @@ namespace backend.Jobs
         private void DoWorkWrapper(object? state)
         {
             // Simpel lås for at undgå at starte en ny kørsel, hvis den forrige stadig kører
-             lock (_lock)
-             {
-                 if (_isExecuting)
-                 {
-                     _logger.LogWarning("Daily Selection Job timer triggered, but previous execution is still running. Skipping.");
-                     return;
-                 }
-                 _isExecuting = true;
-             }
+            lock (_lock)
+            {
+                if (_isExecuting)
+                {
+                    _logger.LogWarning(
+                        "Daily Selection Job timer triggered, but previous execution is still running. Skipping."
+                    );
+                    return;
+                }
+                _isExecuting = true;
+            }
 
-             _logger.LogInformation("Timer triggered. Checking if job should run.");
+            _logger.LogInformation("Timer triggered. Checking if job should run.");
             // Kør selve arbejdet asynkront
             _ = DoWorkAsync();
         }
 
         private async Task DoWorkAsync()
         {
-             bool jobExecuted = false;
+            bool jobExecuted = false;
             try
             {
                 // Tjek om det er tid til at køre jobbet
                 TimeSpan targetTime;
-                if (!TimeSpan.TryParseExact(_settings.RunTimeUtc, "hh\\:mm", CultureInfo.InvariantCulture, out targetTime))
+                if (
+                    !TimeSpan.TryParseExact(
+                        _settings.RunTimeUtc,
+                        "hh\\:mm",
+                        CultureInfo.InvariantCulture,
+                        out targetTime
+                    )
+                )
                 {
-                    _logger.LogError("Invalid RunTimeUtc format in configuration: {RunTimeUtc}. Expected HH:mm.", _settings.RunTimeUtc);
+                    _logger.LogError(
+                        "Invalid RunTimeUtc format in configuration: {RunTimeUtc}. Expected HH:mm.",
+                        _settings.RunTimeUtc
+                    );
                     return; // Kan ikke køre uden gyldigt tidspunkt
                 }
 
@@ -99,17 +118,28 @@ namespace backend.Jobs
 
                 if (now.TimeOfDay >= targetTime && !alreadyRunToday)
                 {
-                    _logger.LogInformation("Daily Selection Job work starting for date {Date}.", today);
+                    _logger.LogInformation(
+                        "Daily Selection Job work starting for date {Date}.",
+                        today
+                    );
                     jobExecuted = true; // Markér at vi forsøger at køre
 
                     using (var scope = _scopeFactory.CreateScope())
                     {
-                        var dailySelectionService = scope.ServiceProvider.GetRequiredService<IDailySelectionService>();
-                        var markerRepository = scope.ServiceProvider.GetRequiredService<IDailySelectionRepository>(); // Antag dette repo kan tjekke
+                        var dailySelectionService =
+                            scope.ServiceProvider.GetRequiredService<IDailySelectionService>();
+                        var markerRepository =
+                            scope.ServiceProvider.GetRequiredService<IDailySelectionRepository>(); // Antag dette repo kan tjekke
 
-                        _logger.LogInformation("Calling SelectAndSaveDailyPoliticiansAsync for date {Date}", today);
+                        _logger.LogInformation(
+                            "Calling SelectAndSaveDailyPoliticiansAsync for date {Date}",
+                            today
+                        );
                         await dailySelectionService.SelectAndSaveDailyPoliticiansAsync(today);
-                        _logger.LogInformation("SelectAndSaveDailyPoliticiansAsync completed for date {Date}", today);
+                        _logger.LogInformation(
+                            "SelectAndSaveDailyPoliticiansAsync completed for date {Date}",
+                            today
+                        );
 
                         // Overvej at gemme en markør for at jobbet er kørt for i dag
                         // await markerRepository.MarkJobAsRunForDateAsync(today);
@@ -117,25 +147,39 @@ namespace backend.Jobs
                 }
                 else
                 {
-                     if(alreadyRunToday)
-                         _logger.LogInformation("Daily Selection Job check: Job has already run for {Date}.", today);
-                     else
-                         _logger.LogInformation("Daily Selection Job check: Target time {TargetTimeUtc} not reached yet (current time {CurrentTimeUtc}).", targetTime, now.TimeOfDay);
+                    if (alreadyRunToday)
+                        _logger.LogInformation(
+                            "Daily Selection Job check: Job has already run for {Date}.",
+                            today
+                        );
+                    else
+                        _logger.LogInformation(
+                            "Daily Selection Job check: Target time {TargetTimeUtc} not reached yet (current time {CurrentTimeUtc}).",
+                            targetTime,
+                            now.TimeOfDay
+                        );
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred within the scoped execution of the Daily Selection Job work.");
+                _logger.LogError(
+                    ex,
+                    "An error occurred within the scoped execution of the Daily Selection Job work."
+                );
             }
             finally
             {
-                 lock(_lock) // Frigiv låsen
-                 {
+                lock (_lock) // Frigiv låsen
+                {
                     _isExecuting = false;
-                 }
-                if (jobExecuted) _logger.LogInformation("Daily Selection Job work finished for date {Date}.", _dateTimeProvider.TodayUtc);
-                 else _logger.LogInformation("Daily Selection Job check finished.");
-
+                }
+                if (jobExecuted)
+                    _logger.LogInformation(
+                        "Daily Selection Job work finished for date {Date}.",
+                        _dateTimeProvider.TodayUtc
+                    );
+                else
+                    _logger.LogInformation("Daily Selection Job check finished.");
             }
         }
 
@@ -145,23 +189,32 @@ namespace backend.Jobs
         {
             using (var scope = _scopeFactory.CreateScope())
             {
-                 try
-                 {
+                try
+                {
                     // Dette er et *eksempel* - du skal implementere logikken
                     // Måske tjekker du blot om der *findes* DailySelections for 'today'?
-                    var dailySelectionRepository = scope.ServiceProvider.GetRequiredService<IDailySelectionRepository>();
+                    var dailySelectionRepository =
+                        scope.ServiceProvider.GetRequiredService<IDailySelectionRepository>();
                     bool exists = await dailySelectionRepository.ExistsForDateAsync(today);
-                    if(exists) {
-                         _logger.LogDebug("CheckIfRunTodayAsync: Found existing DailySelections for {Date}.", today);
-                         return true;
+                    if (exists)
+                    {
+                        _logger.LogDebug(
+                            "CheckIfRunTodayAsync: Found existing DailySelections for {Date}.",
+                            today
+                        );
+                        return true;
                     }
-                 }
-                 catch (Exception ex)
-                 {
-                      _logger.LogError(ex, "Failed to check if job has already run for {Date}.", today);
-                      // Måske skal vi returnere true for at undgå at køre igen ved fejl? Eller false for at prøve igen?
-                      return false; // Forsigtig default: Prøv igen næste gang
-                 }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to check if job has already run for {Date}.",
+                        today
+                    );
+                    // Måske skal vi returnere true for at undgå at køre igen ved fejl? Eller false for at prøve igen?
+                    return false; // Forsigtig default: Prøv igen næste gang
+                }
             }
             return false;
         }
@@ -177,7 +230,7 @@ namespace backend.Jobs
         {
             _logger.LogDebug("Disposing Daily Selection Job timer.");
             _timer?.Dispose();
-             GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -237,10 +237,12 @@ namespace backend.Controllers
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-            var resetLink = $"http://localhost:5173/reset-password?userId={user.Id}&token={encodedToken}";
+            var resetLink =
+                $"http://localhost:5173/reset-password?userId={user.Id}&token={encodedToken}";
 
             var subject = "Nulstil din adgangskode";
-            var message = $@"
+            var message =
+                $@"
                 <p>Du anmodede om at nulstille din adgangskode.</p>
                 <p>Klik venligst på linket nedenfor for at nulstille din adgangskode:</p>
                 <p><a href='{resetLink}'>Nulstil adgangskode</a></p>";
@@ -248,19 +250,33 @@ namespace backend.Controllers
             try
             {
                 await _emailService.SendEmailAsync(user.Email, subject, message);
-                return Ok(new { message = "En mail med et link til at nulstille din adgangskode er blevet sendt." });
+                return Ok(
+                    new
+                    {
+                        message = "En mail med et link til at nulstille din adgangskode er blevet sendt.",
+                    }
+                );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Mail kunne ikke sendes: {ex.Message}");
-                return StatusCode(500, new { message = "Fejl ved afsendelse af nulstillingsmail. Prøv venligst igen senere." } );
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        message = "Fejl ved afsendelse af nulstillingsmail. Prøv venligst igen senere.",
+                    }
+                );
             }
         }
 
         [HttpPut("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto, [FromQuery] int userId, [FromQuery] string token)
+        public async Task<IActionResult> ResetPassword(
+            [FromBody] ResetPasswordDto dto,
+            [FromQuery] int userId,
+            [FromQuery] string token
+        )
         {
-
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
@@ -276,13 +292,17 @@ namespace backend.Controllers
             {
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
-            
-                var result = await _userManager.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
-                if(result.Succeeded)
+
+                var result = await _userManager.ResetPasswordAsync(
+                    user,
+                    decodedToken,
+                    dto.NewPassword
+                );
+                if (result.Succeeded)
                 {
                     return Ok(new { message = "Adgangskoden er blevet ændret." });
                 }
-                else 
+                else
                 {
                     var errors = result.Errors.Select(e => e.Description);
                     return BadRequest(new { errors });
@@ -291,7 +311,7 @@ namespace backend.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Fejl ved afkodning af token");
-                return BadRequest(new {message = "Ugyldigt token format"});
+                return BadRequest(new { message = "Ugyldigt token format" });
             }
         }
 

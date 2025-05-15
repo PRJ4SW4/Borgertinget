@@ -3,18 +3,16 @@ namespace backend.Repositories.Calendar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims; // For ClaimsPrincipal
 using System.Threading.Tasks;
 using backend.Data; // For DataContext
+using backend.Models; // For User
 using backend.Models.Calendar; // For CalendarEvent
 using backend.Utils; // For LogSanitizer
-using backend.Models; // For User
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity; // For UserManager
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Identity; // For UserManager
-using System.Security.Claims; // For ClaimsPrincipal
-using Microsoft.AspNetCore.Http.HttpResults;
-
-
 
 // Implements repository operations for CalendarEvent entities using Entity Framework Core.
 public class CalendarEventRepository : ICalendarEventRepository
@@ -24,7 +22,11 @@ public class CalendarEventRepository : ICalendarEventRepository
     private readonly UserManager<User> _userManager; // User manager for user-related operations.
 
     // Constructor: Takes injected DataContext and logger.
-    public CalendarEventRepository(DataContext context, ILogger<CalendarEventRepository> logger, UserManager<User> userManager)
+    public CalendarEventRepository(
+        DataContext context,
+        ILogger<CalendarEventRepository> logger,
+        UserManager<User> userManager
+    )
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -140,7 +142,11 @@ public class CalendarEventRepository : ICalendarEventRepository
     public async Task<IEnumerable<CalendarEvent>> GetAllEventsAsync()
     {
         _logger.LogInformation("Fetching all calendar events from database.");
-        var events = await _context.CalendarEvents.Include(ce => ce.InterestedUsers).OrderBy(e => e.StartDateTimeUtc).AsNoTracking().ToListAsync();
+        var events = await _context
+            .CalendarEvents.Include(ce => ce.InterestedUsers)
+            .OrderBy(e => e.StartDateTimeUtc)
+            .AsNoTracking()
+            .ToListAsync();
         _logger.LogInformation("Found {EventCount} total events.", events.Count);
         return events;
     }
@@ -157,23 +163,23 @@ public class CalendarEventRepository : ICalendarEventRepository
             _logger.LogWarning("Calendar event with ID {EventId} not found.", eventId);
             return null;
         }
-       
+
         if (user == null)
         {
             _logger.LogWarning("User with ID {UserId} not found.", userId);
             return null;
         }
-        
-        var alreadyInterested = await _context.EventInterests
-            .Where(ei => ei.CalendarEventId == eventId && ei.UserId == user.Id)
+
+        var alreadyInterested = await _context
+            .EventInterests.Where(ei => ei.CalendarEventId == eventId && ei.UserId == user.Id)
             .FirstOrDefaultAsync();
-        
+
         return alreadyInterested;
     }
 
     public async void AddEventInterest(EventInterest eventInterest)
     {
-        _context.EventInterests.Add(eventInterest); 
+        _context.EventInterests.Add(eventInterest);
         _logger.LogDebug(
             "Marked new event interest for addition: EventId={EventId}, UserId={UserId}",
             eventInterest.CalendarEventId,
@@ -184,7 +190,7 @@ public class CalendarEventRepository : ICalendarEventRepository
 
     public async void RemoveEventInterest(EventInterest eventInterest)
     {
-        _context.EventInterests.Remove(eventInterest); 
+        _context.EventInterests.Remove(eventInterest);
         _logger.LogDebug(
             "Marked event interest for deletion: EventId={EventId}, UserId={UserId}",
             eventInterest.CalendarEventId,
@@ -206,8 +212,8 @@ public class CalendarEventRepository : ICalendarEventRepository
 
     public async Task<int> GetInterestedUsersAsync(int eventId)
     {
-        var interestedUsers = await _context.EventInterests
-            .Where(ei => ei.CalendarEventId == eventId)
+        var interestedUsers = await _context
+            .EventInterests.Where(ei => ei.CalendarEventId == eventId)
             .ToListAsync();
         return interestedUsers.Count;
     }

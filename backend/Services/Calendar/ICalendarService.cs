@@ -9,7 +9,10 @@ namespace backend.Services.Calendar
     {
         Task<IEnumerable<CalendarEventDTO>> GetAllEventsAsDTOAsync(int userId);
 
-        Task<(bool IsInterested, int InterestedCount)?> ToggleInterestAsync(int eventId, string userId);
+        Task<(bool IsInterested, int InterestedCount)?> ToggleInterestAsync(
+            int eventId,
+            string userId
+        );
 
         Task<int> GetAmountInterestedAsync(int eventId);
         Task<CalendarEventDTO> CreateEventAsync(CalendarEventDTO calendarEventDto);

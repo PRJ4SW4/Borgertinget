@@ -8,7 +8,7 @@ namespace backend.Models
         // Common fields
         public string Id { get; set; } = null!;
         public string DataType { get; set; } = null!;
-        public string? Title { get; set; } 
+        public string? Title { get; set; }
         public string? Content { get; set; }
         public DateTime LastUpdated { get; set; }
 
@@ -24,8 +24,8 @@ namespace backend.Models
         public int? FlashcardId { get; set; }
         public int? CollectionId { get; set; }
         public string? CollectionTitle { get; set; }
-        public string? FrontText { get; set; } 
-        public string? BackText { get; set; } 
+        public string? FrontText { get; set; }
+        public string? BackText { get; set; }
         public string? FrontImagePath { get; set; }
         public string? BackImagePath { get; set; }
 
