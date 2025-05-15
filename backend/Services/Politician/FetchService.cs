@@ -11,8 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services.Politician{
-    public class FetchService : IFetchService
-    {
+    public class FetchService : IFetchService{
         private readonly DataContext _context;
         private readonly HttpService _httpService; // Assuming HttpService is still used
         private readonly IConfiguration _configuration;

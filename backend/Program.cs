@@ -4,8 +4,14 @@ using System.Text;
 // google stuff
 using System.Web;
 using backend.Data;
+using backend.Enums;
 using backend.Hubs;
+using backend.Interfaces.Repositories;
+using backend.Interfaces.Services;
+using backend.Interfaces.Utility;
+using backend.Jobs;
 using backend.Models;
+using backend.Persistence.Repositories;
 using backend.Repositories.Calendar;
 using backend.Services;
 using backend.Services.Calendar;
@@ -15,7 +21,10 @@ using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
 using backend.Services.Politician; 
 using backend.Services.LearningEnvironment;
+using backend.Services.Mapping;
 using backend.Services.Search;
+using backend.Services.Selection;
+using backend.Services.Utility;
 using backend.utils;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -71,6 +80,19 @@ var key = Encoding.UTF8.GetBytes(
     jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key mangler")
 );
 
+// Authorization for Admin and User roles
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        "RequireAdministratorRole",
+        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
+    );
+    options.AddPolicy(
+        "UserOrAdmin",
+        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
+    );
+});
+
 // EF Core
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -111,7 +133,7 @@ builder
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false;
+        options.RequireHttpsMetadata = false; // Sæt til true i produktion
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -228,8 +250,14 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Authorization for Admin and User roles
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("RequireAdministratorRole", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
+    options.AddPolicy(
+        "RequireAdministratorRole",
+        policy => policy.RequireRole("Admin")
+    );
+    options.AddPolicy(
+        "UserOrAdmin",
+        policy => policy.RequireRole("User", "Admin")
+    );
 });
 
 // Swagger
@@ -237,9 +265,7 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "backendAPI", Version = "v1" });
-
-    // Tilføj JWT auth i Swagger
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Borgertinget API", Version = "v1" });
     options.AddSecurityDefinition(
         "Bearer",
         new OpenApiSecurityScheme
@@ -252,7 +278,6 @@ builder.Services.AddSwaggerGen(options =>
             Description = "Indtast JWT token i formatet: Bearer {token}",
         }
     );
-
     options.AddSecurityRequirement(
         new OpenApiSecurityRequirement
         {
@@ -271,14 +296,13 @@ builder.Services.AddSwaggerGen(options =>
     );
 });
 
-// Tilføj EmailService
+// --- EKSISTERENDE SERVICES ---
 builder.Services.AddScoped<EmailService>();
-
-//oda.ft crawler
 builder.Services.AddScoped<HttpService>();
 builder.Services.AddScoped<IFetchService, FetchService>(); 
 
 builder.Services.AddHostedService<TweetFetchingService>();
+builder.Services.AddHostedService<DailySelectionJob>();
 builder.Services.AddHttpClient<TwitterService>();
 
 builder.Services.AddHttpClient();
@@ -311,7 +335,14 @@ builder.Services.AddControllers(); /* .AddJsonOptions(options =>
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     });*/
 
+builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
 
+//builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
+builder.Services.AddSingleton<
+    backend.Interfaces.Utility.IDateTimeProvider,
+    backend.Services.Utility.DateTimeProvider
+>();
+builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
 
 //Search indexing service
 builder.Services.AddScoped<SearchIndexingService>();
@@ -337,6 +368,14 @@ builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 // Flashcard Services
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
+// Polidle
+builder.Services.AddScoped<IAktorRepository, AktorRepository>();
+builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>();
+builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository>();
+builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
+builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
+builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
+
 builder.Services.AddRouting();
 
 // Search Services
@@ -347,7 +386,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>(); // Or specific category
+    var logger = services.GetRequiredService<ILogger<Program>>();
 
     try
     {
@@ -382,14 +421,25 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
+
+    //! DELETED DUMMMY MIDDLEWARE
 }
+else
+{
+    app.UseExceptionHandler("/Error"); // Sørg for at have en Error-handling side/endpoint
+    app.UseHsts();
+}
+
+// app.UseHttpsRedirection(); // Aktiver når du har HTTPS sat op
 
 app.UseCors("AllowReactApp");
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // Din rigtige JWT auth middleware
+app.UseAuthorization(); // Din rigtige authorization middleware
 
 app.MapControllers();
 
 app.MapHub<FeedHub>("/feedHub");
+
 app.Run();

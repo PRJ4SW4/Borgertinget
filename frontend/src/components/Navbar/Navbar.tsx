@@ -1,11 +1,8 @@
-import React from 'react';
-// NavLink adds styling attributes for active routes.
-// useNavigate provides a function for programmatic navigation.
-import { NavLink, useNavigate } from 'react-router-dom';
-// Importing the small logo image.
-import logoSmall from '../../assets/logo-small.png';
-// Importing the specific CSS for this component.
-import './Navbar.css';
+// src/components/Navbar/Navbar.tsx
+import React from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import logoSmall from "../../assets/logo-small.png";
+import "./Navbar.css";
 
 // Defines the props expected by the Navbar component.
 interface NavbarProps {
@@ -41,24 +38,22 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
         <NavLink to="/" className="navbar-logo">
           <img src={logoSmall} alt="Borgertinget Logo" />
         </NavLink>
-
-        {/* Navigation Links */}
+        {/* Standard navigation links using NavLink */}
+        {/* The className function applies 'active' class based on route match */}
         <ul className="navbar-links">
-          {/* Standard navigation links using NavLink */}
-          {/* The className function applies 'active' class based on route match */}
           <li><NavLink to="/parties" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Politiske Sider</NavLink></li>
           <li><NavLink to="/feed" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Feed</NavLink></li>
           <li><NavLink to="/kalender" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Kalender</NavLink></li>
           <li><NavLink to="/learning" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Læringsområde</NavLink></li>
           <li><NavLink to="/flashcards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Flashcards</NavLink></li>
-
+          <li><NavLink to="/polidle" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Polidle</NavLink></li>
           {/* Logout Button */}
           {/* List item for structure */}
           <li className="logout-item">
-              {/* Button triggers the handleLogout function on click */}
-              <button className="navbar-logout-button" onClick={handleLogout}>
-                 Log Ud
-              </button>
+            {/* Button triggers the handleLogout function on click */}
+            <button className="navbar-logout-button" onClick={handleLogout}>
+              Log Ud
+            </button>
           </li>
         </ul>
       </div>
@@ -66,5 +61,4 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
   );
 };
 
-// Exports the component for use in other parts of the application.
 export default Navbar;

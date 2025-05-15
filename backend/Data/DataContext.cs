@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic; // Required
-using System.Text.Json;          // Required
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq;
 using System.Text.Json; // Required
+using backend.Data.SeedData;
 using backend.DTO.Calendar;
 using backend.DTO.LearningEnvironment;
+using backend.Enums;
 using backend.Models;
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -45,17 +43,20 @@ namespace backend.Data
 
         // --- /Twitter Setup ---
 
-
-
         // --- Calendar Setup ---
         public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
         public DbSet<Party> Party { get; set; }
 
+        // --- Core Political Data ---
+        public DbSet<Aktor> Aktor { get; set; } = null!; // Navn er 'Aktor', men repræsenterer politikere osv.
 
+        // --- Polidle Setup Start ---
+        public DbSet<PoliticianQuote> PoliticianQuotes { get; set; } = null!;
+        public DbSet<GamemodeTracker> GamemodeTrackers { get; set; } = null!;
+        public DbSet<DailySelection> DailySelections { get; set; } = null!;
 
-
-        public DbSet<Aktor> Aktor { get; set; }
+        // --- Polidle Setup End ---
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,7 +64,6 @@ namespace backend.Data
 
             // --- Calendar Setup ---
             modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
-
             // --- /Calendar Setup ---
 
             // --- Learning Environment Setup ---
@@ -74,7 +74,7 @@ namespace backend.Data
                 .HasOne(p => p.ParentPage) // A page has one parent
                 .WithMany(p => p.ChildPages) // A parent can have many children
                 .HasForeignKey(p => p.ParentPageId) // The foreign key is ParentPageId
-                .OnDelete(DeleteBehavior.Cascade); // Cascade deletions. Can be changed
+                .OnDelete(DeleteBehavior.Cascade); // Cascade deletions
 
             // This configuration tells EF Core that one Page can have many Questions,
             // and each Question points back to one Page using the PageId foreign key.
@@ -91,14 +91,16 @@ namespace backend.Data
                 .WithOne(o => o.Question)
                 .HasForeignKey(o => o.QuestionId);
 
+            // --- /Learning Environment Setup ---
+
+            // --- Flashcards Setup ---
             // Configure FlashcardCollection <-> Flashcard relationship
             modelBuilder
                 .Entity<FlashcardCollection>()
                 .HasMany(c => c.Flashcards)
                 .WithOne(f => f.FlashcardCollection)
                 .HasForeignKey(f => f.CollectionId);
-
-            // --- /Learning Environment Setup ---
+            // --- /Flashcards Setup ---
 
             // Configure Constituencies
             modelBuilder
@@ -280,11 +282,9 @@ namespace backend.Data
                     .HasMany(p => p.Polls)
                     .WithOne(p => p.Politician)
                     .HasForeignKey(p => p.PoliticianTwitterId);
-
                 entity.Property(p => p.TwitterUserId).IsRequired();
                 entity.Property(p => p.Name).IsRequired();
                 entity.Property(p => p.TwitterHandle).IsRequired();
-
                 entity
                     .HasOne(politicianTwitter => politicianTwitter.Aktor)
                     .WithOne()
@@ -293,8 +293,6 @@ namespace backend.Data
                     )
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);
-
-                //ved merge skal nedestående være commented, da der ellers vi blive problemer med constraints i databasen
                 entity.HasData(
                     new PoliticianTwitterId
                     {
@@ -322,7 +320,6 @@ namespace backend.Data
                     }
                 );
             });
-
             modelBuilder.Entity<Tweet>(entity =>
             {
                 entity.HasIndex(t => new { t.PoliticianTwitterId, t.TwitterTweetId }).IsUnique();
@@ -343,7 +340,6 @@ namespace backend.Data
                 entity.HasIndex(s => s.UserId);
                 entity.HasIndex(s => s.PoliticianTwitterId);
             });
-
             modelBuilder.Entity<Poll>(entityPoll =>
             {
                 entityPoll
@@ -351,13 +347,106 @@ namespace backend.Data
                     .WithMany(politician => politician.Polls)
                     .HasForeignKey(poll => poll.PoliticianTwitterId);
             });
-
             modelBuilder.Entity<UserVote>().HasIndex(uv => new { uv.UserId, uv.PollId }).IsUnique();
+            // --- /Twitter Setup ---
+
+
+            // ***************************************************
+            // *** Polidle Configuration START              ***
+            // ***************************************************
+
+            // --- PoliticianQuote Configuration ---
+            modelBuilder.Entity<PoliticianQuote>(entity =>
+            {
+                entity.Property(e => e.QuoteId).ValueGeneratedNever();
+                entity
+                    .HasOne(pq => pq.Politician)
+                    .WithMany(a => a.Quotes) // Sørg for Aktor.Quotes er defineret
+                    .HasForeignKey(pq => pq.AktorId);
+            });
+
+            // --- GamemodeTracker Configuration ---
+            // 1. Definer Sammensat Primærnøgle
+            modelBuilder
+                .Entity<GamemodeTracker>()
+                .HasKey(gt => new { gt.PolitikerId, gt.GameMode }); // Kombinationen er PK
+
+            // 2. Definer Relationen til Aktor (One-to-Many)
+            modelBuilder
+                .Entity<GamemodeTracker>()
+                .HasOne(gt => gt.Politician) // En Tracker har én Politician (Aktor)
+                .WithMany(a => a.GamemodeTrackings) // En Aktor har mange Trackings
+                .HasForeignKey(gt => gt.PolitikerId); // Fremmednøglen er PolitikerId i GamemodeTracker
+
+            // 3. Gem Enum som Tekst i DB
+            modelBuilder
+                .Entity<GamemodeTracker>()
+                .Property(gt => gt.GameMode)
+                .HasConversion<string>();
+
+            // --- DailySelection Configuration ---
+            // 1. Definer Sammensat Primærnøgle
+            modelBuilder
+                .Entity<DailySelection>()
+                .HasKey(ds => new { ds.SelectionDate, ds.GameMode }); // Kombinationen er PK
+
+            // 2. Definer Relationen til Aktor (One-to-Many)
+            modelBuilder
+                .Entity<DailySelection>()
+                .HasOne(ds => ds.SelectedPolitiker) // En DailySelection har én SelectedPolitiker (Aktor)
+                .WithMany(a => a.DailySelections) // En Aktor kan optræde i mange DailySelections
+                .HasForeignKey(ds => ds.SelectedPolitikerID); // Fremmednøglen er SelectedPolitikerID i DailySelection
+
+            // 3. Gem Enum som Tekst i DB
+            modelBuilder
+                .Entity<DailySelection>()
+                .Property(ds => ds.GameMode)
+                .HasConversion<string>();
+
+            // ***************************************************
+            // *** Polidle Configuration END                ***
+            // ***************************************************
+
 
             // --- SEED DATA ---
+            SeedLearningEnvironmentData(modelBuilder);
+            SeedPollData(modelBuilder);
+            //QuoteSeeder.SeedQuotes(modelBuilder); // Kald din QuoteSeeder
+        }
 
-            // --- Learning Environment Seeding ---
+        // Helper method til JSON konvertering for at undgå gentagelse
+        private void ConfigureStringListToJsonConversion<TEntity>(
+            ModelBuilder modelBuilder,
+            System.Linq.Expressions.Expression<Func<TEntity, List<string>?>> propertyExpression
+        )
+            where TEntity : class
+        {
+            modelBuilder
+                .Entity<TEntity>()
+                .Property(propertyExpression)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v =>
+                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
+                        ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) =>
+                            (c1 == null && c2 == null)
+                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                        c =>
+                            c == null
+                                ? 0
+                                : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c == null ? new List<string>() : c.ToList()
+                    )
+                );
+        }
 
+        // Helper method til Seeding (Gør OnModelCreating kortere)
+        private void SeedLearningEnvironmentData(ModelBuilder modelBuilder)
+        {
             // 1. Seed Pages
             modelBuilder
                 .Entity<Page>()
@@ -404,47 +493,43 @@ namespace backend.Data
                     }
                 );
 
-            // 2. Seed Questions (Linked to Pages)
+            // 2. Seed Questions
             modelBuilder
                 .Entity<Question>()
                 .HasData(
-                    // -- Questions for Page 1 --
                     new Question
                     {
-                        QuestionId = 1, // Unique ID for this question
-                        PageId = 1, // Links to "Politik 101"
+                        QuestionId = 1,
+                        PageId = 1,
                         QuestionText = "Hvad beskæftiger politologi sig primært med?",
                     },
                     new Question
                     {
-                        QuestionId = 2, // Unique ID for this question
-                        PageId = 1, // Also links to "Politik 101"
+                        QuestionId = 2,
+                        PageId = 1,
                         QuestionText =
                             "Hvilket begreb dækker over fordelingen af autoritet i et samfund?",
                     },
-                    // -- Question for Page 4 --
                     new Question
                     {
-                        QuestionId = 3, // Unique ID for this question
-                        PageId = 4, // Links to "Højre"
+                        QuestionId = 3,
+                        PageId = 4,
                         QuestionText =
                             "Hvilket økonomisk princip forbindes ofte med højreorienteret politik?",
                     },
-                    // -- Question for Page 5 --
                     new Question
                     {
-                        QuestionId = 4, // Unique ID for this question
-                        PageId = 5, // Links to "Venstre"
+                        QuestionId = 4,
+                        PageId = 5,
                         QuestionText =
                             "Hvilken værdi vægtes typisk højt i venstreorienteret ideologi?",
                     }
                 );
 
-            // 3. Seed Answer Options (Linked to Questions)
+            // 3. Seed Answer Options
             modelBuilder
                 .Entity<AnswerOption>()
                 .HasData(
-                    // -- Options for Question 1 (Page 1) --
                     new AnswerOption
                     {
                         AnswerOptionId = 1,
@@ -469,7 +554,6 @@ namespace backend.Data
                         IsCorrect = false,
                         DisplayOrder = 3,
                     },
-                    // -- Options for Question 2 (Page 1) --
                     new AnswerOption
                     {
                         AnswerOptionId = 4,
@@ -494,7 +578,6 @@ namespace backend.Data
                         IsCorrect = false,
                         DisplayOrder = 3,
                     },
-                    // -- Options for Question 3 (Page 4) --
                     new AnswerOption
                     {
                         AnswerOptionId = 7,
@@ -519,7 +602,6 @@ namespace backend.Data
                         IsCorrect = true,
                         DisplayOrder = 3,
                     },
-                    // -- Options for Question 4 (Page 5) --
                     new AnswerOption
                     {
                         AnswerOptionId = 10,
@@ -546,8 +628,7 @@ namespace backend.Data
                     }
                 );
 
-            // --- FLASHCARDS ---
-
+            // Flashcards Seeding
             modelBuilder
                 .Entity<FlashcardCollection>()
                 .HasData(
@@ -568,7 +649,6 @@ namespace backend.Data
             modelBuilder
                 .Entity<Flashcard>()
                 .HasData(
-                    // Cards for Collection 1
                     new Flashcard
                     {
                         FlashcardId = 1,
@@ -599,7 +679,6 @@ namespace backend.Data
                         BackContentType = FlashcardContentType.Text,
                         BackText = "Inger Støjberg",
                     },
-                    // Cards for Collection 2
                     new Flashcard
                     {
                         FlashcardId = 4,
@@ -621,11 +700,11 @@ namespace backend.Data
                         BackText = "Statens budget for det kommende år",
                     }
                 );
+        }
 
-            // --- /FLASHCARDS ---
-
-
-            const int SeedPoliticianId = 1;
+        private void SeedPollData(ModelBuilder modelBuilder)
+        {
+            const int SeedPoliticianId = 1; // Matcher PoliticianTwitterId.Id = 1
             const int SeedPollId = 1;
             const int NewPollId = 2;
 
