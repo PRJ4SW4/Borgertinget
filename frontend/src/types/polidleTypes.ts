@@ -1,80 +1,109 @@
-// Fil: src/types/polidleTypes.ts (eller hvor du placerer den)
-
-// Bruges i søgeresultater fra GET /api/polidle/politicians
-// Matcher din backend PoliticianSummaryDto
-export interface PoliticianOption {
-  id: number;
-  politikerNavn: string;
-  portraet: number[]; // Repræsenterer byte[] fra C#
+/**
+ * Enum for de forskellige spil-modes.
+ * Værdierne (0, 1, 2) skal matche backend's C# GamemodeTypes enum.
+ */
+export enum GamemodeTypes {
+  Klassisk = 0,
+  Citat = 1,
+  Foto = 2,
 }
 
-// Bruges som request body til POST /api/polidle/guess
-export interface GuessRequestDto {
-  guessedPoliticianId: number;
-  // Tillad både tal (hvis backend binder til int enum) og streng (hvis backend bruger string enum converter)
-  gameMode: number | string;
-}
-
-// Bruges i svaret (GuessResultDto) fra POST /api/polidle/guess
+/**
+ * Enum for feedback-typer på et gæt for specifikke felter.
+ * Værdierne (0-4) skal matche backend's C# FeedbackType enum.
+ */
 export enum FeedbackType {
   Undefined = 0,
   Korrekt = 1,
   Forkert = 2,
-  Højere = 3, // Korrekt alder er højere end gættet
-  Lavere = 4, // Korrekt alder er lavere end gættet
+  Højere = 3, // Korrekt værdi er højere end gættet (bruges f.eks. til Alder)
+  Lavere = 4, // Korrekt værdi er lavere end gættet (bruges f.eks. til Alder)
 }
 
-// Bruges inde i GuessResultDto
-export interface GuessedPoliticianDetailsDto {
+/**
+ * DTO for at vise en politiker i en søgeliste (f.eks. autocomplete).
+ * Bruges når brugeren skal vælge en politiker at gætte på.
+ * Svarer til backend's DailyPoliticianDto (som tidligere blev kaldt PoliticianSummaryDto på backend).
+ */
+export interface SearchListDto {
   id: number;
   politikerNavn: string;
-  partiNavn: string;
-  age: number; // Vigtigt: Hedder 'age' for at matche JSON fra backend
-  køn: string;
-  uddannelse: string;
-  region: string;
-  portraet: number[];
+  pictureUrl?: string;
 }
 
-// Hele svaret fra POST /api/polidle/guess
-export interface GuessResultDto {
-  isCorrectGuess: boolean;
-  // Feedback dictionary: Key er feltnavn (string), Value er FeedbackType (enum/tal)
-  feedback: Record<string, FeedbackType>; // Record<string, FeedbackType> er det samme som { [key: string]: FeedbackType }
-  guessedPolitician: GuessedPoliticianDetailsDto | null;
+/**
+ * DTO med detaljeret information om en politiker.
+ * Bruges til:
+ * 1. At vise information om den gættede politiker (i GuessResultDto).
+ * 2. At hente dagens politiker for Classic Mode.
+ * Svarer til backend's DailyPoliticianDto.
+ */
+export interface DailyPoliticianDto {
+  id: number;
+  politikerNavn: string;
+  pictureUrl?: string;
+  køn?: string;
+  parti?: string;
+  age: number;
+  region?: string;
+  uddannelse?: string;
 }
 
-// Bruges til svaret fra GET /api/polidle/daily/quote
+/**
+ * DTO for dagens citat i Citat-gamemode.
+ * Svarer til backend's QuoteDto.
+ */
 export interface QuoteDto {
   quoteText: string;
-  // Tilføj evt. politikerId hvis backend sender det
 }
 
-// Bruges til svaret fra GET /api/polidle/daily/photo
+/**
+ * DTO for dagens foto i Foto-gamemode.
+ * Svarer til backend's PhotoDto.
+ */
 export interface PhotoDto {
-  portraitBase64: string; // Antager backend sender Base64 for nemheds skyld
-  // Tilføj evt. politikerId hvis backend sender det
+  photoUrl?: string;
 }
 
-// Type for historik-elementer i CitatMode state (kan blive her eller flyttes)
-export interface CitatGuessHistoryItem {
-  guessedInfo: GuessedPoliticianDetailsDto;
+/**
+ * DTO der sendes FRA frontend TIL backend, når en bruger laver et gæt.
+ * Svarer til backend's GuessRequestDto.
+ */
+export interface GuessRequestDto {
+  guessedPoliticianId: number;
+  gameMode: GamemodeTypes;
+}
+
+/**
+ * DTO der modtages FRA backend TIL frontend med resultatet af et gæt.
+ * Svarer til backend's GuessResultDto (forenklet til ubegrænsede gæt).
+ */
+export interface GuessResultDto {
+  isCorrectGuess: boolean;
+  feedback: Record<string, FeedbackType>;
+  /**
+   * Detaljer om den politiker, der blev gættet på.
+   * Hvis isCorrectGuess er true, er dette den korrekte politiker.
+   * Skal være DailyPoliticianDto for at give fuld info til feedback-visning.
+   */
+  guessedPolitician?: DailyPoliticianDto; // <<< OPDATERET til at bruge det nye DTO-navn
+}
+
+// ------ UI-Specifikke Typer (kan udvides) ------
+
+/**
+ * Bruges til at vise gæt-historik for Classic Mode.
+ * Indeholder den fulde GuessResultDto for hvert gæt.
+ */
+export type ClassicGuessHistoryItem = GuessResultDto;
+
+/**
+ * Bruges til at vise gæt-historik for Citat/Foto Mode,
+ * hvor vi måske kun viser navn, billede og om det var korrekt.
+ */
+export interface SimpleGuessHistoryItem {
+  guessedPoliticianName: string;
+  guessedPoliticianPictureUrl?: string;
   isCorrect: boolean;
-}
-
-// Tilføj andre typer, f.eks. for ClassicMode state hvis nødvendigt
-// export interface ClassicGuessHistoryItem extends GuessResultDto {} // Kunne være en mulighed
-
-// Enum for selve gamemodes - match værdier/navne med din backend C# enum
-// Dette er nyttigt til at sende korrekt værdi i GuessRequestDto
-export enum GameMode {
-  Klassisk = 0, // Eller "Klassisk" hvis du bruger string converter
-  Citat = 1, // Eller "Citat"
-  Foto = 2, // Eller "Foto"
-}
-
-// DTO for CitatMode PUT
-export interface EditQuoteDTO {
-  quoteId: number,
-  quoteText: string
+  // guessedPoliticianId: number; // Kan tilføjes hvis nødvendigt
 }
