@@ -379,7 +379,7 @@ namespace backend.Data
                 NormalizedEmail = "SUPERUSER@BORGERTINGET.DK",
                 EmailConfirmed = true,
                 PasswordHash =
-                    "AQAAAAIAAYagAAAAEIrNoscXqh4mXSk/2ebk5jFjsosHlU5MJ4tEgcXgFoBVTCmLw0KLd1EymioDIOU5wg==",
+                    "AQAAAAIAAYagAAAAEJn0GXmNCdYTjU9z+RKk0pQi378V2AWUINKCf2BxEHZ1QZwVVnge5ungFpZ6tQD54g==",
                 SecurityStamp = "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH",
                 ConcurrencyStamp = "9a90d138-772e-44b1-b052-18d591edef58",
             };
