@@ -1139,7 +1139,7 @@ namespace backend.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "SUPERUSER@BORGERTINGET.DK",
                             NormalizedUserName = "BORGERTINGET_SUPERUSER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJn0GXmNCdYTjU9z+RKk0pQi378V2AWUINKCf2BxEHZ1QZwVVnge5ungFpZ6tQD54g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKkiDske0hqRbm0MzBQA++YPro6ISatyzOkYw3/ub4jrRtunkiomRLA2H3vP1i6E9A==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH",
                             TwoFactorEnabled = false,
