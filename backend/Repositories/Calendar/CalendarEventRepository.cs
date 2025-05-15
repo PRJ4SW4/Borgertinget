@@ -49,11 +49,11 @@ public class CalendarEventRepository : ICalendarEventRepository
         if (oldEventsToDelete.Any())
         {
             _context.CalendarEvents.RemoveRange(oldEventsToDelete); // Mark for deletion.
-            _logger.LogInformation(
-                "Marked {Count} past calendar events (before {ThresholdUtc:O}) for deletion.",
-                oldEventsToDelete.Count,
-                utcThreshold
-            );
+            // _logger.LogInformation(
+            //     "Marked {Count} past calendar events (before {ThresholdUtc:O}) for deletion.",
+            //     oldEventsToDelete.Count,
+            //     utcThreshold
+            // );
             return oldEventsToDelete.Count;
         }
         _logger.LogInformation(
@@ -67,11 +67,11 @@ public class CalendarEventRepository : ICalendarEventRepository
     public async Task AddEventAsync(CalendarEvent newEvent)
     {
         await _context.CalendarEvents.AddAsync(newEvent); // Mark for addition.
-        _logger.LogDebug(
-            "Marked new calendar event for addition: Title='{EventTitle}', SourceUrl='{SourceUrl}'",
-            newEvent.Title,
-            newEvent.SourceUrl
-        );
+        // _logger.LogDebug(
+        //     "Marked new calendar event for addition: Title='{EventTitle}', SourceUrl='{SourceUrl}'",
+        //     newEvent.Title,
+        //     newEvent.SourceUrl
+        // );
     }
 
     // Retrieves a specific CalendarEvent by its ID.
