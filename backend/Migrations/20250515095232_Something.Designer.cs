@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250515093344_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250515095232_Something")]
+    partial class Something
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1142,7 +1142,7 @@ namespace backend.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "SUPERUSER@BORGERTINGET.DK",
                             NormalizedUserName = "BORGERTINGET_SUPERUSER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIrNoscXqh4mXSk/2ebk5jFjsosHlU5MJ4tEgcXgFoBVTCmLw0KLd1EymioDIOU5wg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJn0GXmNCdYTjU9z+RKk0pQi378V2AWUINKCf2BxEHZ1QZwVVnge5ungFpZ6tQD54g==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH",
                             TwoFactorEnabled = false,

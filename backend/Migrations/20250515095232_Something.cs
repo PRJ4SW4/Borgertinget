@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Something : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -614,7 +614,7 @@ namespace backend.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { 100, 0, "9a90d138-772e-44b1-b052-18d591edef58", "superuser@borgertinget.dk", true, false, null, "SUPERUSER@BORGERTINGET.DK", "BORGERTINGET_SUPERUSER", "AQAAAAIAAYagAAAAEIrNoscXqh4mXSk/2ebk5jFjsosHlU5MJ4tEgcXgFoBVTCmLw0KLd1EymioDIOU5wg==", null, false, "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH", false, "borgertinget_superuser" });
+                values: new object[] { 100, 0, "9a90d138-772e-44b1-b052-18d591edef58", "superuser@borgertinget.dk", true, false, null, "SUPERUSER@BORGERTINGET.DK", "BORGERTINGET_SUPERUSER", "AQAAAAIAAYagAAAAEJn0GXmNCdYTjU9z+RKk0pQi378V2AWUINKCf2BxEHZ1QZwVVnge5ungFpZ6tQD54g==", null, false, "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH", false, "borgertinget_superuser" });
 
             migrationBuilder.InsertData(
                 table: "Flashcards",
