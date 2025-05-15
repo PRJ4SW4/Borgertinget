@@ -13,13 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-<<<<<<<< HEAD:backend/Migrations/20250515091222_plsWork.Designer.cs
-    [Migration("20250515091222_plsWork")]
-    partial class plsWork
-========
-    [Migration("20250515085254_DatabaseCreate")]
-    partial class DatabaseCreate
->>>>>>>> main:backend/Migrations/20250515085254_DatabaseCreate.Designer.cs
+    [Migration("20250515093746_DenSidsteNadver")]
+    partial class DenSidsteNadver
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -801,7 +796,10 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
                 {
                     b.Property<int>("QuoteId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuoteId"));
 
                     b.Property<int>("AktorId")
                         .HasColumnType("integer");
