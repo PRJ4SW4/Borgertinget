@@ -247,164 +247,144 @@ namespace backend.Controllers
             }
         }
 
-        [HttpGet("/auth/google/callback")] 
-        public async Task<IActionResult> GoogleCallback([FromQuery] string code, [FromQuery] string? state = null)
+        [HttpGet("HandleGoogleCallback")]
+        [AllowAnonymous]
+        public async Task<IActionResult> HandleGoogleCallback([FromQuery] string? returnUrl = null, [FromQuery] string? remoteError = null)
         {
-            Console.WriteLine("Google Callback modtaget med kode."); 
+            _logger.LogInformation("Modtaget callback fra Google."); //
 
-            var clientId = _config["GoogleOAuth:ClientId"];
-            var clientSecret = _config["GoogleOAuth:ClientSecret"];
-            var redirectUri = "http://localhost:5218/auth/google/callback"; 
-
-            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+            if (!string.IsNullOrEmpty(remoteError))
             {
-                Console.WriteLine("FEJL: Google ClientId eller ClientSecret mangler i konfigurationen.");
-                return BadRequest("Server konfigurationsfejl.");
+                var sanitizedRemoteError = remoteError.Replace("\n", "").Replace("\r", "");
+                _logger.LogError($"Fejl fra ekstern udbyder: {sanitizedRemoteError}"); //
+                return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode(remoteError)}");
             }
 
-            var tokenEndpoint = "https://oauth2.googleapis.com/token";
-            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
             {
-                {"code", code},
-                {"client_id", clientId},
-                {"client_secret", clientSecret},
-                {"redirect_uri", redirectUri},
-                {"grant_type", "authorization_code"}
-            });
-
-            var httpClient = _httpClientFactory.CreateClient(); 
-            HttpResponseMessage tokenResponse;
-            try
-            {
-                tokenResponse = await httpClient.PostAsync(tokenEndpoint, content);
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"FEJL ved kommunikation med Google Token Endpoint: {ex.Message}");
-                return StatusCode(502, "Fejl ved kommunikation med Google."); 
+                _logger.LogError("Kunne ikke hente ekstern login information."); //
+                return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode("Fejl ved eksternt login.")}");
             }
 
+            var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
 
-            if (!tokenResponse.IsSuccessStatusCode)
+            User appUser;
+            if (signInResult.Succeeded)
             {
-                var errorContent = await tokenResponse.Content.ReadAsStringAsync();
-                Console.WriteLine($"FEJL fra Google Token Endpoint: {tokenResponse.StatusCode} - {errorContent}");
-                return BadRequest("Kunne ikke få token fra Google.");
-            }
-
-            GoogleTokenResponse? googleTokens;
-            try
-            {
-                googleTokens = await tokenResponse.Content.ReadFromJsonAsync<GoogleTokenResponse>();
-                if (googleTokens == null || string.IsNullOrEmpty(googleTokens.id_token))
-                {
-                    Console.WriteLine("FEJL: Kunne ikke deserialisere token respons eller id_token mangler.");
-                    return BadRequest("Ugyldigt svar fra Google (token).");
+                appUser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                if (appUser == null) {
+                    _logger.LogError($"Bruger ikke fundet med FindByLoginAsync efter succesfuld ExternalLoginSignInAsync for {info.LoginProvider} - {info.ProviderKey}."); //
+                    return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode("Bruger konto problem.")}");
                 }
-            }
-            catch (System.Text.Json.JsonException jsonEx)
-            {
-                Console.WriteLine($"FEJL ved deserialisering af token respons: {jsonEx.Message}");
-                return BadRequest("Ugyldigt svarformat fra Google (token).");
-            }
-
-
-            Console.WriteLine("Tokens modtaget fra Google.");
-
-            var handler = new JwtSecurityTokenHandler();
-            JwtSecurityToken? jwtToken = null;
-            try
-            {
-                jwtToken = handler.ReadJwtToken(googleTokens.id_token);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"FEJL ved læsning af id_token: {ex.Message}");
-                return BadRequest("Ugyldigt id_token format fra Google.");
-            }
-
-
-            var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "email");
-            var nameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "name"); 
-            var googleUserIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub"); // Googles unikke bruger ID
-
-            if (emailClaim == null || googleUserIdClaim == null)
-            {
-                return BadRequest("Kunne ikke finde email i Google token.");
-            }
-            var userEmail = emailClaim.Value;
-            var googleUserId = googleUserIdClaim.Value; 
-            var userName = nameClaim?.Value ?? userEmail.Split('@')[0]; 
-
-
-            Console.WriteLine($"Brugerinfo fra id_token: Email={userEmail}, Name={userName}");
-
-            var loginInfo = new UserLoginInfo("Google", googleUserId, "Google"); 
-            var user = await _userManager.FindByLoginAsync(loginInfo.LoginProvider, loginInfo.ProviderKey);
-
-            if (user == null)
-            {
-                // Bruger ikke fundet via Google login, tjek om emailen findes
-                user = await _userManager.FindByEmailAsync(userEmail);
-
-                if (user == null)
-                {
-                    // Bruger findes slet ikke - Opret ny bruger
-                    Console.WriteLine($"Bruger med email {userEmail} findes ikke. Opretter ny.");
-                    user = new User
-                    {
-                        UserName = userName,
-                        Email = userEmail,
-                        EmailConfirmed = true, 
-                        
-                    };
-                    var createUserResult = await _userManager.CreateAsync(user);
-                    if (!createUserResult.Succeeded)
-                    {
-                        Console.WriteLine($"FEJL ved oprettelse af Identity bruger: {string.Join(", ", createUserResult.Errors.Select(e => e.Description))}");
-                        return BadRequest("Kunne ikke oprette brugerkonto."); 
-                    }
-                    await _userManager.AddToRoleAsync(user, "User"); 
-
-                    Console.WriteLine($"Ny bruger oprettet med Id: {user.Id}");
-                }
-
-                var addLoginResult = await _userManager.AddLoginAsync(user, loginInfo);
-                if (!addLoginResult.Succeeded)
-                {
-                    Console.WriteLine($"FEJL ved tilføjelse af Google login til bruger {user.Id}: {string.Join(", ", addLoginResult.Errors.Select(e => e.Description))}");
-                    return BadRequest("Kunne ikke linke Google konto.");
-                }
-                Console.WriteLine($"Google login linket til bruger Id: {user.Id}");
+                _logger.LogInformation($"Bruger {appUser.UserName} logget ind med {info.LoginProvider}."); //
             }
             else
             {
-                Console.WriteLine($"Bruger fundet via Google login med Id: {user.Id}");
-                if (!await _userManager.IsEmailConfirmedAsync(user))
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(email))
                 {
-                    user.EmailConfirmed = true;
-                    await _userManager.UpdateAsync(user); 
+                    _logger.LogError("Email claim ikke fundet i eksternt principal."); //
+                    return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode("Email ikke modtaget fra Google.")}");
                 }
+
+                appUser = await _userManager.FindByEmailAsync(email);
+                if (appUser == null) // Opret ny lokal bruger
+                {
+                    var nameFromGoogle = info.Principal.FindFirstValue(ClaimTypes.Name);
+                    var givenName = info.Principal.FindFirstValue(ClaimTypes.GivenName);
+                    var surname = info.Principal.FindFirstValue(ClaimTypes.Surname);   
+                    
+                    string baseUserName;
+                    if (!string.IsNullOrEmpty(givenName) && !string.IsNullOrEmpty(surname))
+                    {
+                        baseUserName = $"{givenName}{surname}"; // F.eks. "ReneSchumacher"
+                    }
+                    else if (!string.IsNullOrEmpty(nameFromGoogle))
+                    {
+                        baseUserName = nameFromGoogle;
+                    }
+                    else
+                    {
+                        baseUserName = email.Split('@')[0]; // Fallback til email prefix
+                    }
+
+                    // Fjern ugyldige tegn (alt undtagen bogstaver og tal)
+                    var sanitizedUserName = new string(baseUserName.Where(char.IsLetterOrDigit).ToArray());
+
+                    // Sørg for at det ikke er tomt efter sanering
+                    if (string.IsNullOrWhiteSpace(sanitizedUserName))
+                    {
+                        sanitizedUserName = $"user{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+                    }
+                    
+                    // Tjek om brugernavnet allerede eksisterer, og tilføj evt. et tal for at gøre det unikt
+                    var tempUserName = sanitizedUserName;
+                    int count = 1;
+                    while (await _userManager.FindByNameAsync(tempUserName) != null)
+                    {
+                        tempUserName = $"{sanitizedUserName}{count++}";
+                    }
+                    sanitizedUserName = tempUserName;
+
+                    _logger.LogInformation("Forsøger at oprette ny bruger baseret på eksterne oplysninger fra Google.");
+                    appUser = new User { UserName = sanitizedUserName, Email = email, EmailConfirmed = true }; 
+                    var createUserResult = await _userManager.CreateAsync(appUser);
+                    if (!createUserResult.Succeeded)
+                    {
+                        _logger.LogError($"Fejl ved oprettelse af bruger (email redacted): {string.Join(", ", createUserResult.Errors.Select(e => e.Description))}");
+                        string errorDetail = createUserResult.Errors.FirstOrDefault()?.Description ?? "Kunne ikke oprette bruger.";
+                        return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode(errorDetail)}");
+                    }
+                }
+                else
+                {
+                    if (!appUser.EmailConfirmed) 
+                    {
+                        appUser.EmailConfirmed = true;
+                        await _userManager.UpdateAsync(appUser);
+                        _logger.LogInformation($"Email bekræftet for eksisterende bruger: {appUser.UserName}"); //
+                    }
+                }
+                var addLoginResult = await _userManager.AddLoginAsync(appUser, info);
+                if (!addLoginResult.Succeeded)
+                {
+                    _logger.LogError($"Fejl ved at linke eksternt login: {string.Join(", ", addLoginResult.Errors.Select(e => e.Description))}"); //
+                    return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode("Kunne ikke linke Google konto.")}");
+                }
+                _logger.LogInformation("Eksternt login linket for en bruger."); //
             }
-            var localJwtToken = await GenerateJwtToken(user); 
-            Console.WriteLine("Lokal JWT genereret.");
+            
+            // Ryd den midlertidige eksterne cookie
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            var frontendLoginSuccessUrl = $"http://localhost:5173/login-success?token={localJwtToken}"; // Eller direkte til /home?
+            var localJwtToken = await GenerateJwtToken(appUser); 
+            _logger.LogInformation("JWT genereret for en bruger.");
 
-            Console.WriteLine($"Redirecter til frontend: {frontendLoginSuccessUrl}");
-            return Redirect(frontendLoginSuccessUrl);
-        }
-    
+            await _signInManager.SignOutAsync();
 
-        // Helper klasse til at deserialisere Google's token svar
-        private class GoogleTokenResponse
-        {
-            public string? access_token { get; set; }
-            public string? id_token { get; set; }
-            public int expires_in { get; set; }
-            public string? token_type { get; set; }
-            public string? scope { get; set; }
-            public string? refresh_token { get; set; } // Fås kun hvis du anmoder om offline access
+            string frontendBaseUrl = _config["FrontendBaseUrl"] ?? "http://localhost:5173";
+            string loginSuccessPathOnFrontend = "/login-success"; 
+
+            var queryParams = new Dictionary<string, string?>
+            {
+                { "token", localJwtToken } 
+            };
+
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith("/")) // Simpel validering
+            {
+                queryParams.Add("originalReturnUrl", returnUrl); 
+            }
+            else if (!string.IsNullOrEmpty(returnUrl))
+            {
+                var sanitizedReturnUrl = returnUrl.Replace("\n", "").Replace("\r", "");
+                _logger.LogWarning("Ignorerer ugyldig returnUrl ('{OriginalReturnUrl}') modtaget i HandleGoogleCallback for redirect til LoginSuccessPage.", sanitizedReturnUrl);
+            }
+
+            string urlForLoginSuccessPage = QueryHelpers.AddQueryString($"{frontendBaseUrl}{loginSuccessPathOnFrontend}", queryParams);
+
+            _logger.LogInformation("Redirecter til frontend's LoginSuccessPage: {FinalUrl}", urlForLoginSuccessPage);
+            return Redirect(urlForLoginSuccessPage);
         }
 
         private async Task<string> GenerateJwtToken(User user)
@@ -419,10 +399,18 @@ namespace backend.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), 
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // "Subject" - Hvem tokenet handler om (brugerens ID).  
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
                 new Claim(JwtRegisteredClaimNames.Name, user.UserName ?? ""),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), 
+
+                // Claims specifikke for ASP.NET Core Identity
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty), 
+
+                // applikationsspecifikke claims
+                new Claim("username", user.UserName ?? string.Empty), 
+                new Claim("userId", user.Id.ToString()) 
             };
 
             foreach (var role in user.Roles)
@@ -433,13 +421,13 @@ namespace backend.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1), 
+                Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = _config["Jwt:Issuer"],
                 Audience = _config["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature
-                )
+                ),
             };
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
