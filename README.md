@@ -54,7 +54,7 @@ Pass: Borgertinget123
 # READ IF NOT A BORGERTINGET DEV!
 
 You obviously need a specific .env file for most of the features to work. Below is the template for the kind of authentication you need, you could fill it out yourself.
-
+```
 # --- Secrets For Docker Compose Services ---
 # Credentials for the POSTGRES db
 DB_USER=
@@ -82,3 +82,4 @@ TwitterApiApiSecret=
 TwitterApiAccessToken=
 TwitterApiAccessSecret=
 TwitterApi__BearerToken=
+```
