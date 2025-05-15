@@ -1,14 +1,18 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Linq;
 using backend.Services;
 using backend.Models;
 using backend.Data;
 using backend.DTO.FT;
-using System.Text.Json;
+using backend.Models;
+using backend.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+
 namespace backend.Controllers;
 
 [ApiController]
@@ -60,7 +64,10 @@ public class PartyController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Party>> UpdatePartyDetails(int partyId, [FromBody] PartyDto updateDto)
+    public async Task<ActionResult<Party>> UpdatePartyDetails(
+        int partyId,
+        [FromBody] PartyDto updateDto
+    )
     {
         // --- Input Validation ---
         if (updateDto == null)
@@ -134,8 +141,8 @@ public class PartyController : ControllerBase
         }
         catch (DbUpdateConcurrencyException dbEx) // Handle potential concurrency issues
         {
-                _logger.LogError(dbEx, "Concurrency error occurred while updating party ID.");
-                return StatusCode(500, "A concurrency error occurred while updating the party.");
+            _logger.LogError(dbEx, "Concurrency error occurred while updating party ID.");
+            return StatusCode(500, "A concurrency error occurred while updating the party.");
         }
         catch (DbUpdateException dbEx)
         {

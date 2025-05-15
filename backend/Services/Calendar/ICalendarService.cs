@@ -8,5 +8,8 @@ namespace backend.Services.Calendar
     public interface ICalendarService
     {
         Task<IEnumerable<CalendarEventDTO>> GetAllEventsAsDTOAsync();
+        Task<CalendarEventDTO> CreateEventAsync(CalendarEventDTO calendarEventDto);
+        Task<bool> UpdateEventAsync(int id, CalendarEventDTO calendarEventDto);
+        Task<bool> DeleteEventAsync(int id);
     }
 }

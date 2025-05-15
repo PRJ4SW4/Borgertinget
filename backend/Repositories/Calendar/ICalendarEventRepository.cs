@@ -22,11 +22,17 @@ public interface ICalendarEventRepository
     // Adds a new CalendarEvent to the data store.
     Task AddEventAsync(CalendarEvent newEvent);
 
+    // Retrieves a specific CalendarEvent by its ID.
+    Task<CalendarEvent?> GetEventByIdAsync(int id); // Added nullable return type
+
     // Updates an existing CalendarEvent in the data store.
     void UpdateEvent(CalendarEvent existingEvent); // EF Core tracks changes, so this might not need to be async if just modifying properties.
 
     // Marks a collection of CalendarEvents for deletion.
     void MarkEventsForDeletion(IEnumerable<CalendarEvent> eventsToDelete);
+
+    // Marks a single CalendarEvent for deletion.
+    void DeleteEvent(CalendarEvent eventToDelete);
 
     // Persists all pending changes to the data store.
     // Returns the number of state entries written to the database.

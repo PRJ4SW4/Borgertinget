@@ -20,4 +20,13 @@ public interface ILearningPageService
     // including the current page and its siblings, ordered correctly.
     // Returns a list of page IDs in their display order.
     Task<List<int>> GetSectionPageOrderAsync(int currentPageId);
+
+    // Asynchronously creates a new learning page.
+    Task<PageDetailDTO> CreatePageAsync(PageCreateRequestDTO createRequest);
+
+    // Asynchronously updates an existing learning page.
+    Task<bool> UpdatePageAsync(int pageId, PageUpdateRequestDTO updateRequest);
+
+    // Asynchronously deletes a learning page.
+    Task<bool> DeletePageAsync(int pageId);
 }

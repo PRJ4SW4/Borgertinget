@@ -12,6 +12,7 @@ using backend.Interfaces.Utility;
 using backend.Jobs;
 using backend.Models;
 using backend.Persistence.Repositories;
+using backend.Repositories;
 using backend.Repositories.Calendar;
 using backend.Services;
 using backend.Services.Calendar;
@@ -19,16 +20,15 @@ using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
-using backend.Services.Politician; 
 using backend.Services.LearningEnvironment;
 using backend.Services.Mapping;
+using backend.Services.Politician;
 using backend.Services.Search;
 using backend.Services.Selection;
 using backend.Services.Utility;
 using backend.utils;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +43,7 @@ using OpenSearch.Net;
 
 // for .env secrets
 DotNetEnv.Env.Load();
-         
+
 var builder = WebApplication.CreateBuilder(args);
 
 var openSearchUrl = builder.Configuration["OpenSearch:Url"];
@@ -77,25 +77,20 @@ IdentityModelEventSource.LogCompleteSecurityArtifact = true;
 // JWT-konfiguration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(
-    jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key mangler")
+    jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key mangler i konfigurationen")
 );
 
 // Authorization for Admin and User roles
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(
-        "RequireAdministratorRole",
-        policy => policy.RequireRole(ClaimTypes.Role, "Admin")
-    );
-    options.AddPolicy(
-        "UserOrAdmin",
-        policy => policy.RequireClaim(ClaimTypes.Role, "User", "Admin")
-    );
-});
+builder.Services.AddAuthorization();
 
-// EF Core
+// EF Core Database Context
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' not found."
+            )
+    )
 );
 
 builder
@@ -123,7 +118,7 @@ builder
 
 builder.Services.AddTransient<EmailConfirmationTokenProvider<User>>();
 
-// Auth + JWT
+// Authentication med JWT Bearer
 builder
     .Services.AddAuthentication(options =>
     {
@@ -133,7 +128,7 @@ builder
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false; // Sæt til true i produktion
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment(); // Kræv kun HTTPS i produktion
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -144,8 +139,7 @@ builder
             ValidIssuer = jwtSettings["Issuer"],
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(key),
-            // THIS LINE ensures ASP.NET picks up "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-            // as the user's role claim.
+            ClockSkew = TimeSpan.Zero, // Vær præcis med token udløb
             RoleClaimType = ClaimTypes.Role,
             NameClaimType = ClaimTypes.Name,
         };
@@ -154,21 +148,26 @@ builder
         {
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine(" TOKEN VALIDATION FAILED:");
-                Console.WriteLine(context.Exception.ToString());
+                // Brug ILogger i stedet for Console.WriteLine i en rigtig applikation
+                Console.WriteLine($"🚫 TOKEN VALIDATION FAILED: {context.Exception}");
+                // Overvej at logge context.Exception for flere detaljer
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
-                Console.WriteLine(" TOKEN VALIDATED:");
+                Console.WriteLine("✅ TOKEN VALIDATED:");
                 if (context.Principal?.Identity != null)
                 {
-                    Console.WriteLine("User: " + context.Principal.Identity?.Name);
-                    return Task.CompletedTask;
+                    Console.WriteLine($"User: {context.Principal.Identity.Name}");
+                    Console.WriteLine("Claims:");
+                    foreach (var claim in context.Principal.Claims)
+                    {
+                        Console.WriteLine($"  {claim.Type}: {claim.Value}");
+                    }
                 }
                 else
                 {
-                    Console.WriteLine("User information not available.");
+                    Console.WriteLine("User information not available in token.");
                 }
                 return Task.CompletedTask;
             },
@@ -183,6 +182,22 @@ builder
                 {
                     Console.WriteLine("SIGNALR DEBUG: Setting token from query string."); // <-- ADD LOG
                     context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
+            OnForbidden = context =>
+            {
+                // Log når adgang nægtes (f.eks. 403 Forbidden)
+                Console.WriteLine(
+                    $"🚫 FORBIDDEN: User {context.Principal?.Identity?.Name} does not have required permissions for the resource."
+                );
+                if (context.Principal != null)
+                {
+                    Console.WriteLine("User Claims at time of Forbidden:");
+                    foreach (var claim in context.Principal.Claims)
+                    {
+                        Console.WriteLine($"  {claim.Type}: {claim.Value}");
+                    }
                 }
                 return Task.CompletedTask;
             },
@@ -222,7 +237,7 @@ builder
                 return Task.CompletedTask;
             };
         }
-    ); //.AddCookie(IdentityConstants.ExternalScheme);
+    );
 
 // ASP.NET Core Identity bruger cookies til at håndtere det *eksterne login flow* i led af Oauth.
 builder.Services.ConfigureApplicationCookie(options =>
@@ -247,21 +262,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
-// Authorization for Admin and User roles
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(
-        "RequireAdministratorRole",
-        policy => policy.RequireRole("Admin")
-    );
-    options.AddPolicy(
-        "UserOrAdmin",
-        policy => policy.RequireRole("User", "Admin")
-    );
-});
-
-// Swagger
 builder.Services.AddSignalR();
+
+builder.Services.AddScoped<IAdministratorService, AdministratorService>();
+
+// Swagger/OpenAPI konfiguration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -299,7 +304,7 @@ builder.Services.AddSwaggerGen(options =>
 // --- EKSISTERENDE SERVICES ---
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<HttpService>();
-builder.Services.AddScoped<IFetchService, FetchService>(); 
+builder.Services.AddScoped<IFetchService, FetchService>();
 
 builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHostedService<DailySelectionJob>();
@@ -311,13 +316,11 @@ builder.Services.AddHttpClient();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
-        "AllowReactApp",
+        "AllowReactApp", // Navnet på din policy
         policy =>
         {
             policy
                 .WithOrigins("http://localhost:5173")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -330,6 +333,7 @@ builder.Services.AddHttpClient(); // General HttpClient factory registration (Us
 // note af Jakob, put option id virkede med det her der er uddokumenteret, men da jeg havde det til, så virkede feed og partier ikke, jeg har ikke den post til pools på min git, derfor håber jeg det virker uden dette,
 
 
+// Registrer Controllers
 builder.Services.AddControllers(); /* .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
@@ -344,14 +348,7 @@ builder.Services.AddSingleton<
 >();
 builder.Services.AddSingleton<IRandomProvider, RandomProvider>();
 
-//Search indexing service
-builder.Services.AddScoped<SearchIndexingService>();
-
-builder.Services.AddHttpContextAccessor(); // Gør IHttpContextAccessor tilgængelig
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // Gør IActionContextAccessor tilgængelig
-
-//Search indexing service
-builder.Services.AddScoped<SearchIndexingService>();
 
 // For altinget scraping
 builder.Services.AddHostedService<AltingetScraperServiceScheduler>();
@@ -368,6 +365,9 @@ builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 // Flashcard Services
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
+//Search indexing service
+builder.Services.AddScoped<SearchIndexingService>();
+
 // Polidle
 builder.Services.AddScoped<IAktorRepository, AktorRepository>();
 builder.Services.AddScoped<IDailySelectionRepository, DailySelectionRepository>();
@@ -381,6 +381,13 @@ builder.Services.AddRouting();
 // Search Services
 builder.Services.AddHostedService<ScheduledIndexService>();
 
+// Administrator Services
+builder.Services.AddScoped<IAdministratorRepository, AdministratorRepository>();
+builder.Services.AddScoped<IAdministratorService, AdministratorService>();
+
+// -----------------------------------------
+// Byg WebApplication objektet
+// -----------------------------------------
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -416,9 +423,12 @@ app.UseRouting();
 // For static images from wwwroot folder
 app.UseStaticFiles();
 
-
 if (app.Environment.IsDevelopment())
 {
+    // Hent logger specifikt til denne blok
+    var devLogger = app.Services.GetRequiredService<ILogger<Program>>();
+
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
@@ -433,12 +443,15 @@ else
 
 // app.UseHttpsRedirection(); // Aktiver når du har HTTPS sat op
 
-app.UseCors("AllowReactApp");
+app.UseCors("AllowReactApp"); // Skal typisk før UseAuthentication/UseAuthorization
 
 app.UseAuthentication(); // Din rigtige JWT auth middleware
 app.UseAuthorization(); // Din rigtige authorization middleware
 
 app.MapControllers();
+
+// For showing images in the frontend
+app.UseStaticFiles();
 
 app.MapHub<FeedHub>("/feedHub");
 

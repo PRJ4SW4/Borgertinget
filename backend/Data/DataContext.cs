@@ -14,11 +14,11 @@ using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.ChangeTracking; // For ValueComparer
 
 namespace backend.Data
 {
-    public class DataContext : IdentityDbContext<User, IdentityRole<int>, int>
+    public class DataContext : IdentityDbContext<User, IdentityRole<int>, int> // Automatically includes a DbSet<User> called Users
     {
         public DataContext(DbContextOptions<DataContext> options)
             : base(options) { }
@@ -46,7 +46,7 @@ namespace backend.Data
         // --- Calendar Setup ---
         public DbSet<CalendarEvent> CalendarEvents { get; set; }
 
-        public DbSet<Party> Party { get; set; }
+        public DbSet<Party> Party { get; set; } = null!;
 
         // --- Core Political Data ---
         public DbSet<Aktor> Aktor { get; set; } = null!; // Navn er 'Aktor', men repræsenterer politikere osv.
@@ -63,6 +63,7 @@ namespace backend.Data
             base.OnModelCreating(modelBuilder);
 
             // --- Calendar Setup ---
+            // Index for the CalendarEvents SourceUrl to make syncing events faster
             modelBuilder.Entity<CalendarEvent>().HasIndex(e => e.SourceUrl).IsUnique();
             // --- /Calendar Setup ---
 
@@ -116,9 +117,7 @@ namespace backend.Data
                 )
                 .Metadata.SetValueComparer(
                     new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                        (c1, c2) => c1!.SequenceEqual(c2!),
                         c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                         c => c.ToList()
                     )
@@ -136,15 +135,13 @@ namespace backend.Data
                 )
                 .Metadata.SetValueComparer(
                     new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                        (c1, c2) => c1!.SequenceEqual(c2!),
                         c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                         c => c.ToList()
                     )
                 );
 
-            // Add similar .HasConversion calls AND .Metadata.SetValueComparer(...) for Educations and Occupations
+            // Add similar .HasConversion calls for Educations and Occupations
             modelBuilder
                 .Entity<Aktor>()
                 .Property(a => a.Educations)
@@ -156,9 +153,7 @@ namespace backend.Data
                 )
                 .Metadata.SetValueComparer(
                     new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                        (c1, c2) => c1!.SequenceEqual(c2!),
                         c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                         c => c.ToList()
                     )
@@ -175,9 +170,7 @@ namespace backend.Data
                 )
                 .Metadata.SetValueComparer(
                     new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                        (c1, c2) => c1!.SequenceEqual(c2!),
                         c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                         c => c.ToList()
                     )
@@ -191,6 +184,13 @@ namespace backend.Data
                     v =>
                         JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
                         ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1!.SequenceEqual(c2!),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    )
                 );
             modelBuilder
                 .Entity<Aktor>()
@@ -200,6 +200,13 @@ namespace backend.Data
                     v =>
                         JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
                         ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1!.SequenceEqual(c2!),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    )
                 );
             modelBuilder
                 .Entity<Aktor>()
@@ -329,11 +336,64 @@ namespace backend.Data
 
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
+            modelBuilder
+                .Entity<IdentityRole<int>>()
+                .HasData(
+                    new IdentityRole<int>
+                    {
+                        Id = 1,
+                        Name = "Admin",
+                        NormalizedName = "ADMIN",
+                        ConcurrencyStamp = "92399EC2-C4C4-4E0C-B9C1-A45A2A17A52C", // Static GUID
+                    },
+                    new IdentityRole<int>
+                    {
+                        Id = 2,
+                        Name = "User",
+                        NormalizedName = "USER",
+                        ConcurrencyStamp = "A7D8F9A0-E1B2-4C3D-8E4F-5A6B7C8D9E0F", // Static GUID
+                    }
+                );
             modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
             modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
             modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");
             modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
+
+            // --- SEED SUPERUSER (ADMIN + USER ROLES) ---
+            var superUserId = 100; // Using a distinct ID for this user
+
+            // IMPORTANT: You MUST replace the PasswordHash below with a securely generated hash.
+            // To generate a hash, you can use ASP.NET Core Identity's PasswordHasher.
+            // For example, in a temporary controller or a utility method:
+            // var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
+            // var hashedPassword = hasher.HashPassword(null, "YourChosenSecureP@ssw0rd1!");
+            // Console.WriteLine(hashedPassword); // Then copy the output here.
+
+            var superUser = new User
+            {
+                Id = superUserId,
+                UserName = "borgertinget_superuser",
+                NormalizedUserName = "BORGERTINGET_SUPERUSER",
+                Email = "superuser@borgertinget.dk",
+                NormalizedEmail = "SUPERUSER@BORGERTINGET.DK",
+                EmailConfirmed = true,
+                PasswordHash =
+                    "AQAAAAIAAYagAAAAEJn0GXmNCdYTjU9z+RKk0pQi378V2AWUINKCf2BxEHZ1QZwVVnge5ungFpZ6tQD54g==",
+                SecurityStamp = "KIV5W5KJMIULHLFQ3YBIZNNU6AL2JBPH",
+                ConcurrencyStamp = "9a90d138-772e-44b1-b052-18d591edef58",
+            };
+
+            modelBuilder.Entity<User>().HasData(superUser);
+
+            // Assign both Admin (Id=1) and User (Id=2) roles to the superuser
+            modelBuilder
+                .Entity<IdentityUserRole<int>>()
+                .HasData(
+                    new IdentityUserRole<int> { UserId = superUserId, RoleId = 1 }, // Admin Role
+                    new IdentityUserRole<int> { UserId = superUserId, RoleId = 2 } // User Role
+                );
+            // --- END SEED SUPERUSER ---
 
             modelBuilder.Entity<Subscription>(entity =>
             {
@@ -635,13 +695,15 @@ namespace backend.Data
                     new FlashcardCollection
                     {
                         CollectionId = 1,
-                        Title = "Politikerne og deres navne",
+                        Title = "Politikere",
+                        Description = "Kendte danske politikere",
                         DisplayOrder = 1,
                     },
                     new FlashcardCollection
                     {
                         CollectionId = 2,
-                        Title = "Politiske begreber",
+                        Title = "Politiske Begreber",
+                        Description = "Grundlæggende politiske termer",
                         DisplayOrder = 2,
                     }
                 );
@@ -702,9 +764,10 @@ namespace backend.Data
                 );
         }
 
+        // --- /FLASHCARDS ---
         private void SeedPollData(ModelBuilder modelBuilder)
         {
-            const int SeedPoliticianId = 1; // Matcher PoliticianTwitterId.Id = 1
+            const int SeedPoliticianId = 3;
             const int SeedPollId = 1;
             const int NewPollId = 2;
 
@@ -781,6 +844,9 @@ namespace backend.Data
                         Votes = 8,
                     }
                 );
+            // --- /Learning Environment Seeding ---
+
+            // --- /SEED DATA ---
         }
     }
 }

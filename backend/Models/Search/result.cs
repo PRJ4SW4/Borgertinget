@@ -32,19 +32,19 @@ namespace backend.Models
         // Suggestion field for autocomplete (optional but recommended)
         public CompletionField? Suggest { get; set; }
 
-        public string? partyName {get; set;} = string.Empty;
-        
-        public string? partyShortNameFromParty {get; set;} = string.Empty;
+        public string? partyName { get; set; } = string.Empty;
 
-        public string? partyProgram {get; set;} = string.Empty;
+        public string? partyShortNameFromParty { get; set; } = string.Empty;
 
-        public string? politics {get; set;} = string.Empty ;
+        public string? partyProgram { get; set; } = string.Empty;
 
-        public string? history {get; set;} = string.Empty;
+        public string? politics { get; set; } = string.Empty;
+
+        public string? history { get; set; } = string.Empty;
 
         //Page specific
 
-        public string? pageTitle {get; set;} = string.Empty;
-        public string? pageContent {get; set;} = string.Empty;
+        public string? pageTitle { get; set; } = string.Empty;
+        public string? pageContent { get; set; } = string.Empty;
     }
 }
