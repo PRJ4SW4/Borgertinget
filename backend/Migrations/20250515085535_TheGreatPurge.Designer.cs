@@ -13,13 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-<<<<<<<< HEAD:backend/Migrations/20250514204510_DatabaseCreation.Designer.cs
-    [Migration("20250514204510_DatabaseCreation")]
-    partial class DatabaseCreation
-========
-    [Migration("20250514223136_InitialCreate")]
-    partial class InitialCreate
->>>>>>>> main:backend/Migrations/20250514223136_InitialCreate.Designer.cs
+    [Migration("20250515085535_TheGreatPurge")]
+    partial class TheGreatPurge
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -296,7 +291,6 @@ namespace backend.Migrations
                     b.ToTable("CalendarEvents");
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250514204510_DatabaseCreation.Designer.cs
             modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
                 {
                     b.Property<int>("EventInterestId")
@@ -319,7 +313,8 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("EventInterests");
-========
+                });
+
             modelBuilder.Entity("backend.Models.DailySelection", b =>
                 {
                     b.Property<DateOnly>("SelectionDate")
@@ -343,7 +338,6 @@ namespace backend.Migrations
                     b.HasIndex("SelectedPolitikerID");
 
                     b.ToTable("daily_selections");
->>>>>>>> main:backend/Migrations/20250514223136_InitialCreate.Designer.cs
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -1216,7 +1210,6 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250514204510_DatabaseCreation.Designer.cs
             modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
                 {
                     b.HasOne("backend.Models.Calendar.CalendarEvent", "CalendarEvent")
@@ -1234,7 +1227,8 @@ namespace backend.Migrations
                     b.Navigation("CalendarEvent");
 
                     b.Navigation("User");
-========
+                });
+
             modelBuilder.Entity("backend.Models.DailySelection", b =>
                 {
                     b.HasOne("backend.Models.Aktor", "SelectedPolitiker")
@@ -1244,7 +1238,6 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("SelectedPolitiker");
->>>>>>>> main:backend/Migrations/20250514223136_InitialCreate.Designer.cs
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -1429,11 +1422,6 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
-<<<<<<<< HEAD:backend/Migrations/20250514204510_DatabaseCreation.Designer.cs
-            modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
-                {
-                    b.Navigation("InterestedUsers");
-========
             modelBuilder.Entity("backend.Models.Aktor", b =>
                 {
                     b.Navigation("DailySelections");
@@ -1441,7 +1429,11 @@ namespace backend.Migrations
                     b.Navigation("GamemodeTrackings");
 
                     b.Navigation("Quotes");
->>>>>>>> main:backend/Migrations/20250514223136_InitialCreate.Designer.cs
+                });
+
+            modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
+                {
+                    b.Navigation("InterestedUsers");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.FlashcardCollection", b =>

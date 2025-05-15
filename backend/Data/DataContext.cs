@@ -52,7 +52,6 @@ namespace backend.Data
 
         public DbSet<EventInterest> EventInterests { get; set; }
 
-        public DbSet<EventInterest> EventInterests { get; set; }
 
         // --- Core Political Data ---
         public DbSet<Aktor> Aktor { get; set; } = null!; // Navn er 'Aktor', men repræsenterer politikere osv.

@@ -288,6 +288,30 @@ namespace backend.Migrations
                     b.ToTable("CalendarEvents");
                 });
 
+            modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
+                {
+                    b.Property<int>("EventInterestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EventInterestId"));
+
+                    b.Property<int>("CalendarEventId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("EventInterestId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CalendarEventId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("EventInterests");
+                });
+
             modelBuilder.Entity("backend.Models.DailySelection", b =>
                 {
                     b.Property<DateOnly>("SelectionDate")
@@ -311,31 +335,6 @@ namespace backend.Migrations
                     b.HasIndex("SelectedPolitikerID");
 
                     b.ToTable("daily_selections");
-                    b.ToTable("CalendarEvents");
-                });
-
-            modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
-                {
-                    b.Property<int>("EventInterestId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EventInterestId"));
-
-                    b.Property<int>("CalendarEventId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("EventInterestId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("CalendarEventId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("EventInterests");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>
@@ -1208,17 +1207,6 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("backend.Models.DailySelection", b =>
-                {
-                    b.HasOne("backend.Models.Aktor", "SelectedPolitiker")
-                        .WithMany("DailySelections")
-                        .HasForeignKey("SelectedPolitikerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SelectedPolitiker");
-                });
-
             modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
                 {
                     b.HasOne("backend.Models.Calendar.CalendarEvent", "CalendarEvent")
@@ -1236,6 +1224,17 @@ namespace backend.Migrations
                     b.Navigation("CalendarEvent");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend.Models.DailySelection", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "SelectedPolitiker")
+                        .WithMany("DailySelections")
+                        .HasForeignKey("SelectedPolitikerID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SelectedPolitiker");
                 });
 
             modelBuilder.Entity("backend.Models.Flashcards.Flashcard", b =>

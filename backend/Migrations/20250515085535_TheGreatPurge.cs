@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class TheGreatPurge : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -340,6 +340,32 @@ namespace backend.Migrations
                         name: "FK_RoleClaims_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EventInterests",
+                columns: table => new
+                {
+                    EventInterestId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CalendarEventId = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EventInterests", x => x.EventInterestId);
+                    table.ForeignKey(
+                        name: "FK_EventInterests_CalendarEvents_CalendarEventId",
+                        column: x => x.CalendarEventId,
+                        principalTable: "CalendarEvents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EventInterests_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -718,6 +744,17 @@ namespace backend.Migrations
                 column: "selected_politiker_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_EventInterests_CalendarEventId_UserId",
+                table: "EventInterests",
+                columns: new[] { "CalendarEventId", "UserId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventInterests_UserId",
+                table: "EventInterests",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Flashcards_CollectionId",
                 table: "Flashcards",
                 column: "CollectionId");
@@ -856,10 +893,10 @@ namespace backend.Migrations
                 name: "AnswerOptions");
 
             migrationBuilder.DropTable(
-                name: "CalendarEvents");
+                name: "daily_selections");
 
             migrationBuilder.DropTable(
-                name: "daily_selections");
+                name: "EventInterests");
 
             migrationBuilder.DropTable(
                 name: "Flashcards");
@@ -899,6 +936,9 @@ namespace backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Questions");
+
+            migrationBuilder.DropTable(
+                name: "CalendarEvents");
 
             migrationBuilder.DropTable(
                 name: "FlashcardCollections");
