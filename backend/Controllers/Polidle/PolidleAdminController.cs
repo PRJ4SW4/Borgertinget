@@ -38,34 +38,24 @@ namespace backend.Controllers
         #region Todays selection
         /// Manuelt trigger generering og lagring af dagens Polidle-valg (alle gamemodes).
         /// <returns>Statuskode 200 OK ved succes, ellers 500 Internal Server Error.</returns>
-        [HttpPost("generate-today")] // Route: POST api/polidle/admin/generate-today
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)] // Tilføjet typeof(string)
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GenerateDailySelectionForToday()
+        [HttpPost("generate-today")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)] // Tilføjet for fejl
+        public async Task<ActionResult> GenerateDailySelectionForToday([FromQuery] bool overwrite = false) // <<< overwrite parameter er her
         {
-            _logger.LogInformation(
-                "[Admin] Manual trigger received for generating today's selections."
-            );
+            _logger.LogInformation("[Admin] Manual trigger received for generating today's selections. Overwrite: {Overwrite}", overwrite);
             try
             {
-                DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-                await _selectionService.SelectAndSaveDailyPoliticiansAsync(today);
-                _logger.LogInformation(
-                    "[Admin] Manual daily selection generation completed successfully for {Date}.",
-                    today
-                );
-                return Ok($"Daily selections generated successfully for {today:yyyy-MM-dd}.");
+                DateOnly today = _dateTimeProvider.TodayUtc; // Antager du har injectet IDateTimeProvider
+                await _selectionService.SelectAndSaveDailyPoliticiansAsync(today, overwrite); // <<< SENDER overwrite MED
+                _logger.LogInformation("[Admin] Manual daily selection generation completed successfully for {Date} with overwrite={Overwrite}.", today, overwrite);
+                return Ok($"Daily selections generated/overwritten successfully for {today:yyyy-MM-dd} (Overwrite: {overwrite}).");
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "[Admin] Error occurred during manual daily selection generation for today."
-                );
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    "An internal server error occurred while generating daily selections."
-                ); // Mere generisk fejlbesked
+                _logger.LogError(ex, "[Admin] Error occurred during manual daily selection generation for today (Overwrite: {Overwrite}).", overwrite);
+                // Returner en mere generisk fejlbesked til klienten
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while generating daily selections. Check server logs for details.");
             }
         }
         #endregion
@@ -141,6 +131,30 @@ namespace backend.Controllers
                 );
             }
         }
-    }
         #endregion
+        #region Seed Quotes
+        /*
+        * Manual trigger for seeding two generic quotes for all Aktors, with less than two quotes already
+        */
+        [HttpPost("seed-all-aktor-quotes")] // Ny route
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> SeedAllAktorQuotes()
+        {
+            _logger.LogInformation("[Admin] Manual trigger received for seeding all Aktor quotes.");
+            try
+            {
+                // Kald den nye service-metode
+                string resultMessage = await _selectionService.SeedQuotesForAllAktorsAsync();
+                _logger.LogInformation("[Admin] Aktor quote seeding process completed. Result: {ResultMessage}", resultMessage);
+                return Ok(resultMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Admin] Error occurred during Aktor quote seeding process.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while seeding Aktor quotes.");
+            }
+        }
+        #endregion
+    }
 }

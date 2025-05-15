@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Models; // Assuming your SearchDocument is here
+using backend.Services.Search;
 using backend.Services.Search;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
