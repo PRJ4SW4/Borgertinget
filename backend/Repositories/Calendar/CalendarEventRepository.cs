@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using backend.Data; // For DataContext
 using backend.Models.Calendar; // For CalendarEvent
+using backend.Utils; // For LogSanitizer
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -76,11 +77,17 @@ public class CalendarEventRepository : ICalendarEventRepository
     // Retrieves a specific CalendarEvent by its ID.
     public async Task<CalendarEvent?> GetEventByIdAsync(int id) // Added nullable return type
     {
-        _logger.LogDebug("Fetching calendar event by ID: {EventId}", id);
+        _logger.LogDebug(
+            "Fetching calendar event by ID: {EventId}",
+            LogSanitizer.Sanitize(id.ToString())
+        );
         var calendarEvent = await _context.CalendarEvents.FindAsync(id);
         if (calendarEvent == null)
         {
-            _logger.LogWarning("Calendar event with ID: {EventId} not found.", id);
+            _logger.LogWarning(
+                "Calendar event with ID: {EventId} not found.",
+                LogSanitizer.Sanitize(id.ToString())
+            );
         }
         return calendarEvent;
     }
@@ -107,7 +114,10 @@ public class CalendarEventRepository : ICalendarEventRepository
     public void DeleteEvent(CalendarEvent eventToDelete)
     {
         _context.CalendarEvents.Remove(eventToDelete);
-        _logger.LogDebug("Marked calendar event for deletion: ID={EventId}", eventToDelete.Id);
+        _logger.LogDebug(
+            "Marked calendar event for deletion: ID={EventId}",
+            LogSanitizer.Sanitize(eventToDelete.Id.ToString())
+        );
     }
 
     // Persists all pending changes.

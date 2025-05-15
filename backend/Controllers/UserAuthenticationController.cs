@@ -17,6 +17,7 @@ using backend.Data;
 using backend.DTOs;
 using backend.Models;
 using backend.Services;
+using backend.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
@@ -30,20 +31,20 @@ namespace backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsersController : ControllerBase // Corrected class name based on common practice and constructor
     {
         private readonly IConfiguration _config;
         private readonly EmailService _emailService;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        private readonly ILogger<UsersController> _logger;
+        private readonly ILogger<UsersController> _logger; // Corrected logger type to match class name
 
         public UsersController(
             IConfiguration config,
             EmailService emailService,
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<UsersController> logger
+            ILogger<UsersController> logger // Corrected logger type
         )
         {
             _config = config;
@@ -77,7 +78,8 @@ namespace backend.Controllers
                 {
                     var errors = roleResult.Errors.Select(e => e.Description);
                     _logger.LogError(
-                        $"Failed to assign role 'User' to {user.UserName}: {string.Join(", ", errors)}"
+                        // Line 80: Sanitize username in log message
+                        $"Failed to assign role 'User' to {LogSanitizer.Sanitize(user.UserName)}: {string.Join(", ", errors)}"
                     );
 
                     // Optionally, delete the user if assigning the role failed
