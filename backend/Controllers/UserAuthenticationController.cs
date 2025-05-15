@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using BCrypt.Net;
 using System.Net.Http;
 using System.Linq;
@@ -11,13 +14,13 @@ using System.Net;
 using backend.Services;
 using backend.DTOs;
 using backend.Models;
-using backend.Data;
+using backend.utils;
+using CoreTweet.Rest;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Generic;
 using System.Web;
 using backend.utils;
@@ -45,7 +48,8 @@ namespace backend.Controllers
             EmailService emailService,
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<UsersController> logger)
+            ILogger<UsersController> logger
+        )
         {
             _config = config;
             _emailService = emailService;
@@ -66,23 +70,22 @@ namespace backend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserDto dto)
         {
-            var user = new User
-            {
-                UserName = dto.Username,
-                Email = dto.Email,
-            };
+            var user = new User { UserName = dto.Username, Email = dto.Email };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
-            
-            if (result.Succeeded) {
+
+            if (result.Succeeded)
+            {
                 // var roleResult = await _userManager.AddToRoleAsync(user, "User");
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-                var verificationLink = $"http://localhost:5173/verify?userId={user.Id}&token={encodedToken}";
+                var verificationLink =
+                    $"http://localhost:5173/verify?userId={user.Id}&token={encodedToken}";
 
                 var subject = "Bekræft din e-mailadresse";
-                var message = $@"
+                var message =
+                    $@"
                     <p>Tak fordi du oprettede en konto.</p>
                     <p>Klik venligst på linket nedenfor for at bekræfte din e-mailadresse:</p>
                     <p><a href='{verificationLink}'>Bekræft min e-mail</a></p>
@@ -96,11 +99,22 @@ namespace backend.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Fejl ved afsendelse af bekræftelsesmail: {ex.Message}");
-                    return StatusCode(500, new { message = "Fejl ved afsendelse af bekræftelsesmail. Prøv venligst igen senere." } );
+                    return StatusCode(
+                        500,
+                        new
+                        {
+                            message = "Fejl ved afsendelse af bekræftelsesmail. Prøv venligst igen senere.",
+                        }
+                    );
                 }
-                return Ok(new { message = "Registrering succesfuld! Tjek din email for at bekræfte din konto." });
+                return Ok(
+                    new
+                    {
+                        message = "Registrering succesfuld! Tjek din email for at bekræfte din konto.",
+                    }
+                );
             }
-            else 
+            else
             {
                 var errors = result.Errors.Select(e => e.Description);
                 _logger.LogError($"Brugerregistrering fejlede: {string.Join(", ", errors)}");
@@ -109,9 +123,13 @@ namespace backend.Controllers
         }
 
         [HttpGet("verify")]
-        public async Task<IActionResult> VerifyEmail([FromQuery] int userId, [FromQuery] string token)
+        public async Task<IActionResult> VerifyEmail(
+            [FromQuery] int userId,
+            [FromQuery] string token
+        )
         {
-            if (string.IsNullOrEmpty(token)) {
+            if (string.IsNullOrEmpty(token))
+            {
                 _logger.LogError("Token mangler.");
                 return BadRequest("Token mangler.");
             }
@@ -127,25 +145,28 @@ namespace backend.Controllers
             {
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
-            
+
                 var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
-                if(result.Succeeded)
+                if (result.Succeeded)
                 {
-                    return Ok(new { message = "Din emailadresse er bekræftet. Du kan nu logge ind." });
+                    return Ok(
+                        new { message = "Din emailadresse er bekræftet. Du kan nu logge ind." }
+                    );
                 }
-                else 
+                else
                 {
-                    Console.WriteLine($"Email verification failed for user {userId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    Console.WriteLine(
+                        $"Email verification failed for user {userId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}"
+                    );
                     return BadRequest("Ugyldigt eller udløbet verifikationslink");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Fejl ved afkodning af token");
-                return BadRequest(new {message = "Ugyldigt token format"});
+                return BadRequest(new { message = "Ugyldigt token format" });
             }
         }
-
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
@@ -162,21 +183,27 @@ namespace backend.Controllers
             {
                 user = await _userManager.FindByNameAsync(loginInput);
             }
-            
+
             if (user == null)
                 return BadRequest(new { error = "Bruger findes ikke" });
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
 
-            if(result.Succeeded) {
+            if (result.Succeeded)
+            {
                 var token = await GenerateJwtToken(user);
                 return Ok(new { token });
             }
             else if (result.IsNotAllowed)
             {
-                return BadRequest(new { error = "Din emailadresse er ikke blevet bekræftet. Tjek din indbakke for at bekræfte."});
+                return BadRequest(
+                    new
+                    {
+                        error = "Din emailadresse er ikke blevet bekræftet. Tjek din indbakke for at bekræfte.",
+                    }
+                );
             }
-            else 
+            else
             {
                 return BadRequest(new { error = "Forkert adgangskode." });
             }
@@ -388,13 +415,13 @@ namespace backend.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1), 
+                Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = _config["Jwt:Issuer"],
                 Audience = _config["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature
-                )
+                ),
             };
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);

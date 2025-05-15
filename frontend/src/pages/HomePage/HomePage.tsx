@@ -1,98 +1,12 @@
-import React, { useState, ChangeEvent, KeyboardEvent } from 'react';
-// Import Link from react-router-dom if you haven't already
-import { Link } from 'react-router-dom'; // ADD THIS LINE
-import './HomePage.css';
-import { SearchDocument } from '../../types/searchResult';
+import React from 'react';
+import './HomePage.css'; // Styles for HomePage layout
+import SearchBar from '../../components/Searchbar'; // Import the new SearchBar component
+
+// Placeholder for SearchDocument type, ensure it's defined or imported if needed by HomePage directly
+// interface SearchDocument { ... } 
 
 const HomePage: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<SearchDocument[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-    if (searchResults.length > 0) {
-        setSearchResults([]);
-    }
-    if (error) {
-        setError(null);
-    }
-  };
-
-  const executeSearch = async () => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setError(null);
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    setSearchResults([]);
-
-    try {
-      const encodedQuery = encodeURIComponent(searchQuery);
-      const response = await fetch(`/api/Search?query=${encodedQuery}`);
-      if (!response.ok) {
-        throw new Error(`Search failed with status: ${response.status}`);
-      }
-      const data: SearchDocument[] = await response.json();
-      setSearchResults(data);
-    } catch (err) {
-      console.error("Search error:", err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred during search.');
-      setSearchResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      executeSearch();
-    }
-  };
-
-  // --- Helper function to generate links for search results ---
-  const getResultLink = (result: SearchDocument): string => {
-    // The ID from OpenSearch is like "aktor-123" or "flashcard-456"
-    const parts = result.id.split('-');
-    const actualId = parts.length > 1 ? parts.slice(1).join('-') : result.id; // handles IDs that might have hyphens
-
-    switch (result.dataType.toLowerCase()) {
-      case 'aktor':
-        return `/politician/${actualId}`; // Assuming this is your route for a single politician
-      case 'flashcard':
-        if (result.collectionId) {
-          return `/flashcards/${result.collectionId}`; // Link to the collection
-        }
-        return `/flashcards`; // Fallback or a general flashcards page
-      case 'party':
-        return `/party/${result.partyName}`
-      case 'page':
-        return `/learning/${actualId}`
-      // Add more cases for other dataTypes if needed
-      default:
-        return '#'; // Default fallback link
-    }
-    
-  };
-  const getDataTypeDisplayName = (dataType: string): string => {
-    switch (dataType.toLowerCase()) {
-      case 'aktor':
-        return 'Politiker';
-      case 'flashcard':
-        return 'Flashcard';
-      case 'party':
-        return 'Parti';
-      case 'page':
-        return 'Læringsside';
-      // more cases (learning env)
-      default:
-        return dataType;
-    }
-  };
-  // --- End helper function ---
+  // All search-related state and logic has been moved to SearchBar.tsx
 
   return (
     <div className="homepage">
@@ -103,40 +17,7 @@ const HomePage: React.FC = () => {
           <p className="hero-subtitle">Din stemme, din viden, din fremtid</p>
 
           <div className="hero-search-container">
-            <input
-              type="search"
-              placeholder="Søg på tværs af Borgertinget"
-              className="hero-search-input"
-              value={searchQuery}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-            />
-          </div>
-
-          <div className="search-results-container">
-            {isLoading && <p className="search-loading">Søger...</p>}
-            {error && <p className="search-error">Fejl: {error}</p>}
-            {!isLoading && !error && searchQuery && searchResults.length === 0 && (
-              <p className="search-no-results">Ingen resultater fundet for "{searchQuery}".</p>
-            )}
-            {searchResults.length > 0 && (
-              <ul className="search-results-list">
-                {searchResults.map((result) => (
-                  <li key={result.id} className="search-result-item">
-                    <Link to={getResultLink(result)} className="search-result-link">
-                      <span className={`result-type-badge type-${getDataTypeDisplayName(result.dataType).toLowerCase()}`}>
-                        {getDataTypeDisplayName(result.dataType)}
-                      </span>
-                      <span className="result-title">
-                        { result.aktorName || result.frontText || result.title || result.pageTitle || result.backText || 'Ukendt Titel'}
-                      </span>
-                      {/* Optionally display a snippet of content */}
-                      {/* {result.content && <p className="result-content-snippet">{result.content.substring(0, 100)}...</p>} */}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <SearchBar />
           </div>
 
           <p className="hero-prompt">

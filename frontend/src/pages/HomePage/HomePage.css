@@ -39,40 +39,6 @@
     opacity: 0.9; /* Makes subtitle slightly transparent */
   }
 
-  /* Container for the search bar */
-  .hero-search-container {
-    margin-bottom: 2rem; /* Space below the search bar */
-    max-width: 500px; /* Limit search bar width */
-    width: 100%; /* Take full width up to max-width */
-    margin-left: auto; /* Centers the container */
-    margin-right: auto; /* Centers the container */
-    margin-bottom: 20px;
-  }
-  .search-results-container{
-    margin-top: 15px;
-    padding: 10px;
-    background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent background for results */
-    border-radius: 8px;
-    max-height: 300px; /* Limit height and make scrollable if many results */
-    overflow-y: auto;
-    color: #fff; /* Ensure text is readable on the hero background */
-    text-align: left; /* Align text to the left for readability */
-    max-width: 600px; /* Optional: constrain width */
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* Search input field styling */
-  .hero-search-input {
-    width: 100%; /* Fill the container */
-    padding: 0.8rem 2.5rem 0.8rem 1rem; /* Basic padding */
-    border: none; /* No border */
-    border-radius: 25px; /* Creates pill shape */
-    font-size: 1rem; /* Standard input font size */
-    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
-    color: #ffffff; /* White text color */
-    outline: none; /* Removes default browser focus outline */
-  }
 
   /* Placeholder text styling */
   .hero-search-input::placeholder {
@@ -108,81 +74,7 @@
     text-decoration: none; /* Removes underline */
     animation: bounce 2s infinite; /* Applies the defined bounce animation */
   }
-  
-.search-loading,
-.search-error,
-.search-no-results {
-  padding: 10px;
-  text-align: center;
-}
-
-.search-error {
-  color: #ffdddd; /* Light red for errors */
-}
-
-.search-results-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.search-result-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 10px 5px;
-}
-
-.search-result-item:last-child {
-  border-bottom: none;
-}
-
-.search-result-link {
-  text-decoration: none;
-  color: #fff; /* Link color */
-  display: block; /* Make the whole item clickable */
-  transition: background-color 0.2s ease-in-out;
-}
-
-.search-result-link:hover {
-  background-color: rgba(255, 255, 255, 0.15); /* Highlight on hover */
-}
-
-.result-type-badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.8em;
-  margin-right: 10px;
-  color: #fff;
-  font-weight: bold;
-  text-transform: capitalize;
-}
-
-.result-type-badge.type-politiker {
-  background-color: #007bff; /* Blue for Aktor */
-}
-
-.result-type-badge.type-flashcard {
-  background-color: #28a745; /* Green for Flashcard */
-}
-.result-type-badge.type-parti {
-  background-color: #ffA500; /* Green for Flashcard */
-}
-
-.result-type-badge.type-læringsside {
-  background-color: #a800eac1;
-}
-/* Add more specific type styles as needed */
-
-.result-title {
-  font-weight: 500;
-}
-
-.result-content-snippet {
-  font-size: 0.9em;
-  color: #e0e0e0;
-  margin-top: 4px;
-}
-
+ 
   /* Keyframes for the basic bounce animation */
   @keyframes bounce {
     0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } /* Defines positions at different animation stages */

@@ -1,15 +1,14 @@
+using System.Threading.Tasks;
+using System.Web;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
-using MimeKit;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using System.Web;
+using MimeKit;
 
 namespace backend.Services
 {
     public class EmailService
     {
-
         private readonly IConfiguration _config;
         private readonly ILogger<EmailService> _logger;
 
@@ -40,18 +39,22 @@ namespace backend.Services
             message.Body = bodyBuilder.ToMessageBody();
 
             using (var client = new SmtpClient())
-            try
-            {
-                await client.ConnectAsync(host, port, MailKit.Security.SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync(username, password);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error sending email. Error: {ex.Message}");
-                throw;
-            }
+                try
+                {
+                    await client.ConnectAsync(
+                        host,
+                        port,
+                        MailKit.Security.SecureSocketOptions.StartTls
+                    );
+                    await client.AuthenticateAsync(username, password);
+                    await client.SendAsync(message);
+                    await client.DisconnectAsync(true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error sending email. Error: {ex.Message}");
+                    throw;
+                }
         }
     }
 }

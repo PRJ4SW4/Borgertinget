@@ -288,6 +288,32 @@ namespace backend.Migrations
                     b.ToTable("CalendarEvents");
                 });
 
+            modelBuilder.Entity("backend.Models.DailySelection", b =>
+                {
+                    b.Property<DateOnly>("SelectionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("selection_date");
+
+                    b.Property<string>("GameMode")
+                        .HasColumnType("text")
+                        .HasColumnName("gamemode");
+
+                    b.Property<int>("SelectedPolitikerID")
+                        .HasColumnType("integer")
+                        .HasColumnName("selected_politiker_id");
+
+                    b.Property<string>("SelectedQuoteText")
+                        .HasColumnType("text")
+                        .HasColumnName("selected_quote_text");
+
+                    b.HasKey("SelectionDate", "GameMode");
+
+                    b.HasIndex("SelectedPolitikerID");
+
+                    b.ToTable("daily_selections");
+                    b.ToTable("CalendarEvents");
+                });
+
             modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
                 {
                     b.Property<int>("EventInterestId")
@@ -441,6 +467,29 @@ namespace backend.Migrations
                             DisplayOrder = 2,
                             Title = "Politiske begreber"
                         });
+                });
+
+            modelBuilder.Entity("backend.Models.GamemodeTracker", b =>
+                {
+                    b.Property<int>("PolitikerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("politiker_id");
+
+                    b.Property<string>("GameMode")
+                        .HasColumnType("text")
+                        .HasColumnName("gamemode");
+
+                    b.Property<int?>("AlgoWeight")
+                        .HasColumnType("integer")
+                        .HasColumnName("algovægt");
+
+                    b.Property<DateOnly?>("LastSelectedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("lastselecteddate");
+
+                    b.HasKey("PolitikerId", "GameMode");
+
+                    b.ToTable("GamemodeTrackers");
                 });
 
             modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
@@ -740,6 +789,28 @@ namespace backend.Migrations
                     b.HasIndex("viceChairmanId");
 
                     b.ToTable("Party");
+                });
+
+            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
+                {
+                    b.Property<int>("QuoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("QuoteId"));
+
+                    b.Property<int>("AktorId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("QuoteText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("QuoteId");
+
+                    b.HasIndex("AktorId");
+
+                    b.ToTable("PoliticianQuotes");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
@@ -1137,6 +1208,17 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("backend.Models.DailySelection", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "SelectedPolitiker")
+                        .WithMany("DailySelections")
+                        .HasForeignKey("SelectedPolitikerID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SelectedPolitiker");
+                });
+
             modelBuilder.Entity("backend.Models.Calendar.EventInterest", b =>
                 {
                     b.HasOne("backend.Models.Calendar.CalendarEvent", "CalendarEvent")
@@ -1165,6 +1247,17 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("FlashcardCollection");
+                });
+
+            modelBuilder.Entity("backend.Models.GamemodeTracker", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "Politician")
+                        .WithMany("GamemodeTrackings")
+                        .HasForeignKey("PolitikerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Politician");
                 });
 
             modelBuilder.Entity("backend.Models.LearningEnvironment.AnswerOption", b =>
@@ -1225,6 +1318,17 @@ namespace backend.Migrations
                     b.Navigation("spokesman");
 
                     b.Navigation("viceChairman");
+                });
+
+            modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
+                {
+                    b.HasOne("backend.Models.Aktor", "Politician")
+                        .WithMany("Quotes")
+                        .HasForeignKey("AktorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Politician");
                 });
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
@@ -1314,6 +1418,15 @@ namespace backend.Migrations
                     b.Navigation("Poll");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend.Models.Aktor", b =>
+                {
+                    b.Navigation("DailySelections");
+
+                    b.Navigation("GamemodeTrackings");
+
+                    b.Navigation("Quotes");
                 });
 
             modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
