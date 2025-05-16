@@ -5,6 +5,7 @@ Repository for project group 4 2025's Web-App: Borgertinget
 # Dependencies
 
 * Dotnet 9: https://dotnet.microsoft.com/en-us/download/dotnet/9.0
+  * You also need EF Core which can be installed via ```dotnet tool install --global dotnet-ef``` then update it via ```dotnet tool update --global dotnet-ef```
 * Docker Desktop: https://www.docker.com/products/docker-desktop/
 * Node.js: https://nodejs.org/en
 
