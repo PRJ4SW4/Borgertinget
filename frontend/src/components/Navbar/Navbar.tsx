@@ -72,7 +72,7 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
         )}
         {/* Navigation Links */}
         <ul className="navbar-links">
-          <li><NavLink to="/parties" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Politiske Sider</NavLink></li>
+          <li><NavLink to="/parties" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Partier</NavLink></li>
           <li><NavLink to="/feed" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Feed</NavLink></li>
           <li><NavLink to="/kalender" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Kalender</NavLink></li>
           <li><NavLink to="/learning" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Læringsområde</NavLink></li>

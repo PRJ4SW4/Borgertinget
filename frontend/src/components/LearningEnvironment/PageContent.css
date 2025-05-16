@@ -75,15 +75,6 @@
   border: 1px solid #dee2e6;
   border-radius: 6px;
 }
-
-  .question-section {
-    margin-top: 3rem; /* Space above the question section */
-    margin-bottom: 2rem; /* Add space between multiple question sections */
-    padding: 1.5rem;
-    background-color: #f1f3f5; /* Light background for the section */
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-  }
   
   .question-section h2 {
     margin-top: 0; /* Remove default top margin */
@@ -119,24 +110,30 @@
     border-width: 0;
   }
   
-  
   .answer-option {
-    margin-bottom: 0.8rem; /* Space between options */
-    display: block; /* Ensure label takes full width */
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse;
+    margin-bottom: 0.8rem;
+    padding-left: 0;
   }
   
   .answer-option input[type="radio"] {
-    margin-right: 0.6rem;
-    /* Style radio button appearance */
-     accent-color: #007bff; /* Change check color */
-     vertical-align: middle;
+    margin-left: 0.6rem;
+    margin-right: 0;
+    accent-color: #007bff;
+    vertical-align: middle;
   }
   
   .answer-option label {
     font-size: 1rem;
-    cursor: pointer; /* Indicate label is clickable */
-    display: inline-block; /* Allow vertical alignment */
-    vertical-align: middle;
+    cursor: pointer;
+    display: block;
+    margin-bottom: 0;
+    flex: 1 1 350px;
+    min-width: 600px;
+    max-width: 1000px;
+    text-align: left;
   }
   
   .submit-answer-button {
