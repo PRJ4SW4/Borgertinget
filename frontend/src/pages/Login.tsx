@@ -133,6 +133,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
       setStatusMessage(response.data.message);
       setStatusHeader("Succes");
       setShowPopup(true);
+      setShowForgotPassword(false);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data?.error || "Noget gik galt. Prøv igen.";
@@ -144,9 +145,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
         setStatusMessage("Ingen forbindelse til serveren.");
         setShowPopup(true);
       }
-    } finally {
-        setShowForgotPassword(false);
-      }
+    }
     };
 
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -162,19 +161,36 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
       setStatusMessage(response.data.message);
       setStatusHeader("Succes");
       setShowPopup(true);
+      setShowResetPassword(false);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.error || "Noget gik galt. Prøv igen.";
-        setStatusHeader("Fejl");
-        setStatusMessage(errorMessage);
-        setShowPopup(true);
-      } else {
-        setStatusHeader("Fejl");
-        setStatusMessage("Ingen forbindelse til serveren.");
-        setShowPopup(true);
-      }
-    } finally {
-      setShowResetPassword(false);
+          const responseData = error.response?.data;
+          console.log("Response Data:", responseData); // Log responseData
+          console.log("Error:", error); // Log error
+          if (responseData?.error) {
+            setStatusMessage(responseData.error); // Fanger backend-fejlbesked
+            setShowPopup(true);
+          } else if (responseData?.errors) {
+            if (Array.isArray(responseData.errors)) {
+              setStatusMessage(responseData.errors[0]); // Fanger den første fejlmeddelelse
+              setShowPopup(true);
+            } else if (typeof responseData.errors === "object") {
+              const firstKey = Object.keys(responseData.errors)[0];
+              const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
+
+              setStatusMessage(firstError); // Fanger backend-fejlbesked
+              setShowPopup(true);
+            } else {
+            console.log("Unexpected Axios error shape:", error.response?.data);
+            setStatusMessage("Noget gik galt. Prøv igen.");
+            setShowPopup(true);
+          }
+        } else {
+          console.log("No connection or unknown error:", error);
+          setStatusMessage("Ingen forbindelse til serveren.");
+          setShowPopup(true);
+        }
+      }  
     }
   };
 
@@ -297,7 +313,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
       </div>
 
     {showPopup && statusMessage && statusHeader && (
-      <div className={styles.popupOverlay} onClick={() => setShowPopup(false)}>
+      <div className={styles.statusPopupOverlay} onClick={() => setShowPopup(false)}>
         <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeButton} onClick={() => setShowPopup(false)}>
           &times;
@@ -309,7 +325,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     )}
 
     {showForgotPassword && (
-      <div className={styles.popupOverlay} onClick={() => setShowForgotPassword(false)}>
+      <div className={styles.passwordPopupOverlay} onClick={() => setShowForgotPassword(false)}>
         <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
           <button className={styles.closeButton} onClick={() => setShowForgotPassword(false)}>
             &times;
@@ -334,7 +350,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     )};
 
     {showResetPassword && (
-      <div className={styles.popupOverlay} onClick={() => setShowResetPassword(false)}>
+      <div className={styles.passwordPopupOverlay}>
         <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
           <button className={styles.closeButton} onClick={() => setShowResetPassword(false)}>
             &times;
@@ -366,8 +382,8 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
           <button className={`${styles.button} ${styles.forgotPasswordButton}`} type="submit">Nulstil adgangskode</button>
         </form>
       </div>
-    </div>
-  )};
+      </div>
+    )};
   </div>
 );
 };
