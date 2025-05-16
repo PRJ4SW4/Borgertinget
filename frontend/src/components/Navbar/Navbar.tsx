@@ -44,7 +44,7 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
       // atob() decodes the Base-64 string back to its raw JSON
       // JSON.parse() converts that JSON text into a JavaScript object 
       const payload = JSON.parse(atob(token.split(".")[1]));
-      const roles = payload["role"]; 
+      const roles = payload["role"];
       // If "role" is an array, look for "Admin"; if it’s a string, compare directly
       isAdmin = Array.isArray(roles) ? roles.includes("Admin") : roles === "Admin";
     } catch (err) {
@@ -72,11 +72,11 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
         )}
         {/* Navigation Links */}
         <ul className="navbar-links">
-          <li><NavLink to="/parties" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Politiske Sider</NavLink></li>
-          <li><NavLink to="/feed" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Feed</NavLink></li>
-          <li><NavLink to="/kalender" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Kalender</NavLink></li>
-          <li><NavLink to="/learning" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Læringsområde</NavLink></li>
-          <li><NavLink to="/flashcards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Flashcards</NavLink></li>
+          <li><NavLink to="/parties" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Partier</NavLink></li>
+          <li><NavLink to="/feed" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Feed</NavLink></li>
+          <li><NavLink to="/kalender" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Kalender</NavLink></li>
+          <li><NavLink to="/learning" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Læringsområde</NavLink></li>
+          <li><NavLink to="/flashcards" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Flashcards</NavLink></li>
           <li><NavLink to="/polidle" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Polidle</NavLink></li>
           {/* Logout Button */}
           {/* List item for structure */}
