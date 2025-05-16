@@ -10,6 +10,8 @@ type PageParams = { pageId: string; };
 type SelectedAnswersState = Record<number, number | null>;
 // Add state type for feedback message per question
 type FeedbackState = Record<number, 'correct' | 'incorrect' | 'pending' | null>;
+// Add state for timeout IDs
+type TimeoutIdsState = Record<number, NodeJS.Timeout | null>;
 
 function PageContent() {
   const { pageId } = useParams<PageParams>();
@@ -19,19 +21,46 @@ function PageContent() {
   const [selectedAnswers, setSelectedAnswers] = useState<SelectedAnswersState>({});
   // --- State for feedback messages ---
   const [feedback, setFeedback] = useState<FeedbackState>({});
+  // --- State for timeout IDs ---
+  const [timeoutIds, setTimeoutIds] = useState<TimeoutIdsState>({});
 
   useEffect(() => {
-    if (!pageId) { /*...*/ return; }
+    // Cleanup function to clear all timeouts
+    const cleanupAllTimeouts = () => {
+      Object.values(timeoutIds).forEach(timeoutId => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      });
+      setTimeoutIds({}); // Reset the state tracking timeouts
+    };
+
+    if (!pageId) {
+      cleanupAllTimeouts(); // Clear timeouts if navigating away to a non-pageId route
+      // Reset other states if necessary
+      setPageDetails(null);
+      setSelectedAnswers({});
+      setFeedback({});
+      setIsLoading(false);
+      setError(null);
+      return;
+    }
+
+    // Clear timeouts from any previous page or interaction before loading new page
+    cleanupAllTimeouts();
+
     const loadPage = async () => {
       setIsLoading(true); setError(null);
-      setSelectedAnswers({});
-      setFeedback({}); // Reset feedback on new page load
-      try { 
-        console.log(`Workspaceing details for pageId: ${pageId}`); // For debugging
+      setSelectedAnswers({}); // Reset answers for the new page
+      setFeedback({}); // Reset feedback for the new page
+      // timeoutIds is already reset by cleanupAllTimeouts above
+
+      try {
+        console.log(`Fetching details for pageId: ${pageId}`); // For debugging
         const details = await fetchPageDetails(pageId);
         setPageDetails(details);
       }
-      catch (err) { 
+      catch (err) {
         if (err instanceof Error) { setError(err.message); } else { setError("An unknown error occurred while fetching page details.");}
         console.error("Failed to load page %s:", pageId, err);
         setPageDetails(null); // Ensure details are cleared on error
@@ -40,11 +69,16 @@ function PageContent() {
     };
 
     loadPage();
-  }, [pageId]);
+
+    // Return the cleanup function to be called on component unmount or before effect re-runs for a new pageId
+    return cleanupAllTimeouts;
+  }, [pageId]); // pageId is the key dependency. timeoutIds is managed internally.
 
   // Allow changing answer only if feedback not given yet for this question
   const handleAnswerChange = (questionId: number, answerOptionId: number) => {
-     if (!feedback[questionId] || feedback[questionId] === 'pending') {
+     // Allow change if feedback is undefined (initial), null (after incorrect timeout),
+     // or pending (though UI might disable interaction during pending).
+     if (feedback[questionId] === undefined || feedback[questionId] === null || feedback[questionId] === 'pending') {
         setSelectedAnswers(prev => ({ ...prev, [questionId]: answerOptionId }));
      }
   };
@@ -54,31 +88,55 @@ function PageContent() {
     event.preventDefault();
     const selectedOptionId = selectedAnswers[questionId];
 
-    // Don't proceed if no answer or already checking/checked
-    if (selectedOptionId === undefined || selectedOptionId === null || feedback[questionId]) {
-        if (!selectedOptionId) alert("Vælg venligst et svar.");
+    // Don't proceed if no answer, or already correctly answered, or currently pending
+    if (selectedOptionId === undefined || selectedOptionId === null || feedback[questionId] === 'correct' || feedback[questionId] === 'pending') {
+        if (!selectedOptionId && feedback[questionId] !== 'correct' && feedback[questionId] !== 'pending') {
+             alert("Vælg venligst et svar.");
+        }
         return;
+    }
+
+    // Clear any existing timeout for this specific question before submitting again
+    if (timeoutIds[questionId]) {
+        clearTimeout(timeoutIds[questionId]!);
+        setTimeoutIds(prev => ({ ...prev, [questionId]: null }));
     }
 
     setFeedback(prev => ({ ...prev, [questionId]: 'pending' })); // Show pending state
 
     try {
-        // Call the API
         const response = await checkAnswer({
             questionId: questionId,
             selectedAnswerOptionId: selectedOptionId
         });
 
-        // Update feedback state based on API response
-        setFeedback(prev => ({
-            ...prev,
-            [questionId]: response.isCorrect ? 'correct' : 'incorrect'
-        }));
+        if (response.isCorrect) {
+            setFeedback(prev => ({
+                ...prev,
+                [questionId]: 'correct'
+            }));
+        } else {
+            setFeedback(prev => ({
+                ...prev,
+                [questionId]: 'incorrect'
+            }));
+            // Set a timeout to allow re-answering after 5 seconds
+            const newTimeoutId = setTimeout(() => {
+                setFeedback(prev => ({ ...prev, [questionId]: null })); // Reset feedback
+                setSelectedAnswers(prev => ({ ...prev, [questionId]: null })); // Clear selection
+                setTimeoutIds(prev => ({ ...prev, [questionId]: null })); // Clear the stored timeout ID
+            }, 5000);
+            setTimeoutIds(prev => ({ ...prev, [questionId]: newTimeoutId }));
+        }
 
     } catch (error) {
         console.error("Error checking answer:", error);
         alert("Der opstod en fejl under tjek af svar."); // Show error to user
         setFeedback(prev => ({ ...prev, [questionId]: null })); // Reset pending state on error
+        if (timeoutIds[questionId]) { // Ensure any new timeout is cleared on error too
+            clearTimeout(timeoutIds[questionId]!);
+            setTimeoutIds(prev => ({ ...prev, [questionId]: null }));
+        }
     }
   };
 
@@ -99,17 +157,27 @@ function PageContent() {
         <div className="all-questions-container">
           {pageDetails.associatedQuestions.map((question) => {
             const currentFeedback = feedback[question.id];
-            const isSubmitted = currentFeedback === 'correct' || currentFeedback === 'incorrect';
+            const isCorrectlyAnswered = currentFeedback === 'correct';
             const isPending = currentFeedback === 'pending';
+            const isIncorrectAndWait = currentFeedback === 'incorrect'; // User has answered incorrectly and is in the 5s wait period
+            
+            const isDisabled = isCorrectlyAnswered || isPending || isIncorrectAndWait;
             const canSubmit = !(selectedAnswers[question.id] === undefined || selectedAnswers[question.id] === null);
+
+            const getButtonText = () => {
+              if (isCorrectlyAnswered) return 'Svar Modtaget';
+              if (isIncorrectAndWait) return 'Forkert, prøv igen om lidt...';
+              if (isPending) return 'Tjekker...';
+              return 'Indsend Svar';
+            };
 
             return (
               <section key={question.id} className={`question-section feedback-${currentFeedback ?? 'none'}`}>
                 <h2>Spørgsmål</h2>
                 <p className="question-text">{question.questionText}</p>
                 <form className="question-form" onSubmit={(e) => handleSubmitAnswer(e, question.id)}>
-                  {/* Disable fieldset after successful submission */}
-                  <fieldset className="answer-options" disabled={isSubmitted || isPending}>
+                  {/* Disable fieldset if correctly answered, pending, or incorrect (waiting for timeout) */}
+                  <fieldset className="answer-options" disabled={isDisabled}>
                     <legend className="sr-only">Svar muligheder for spørgsmål {question.id}</legend>
                     {question.options.map((option) => (
                       <div key={option.id} className="answer-option">
@@ -121,7 +189,7 @@ function PageContent() {
                           checked={selectedAnswers[question.id] === option.id}
                           onChange={() => handleAnswerChange(question.id, option.id)}
                           required
-                          disabled={isSubmitted || isPending} // Disable input as well
+                          disabled={isDisabled} // Disable input as well
                         />
                         <label htmlFor={`option-${option.id}`}>
                           {option.optionText}
@@ -138,13 +206,13 @@ function PageContent() {
                   </div>
                   {/* --- End Feedback --- */}
 
-                  {/* Disable button if pending, submitted, or no answer selected */}
+                  {/* Disable button if processing, correctly answered, incorrect (waiting), or no answer selected */}
                    <button
                       type="submit"
                       className="submit-answer-button"
-                      disabled={isSubmitted || isPending || !canSubmit}
+                      disabled={isDisabled || !canSubmit}
                     >
-                     {isSubmitted ? 'Svar Modtaget' : (isPending ? 'Tjekker...' : 'Indsend Svar')} &gt;&gt;
+                     {getButtonText()} &gt;&gt;
                    </button>
                 </form>
               </section>
@@ -155,7 +223,6 @@ function PageContent() {
       {/* --- End Question Sections --- */}
 
       {/* --- Previous/Next Navigation Buttons --- */}
-      {/* ... buttons remain the same ... */}
        <div className="page-navigation-buttons">
            {pageDetails.previousSiblingId ? ( <Link to={`/learning/${pageDetails.previousSiblingId}`} className="page-nav-button prev">&lt; Forrige side</Link>) : ( <span className="page-nav-button disabled prev">&lt; Forrige side</span> )}
            {pageDetails.nextSiblingId ? ( <Link to={`/learning/${pageDetails.nextSiblingId}`} className="page-nav-button next">Næste side &gt;</Link>) : ( <span className="page-nav-button disabled next">Næste side &gt;</span> )}
