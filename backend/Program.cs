@@ -12,6 +12,7 @@ using backend.Persistence.Repositories;
 using backend.Repositories;
 using backend.Repositories.Calendar;
 using backend.Repositories.Flashcards;
+using backend.Repositories.LearningEnvironment;
 using backend.Services;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
@@ -354,6 +355,8 @@ builder.Services.AddScoped<ICalendarService, CalendarService>();
 builder.Services.AddSingleton<ITimeZoneHelper, TimeZoneHelper>();
 
 // Learning Environment Services
+builder.Services.AddScoped<ILearningPageRepository, LearningPageRepository>();
+builder.Services.AddScoped<IAnswerRepository, AnswerRepository>();
 builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 

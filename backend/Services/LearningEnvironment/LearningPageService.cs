@@ -4,25 +4,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using backend.Data;
 using backend.DTO.LearningEnvironment;
 using backend.Models.LearningEnvironment;
+using backend.Repositories.LearningEnvironment;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 // Service responsible for handling logic related to learning pages.
 public class LearningPageService : ILearningPageService
 {
-    // A private readonly field to hold the DataContext instance, enabling database interactions.
-    private readonly DataContext _context;
-
-    // A private readonly field for logging.
+    private readonly ILearningPageRepository _learningPageRepository;
     private readonly ILogger<LearningPageService> _logger;
 
-    // Constructor for the LearningPageService, injecting the DataContext and ILogger.
-    public LearningPageService(DataContext context, ILogger<LearningPageService> logger)
+    // Constructor for the LearningPageService, injecting the learningPageRepository and ILogger.
+    public LearningPageService(
+        ILearningPageRepository learningPageRepository,
+        ILogger<LearningPageService> logger
+    )
     {
-        _context = context;
+        _learningPageRepository = learningPageRepository;
         _logger = logger;
     }
 
@@ -30,7 +30,7 @@ public class LearningPageService : ILearningPageService
     public async Task<IEnumerable<PageSummaryDTO>> GetPagesStructureAsync()
     {
         // Retrieves all pages from the database.
-        var allPages = await _context.Pages.ToListAsync();
+        var allPages = await _learningPageRepository.GetAllPagesAsync();
 
         // Maps the Page entities to PageSummaryDTOs.
         // For each page, it determines if it has child pages.
@@ -58,10 +58,7 @@ public class LearningPageService : ILearningPageService
     {
         // 1. Fetch the current page with its details including associated questions and their options.
         //    The Include and ThenInclude methods are used to eagerly load related entities.
-        var page = await _context
-            .Pages.Include(p => p.AssociatedQuestions)
-            .ThenInclude(q => q.AnswerOptions.OrderBy(ao => ao.DisplayOrder))
-            .FirstOrDefaultAsync(p => p.Id == pageId);
+        var page = await _learningPageRepository.GetPageWithDetailsAsync(pageId);
 
         if (page == null)
         {
@@ -71,7 +68,7 @@ public class LearningPageService : ILearningPageService
 
         // 2. Determine the ultimate root page of the current page
         //    And fetch all pages to build the tree structure efficiently in memory.
-        List<Page> allDbPages = await _context.Pages.AsNoTracking().ToListAsync(); // AsNoTracking, practically means read-only, we cant modify these entities
+        List<Page> allDbPages = (await _learningPageRepository.GetAllPagesAsync()).ToList(); // AsNoTracking, practically means read-only, we cant modify these entities
         // Just better performance as we don't need to change the state of these entities
 
         Page ultimateRootPageEntity = page; // Start with the current page
@@ -169,7 +166,8 @@ public class LearningPageService : ILearningPageService
                     Id = q.QuestionId,
                     QuestionText = q.QuestionText,
                     Options = q
-                        .AnswerOptions.Select(ao => new AnswerOptionDTO
+                        .AnswerOptions.OrderBy(ao => ao.DisplayOrder) // Ensure options are ordered
+                        .Select(ao => new AnswerOptionDTO
                         {
                             Id = ao.AnswerOptionId,
                             OptionText = ao.OptionText,
@@ -211,8 +209,7 @@ public class LearningPageService : ILearningPageService
     // Asynchronously retrieves the display order of pages within a section.
     public async Task<List<int>> GetSectionPageOrderAsync(int currentPageId)
     {
-        // Attempts to find the current page by its ID.
-        var currentPage = await _context.Pages.FindAsync(currentPageId);
+        var currentPage = await _learningPageRepository.GetPageByIdAsync(currentPageId);
         // If the current page is not found, returns an empty list.
         if (currentPage == null)
         {
@@ -242,18 +239,11 @@ public class LearningPageService : ILearningPageService
     // Private recursive helper method to fetch and order descendant page IDs.
     private async Task FetchOrderedDescendantIdsAsync(int? parentId, List<int> orderedPageIds)
     {
-        // Fetches direct children of the given parentId, ordered by their DisplayOrder.
-        var children = await _context
-            .Pages.Where(p => p.ParentPageId == parentId)
-            .OrderBy(p => p.DisplayOrder)
-            .ToListAsync();
+        var children = await _learningPageRepository.GetChildPagesOrderedAsync(parentId);
 
-        // For each child found:
         foreach (var child in children)
         {
-            // Add the child's ID to the list.
             orderedPageIds.Add(child.Id);
-            // Recursively call this method to fetch and add all descendants of the current child.
             await FetchOrderedDescendantIdsAsync(child.Id, orderedPageIds);
         }
     }
@@ -286,8 +276,8 @@ public class LearningPageService : ILearningPageService
                 .ToList(),
         };
 
-        _context.Pages.Add(newPage);
-        await _context.SaveChangesAsync();
+        await _learningPageRepository.AddPageAsync(newPage);
+        await _learningPageRepository.SaveChangesAsync();
 
         // Re-fetch to get all generated IDs and ensure consistency with GetPageDetailAsync formatting.
         // The null forgiveness operator (!) is used because we expect the page to be found after creation.
@@ -297,10 +287,7 @@ public class LearningPageService : ILearningPageService
     // Asynchronously updates an existing learning page.
     public async Task<bool> UpdatePageAsync(int pageId, PageUpdateRequestDTO updateRequest)
     {
-        var existingPage = await _context
-            .Pages.Include(p => p.AssociatedQuestions)
-            .ThenInclude(q => q.AnswerOptions)
-            .FirstOrDefaultAsync(p => p.Id == pageId);
+        var existingPage = await _learningPageRepository.GetPageWithDetailsAsync(pageId);
 
         if (existingPage == null)
         {
@@ -329,9 +316,9 @@ public class LearningPageService : ILearningPageService
         {
             foreach (var qToRemove in questionsToRemove)
             {
-                _context.AnswerOptions.RemoveRange(qToRemove.AnswerOptions); // Explicitly remove options
+                _learningPageRepository.RemoveRangeAnswerOptions(qToRemove.AnswerOptions);
             }
-            _context.Questions.RemoveRange(questionsToRemove);
+            _learningPageRepository.RemoveRangeQuestions(questionsToRemove);
         }
 
         foreach (var qDto in updatedQuestionDtos)
@@ -356,7 +343,7 @@ public class LearningPageService : ILearningPageService
                     .ToList();
                 if (optionsToRemove.Any())
                 {
-                    _context.AnswerOptions.RemoveRange(optionsToRemove);
+                    _learningPageRepository.RemoveRangeAnswerOptions(optionsToRemove);
                 }
 
                 foreach (var optDto in updatedOptionDtos)
@@ -407,10 +394,9 @@ public class LearningPageService : ILearningPageService
                 existingPage.AssociatedQuestions.Add(newQuestion);
             }
         }
-
         try
         {
-            await _context.SaveChangesAsync();
+            await _learningPageRepository.SaveChangesAsync();
             return true;
         }
         catch (DbUpdateConcurrencyException ex)
@@ -428,10 +414,7 @@ public class LearningPageService : ILearningPageService
     // Asynchronously deletes a learning page.
     public async Task<bool> DeletePageAsync(int pageId)
     {
-        var pageToDelete = await _context
-            .Pages.Include(p => p.AssociatedQuestions)
-            .ThenInclude(q => q.AnswerOptions)
-            .FirstOrDefaultAsync(p => p.Id == pageId);
+        var pageToDelete = await _learningPageRepository.GetPageWithDetailsAsync(pageId);
 
         if (pageToDelete == null)
         {
@@ -439,16 +422,16 @@ public class LearningPageService : ILearningPageService
             return false;
         }
 
-        foreach (var question in pageToDelete.AssociatedQuestions.ToList())
+        foreach (var question in pageToDelete.AssociatedQuestions.ToList()) // ToList to avoid modification issues
         {
-            _context.AnswerOptions.RemoveRange(question.AnswerOptions);
-            _context.Questions.Remove(question);
+            _learningPageRepository.RemoveRangeAnswerOptions(question.AnswerOptions);
+            _learningPageRepository.RemoveQuestion(question);
         }
-        _context.Pages.Remove(pageToDelete);
+        _learningPageRepository.RemovePage(pageToDelete);
 
         try
         {
-            await _context.SaveChangesAsync();
+            await _learningPageRepository.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
