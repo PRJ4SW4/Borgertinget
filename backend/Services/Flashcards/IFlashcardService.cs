@@ -8,7 +8,7 @@ using backend.DTO.Flashcards;
 public interface IFlashcardService
 {
     // Asynchronously retrieves a summary list of all flashcard collections.
-    // Suitable for displaying in a list or sidebar where full details are not immediately needed.
+    // Specifically designed for displaying in the sidebar where full details are not immediately needed.
     Task<IEnumerable<FlashcardCollectionSummaryDTO>> GetCollectionsAsync();
 
     // Asynchronously retrieves the detailed information for a specific flashcard collection,

@@ -1,10 +1,7 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-// google stuff
 using System.Web;
 using backend.Data;
-using backend.Enums;
 using backend.Hubs;
 using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
@@ -14,6 +11,7 @@ using backend.Models;
 using backend.Persistence.Repositories;
 using backend.Repositories;
 using backend.Repositories.Calendar;
+using backend.Repositories.Flashcards;
 using backend.Services;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
@@ -27,15 +25,12 @@ using backend.Services.Search;
 using backend.Services.Selection;
 using backend.Services.Utility;
 using backend.utils;
-using backend.utils.TimeZone; // Added for ITimeZoneHelper
+using backend.utils.TimeZone;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -363,6 +358,7 @@ builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 
 // Flashcard Services
+builder.Services.AddScoped<IFlashcardRepository, FlashcardRepository>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
 //Search indexing service
