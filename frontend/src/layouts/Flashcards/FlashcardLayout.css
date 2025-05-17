@@ -1,5 +1,3 @@
-/* src/layouts/FlashcardLayout.css */
-
 /* Main container for the flashcard section layout */
 .flashcard-layout {
     display: flex; /* Use Flexbox for side-by-side layout */

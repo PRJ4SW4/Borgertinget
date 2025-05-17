@@ -1,4 +1,3 @@
-// src/layouts/FlashcardLayout.tsx
 import { Routes, Route } from 'react-router-dom';
 import FlashcardSideNav from '../../components/Flashcards/FlashcardSideNav';
 import FlashcardViewer from '../../components/Flashcards/FlashcardViewer';

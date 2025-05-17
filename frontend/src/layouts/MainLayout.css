@@ -1,4 +1,3 @@
-/* src/layouts/MainLayout.css */
 .main-layout-container {
     display: flex;
     min-height: 100vh; /* Ensure layout takes full viewport height */

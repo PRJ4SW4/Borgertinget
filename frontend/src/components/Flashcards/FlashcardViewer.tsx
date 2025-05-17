@@ -1,4 +1,3 @@
-// src/components/FlashcardViewer.tsx
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchFlashcardCollectionDetails } from '../../services/ApiService';
@@ -141,8 +140,6 @@ function FlashcardViewer() {
                         <p>(Billede mangler)</p> // Placeholder if path is missing
                     )}
                 </div>
-                {/* Optional: Flip indicator icon */}
-                <span className="flip-indicator" aria-hidden="true">🔄</span>
             </div>
 
             {/* Bottom Navigation Bar */}

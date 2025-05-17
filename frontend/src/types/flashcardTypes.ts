@@ -1,5 +1,3 @@
-// src/types/flashcardTypes.ts
-
 // Represents the summary data for listing collections in the sidebar
 export interface FlashcardCollectionSummaryDto {
     collectionId: number;

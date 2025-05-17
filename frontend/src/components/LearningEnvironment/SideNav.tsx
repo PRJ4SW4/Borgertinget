@@ -1,4 +1,3 @@
-// src/components/SideNav.tsx
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { fetchPagesStructure } from '../../services/ApiService';
@@ -54,7 +53,7 @@ const NavItem: React.FC<NavItemProps> = ({ item }) => {
 
     return (
         <li>
-            {/* NavLink now only handles navigation, no custom onClick */}
+            {/* NavLink only handles navigation */}
             <NavLink
                to={linkDestination}
                className={({ isActive }): string =>

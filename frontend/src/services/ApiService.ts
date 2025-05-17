@@ -1,4 +1,3 @@
-// src/services/apiService.ts
 import type { PageSummaryDto, PageDetailDto } from '../types/pageTypes'; // Import types
 import type { FlashcardCollectionSummaryDto, FlashcardCollectionDetailDto } from '../types/flashcardTypes';
 import type { CalendarEventDto } from '../types/calendarTypes';

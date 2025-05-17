@@ -1,5 +1,3 @@
-/* src/components/FlashcardViewer.css */
-
 .flashcard-viewer {
     display: flex;
     flex-direction: column;
@@ -20,10 +18,7 @@
   
   .flashcard-container {
     width: 100%;
-    /* Use aspect-ratio for modern browsers, provide fallback padding-bottom */
     aspect-ratio: 16 / 10; /* Slightly less wide than 16/9 */
-    /* Fallback for older browsers */
-    /* position: relative; height: 0; padding-bottom: 62.5%; */
     max-height: 450px; /* Limit max height */
     background-color: #fff;
     border: 1px solid #d1d1d1;
@@ -72,17 +67,6 @@
     max-height: calc(450px - 4rem); /* max-height of container minus top/bottom padding */
     object-fit: contain; /* Scale image nicely within bounds */
     border-radius: 4px;
-  }
-  
-  /* Flip indicator icon in the corner */
-  .flip-indicator {
-    position: absolute;
-    bottom: 8px;
-    right: 12px;
-    font-size: 1.6rem; /* Adjust size */
-    opacity: 0.4;
-    user-select: none; /* Prevent selecting the icon */
-    pointer-events: none; /* Don't let it interfere with card click */
   }
   
   /* Navigation bar at the bottom */
@@ -141,7 +125,7 @@
       width: 100%;
   }
   .flashcard-viewer-status.error {
-      color: #dc3545; /* Bootstrap danger color */
+      color: #dc3545;
       font-weight: bold;
       font-style: normal;
   }
