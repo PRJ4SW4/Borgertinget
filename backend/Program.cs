@@ -27,6 +27,7 @@ using backend.Services.Search;
 using backend.Services.Selection;
 using backend.Services.Utility;
 using backend.utils;
+using backend.utils.TimeZone; // Added for ITimeZoneHelper
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -355,6 +356,7 @@ builder.Services.AddScoped<IEventDataParser, AltingetEventDataParser>();
 builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
 builder.Services.AddScoped<IScraperService, AltingetScraperService>();
 builder.Services.AddScoped<ICalendarService, CalendarService>();
+builder.Services.AddSingleton<ITimeZoneHelper, TimeZoneHelper>();
 
 // Learning Environment Services
 builder.Services.AddScoped<IAnswerService, AnswerService>();

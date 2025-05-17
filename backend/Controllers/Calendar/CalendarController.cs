@@ -77,7 +77,11 @@ public class CalendarController : ControllerBase
     {
         _logger.LogInformation("Attempting to fetch all calendar events via Service.");
 
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetUserId();
+        if (userId == null)
+        {
+            return Unauthorized("User not authenticated or could not be retrieved.");
+        }
         int.TryParse(userId, out int parsedUserId);
 
         try
@@ -231,7 +235,7 @@ public class CalendarController : ControllerBase
     [HttpPost("events/toggle-interest/{id}")]
     public async Task<ActionResult> ToggleInterest([FromRoute] int id)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetUserId();
         if (userId == null)
         {
             return Unauthorized("User not authenticated or could not be retrieved.");
@@ -266,7 +270,7 @@ public class CalendarController : ControllerBase
     // Retrieves the number of users interested in a specific event.
     public async Task<ActionResult<int>> GetAmountInterested(int eventId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetUserId();
         if (userId == null)
         {
             return Unauthorized("User not authenticated or could not be retrieved.");
@@ -287,5 +291,15 @@ public class CalendarController : ControllerBase
                 "An internal error occurred while fetching the number of interested users."
             );
         }
+    }
+
+    private string? GetUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null)
+        {
+            return userIdClaim.Value;
+        }
+        return null;
     }
 }

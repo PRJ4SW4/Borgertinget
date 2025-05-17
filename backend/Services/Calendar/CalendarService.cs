@@ -1,14 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using backend.Data;
 using backend.DTO.Calendar;
-using backend.Models;
 using backend.Models.Calendar;
 using backend.Repositories.Calendar;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Services.Calendar
 {
@@ -144,6 +137,7 @@ namespace backend.Services.Calendar
                 return null;
             }
             var user = await _calendarEventRepository.GetUserModelByIdStringAsync(userId);
+
             var calendarEvent = await _calendarEventRepository.GetEventByIdAsync(eventId);
             if (user == null || calendarEvent == null)
             {
