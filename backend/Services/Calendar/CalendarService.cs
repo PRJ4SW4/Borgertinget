@@ -30,7 +30,21 @@ namespace backend.Services.Calendar
                 return Enumerable.Empty<CalendarEventDTO>();
             }
 
-            var eventDTOs = calendarEvents
+            var eventDTOs = MapCalendarEventToDTO(calendarEvents, userId);
+
+            _logger.LogInformation(
+                "Successfully fetched and mapped {EventCount} events to DTOs in service.",
+                eventDTOs.Count
+            );
+            return eventDTOs;
+        }
+
+        private List<CalendarEventDTO> MapCalendarEventToDTO(
+            IEnumerable<CalendarEvent> calendarEvent,
+            int userId
+        )
+        {
+            return calendarEvent
                 .Select(e => new CalendarEventDTO
                 {
                     Id = e.Id,
@@ -43,12 +57,6 @@ namespace backend.Services.Calendar
                         e.InterestedUsers?.Any(iu => iu.UserId == userId) ?? false,
                 })
                 .ToList();
-
-            _logger.LogInformation(
-                "Successfully fetched and mapped {EventCount} events to DTOs in service.",
-                eventDTOs.Count
-            );
-            return eventDTOs;
         }
 
         public async Task<CalendarEventDTO> CreateEventAsync(CalendarEventDTO calendarEventDto)
