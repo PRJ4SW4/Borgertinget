@@ -40,7 +40,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenSearch.Client;
 using OpenSearch.Net;
-
+using backend.Services.Feed;
+using backend.Repositories.Feed;
 // for .env secrets
 DotNetEnv.Env.Load();
 
@@ -307,7 +308,9 @@ builder.Services.AddScoped<IFetchService, FetchService>();
 
 builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHostedService<DailySelectionJob>();
-builder.Services.AddHttpClient<TwitterService>();
+builder.Services.AddScoped<IFeedRepository, FeedRepository>();
+builder.Services.AddScoped<IFeedService, FeedService>();
+//builder.Services.AddHttpClient<TwitterService>();
 
 builder.Services.AddHttpClient();
 
