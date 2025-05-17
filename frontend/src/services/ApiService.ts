@@ -2,9 +2,25 @@
 import type { PageSummaryDto, PageDetailDto } from '../types/pageTypes'; // Import types
 import type { FlashcardCollectionSummaryDto, FlashcardCollectionDetailDto } from '../types/flashcardTypes';
 import type { CalendarEventDto } from '../types/calendarTypes';
-import axios from 'axios';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = '/api'; // Use relative path for API calls, vite.config.ts handles proxying
+
+// Helper function for getting authorization headers
+const getAuthHeaders = (includeContentType = true): Headers => {
+    const token = localStorage.getItem('jwt');
+    const headers = new Headers();
+    headers.set('Accept', 'application/json');
+
+    if (includeContentType) {
+        headers.set('Content-Type', 'application/json');
+    }
+
+    if (token) {
+        const cleanToken = token.replace(/^["'](.*)["']$/, '$1');
+        headers.set('Authorization', `Bearer ${cleanToken}`);
+    } 
+    return headers;
+};
 
 interface AnswerCheckRequest {
   questionId: number;
@@ -17,14 +33,9 @@ export interface AnswerCheckResponse {
 
 export const checkAnswer =
     async(payload: AnswerCheckRequest): Promise<AnswerCheckResponse> => {
-  const token = localStorage.getItem('jwt');
-  const headers = new Headers();
-  headers.append('Content-Type', 'application/json');
-  if (token) {
-    headers.append('Authorization', `Bearer ${token}`);
-  }
+  const headers = getAuthHeaders(); // Use helper
 
-  const response = await fetch(`/api/answers/check`, {
+  const response = await fetch(`${API_BASE_URL}/answers/check`, { // Ensure API_BASE_URL is used
     // Match backend route
     method: 'POST',
     headers: headers,
@@ -41,12 +52,7 @@ export const checkAnswer =
 };
 
 export const fetchPagesStructure = async (): Promise<PageSummaryDto[]> => {
-  const token = localStorage.getItem('jwt');
-  const headers = new Headers();
-  headers.append('Content-Type', 'application/json');
-  if (token) {
-    headers.append('Authorization', `Bearer ${token}`);
-  }
+  const headers = getAuthHeaders(false); // Use helper, no content-type for GET
 
   const response = await fetch(`${API_BASE_URL}/pages/structure`, {
     headers: headers,
@@ -60,15 +66,9 @@ export const fetchPagesStructure = async (): Promise<PageSummaryDto[]> => {
 
 export const fetchPageDetails =
     async(id: string|number): Promise<PageDetailDto|null> => {
-  // Ensure id is valid before fetching
   if (!id) return null;
 
-  const token = localStorage.getItem('jwt');
-  const headers = new Headers();
-  headers.append('Content-Type', 'application/json');
-  if (token) {
-    headers.append('Authorization', `Bearer ${token}`);
-  }
+  const headers = getAuthHeaders(false); // Use helper, no content-type for GET
 
   const response = await fetch(`${API_BASE_URL}/pages/${id}`, {
     headers: headers,
@@ -86,15 +86,9 @@ export const fetchPageDetails =
 
 // --- Flashcard Functions ---
 
-// Fetches the list of all flashcard collections for the sidebar
 export const fetchFlashcardCollections =
     async(): Promise<FlashcardCollectionSummaryDto[]> => {
-  const token = localStorage.getItem('jwt');
-  const headers = new Headers();
-  headers.append('Content-Type', 'application/json');
-  if (token) {
-    headers.append('Authorization', `Bearer ${token}`);
-  }
+  const headers = getAuthHeaders(false); // Use helper, no content-type for GET
 
   const response = await fetch(`${API_BASE_URL}/flashcards/collections`, {
     headers: headers,
@@ -106,11 +100,9 @@ export const fetchFlashcardCollections =
   return await response.json() as FlashcardCollectionSummaryDto[];
 };
 
-// Fetches the details (including all cards) for a single collection by its ID
 export const fetchFlashcardCollectionDetails =
     async(collectionId: string|
           number): Promise<FlashcardCollectionDetailDto|null> => {
-  // Don't fetch if ID is missing or invalid
   if (!collectionId || collectionId === 'undefined' ||
       collectionId === 'null') {
     console.warn(
@@ -119,12 +111,7 @@ export const fetchFlashcardCollectionDetails =
     return null;
   }
 
-  const token = localStorage.getItem('jwt');
-  const headers = new Headers();
-  headers.append('Content-Type', 'application/json');
-  if (token) {
-    headers.append('Authorization', `Bearer ${token}`);
-  }
+  const headers = getAuthHeaders(false); // Use helper, no content-type for GET
 
   const response =
       await fetch(`${API_BASE_URL}/flashcards/collections/${collectionId}`, {
@@ -144,21 +131,10 @@ export const fetchFlashcardCollectionDetails =
 };
 
 // --- Calendar Functions ---
-// Fetches stored calendar events
 export const fetchCalendarEvents = async (): Promise<CalendarEventDto[]> => {
+  const headers = getAuthHeaders(false); // Use helper, no content-type for GET
   const url = `${API_BASE_URL}/calendar/events`;
   console.log("Fetching calendar events from:", url); // For debugging
-
-  const token = localStorage.getItem('jwt');
-
-  const headers = new Headers();
-  headers.append('Content-Type', 'application/json');
-
-  if (token) {
-      headers.append('Authorization', `Bearer ${token}`);
-  } else {
-      console.log("No JWT token found in localStorage");
-  }
 
   const response = await fetch(url, {
       method: 'GET',
@@ -175,28 +151,35 @@ export const fetchCalendarEvents = async (): Promise<CalendarEventDto[]> => {
 };
 
 export async function toggleEventInterest(eventId: number): Promise<{ isInterested: boolean, interestedCount: number }> {
+  const headers = getAuthHeaders();
+  if (!headers.has('Authorization')) {
+    throw new Error('Authentication required to toggle event interest.');
+  }
+
   try {
+    const response = await fetch(`${API_BASE_URL}/calendar/events/toggle-interest/${eventId}`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({}),
+    });
 
-    const token = localStorage.getItem('jwt');
-
-    const response = await axios.post(
-      `http://localhost:5218/api/calendar/events/toggle-interest/${eventId}`, // URL til API'en
-      {},
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-      }
-    );
-
-    if (response.status === 200) {
-      return response.data;
-    } else {
-      throw new Error(`API request failed with status ${response.status}`);
+    if (!response.ok) {
+      // Attempt to parse error response for better message
+      let errorMsg = `API request failed with status ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMsg = errorData.message || errorData.title || JSON.stringify(errorData) || errorMsg;
+      } catch { /* Ignore JSON parsing errors, use status code based message */ }
+      throw new Error(errorMsg);
     }
-  } catch (error: unknown) { 
-  console.error('Error in toggleEventInterest:', error);
-  throw error;
+    return await response.json();
+
+  } catch (error: unknown) {
+    console.error('Error in toggleEventInterest:', error);
+    // Ensure the caught error is re-thrown as an Error instance
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(String(error));
   }
 }
