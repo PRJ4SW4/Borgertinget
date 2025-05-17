@@ -1,11 +1,14 @@
 using backend.DTOs;
 using backend.Models;
 using backend.Repositories.Authentication;
-using backend.Utils; 
+using backend.Utils;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens; 
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using MimeKit.Tnef;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt; 
@@ -37,6 +40,49 @@ namespace backend.Services.Authentication
             _userManager = userManager;
             _logger = logger;
             _config = config;
+        }
+
+        public async Task<User?> FindUserByNameAsync(string username)
+        {
+            _logger.LogInformation("Attempting to find user by username in service: {Username}", username);
+            return await _authenticationRepository.FindUserByNameAsync(username);
+        }
+
+        public async Task<IdentityResult> CreateUserAsync(RegisterUserDto dto)
+        {
+            var user = new User
+            {
+                UserName = dto.Username,
+                Email = dto.Email,
+            };
+
+            var result = await _authenticationRepository.CreateUserAsync(user, dto.Password);
+            return result;
+        }
+
+        public async Task<SignInResult> CheckPasswordSignInAsync(User user, string password, bool lockoutOnFailure)
+        {
+            return await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure);
+        }
+
+        public async Task<string> GenerateEmailConfirmationTokenAsync(User user)
+        {
+            return await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        }
+
+        public async Task<IdentityResult> AddToRoleAsync(User user, string role)
+        {
+            return await _userManager.AddToRoleAsync(user, role);
+        }
+
+        public async Task DeleteUserAsync(User user)
+        {
+            await _userManager.DeleteAsync(user);
+        }
+
+        public async Task<User?> FindUserByEmailAsync(string email)
+        {
+            return await _authenticationRepository.FindUserByEmailAsync(email);
         }
 
         public string? SanitizeReturnUrl(string? clientReturnUrl)

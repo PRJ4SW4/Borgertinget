@@ -11,7 +11,6 @@ using backend.Models;
 using backend.Services.Calendar;
 using backend.Services.Calendar.Scraping;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

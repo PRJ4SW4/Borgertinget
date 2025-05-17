@@ -39,7 +39,7 @@ namespace backend.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<UsersController> _logger; // Corrected logger type to match class name
-        private readonly IUserAuthenticationService _UserAuthenticationService;
+        private readonly IUserAuthenticationService _userAuthenticationService;
 
 
         public UsersController(
@@ -48,7 +48,7 @@ namespace backend.Controllers
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             ILogger<UsersController> logger,
-            IUserAuthenticationService UserAuthenticationService 
+            IUserAuthenticationService userAuthenticationService 
         )
         {
             _config = config;
@@ -56,84 +56,53 @@ namespace backend.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
-            _UserAuthenticationService = UserAuthenticationService;
-        }
-
-        // GET: api/users
-        [HttpGet]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            var users = await _userManager.Users.ToListAsync();
-            return Ok(users);
+            _userAuthenticationService = userAuthenticationService;
         }
 
         // POST: api/users
         [HttpPost("register")]
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserDto dto)
         {
-            var user = new User { UserName = dto.Username, Email = dto.Email };
 
-            var result = await _userManager.CreateAsync(user, dto.Password);
+            _logger.LogInformation("Brugerregistrering igangsat for {Email}", dto.Email);
+
+            var result = await _userAuthenticationService.CreateUserAsync(dto);
 
             if (result.Succeeded)
             {
-                var roleResult = await _userManager.AddToRoleAsync(user, "User");
+                var user = await _userAuthenticationService.FindUserByEmailAsync(dto.Email);
 
+                var roleResult = await _userAuthenticationService.AddToRoleAsync(user, "User");
                 if (!roleResult.Succeeded)
                 {
                     var errors = roleResult.Errors.Select(e => e.Description);
                     _logger.LogError(
-                        // Line 80: Sanitize username in log message
-                        $"Failed to assign role 'User' to {LogSanitizer.Sanitize(user.UserName)}: {string.Join(", ", errors)}"
+                        $"Fejl ved tildeling af rolle 'User' til {LogSanitizer.Sanitize(user.UserName)}: {string.Join(", ", errors)}"
                     );
+                    await _userAuthenticationService.DeleteUserAsync(user);
 
-                    // Optionally, delete the user if assigning the role failed
-                    await _userManager.DeleteAsync(user);
-
-                    return StatusCode(
-                        500,
-                        new
-                        {
-                            message = "Brugeren blev oprettet, men der opstod en fejl ved tildeling af rollen.",
-                            errors,
-                        }
-                    );
+                    return StatusCode(500, new { message = "Brugeren blev oprettet, men der opstod en fejl ved tildeling af rolle.", errors });
                 }
 
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var token = await _userAuthenticationService.GenerateEmailConfirmationTokenAsync(user);
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-                var verificationLink =
-                    $"http://localhost:5173/verify?userId={user.Id}&token={encodedToken}";
-
+                var verificationLink = $"http://localhost:5173/verify?userId={user.Id}&token={encodedToken}";
                 var subject = "Bekræft din e-mailadresse";
-                var message =
-                    $@"
-                    <p>Tak fordi du oprettede en konto.</p>
-                    <p>Klik venligst på linket nedenfor for at bekræfte din e-mailadresse:</p>
-                    <p><a href='{verificationLink}'>Bekræft min e-mail</a></p>";
-
+                var message = $@"<p>Tak fordi du oprettede en konto.</p>
+                           <p>Klik venligst på linket nedenfor for at bekræfte din e-mailadresse:</p>
+                           <p><a href='{verificationLink}'>Bekræft min e-mail</a></p>";
                 try
                 {
-                    await _emailService.SendEmailAsync(user.Email, subject, message);
+                    await _emailService.SendEmailAsync(dto.Email, subject, message);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Fejl ved afsendelse af bekræftelsesmail: {ex.Message}");
-                    return StatusCode(
-                        500,
-                        new
-                        {
-                            message = "Fejl ved afsendelse af bekræftelsesmail. Prøv venligst igen senere.",
-                        }
-                    );
+                    return StatusCode(500, new { message = "Fejl ved afsendelse af mail. Prøv venligst igen senere." });
                 }
-                return Ok(
-                    new
-                    {
-                        message = "Registrering succesfuld! Tjek din email for at bekræfte din konto.",
-                    }
-                );
+
+                return Ok(new { message = "Registrering succesfuld! Tjek din email for at bekræfte din konto." });
             }
             else
             {
@@ -198,11 +167,11 @@ namespace backend.Controllers
             // Find bruger ud fra E-mail eller brugernavn
             if (loginInput.Contains('@'))
             {
-                user = await _userManager.FindByEmailAsync(loginInput);
+                user = await _userAuthenticationService.FindUserByEmailAsync(loginInput);
             }
             else
             {
-                user = await _userManager.FindByNameAsync(loginInput);
+                user = await _userAuthenticationService.FindUserByNameAsync(loginInput);
             }
 
             if (user == null)
@@ -212,7 +181,7 @@ namespace backend.Controllers
 
             if (result.Succeeded)
             {
-                var token = await _UserAuthenticationService.GenerateJwtTokenAsync(user);
+                var token = await _userAuthenticationService.GenerateJwtTokenAsync(user);
                 return Ok(new { token });
             }
             else if (result.IsNotAllowed)
@@ -324,7 +293,7 @@ namespace backend.Controllers
         [HttpGet("login-google")]
         public IActionResult LoginWithGoogle([FromQuery] string? clientReturnUrl = null)
         {
-            var sanitizedClientReturnUrl = _UserAuthenticationService.SanitizeReturnUrl(clientReturnUrl);
+            var sanitizedClientReturnUrl = _userAuthenticationService.SanitizeReturnUrl(clientReturnUrl);
 
             _logger.LogInformation(
                 "Start Google login process. Ønsket frontend returnUrl for efterfølgende redirect: {ClientReturnUrl}",
@@ -374,12 +343,12 @@ namespace backend.Controllers
 
             if (!string.IsNullOrEmpty(remoteError))
             {
-                var sanitizedRemoteError = _UserAuthenticationService.SanitizeReturnUrl(remoteError); 
+                var sanitizedRemoteError = _userAuthenticationService.SanitizeReturnUrl(remoteError); 
                 _logger.LogError("Fejl fra ekstern udbyder (Google): {RemoteError}", sanitizedRemoteError);
                 return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode(remoteError)}");
             }
 
-            var info = await _UserAuthenticationService.GetExternalLoginInfoAsync();
+            var info = await _userAuthenticationService.GetExternalLoginInfoAsync();
             if (info == null)
             {
                 _logger.LogError("Kunne ikke hente ekstern login information i controlleren.");
@@ -387,7 +356,7 @@ namespace backend.Controllers
             }
 
             // Kald service til at håndtere resten af logikken
-            var loginResult = await _UserAuthenticationService.HandleGoogleLoginCallbackAsync(info);
+            var loginResult = await _userAuthenticationService.HandleGoogleLoginCallbackAsync(info);
 
             if (loginResult.Status != GoogleLoginStatus.Success || string.IsNullOrEmpty(loginResult.JwtToken) || loginResult.AppUser == null)
             {
@@ -407,7 +376,7 @@ namespace backend.Controllers
 
             var queryParams = new Dictionary<string, string?> { { "token", loginResult.JwtToken } };
 
-            var sanitizedReturnUrl = _UserAuthenticationService.SanitizeReturnUrl(returnUrl); 
+            var sanitizedReturnUrl = _userAuthenticationService.SanitizeReturnUrl(returnUrl); 
 
             if (!string.IsNullOrEmpty(sanitizedReturnUrl) && sanitizedReturnUrl.StartsWith("/"))
             {
@@ -417,7 +386,7 @@ namespace backend.Controllers
             {
                 _logger.LogWarning(
                     "Ignorerer ugyldig returnUrl ('{OriginalReturnUrl}') modtaget i HandleGoogleCallback for redirect til LoginSuccessPage.",
-                     _UserAuthenticationService.SanitizeReturnUrl(returnUrl) 
+                     _userAuthenticationService.SanitizeReturnUrl(returnUrl) 
                 );
             }
             

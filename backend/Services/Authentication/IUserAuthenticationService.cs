@@ -12,6 +12,17 @@ namespace backend.Services.Authentication
         Task<User?> GetUserAsync(int userId);
         string? SanitizeReturnUrl(string? clientReturnUrl);
 
+        // User Registration
+        Task<IdentityResult> CreateUserAsync(RegisterUserDto dto);
+        Task<string> GenerateEmailConfirmationTokenAsync(User user);
+        Task<IdentityResult> AddToRoleAsync(User user, string role);
+        Task DeleteUserAsync(User user);
+        Task<User> FindUserByEmailAsync(string email);
+        Task<User> FindUserByNameAsync(string username);
+
+        Task<SignInResult> CheckPasswordSignInAsync(User user, string password, bool lockoutOnFailure);
+
+
         Task<ExternalLoginInfo?> GetExternalLoginInfoAsync();
         Task<SignInResult> ExternalLoginSignInAsync(string loginProvider, string providerKey, bool isPersistent, bool bypassTwoFactor);
         Task<GoogleLoginResultDto> HandleGoogleLoginCallbackAsync(ExternalLoginInfo info);

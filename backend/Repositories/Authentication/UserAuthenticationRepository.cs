@@ -60,6 +60,13 @@ public class UserAuthenticationRepository : IUserAuthenticationRepository
         _logger.LogInformation("Adding external login for user: {UserName}, Provider: {LoginProvider}", user.UserName, login.LoginProvider);
         return await _userManager.AddLoginAsync(user, login);
     }
+
+    public async Task<IdentityResult> GiveUserRoleAsync(User user, string role)
+    {
+        _logger.LogInformation("Assigning role {Role} to user {UserName}", role, user.UserName);
+        return await _userManager.AddToRoleAsync(user, role);
+    }
+
     public async Task<IdentityResult> UpdateUserAsync(User user)
     {
         _logger.LogInformation("Updating user in repository: {UserName}", user.UserName);
