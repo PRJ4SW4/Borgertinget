@@ -327,7 +327,7 @@ namespace backend.Data
                     {
                         Id = 1,
                         TwitterUserId = "806068174567460864",
-                        Name = "Statsministeriet",
+                        Name = "Mette Frederiksen",
                         TwitterHandle = "Statsmin",
                         AktorId = null,
                     },

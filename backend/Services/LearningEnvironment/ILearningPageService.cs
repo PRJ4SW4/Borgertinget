@@ -16,6 +16,12 @@ public interface ILearningPageService
     // Returns a PageDetailDTO, or null if the page is not found.
     Task<PageDetailDTO?> GetPageDetailAsync(int pageId);
 
+    void BuildTraversalOrderRecursiveInMemory(
+        Page currentPage,
+        List<int> listToUse,
+        List<Page> listOfallPages
+    );
+
     // Asynchronously retrieves the display order of pages within a section,
     // including the current page and its siblings, ordered correctly.
     // Returns a list of page IDs in their display order.

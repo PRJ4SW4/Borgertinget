@@ -303,24 +303,16 @@ namespace backend.Services.Politician
                                             partyEnt.memberIds ??= new List<int>(); // Ensure list is initialized
                                             processedParties[partyNameFromBio] = partyEnt;
                                         }
-                                        // Ensure partyEnt is not null and its memberIds is initialized before use
-                                        if (partyEnt != null)
+                                        if (!partyEnt.memberIds.Contains(currentAktor.Id))
                                         {
-                                            partyEnt.memberIds ??= new List<int>(); // Initialize if from cache and memberIds was null
-                                            if (
-                                                currentAktor != null
-                                                && !partyEnt.memberIds.Contains(currentAktor.Id)
-                                            ) // Add null check for currentAktor
-                                            {
-                                                partyEnt.memberIds.Add(currentAktor.Id);
-                                            }
+                                            partyEnt.memberIds.Add(currentAktor.Id);
                                         }
                                     }
                                     else
                                     {
                                         _logger.LogWarning(
                                             "[AktorUpdateService] Aktor ID: {Id} has no party name in biography.",
-                                            currentAktor?.Id // Use null-conditional access for currentAktor.Id
+                                            currentAktor.Id
                                         );
                                     }
                                 }
@@ -336,11 +328,7 @@ namespace backend.Services.Politician
                                             .ToListAsync();
                                         foreach (var party in partiesContainingAktor)
                                         {
-                                            // party.memberIds is guaranteed non-null here due to the .Where(p => p.memberIds != null ...) clause
-                                            if (party.memberIds != null) // Add explicit null check for party.memberIds
-                                            {
-                                                party.memberIds.Remove(existingAktor.Id);
-                                            }
+                                            party.memberIds?.Remove(existingAktor.Id);
                                             _context.Entry(party).State = EntityState.Modified;
                                         }
                                         _context.Aktor.Remove(existingAktor);

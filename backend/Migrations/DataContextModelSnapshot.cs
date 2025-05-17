@@ -879,7 +879,7 @@ namespace backend.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "Statsministeriet",
+                            Name = "Mette Frederiksen",
                             TwitterHandle = "Statsmin",
                             TwitterUserId = "806068174567460864"
                         },

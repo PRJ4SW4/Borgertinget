@@ -130,7 +130,7 @@ const PoliticianPage: React.FC = () => {
   return (
     <div className="politician-page">
       <nav>
-        {}
+        { }
         {politician.party ? (
           <Link to={`/party/${encodeURIComponent(politician.party)}`}>
             ← Tilbage til {politician.party}
@@ -229,35 +229,6 @@ const PoliticianPage: React.FC = () => {
           <p>
             <strong>Titel:</strong>{" "}
             {politician.functionFormattedTitle || "Ikke tilgængelig"}
-          </p>
-        </section>
-
-        {/* Display other lists NOT in the info-box */}
-        {politician.publicationTitles &&
-          politician.publicationTitles.length > 0 && (
-            <>
-              <section className="detail-section">
-                <h3>Baggrund</h3>
-                <p className="detail-content-placeholder">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
-                  id commodo dolor. Class aptent taciti sociosqu ad litora
-                  torquent per conubia nostra, per inceptos himenaeos.
-                  Suspendisse fermentum nisi a venenatis hendrerit. Curabitur
-                  mauris nunc, sodales ac lacinia eget, consectetur et arcu.
-                </p>
-                {/* Add more placeholder text or logic to extract from biografi */}
-              </section>
-            </>
-          )}
-
-        <section className="detail-section">
-          <h3>Begyndende politisk karriere</h3>
-          <p className="detail-content-placeholder">
-            Integer feugiat tempus venenatis. Sed tempor massa tortor, fringilla
-            suscipit ante eleifend ac. Proin sit amet vestibulum nulla. Maecenas
-            et turpis sit amet lectus commodo facilisis ac sed leo. Donec a
-            lacinia libero, id placerat urna.
-            {/* Add more placeholder text or logic to extract from biografi */}
           </p>
         </section>
 
@@ -363,17 +334,6 @@ const PoliticianPage: React.FC = () => {
             </ul>
           </section>
         )}
-        {politician.positionsOfTrust &&
-          politician.positionsOfTrust.length > 0 && (
-            <section className="detail-section">
-              <h3>Tillidshverv (ikke-parliamentarisk)</h3>
-              <ul>
-                {politician.positionsOfTrust.map((trust, index) => (
-                  <li key={`trust-${index}`}>{trust}</li>
-                ))}
-              </ul>
-            </section>
-          )}
 
         {politician.parliamentaryPositionsOfTrust &&
           politician.parliamentaryPositionsOfTrust.length > 0 && (

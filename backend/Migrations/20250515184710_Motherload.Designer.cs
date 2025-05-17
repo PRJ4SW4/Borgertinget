@@ -13,8 +13,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250515122340_DatabaseCreation")]
-    partial class DatabaseCreation
+    [Migration("20250515184710_Motherload")]
+    partial class Motherload
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -882,7 +882,7 @@ namespace backend.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "Statsministeriet",
+                            Name = "Mette Frederiksen",
                             TwitterHandle = "Statsmin",
                             TwitterUserId = "806068174567460864"
                         },
