@@ -157,7 +157,7 @@ namespace backend.Services.Calendar
 
             if (alreadyInterested != null)
             {
-                _calendarEventRepository.RemoveEventInterest(alreadyInterested); // Remove interest.
+                await _calendarEventRepository.RemoveEventInterest(alreadyInterested); // Remove interest.
                 isNowInterested = false;
             }
             else
@@ -168,7 +168,7 @@ namespace backend.Services.Calendar
                     UserId = parsedUserIdAsInt,
                 };
 
-                _calendarEventRepository.AddEventInterest(userInterest); // Add interest.
+                await _calendarEventRepository.AddEventInterest(userInterest); // Add interest.
                 isNowInterested = true;
             }
 

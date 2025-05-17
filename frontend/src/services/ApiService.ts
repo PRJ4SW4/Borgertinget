@@ -6,7 +6,6 @@ import axios from 'axios';
 
 const API_BASE_URL = '/api';
 
-// --- Add Types for Answer Checking ---
 interface AnswerCheckRequest {
   questionId: number;
   selectedAnswerOptionId: number;
@@ -16,15 +15,19 @@ export interface AnswerCheckResponse {
   isCorrect: boolean;
 }
 
-// --- Add Function to Call Backend ---
 export const checkAnswer =
     async(payload: AnswerCheckRequest): Promise<AnswerCheckResponse> => {
+  const token = localStorage.getItem('jwt');
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/json');
+  if (token) {
+    headers.append('Authorization', `Bearer ${token}`);
+  }
+
   const response = await fetch(`/api/answers/check`, {
     // Match backend route
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: headers,
     body: JSON.stringify(payload),
   });
 
@@ -38,7 +41,16 @@ export const checkAnswer =
 };
 
 export const fetchPagesStructure = async (): Promise<PageSummaryDto[]> => {
-  const response = await fetch(`${API_BASE_URL}/pages/structure`);
+  const token = localStorage.getItem('jwt');
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/json');
+  if (token) {
+    headers.append('Authorization', `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/pages/structure`, {
+    headers: headers,
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch page structure: ${response.statusText}`);
   }
@@ -50,7 +62,17 @@ export const fetchPageDetails =
     async(id: string|number): Promise<PageDetailDto|null> => {
   // Ensure id is valid before fetching
   if (!id) return null;
-  const response = await fetch(`${API_BASE_URL}/pages/${id}`);
+
+  const token = localStorage.getItem('jwt');
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/json');
+  if (token) {
+    headers.append('Authorization', `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/pages/${id}`, {
+    headers: headers,
+  });
   if (response.status === 404) {
     return null;  // Page not found
   }
@@ -67,7 +89,16 @@ export const fetchPageDetails =
 // Fetches the list of all flashcard collections for the sidebar
 export const fetchFlashcardCollections =
     async(): Promise<FlashcardCollectionSummaryDto[]> => {
-  const response = await fetch(`${API_BASE_URL}/flashcards/collections`);
+  const token = localStorage.getItem('jwt');
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/json');
+  if (token) {
+    headers.append('Authorization', `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/flashcards/collections`, {
+    headers: headers,
+  });
   if (!response.ok) {
     console.error('API Error:', response.status, await response.text());
     throw new Error('Failed to fetch flashcard collections');
@@ -87,8 +118,18 @@ export const fetchFlashcardCollectionDetails =
         collectionId);
     return null;
   }
+
+  const token = localStorage.getItem('jwt');
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/json');
+  if (token) {
+    headers.append('Authorization', `Bearer ${token}`);
+  }
+
   const response =
-      await fetch(`${API_BASE_URL}/flashcards/collections/${collectionId}`);
+      await fetch(`${API_BASE_URL}/flashcards/collections/${collectionId}`, {
+        headers: headers,
+      });
 
   if (response.status === 404) {
     console.warn(`Flashcard collection not found: ID ${collectionId}`);

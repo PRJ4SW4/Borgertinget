@@ -1,18 +1,13 @@
-// /backend/Controllers/Calendar/CalendarController.cs
 namespace backend.Controllers;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using backend.DTO.Calendar;
-using backend.Models;
 using backend.Services.Calendar;
 using backend.Services.Calendar.Scraping;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -44,6 +39,7 @@ public class CalendarController : ControllerBase
 
     // Defines an HTTP POST endpoint for running the Altinget scrape automation.
     [HttpPost("run-calendar-scraper")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> RunScraperEndpoint()
     {
         try
@@ -73,6 +69,7 @@ public class CalendarController : ControllerBase
 
     // Defines an HTTP GET endpoint for retrieving all calendar events.
     [HttpGet("events")]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<CalendarEventDTO>>> GetEvents()
     {
         _logger.LogInformation("Attempting to fetch all calendar events via Service.");

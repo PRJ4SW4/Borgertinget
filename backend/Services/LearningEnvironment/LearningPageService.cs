@@ -134,6 +134,11 @@ public class LearningPageService : ILearningPageService
         if (traversalOrder.Any()) // Make sure we actually got a traversal order. If not the values will just be null and the buttons will be grayed out.
         // Gracefully handled As Fuck
         {
+            if (page == null)
+            {
+                _logger.LogWarning("Page with ID {PageId} not found in traversal order.", pageId);
+                return null;
+            }
             int currentIndexInTraversal = traversalOrder.IndexOf(page.Id);
 
             if (currentIndexInTraversal > 0) // If not the first page in the traversal
@@ -147,6 +152,11 @@ public class LearningPageService : ILearningPageService
         }
 
         // 5. Map to DTO
+        if (page == null)
+        {
+            _logger.LogWarning("Page with ID {PageId} not found for mapping to DTO.", pageId);
+            return null;
+        }
         var pageDetailDto = new PageDetailDTO
         {
             Id = page.Id,

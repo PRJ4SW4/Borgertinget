@@ -1,22 +1,12 @@
-using System;
-using System.Collections.Generic; // Required
-using System.Linq;
-using System.Text.Json; // Required
-using backend.Data.SeedData;
-using backend.DTO.Calendar;
-using backend.DTO.LearningEnvironment;
-using backend.Enums;
+using System.Text.Json;
 using backend.Models;
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
-using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking; // For ValueComparer
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace backend.Data
 {
