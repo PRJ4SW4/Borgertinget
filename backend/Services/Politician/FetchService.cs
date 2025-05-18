@@ -5,30 +5,37 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO.FT;
-using backend.Models;
+using backend.Models.Politicians;
+using backend.Repositories.Politicians;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace backend.Services.Politician
+namespace backend.Services.Politicians
 {
     public class FetchService : IFetchService
     {
         private readonly DataContext _context;
         private readonly HttpService _httpService; // Assuming HttpService is still used
         private readonly IConfiguration _configuration;
+        private readonly IAktorRepo _aktorRepo;
+        private readonly IPartyRepository _partyRepo;
         private readonly ILogger<FetchService> _logger;
 
         public FetchService(
             DataContext context,
             HttpService httpService,
             IConfiguration configuration,
+            IAktorRepo aktorRepo,
+            IPartyRepository partyRepo,
             ILogger<FetchService> logger
         )
         {
             _context = context;
             _httpService = httpService;
             _configuration = configuration;
+            _aktorRepo = aktorRepo;
+            _partyRepo = partyRepo;
             _logger = logger;
         }
 
@@ -193,9 +200,8 @@ namespace backend.Services.Politician
                                 string? partyShortnameFromBio =
                                     bioDetails.GetValueOrDefault("PartyShortname") as string;
 
-                                var existingAktor = await _context.Aktor.FirstOrDefaultAsync(a =>
-                                    a.Id == aktorDto.Id
-                                );
+                                var existingAktor = await _aktorRepo.GetAktorByIdAsync(aktorDto.Id);
+
                                 Aktor currentAktor;
 
                                 if (apiStatus == "1") // Active Politician
@@ -218,7 +224,7 @@ namespace backend.Services.Politician
                                             bioDetails,
                                             ministerTitle
                                         );
-                                        _context.Aktor.Add(currentAktor);
+                                        await _aktorRepo.AddAktor(currentAktor);
                                         pageAdded++;
                                         _logger.LogDebug(
                                             "[AktorUpdateService] Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}",
@@ -287,9 +293,7 @@ namespace backend.Services.Politician
                                             )
                                         )
                                         {
-                                            partyEnt = await _context.Party.FirstOrDefaultAsync(p =>
-                                                p.partyName == partyNameFromBio
-                                            );
+                                            partyEnt = await _partyRepo.GetByName(partyNameFromBio);
                                             if (partyEnt == null)
                                             {
                                                 partyEnt = new Party
@@ -298,7 +302,7 @@ namespace backend.Services.Politician
                                                     partyShortName = partyShortnameFromBio,
                                                     memberIds = new List<int>(),
                                                 };
-                                                _context.Party.Add(partyEnt);
+                                                await _partyRepo.AddParty(partyEnt);
                                             }
                                             partyEnt.memberIds ??= new List<int>(); // Ensure list is initialized
                                             processedParties[partyNameFromBio] = partyEnt;
@@ -320,18 +324,14 @@ namespace backend.Services.Politician
                                 {
                                     if (existingAktor != null)
                                     {
-                                        var partiesContainingAktor = await _context
-                                            .Party.Where(p =>
-                                                p.memberIds != null
-                                                && p.memberIds.Contains(existingAktor.Id)
-                                            )
-                                            .ToListAsync();
+                                        var partiesContainingAktor =
+                                            await _partyRepo.GetPartyByMemberId(existingAktor.Id);
+
                                         foreach (var party in partiesContainingAktor)
                                         {
-                                            party.memberIds?.Remove(existingAktor.Id);
-                                            _context.Entry(party).State = EntityState.Modified;
+                                            await _partyRepo.RemoveMember(party, existingAktor.Id);
                                         }
-                                        _context.Aktor.Remove(existingAktor);
+                                        await _aktorRepo.DeleteAktor(existingAktor);
                                         pageDeleted++;
                                         _logger.LogDebug(
                                             "[AktorUpdateService] Deleting Aktor ID: {Id}, Name: {Name}",

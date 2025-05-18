@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using backend.Models;
+using backend.Models.Politicians;
 
 namespace backend.Interfaces.Repositories
 {
