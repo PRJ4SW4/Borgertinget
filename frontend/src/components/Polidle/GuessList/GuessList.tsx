@@ -1,8 +1,8 @@
 // src/components/Polidle/GuessList/GuessList.tsx
 import React from "react";
 import GuessItem from "../GuessItem/GuessItem";
-import styles from "./GuessList.module.css"; // <<< BRUG CSS MODULE
-
+import styles from "./GuessList.module.css";
+import { headers } from "../../../hooks/GuessList.logic";
 import { GuessResultDto } from "../../../types/PolidleTypes";
 
 interface GuessListProps {
@@ -13,15 +13,6 @@ const GuessList: React.FC<GuessListProps> = ({ results }) => {
   if (!results || results.length === 0) {
     return <div className={styles.guessListEmpty}>Lav dit første gæt...</div>;
   }
-
-  const headers = [
-    "Politiker",
-    "Køn",
-    "Parti",
-    "Alder",
-    "Region",
-    "Uddannelse",
-  ];
 
   return (
     <div className={styles.guessListContainer}>
