@@ -1,4 +1,4 @@
-namespace backend.Services.Politician
+namespace backend.Services.Politicians
 {
     public interface IHttpService
     {

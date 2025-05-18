@@ -2,6 +2,7 @@ using System; // For DateOnly
 using System.Threading.Tasks;
 using backend.Enums;
 using backend.Models;
+using backend.Models.Politicians;
 
 namespace backend.Interfaces.Repositories
 {
