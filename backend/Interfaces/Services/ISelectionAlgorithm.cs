@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using backend.Enums;
 using backend.Models;
+using backend.Models.Politicians;
 
 namespace backend.Interfaces.Services
 {

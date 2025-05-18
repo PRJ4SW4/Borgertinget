@@ -3,16 +3,12 @@ namespace backend.Controllers;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using backend.DTO.Calendar;
-using backend.Models;
 using backend.Services.Calendar;
 using backend.Services.Calendar.Scraping;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
