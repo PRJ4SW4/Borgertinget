@@ -56,9 +56,6 @@ namespace backend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserDto dto)
         {
-
-            _logger.LogInformation("Brugerregistrering igangsat for {Email}", dto.Email);
-
             var result = await _userAuthenticationService.CreateUserAsync(dto);
 
             if (result.Succeeded)
@@ -345,7 +342,6 @@ namespace backend.Controllers
                 return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode(loginResult.ErrorMessage ?? "Ukendt fejl ved Google login.")}");
             }
             
-            _logger.LogInformation("Bruger {UserName} succesfuldt behandlet via Google. JWT genereret.", loginResult.AppUser.UserName);
 
             // Ryd den midlertidige eksterne cookie
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
