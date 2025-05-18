@@ -107,11 +107,12 @@ namespace backend.Services.Authentication
             return await _authenticationRepository.GetUserByEmailAsync(email);
         }
 
+
         public string? SanitizeReturnUrl(string? clientReturnUrl)
         {
             return (clientReturnUrl ?? "/")
                    .Replace("\n", "")
-                   .Replace("\r", "");
+                   .Replace("?", "");
         }
 
         public async Task<User?> GetUserAsync(int userId)
@@ -122,7 +123,7 @@ namespace backend.Services.Authentication
             {
                 return null;
             }
-            return new User { Id = user.Id, UserName = user.UserName, Email = user.Email };
+            return user;
         }
 
         public async Task SignOutAsync()

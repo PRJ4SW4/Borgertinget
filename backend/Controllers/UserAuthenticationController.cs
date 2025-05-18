@@ -122,9 +122,8 @@ namespace backend.Controllers
                 _logger.LogError($"Bruger med ID {userId} blev ikke fundet.");
                 return BadRequest("Ugyldigt bruger ID.");
             }
-            
-            _logger.LogInformation("Token 3: {Token}", token);
 
+            _logger.LogInformation("Token 3: {Token}", token);
 
             try
             {
@@ -206,7 +205,7 @@ namespace backend.Controllers
             var token = await _userAuthenticationService.GeneratePasswordResetTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-            var emailContent = await _emailService.GenerateRegistrationEmailAsync(encodedToken, user);
+            var emailContent = await _emailService.GenerateResetPasswordEmailAsync(encodedToken, user);
 
             try
             {
