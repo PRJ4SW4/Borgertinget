@@ -17,9 +17,15 @@ public class AdministratorController : ControllerBase
 {
     private readonly IAdministratorService _service;
 
-    public AdministratorController(IAdministratorService service)
+    private readonly ILogger<AdministratorController> _logger;
+
+    public AdministratorController(
+        IAdministratorService service,
+        ILogger<AdministratorController> logger
+    )
     {
         _service = service;
+        _logger = logger;
     }
 
     #region Flashcard Collection
@@ -28,6 +34,7 @@ public class AdministratorController : ControllerBase
     [HttpPost("PostFlashcardCollection")]
     public async Task<IActionResult> PostFlashCardCollection(FlashcardCollectionDetailDTO dto)
     {
+        // If the incomming parameter is empty
         if (dto == null)
         {
             return BadRequest("No Collection to create from");
@@ -35,13 +42,17 @@ public class AdministratorController : ControllerBase
 
         try
         {
-            // Use service to create a Flashcard collection into the Db
             var collectionId = await _service.CreateCollectionAsync(dto);
 
             return Ok($"Flashcard Collection created with ID {collectionId}");
         }
         catch (Exception ex)
         {
+            _logger.LogError(
+                ex,
+                "Error while creating flashcard collection for title: {Title}",
+                dto?.Title
+            );
             return StatusCode(
                 500,
                 $"An error occurred while creating the collection: {ex.Message}"
@@ -53,26 +64,36 @@ public class AdministratorController : ControllerBase
     [HttpPost("UploadImage")]
     public async Task<IActionResult> UploadImage(IFormFile file)
     {
+        // If the uploaded file is missing or empty
         if (file == null || file.Length == 0)
         {
             return BadRequest("No file uploaded");
         }
 
-        var uploadsFolder = Path.Combine("wwwroot", "uploads", "flashcards");
-        Directory.CreateDirectory(uploadsFolder);
-
-        var fileName = Path.GetFileName(file.FileName);
-
-        // save full path wwwroot/uploads/flashcards/larsl.png
-        var filePath = Path.Combine(uploadsFolder, fileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        try
         {
-            await file.CopyToAsync(stream);
+            var uploadsFolder = Path.Combine("wwwroot", "uploads", "flashcards");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = Path.GetFileName(file.FileName);
+
+            // save full path wwwroot/uploads/flashcards/larsl.png
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
 
             // Return relative path like: /uploads/flashcards/larsl.png
             var relativePath = $"/uploads/flashcards/{fileName}";
             return Ok(new { imagePath = relativePath });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to upload image: {FileName}", file?.FileName);
+
+            return StatusCode(500, $"An error occurred while uploading the file: {ex.Message}");
         }
     }
 
@@ -89,6 +110,8 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to get all Flashcard Collection titles");
+
             return StatusCode(500, $"Error Fetching Flashcard Collection titles: {ex}");
         }
     }
@@ -105,6 +128,8 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to get Flashcard Collection by title: {title}", title);
+
             return StatusCode(500, $"Error finding Flashcard Collection by title: {ex}");
         }
     }
@@ -128,6 +153,11 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(
+                ex,
+                "Failed to update Flashcard Collection with id: {collectionId}",
+                collectionId
+            );
             return StatusCode(
                 500,
                 $"An error occurred while updating the collection: {ex.Message}"
@@ -152,6 +182,11 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(
+                ex,
+                "Failed to delete Flashcard Collection with id: {collectionId}",
+                collectionId
+            );
             return StatusCode(
                 500,
                 $"An error occured while deleting the Flashcard collection: {ex.Message}"
@@ -175,6 +210,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to get all Users");
             return StatusCode(500, $"An error occured while getting users: {ex.Message}");
         }
     }
@@ -194,9 +230,10 @@ public class AdministratorController : ControllerBase
 
             return Ok(user.Id);
         }
-        catch
+        catch (Exception ex)
         {
-            return StatusCode(500, $"An error occured while getting the user: {username}");
+            _logger.LogError(ex, "Failed to get username id with username: {username}", username);
+            return StatusCode(500, $"An error occured while getting the user: {ex.Message}");
         }
     }
 
@@ -217,6 +254,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to update username with id: {userId}", userId);
             return StatusCode(500, $"An error occurred while updating the username: {ex.Message}");
         }
     }
@@ -235,9 +273,13 @@ public class AdministratorController : ControllerBase
 
             return Ok(quotes);
         }
-        catch
+        catch (Exception ex)
         {
-            return StatusCode(500, "An error occured while getting all politician quotes ");
+            _logger.LogError(ex, "Failed to get all politician quotes");
+            return StatusCode(
+                500,
+                $"An error occured while getting all politician quotes: {ex.Message}"
+            );
         }
     }
 
@@ -251,9 +293,10 @@ public class AdministratorController : ControllerBase
 
             return Ok(quote);
         }
-        catch
+        catch (Exception ex)
         {
-            return StatusCode(500, $"An error occured while getting quote with id: {quoteId} ");
+            _logger.LogError(ex, "Failed to get politician quote by id: {quoteId}", quoteId);
+            return StatusCode(500, $"An error occured while getting quote: {ex.Message}");
         }
     }
 
@@ -267,9 +310,10 @@ public class AdministratorController : ControllerBase
 
             return Ok("Quote edited");
         }
-        catch
+        catch (Exception ex)
         {
-            return StatusCode(500, $"An error occured while editing quote with id: {dto.QuoteId}");
+            _logger.LogError(ex, "Failed to edit quote: {dto.QuoteText}", dto.QuoteText);
+            return StatusCode(500, $"An error occured while editing quote: {ex.Message}");
         }
     }
 
@@ -277,18 +321,31 @@ public class AdministratorController : ControllerBase
 
     #region Politician
 
+    // GET Aktor id by Twitter id
     [HttpGet("lookup/aktorId")]
     public async Task<IActionResult> GetAktorIdByTwitterId([FromQuery] int twitterId)
     {
         if (twitterId <= 0)
-            return BadRequest("Ugyldigt Twitter ID.");
+            return BadRequest("Invalid Twitter ID.");
 
-        int? aktorId = await _service.GetAktorIdByTwitterIdAsync(twitterId);
+        try
+        {
+            int? aktorId = await _service.GetAktorIdByTwitterIdAsync(twitterId);
 
-        if (aktorId == null)
-            return NotFound($"Ingen AktorId fundet for Twitter ID {twitterId}");
+            if (aktorId == null)
+                return NotFound($"No AktorId found for Twitter ID: {twitterId}");
 
-        return Ok(new { aktorId });
+            return Ok(new { aktorId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to look up AktorId for Twitter ID: {TwitterId}",
+                twitterId
+            );
+            return StatusCode(500, $"An error occurred while looking up AktorId: {ex.Message}");
+        }
     }
 
     #endregion
