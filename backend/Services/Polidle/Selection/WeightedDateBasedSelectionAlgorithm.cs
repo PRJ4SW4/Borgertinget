@@ -6,6 +6,7 @@ using backend.Interfaces.Repositories; // Hvis den skal bruge tracker repo
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility;
 using backend.Models;
+using backend.Models.Politicians;
 using Microsoft.Extensions.Logging;
 
 namespace backend.Services.Selection

@@ -1,7 +1,7 @@
 using System; // For DateOnly
 using System.Collections.Generic;
 using backend.DTO;
-using backend.Models;
+using backend.Models.Politicians;
 
 namespace backend.Interfaces.Services
 {
