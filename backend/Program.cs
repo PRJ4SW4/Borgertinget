@@ -314,7 +314,11 @@ builder.Services.AddScoped<IFeedRepository, FeedRepository>();
 builder.Services.AddScoped<IFeedService, FeedService>();
 builder.Services.AddScoped<IPollsRepository, PollsRepository>();
 builder.Services.AddScoped<IPollsService, PollsService>();
-//builder.Services.AddHttpClient<TwitterService>();
+builder.Services.AddScoped<backend.Repositories.Subscription.ISubscriptionRepository, 
+                           backend.Repositories.Subscription.SubscriptionRepository>();
+builder.Services.AddScoped<backend.Services.Subscription.ISubscriptionService, 
+                           backend.Services.Subscription.SubscriptionService>();
+builder.Services.AddHttpClient<TwitterService>();
 
 builder.Services.AddHttpClient();
 

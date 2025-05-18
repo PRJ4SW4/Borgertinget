@@ -42,17 +42,18 @@ namespace backend.Services.Feed
                 if (pageSize < 1) pageSize = 5;
                 if (pageSize > 50) pageSize = 50;
 
-                // Handle feed filtering logic
                 List<int> relevantPoliticianIds;
                 bool isFiltered = politicianId.HasValue;
 
                 if (isFiltered)
                 {
-                    bool isSubscribed = await _feedRepository.IsUserSubscribedToPoliticianAsync(userId, politicianId.Value);
+                    int politicianIdValue = politicianId!.Value;
+                    
+                    bool isSubscribed = await _feedRepository.IsUserSubscribedToPoliticianAsync(userId, politicianIdValue);
                     if (!isSubscribed)
-                        return new PaginatedFeedResult(); // Empty result
+                        return new PaginatedFeedResult(); 
 
-                    relevantPoliticianIds = new List<int> { politicianId.Value };
+                    relevantPoliticianIds = new List<int> { politicianIdValue };
                 }
                 else
                 {
@@ -61,27 +62,24 @@ namespace backend.Services.Feed
 
                 if (!relevantPoliticianIds.Any())
                 {
-                    return new PaginatedFeedResult(); // Empty result
+                    return new PaginatedFeedResult(); 
                 }
 
-                // Get tweets
                 List<Tweet> tweetsToPaginate;
                 if (isFiltered)
                 {
-                    tweetsToPaginate = await _feedRepository.GetTweetsByPoliticianIdAsync(politicianId.Value);
+                    tweetsToPaginate = await _feedRepository.GetTweetsByPoliticianIdAsync(politicianId!.Value);
                 }
                 else
                 {
                     tweetsToPaginate = await _feedRepository.GetTopTweetsByPoliticianIdsAsync(relevantPoliticianIds, 5);
                 }
 
-                // Paginate tweets
                 int totalTweets = tweetsToPaginate.Count;
                 int skipAmountTweets = (page - 1) * pageSize;
                 var pagedTweets = tweetsToPaginate.Skip(skipAmountTweets).Take(pageSize).ToList();
                 bool hasMoreTweets = skipAmountTweets + pagedTweets.Count < totalTweets;
 
-                // Map tweets to DTOs
                 var feedTweetDtos = pagedTweets
                     .Select(t => new TweetDto
                     {
@@ -97,7 +95,6 @@ namespace backend.Services.Feed
                     })
                     .ToList();
 
-                // Get polls if not filtered
                 List<PollDetailsDto> latestPollDtos = new List<PollDetailsDto>();
 
                 if (!isFiltered)
@@ -106,11 +103,9 @@ namespace backend.Services.Feed
                     
                     if (allLatestPolls.Any())
                     {
-                        // Get user votes for these polls
                         var pollIdsToCheck = allLatestPolls.Select(p => p.Id).Distinct().ToList();
                         var userVotesForLatestPolls = await _feedRepository.GetUserVotesForPollsAsync(userId, pollIdsToCheck);
 
-                        // Map polls to DTOs
                         latestPollDtos = allLatestPolls
                             .OrderByDescending(p => p.CreatedAt)
                             .Select(p =>
@@ -126,7 +121,6 @@ namespace backend.Services.Feed
                     }
                 }
 
-                // Return combined result
                 return new PaginatedFeedResult
                 {
                     Tweets = feedTweetDtos,
@@ -141,7 +135,6 @@ namespace backend.Services.Feed
             }
         }
         
-        // Helper method moved from controller
         private PollDetailsDto MapPollToDetailsDto(
             Poll poll,
             PoliticianTwitterId politician,

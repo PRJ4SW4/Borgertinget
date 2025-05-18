@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using backend.Data;
 using backend.DTOs;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+
 
 namespace backend.Repositories.Polls
 {
@@ -42,7 +38,7 @@ namespace backend.Repositories.Polls
                 .ToListAsync();
         }
 
-        public async Task<Poll> GetPollByIdAsync(int id)
+        public async Task<Poll?> GetPollByIdAsync(int id)
         {
             return await _context
                 .Polls.Include(p => p.Options.OrderBy(o => o.Id))
@@ -50,7 +46,7 @@ namespace backend.Repositories.Polls
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<UserVote> GetUserVoteAsync(int pollId, int userId)
+        public async Task<UserVote?> GetUserVoteAsync(int pollId, int userId)
         {
             return await _context
                 .UserVotes
@@ -58,7 +54,7 @@ namespace backend.Repositories.Polls
                 .FirstOrDefaultAsync(uv => uv.PollId == pollId && uv.UserId == userId);
         }
 
-        public async Task<PoliticianTwitterId> GetPoliticianByIdAsync(int politicianId)
+        public async Task<PoliticianTwitterId?> GetPoliticianByIdAsync(int politicianId)
         {
             return await _context
                 .PoliticianTwitterIds.AsNoTracking()
@@ -108,7 +104,7 @@ namespace backend.Repositories.Polls
                     };
                     chosenOption.Votes++;
                     _context.UserVotes.Add(userVote);
-                    _context.Entry(chosenOption).State = EntityState.Modified; // THIS IS CRITICAL!
+                    _context.Entry(chosenOption).State = EntityState.Modified; 
                 }
                 else
                 {
@@ -119,16 +115,16 @@ namespace backend.Repositories.Polls
                     if (oldOption != null)
                     {
                         oldOption.Votes--;
-                        _context.Entry(oldOption).State = EntityState.Modified; // THIS IS CRITICAL!
+                        _context.Entry(oldOption).State = EntityState.Modified; 
                     }
 
                     chosenOption.Votes++;
                     existingVote.ChosenOptionId = optionId;
-                    _context.Entry(chosenOption).State = EntityState.Modified; // THIS IS CRITICAL!
-                    _context.Entry(existingVote).State = EntityState.Modified; // THIS IS CRITICAL!
+                    _context.Entry(chosenOption).State = EntityState.Modified;
+                    _context.Entry(existingVote).State = EntityState.Modified;
                 }
 
-                await _context.SaveChangesAsync(); // THIS IS CRITICAL!
+                await _context.SaveChangesAsync(); 
                 return true;
             }
             catch (Exception ex)

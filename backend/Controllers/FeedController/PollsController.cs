@@ -1,15 +1,12 @@
-// backend.Controllers/PollsController.cs
-using System;
-using System.Collections.Generic;
+
 using System.Security.Claims;
-using System.Threading.Tasks;
+
 using backend.DTOs;
 using backend.Hubs;
 using backend.Services.Polls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
