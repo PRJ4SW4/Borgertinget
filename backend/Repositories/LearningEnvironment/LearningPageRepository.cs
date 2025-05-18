@@ -54,7 +54,8 @@ public class LearningPageRepository : ILearningPageRepository
 
     public async Task AddPageAsync(Page page)
     {
-        _logger.LogInformation("Adding new page titled: {Title}.", page.Title);
+        var sanitizedTitle = page.Title?.Replace("\n", "").Replace("\r", "");
+        _logger.LogInformation("Adding new page titled: {Title}.", sanitizedTitle);
         await _context.Pages.AddAsync(page);
     }
 
