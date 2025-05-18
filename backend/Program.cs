@@ -13,6 +13,7 @@ using backend.Repositories;
 using backend.Repositories.Calendar;
 using backend.Repositories.Flashcards;
 using backend.Repositories.LearningEnvironment;
+using backend.Repositories.Politicians;
 using backend.Services;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
@@ -21,7 +22,7 @@ using backend.Services.Calendar.Scraping;
 using backend.Services.Flashcards;
 using backend.Services.LearningEnvironment;
 using backend.Services.Mapping;
-using backend.Services.Politician;
+using backend.Services.Politicians;
 using backend.Services.Search;
 using backend.Services.Selection;
 using backend.Services.Utility;
@@ -353,6 +354,10 @@ builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
 builder.Services.AddScoped<IScraperService, AltingetScraperService>();
 builder.Services.AddScoped<ICalendarService, CalendarService>();
 builder.Services.AddSingleton<ITimeZoneHelper, TimeZoneHelper>();
+builder.Services.AddScoped<IAktorRepo, AktorRepo>();
+builder.Services.AddScoped<IAktorService, AktorService>();
+builder.Services.AddScoped<IPartyRepository, PartyRepository>();
+builder.Services.AddScoped<IPartyService, PartyService>();
 
 // Learning Environment Services
 builder.Services.AddScoped<ILearningPageRepository, LearningPageRepository>();

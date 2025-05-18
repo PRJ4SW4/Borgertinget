@@ -8,6 +8,7 @@ using backend.Data;
 using backend.Models;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
+using backend.Models.Politicians;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

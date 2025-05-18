@@ -3,6 +3,8 @@ using backend.Models;
 using backend.Models.Calendar;
 using backend.Models.Flashcards;
 using backend.Models.LearningEnvironment;
+using backend.Models.Politicians;
+using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

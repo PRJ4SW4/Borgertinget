@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using backend.Enums;
+using backend.Models.Politicians;
 
 namespace backend.Models
 {
