@@ -7,6 +7,7 @@ using backend.DTO;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility; // For IDateTimeProvider
 using backend.Models;
+using backend.Models.Politicians;
 using Microsoft.Extensions.Logging; // For logging
 
 namespace backend.Services.Mapping

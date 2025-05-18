@@ -4,6 +4,7 @@ using backend.Data;
 using backend.Enums;
 using backend.Interfaces.Repositories;
 using backend.Models;
+using backend.Models.Politicians;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging; // Tilføjet for logging
 

@@ -10,6 +10,7 @@ using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility; // For IDateTimeProvider
 using backend.Models;
+using backend.Models.Politicians;
 using backend.Utils;
 using Microsoft.EntityFrameworkCore; // Nødvendig for Transaction
 using Microsoft.Extensions.Logging;
