@@ -1,3 +1,4 @@
+using backend.Models;
 using backend.Models.Politicians;
 
 namespace backend.Repositories.Politicians
@@ -10,5 +11,7 @@ namespace backend.Repositories.Politicians
         Task UpdateAktor(Aktor aktor);
         Task<List<Aktor>> AllAktorsToList();
         Task<List<Aktor>> GetAktorsByParty(string party);
+        Task<PoliticianTwitterId?> GetPoliticianTwitterIdByNameAsync(string name);
+        Task SaveChangesAsync();
     }
 }

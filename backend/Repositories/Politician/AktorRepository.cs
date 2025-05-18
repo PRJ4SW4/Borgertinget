@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.Models;
 using backend.Models.Politicians;
 using Microsoft.EntityFrameworkCore;
 
@@ -84,5 +85,15 @@ public class AktorRepo : IAktorRepo
             .ToListAsync();
 
         return filteredPoliticians;
+    }
+
+    public async Task<PoliticianTwitterId?> GetPoliticianTwitterIdByNameAsync(string name)
+    {
+        return await _context.PoliticianTwitterIds.FirstOrDefaultAsync(p => p.Name == name);
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

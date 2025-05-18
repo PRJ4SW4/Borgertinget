@@ -15,7 +15,6 @@ namespace backend.Services.Politicians
 {
     public class FetchService : IFetchService
     {
-        private readonly DataContext _context;
         private readonly HttpService _httpService; // Assuming HttpService is still used
         private readonly IConfiguration _configuration;
         private readonly IAktorRepo _aktorRepo;
@@ -31,7 +30,6 @@ namespace backend.Services.Politicians
             ILogger<FetchService> logger
         )
         {
-            _context = context;
             _httpService = httpService;
             _configuration = configuration;
             _aktorRepo = aktorRepo;
@@ -258,8 +256,8 @@ namespace backend.Services.Politicians
                                     {
                                         // Assuming _context.PoliticianTwitterIds is the DbSet for PoliticianTwitterId entities
                                         var politicianTwitterEntry =
-                                            await _context.PoliticianTwitterIds.FirstOrDefaultAsync(
-                                                p => p.Name == currentAktor.navn
+                                            await _aktorRepo.GetPoliticianTwitterIdByNameAsync(
+                                                currentAktor.navn
                                             );
 
                                         if (politicianTwitterEntry != null)
@@ -307,7 +305,7 @@ namespace backend.Services.Politicians
                                             partyEnt.memberIds ??= new List<int>(); // Ensure list is initialized
                                             processedParties[partyNameFromBio] = partyEnt;
                                         }
-                                        if (!partyEnt.memberIds.Contains(currentAktor.Id))
+                                        if (!partyEnt.memberIds!.Contains(currentAktor!.Id))
                                         {
                                             partyEnt.memberIds.Add(currentAktor.Id);
                                         }
@@ -316,7 +314,7 @@ namespace backend.Services.Politicians
                                     {
                                         _logger.LogWarning(
                                             "[AktorUpdateService] Aktor ID: {Id} has no party name in biography.",
-                                            currentAktor.Id
+                                            currentAktor!.Id
                                         );
                                     }
                                 }
@@ -401,7 +399,7 @@ namespace backend.Services.Politicians
                     nextPolitikerLink = null; // Stop on error for this page.
                 }
             }
-            await _context.SaveChangesAsync(); // Save all accumulated changes
+            await _aktorRepo.SaveChangesAsync(); // Save all accumulated changes
             _logger.LogInformation(
                 "[AktorUpdateService] Aktor update process finished. Total Added: {Added}, Total Updated: {Updated}, Total Deleted: {Deleted}",
                 totalAddedCount,
