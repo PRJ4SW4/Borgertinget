@@ -48,11 +48,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Error while creating flashcard collection for title: {Title}",
-                dto?.Title
-            );
+            _logger.LogError(ex, "Error while creating flashcard collection");
             return StatusCode(
                 500,
                 $"An error occurred while creating the collection: {ex.Message}"
@@ -91,7 +87,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to upload image: {FileName}", file?.FileName);
+            _logger.LogError(ex, "Failed to upload image");
 
             return StatusCode(500, $"An error occurred while uploading the file: {ex.Message}");
         }
@@ -128,7 +124,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get Flashcard Collection by title: {title}", title);
+            _logger.LogError(ex, "Failed to get Flashcard Collection by title");
 
             return StatusCode(500, $"Error finding Flashcard Collection by title: {ex}");
         }
@@ -153,11 +149,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Failed to update Flashcard Collection with id: {collectionId}",
-                collectionId
-            );
+            _logger.LogError(ex, "Failed to update Flashcard Collection with id");
             return StatusCode(
                 500,
                 $"An error occurred while updating the collection: {ex.Message}"
@@ -182,11 +174,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Failed to delete Flashcard Collection with id: {collectionId}",
-                collectionId
-            );
+            _logger.LogError(ex, "Failed to delete Flashcard Collection with id");
             return StatusCode(
                 500,
                 $"An error occured while deleting the Flashcard collection: {ex.Message}"
@@ -232,7 +220,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get username id with username: {username}", username);
+            _logger.LogError(ex, "Failed to get username id with username");
             return StatusCode(500, $"An error occured while getting the user: {ex.Message}");
         }
     }
@@ -254,7 +242,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update username with id: {userId}", userId);
+            _logger.LogError(ex, "Failed to update username with id");
             return StatusCode(500, $"An error occurred while updating the username: {ex.Message}");
         }
     }
@@ -295,7 +283,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get politician quote by id: {quoteId}", quoteId);
+            _logger.LogError(ex, "Failed to get politician quote by id");
             return StatusCode(500, $"An error occured while getting quote: {ex.Message}");
         }
     }
@@ -312,7 +300,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to edit quote: {dto.QuoteText}", dto.QuoteText);
+            _logger.LogError(ex, "Failed to edit quote");
             return StatusCode(500, $"An error occured while editing quote: {ex.Message}");
         }
     }
@@ -339,11 +327,7 @@ public class AdministratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Failed to look up AktorId for Twitter ID: {TwitterId}",
-                twitterId
-            );
+            _logger.LogError(ex, "Failed to look up AktorId for Twitter ID");
             return StatusCode(500, $"An error occurred while looking up AktorId: {ex.Message}");
         }
     }
