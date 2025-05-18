@@ -8,7 +8,7 @@ using backend.Interfaces.Repositories;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace backend.Persistence.Repositories
+namespace backend.Repositories.PolidleSelection
 {
     public class DailySelectionRepository : IDailySelectionRepository
     {

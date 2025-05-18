@@ -7,7 +7,7 @@ using backend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging; // Tilføjet for logging
 
-namespace backend.Persistence.Repositories
+namespace backend.Repositories.PolidleTracker
 {
     public class GamemodeTrackerRepository : IGamemodeTrackerRepository
     {
