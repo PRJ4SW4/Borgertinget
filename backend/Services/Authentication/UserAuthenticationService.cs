@@ -45,7 +45,6 @@ namespace backend.Services.Authentication
 
         public async Task<User?> FindUserByNameAsync(string username)
         {
-            _logger.LogInformation("Attempting to find user by username in service: {Username}", username);
             return await _authenticationRepository.GetUserByNameAsync(username);
         }
 
@@ -59,7 +58,6 @@ namespace backend.Services.Authentication
 
             if (dto.Password == null)
             {
-                _logger.LogInformation("Creating user without password: {UserName}", dto.Username);
                 return await _userManager.CreateAsync(user);
             }
 
@@ -222,10 +220,8 @@ namespace backend.Services.Authentication
                     if (!createUserResult.Succeeded)
                     {
                         var errorDescriptions = createUserResult.Errors.Select(e => e.Description);
-                        _logger.LogError("Failed to create user in service: {Errors}", string.Join(", ", errorDescriptions));
                         return new GoogleLoginResultDto { Status = GoogleLoginStatus.ErrorCreateUserFailed, ErrorMessage = createUserResult.Errors.FirstOrDefault()?.Description ?? "Kunne ikke oprette bruger." };
                     }
-                    _logger.LogInformation("Successfully created new user: {UserName}", appUser.UserName);
                 }
                 else // Bruger fundet via email
                 {
@@ -249,10 +245,8 @@ namespace backend.Services.Authentication
                 if (!addLoginResult.Succeeded)
                 {
                     var errorDescriptions = addLoginResult.Errors.Select(e => e.Description);
-                    _logger.LogError("Failed to link external login for user {UserName}: {Errors}", appUser.UserName, string.Join(", ", errorDescriptions));
                     return new GoogleLoginResultDto { Status = GoogleLoginStatus.ErrorLinkLoginFailed, ErrorMessage = "Kunne ikke linke Google konto." };
                 }
-                _logger.LogInformation("External login linked successfully for user {UserName}.", appUser.UserName);
             }
 
             // Generer JWT token her i servicen

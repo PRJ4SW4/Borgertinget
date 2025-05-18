@@ -24,19 +24,16 @@ public class UserAuthenticationRepository : IUserAuthenticationRepository
 
     public async Task<User?> GetUserByIdAsync(int userId)
     {
-        _logger.LogInformation("Fetching user by ID: {UserId} from database.", userId);
         return await _context.Users.FindAsync(userId);
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
     {
-        _logger.LogInformation("Attempting to find user by email in repository: {Email}", email);
         return await _context.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == email.ToUpperInvariant());
     }
 
     public async Task<User?> GetUserByNameAsync(string username)
     {
-        _logger.LogInformation("Attempting to find user by username in repository: {Username}", username);
         return await _context.Users.FirstOrDefaultAsync(u => u.NormalizedUserName == username.ToUpperInvariant());
     }
 }

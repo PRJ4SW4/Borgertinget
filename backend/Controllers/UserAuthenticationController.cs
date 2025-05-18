@@ -114,7 +114,6 @@ namespace backend.Controllers
             var user = await _userAuthenticationService.GetUserAsync(userId);
             if (user == null)
             {
-                _logger.LogError($"Bruger med ID {userId} blev ikke fundet.");
                 return BadRequest("Ugyldigt bruger ID.");
             }
 
@@ -338,7 +337,6 @@ namespace backend.Controllers
 
             if (loginResult.Status != GoogleLoginStatus.Success || string.IsNullOrEmpty(loginResult.JwtToken) || loginResult.AppUser == null)
             {
-                _logger.LogError("Google login håndtering i service fejlede med status: {Status}. Fejl: {ErrorMessage}", loginResult.Status, loginResult.ErrorMessage);
                 return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode(loginResult.ErrorMessage ?? "Ukendt fejl ved Google login.")}");
             }
             
