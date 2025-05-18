@@ -249,7 +249,7 @@ namespace backend.Controllers
 
             try
             {
-                await _emailService.SendEmailAsync(user.Email, subject, message);
+                await _emailService.SendEmailAsync(user.Email!, subject, message);
                 return Ok(
                     new
                     {

@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace backend.Services.Politician
+namespace backend.Services.Politicians
 {
     public class HttpService
     {

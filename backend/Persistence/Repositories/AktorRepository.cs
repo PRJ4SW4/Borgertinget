@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using backend.Data;
 using backend.Interfaces.Repositories;
-using backend.Models;
+using backend.Models.Politicians;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Persistence.Repositories

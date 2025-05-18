@@ -66,7 +66,7 @@ namespace backend.DTO.FT
         public List<string>? PublicationTitles { get; set; }
 
         //Helper method for mapping
-        public static AktorDetailDto FromAktor(Models.Aktor aktor)
+        public static AktorDetailDto FromAktor(Models.Politicians.Aktor aktor)
         {
             return new AktorDetailDto
             {

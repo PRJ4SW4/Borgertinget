@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO.FT;
 using backend.Models;
-using backend.Models;
-using backend.Services;
-using backend.Services;
+using backend.Models.Politicians;
+using backend.Services.Politicians;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,19 +17,24 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class PartyController : ControllerBase
 {
-    private readonly DataContext _context;
+    private readonly IPartyService _service;
     private readonly ILogger<PartyController> _logger;
 
-    public PartyController(DataContext context, ILogger<PartyController> logger)
+    public PartyController(IPartyService service, ILogger<PartyController> logger)
     {
-        _context = context;
+        _service = service;
         _logger = logger;
     }
 
     [HttpGet("Parties")]
     public async Task<ActionResult<IEnumerable<Party>>> getParties()
     {
-        var parties = await _context.Party.OrderBy(p => p.partyName).ToListAsync();
+        var parties = await _service.GetAll();
+
+        if (parties == null)
+        {
+            return StatusCode(404, "No parties found");
+        }
         return Ok(parties);
     }
 
@@ -45,9 +48,7 @@ public class PartyController : ControllerBase
 
         try
         {
-            var party = await _context.Party.FirstOrDefaultAsync(p =>
-                p.partyName != null && p.partyName.ToLower() == partyName.ToLower()
-            );
+            var party = await _service.GetByName(partyName);
 
             if (party == null)
             {
@@ -86,7 +87,7 @@ public class PartyController : ControllerBase
         // --- Fetch Existing Entity ---
         try
         {
-            var existingParty = await _context.Party.FindAsync(partyId);
+            var existingParty = await _service.GetById(partyId);
 
             if (existingParty == null)
             {
@@ -94,50 +95,7 @@ public class PartyController : ControllerBase
                 return NotFound($"Party with ID {partyId} not found.");
             }
 
-            // --- Apply Partial Updates ---
-            bool changesMade = false;
-
-            // Only update if the DTO property is not null
-            if (updateDto.partyProgram != null)
-            {
-                if (existingParty.partyProgram != updateDto.partyProgram)
-                {
-                    existingParty.partyProgram = updateDto.partyProgram;
-                    changesMade = true;
-                    _logger.LogInformation("Updating PartyProgram for Party ID.");
-                }
-            }
-
-            if (updateDto.history != null)
-            {
-                if (existingParty.history != updateDto.history)
-                {
-                    existingParty.history = updateDto.history;
-                    changesMade = true;
-                    _logger.LogInformation("Updating History for Party ID.");
-                }
-            }
-
-            if (updateDto.politics != null)
-            {
-                if (existingParty.politics != updateDto.politics)
-                {
-                    existingParty.politics = updateDto.politics;
-                    changesMade = true;
-                    _logger.LogInformation("Updating Poilitics for Party ID.");
-                }
-            }
-
-            // --- Save Changes ---
-            if (changesMade)
-            {
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("Successfully updated details for Party ID.");
-            }
-            else
-            {
-                _logger.LogInformation("No changes detected for Party ID.");
-            }
+            await _service.UpdateDetails(partyId, updateDto);
 
             // --- Return Success Response ---
             return Ok(existingParty);
