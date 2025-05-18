@@ -1,6 +1,6 @@
 // src/components/Polidle/GuessList/GuessItem.logic.ts
 import { FeedbackType } from "../../../types/PolidleTypes";
-import styles from "../components/Polidle/GuessItem/GuessItem.module.css";
+import styles from "./GuessItem.module.css";
 
 export const FeedbackFieldKeys = {
   NAME: "Navn",
