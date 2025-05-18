@@ -144,7 +144,6 @@ export const submitGuess = async (
   return handleApiResponse<GuessResultDto>(response);
 };
 
-// Dummy logger for nu - Løsning B anvendt for ...args
 const _logger = {
   LogDebug: (
     message: string,
