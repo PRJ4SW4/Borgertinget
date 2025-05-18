@@ -12,11 +12,6 @@ using System.Security.Claims;
 public interface IUserAuthenticationRepository
 {
     Task<User?> GetUserByIdAsync(int userId);
-    Task<User?> FindUserByEmailAsync(string email);
-    Task<User?> FindUserByNameAsync(string username);
-    Task<User?> FindUserByLoginAsync(string loginProvider, string providerKey);
-    Task<IdentityResult> CreateUserAsync(User user, string? password = null);
-    Task<IdentityResult> AddLoginAsync(User user, UserLoginInfo login);
-    Task<IdentityResult> UpdateUserAsync(User user);
-    Task<IdentityResult> GiveUserRoleAsync(User user, string role);
+    Task<User?> GetUserByEmailAsync(string email);
+    Task<User?> GetUserByNameAsync(string username);
 }

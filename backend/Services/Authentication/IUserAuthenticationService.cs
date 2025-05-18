@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using backend.DTOs;
 using backend.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication;
 
 // This interface defines a contract for a calendar service that provides methods to interact with calendar events.
 namespace backend.Services.Authentication
@@ -15,8 +16,11 @@ namespace backend.Services.Authentication
         // User Registration
         Task<IdentityResult> CreateUserAsync(RegisterUserDto dto);
         Task<string> GenerateEmailConfirmationTokenAsync(User user);
+        Task<IdentityResult> ConfirmEmailAsync(User user, string token);
+        Task<string> GeneratePasswordResetTokenAsync(User user);
+        Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword);
         Task<IdentityResult> AddToRoleAsync(User user, string role);
-        Task DeleteUserAsync(User user);
+        Task<IdentityResult> DeleteUserAsync(User user);
         Task<User> FindUserByEmailAsync(string email);
         Task<User> FindUserByNameAsync(string username);
 
@@ -26,6 +30,10 @@ namespace backend.Services.Authentication
         Task<ExternalLoginInfo?> GetExternalLoginInfoAsync();
         Task<SignInResult> ExternalLoginSignInAsync(string loginProvider, string providerKey, bool isPersistent, bool bypassTwoFactor);
         Task<GoogleLoginResultDto> HandleGoogleLoginCallbackAsync(ExternalLoginInfo info);
-        public Task<string> GenerateJwtTokenAsync(User user); 
+        Task<string> GenerateJwtTokenAsync(User user);
+
+        AuthenticationProperties ConfigureExternalAuthenticationProperties(string provider, string redirectUrl);
+
+        Task SignOutAsync();
     }
 }

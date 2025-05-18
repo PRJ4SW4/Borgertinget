@@ -16,7 +16,6 @@ using System.Web;
 using backend.Data;
 using backend.DTOs;
 using backend.Models;
-using backend.Services;
 using backend.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -36,8 +35,6 @@ namespace backend.Controllers
     {
         private readonly IConfiguration _config;
         private readonly EmailService _emailService;
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
         private readonly ILogger<UsersController> _logger; // Corrected logger type to match class name
         private readonly IUserAuthenticationService _userAuthenticationService;
 
@@ -45,16 +42,12 @@ namespace backend.Controllers
         public UsersController(
             IConfiguration config,
             EmailService emailService,
-            UserManager<User> userManager,
-            SignInManager<User> signInManager,
             ILogger<UsersController> logger,
             IUserAuthenticationService userAuthenticationService 
         )
         {
             _config = config;
             _emailService = emailService;
-            _userManager = userManager;
-            _signInManager = signInManager;
             _logger = logger;
             _userAuthenticationService = userAuthenticationService;
         }
@@ -85,16 +78,15 @@ namespace backend.Controllers
                 }
 
                 var token = await _userAuthenticationService.GenerateEmailConfirmationTokenAsync(user);
+                _logger.LogInformation("Token 1: {Token}", token);
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+                _logger.LogInformation("Token 2: {EncodedToken}", encodedToken);
 
-                var verificationLink = $"http://localhost:5173/verify?userId={user.Id}&token={encodedToken}";
-                var subject = "Bekræft din e-mailadresse";
-                var message = $@"<p>Tak fordi du oprettede en konto.</p>
-                           <p>Klik venligst på linket nedenfor for at bekræfte din e-mailadresse:</p>
-                           <p><a href='{verificationLink}'>Bekræft min e-mail</a></p>";
+                var emailContent = await _emailService.GenerateRegistrationEmailAsync(encodedToken, user);
+
                 try
                 {
-                    await _emailService.SendEmailAsync(dto.Email, subject, message);
+                    await _emailService.SendEmailAsync(dto.Email, emailContent);
                 }
                 catch (Exception ex)
                 {
@@ -124,31 +116,34 @@ namespace backend.Controllers
                 return BadRequest("Token mangler.");
             }
 
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var user = await _userAuthenticationService.GetUserAsync(userId);
             if (user == null)
             {
                 _logger.LogError($"Bruger med ID {userId} blev ikke fundet.");
                 return BadRequest("Ugyldigt bruger ID.");
             }
+            
+            _logger.LogInformation("Token 3: {Token}", token);
+
 
             try
             {
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
+                _logger.LogInformation("Token 4: {DecodedTokenBytes}", decodedTokenBytes);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
+                _logger.LogInformation("Token 5: {DecodedToken}", decodedToken);
+                var result = await _userAuthenticationService.ConfirmEmailAsync(user, decodedToken);
 
-                var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
-                if (result.Succeeded)
+                if (!result.Succeeded)
+                {
+                    _logger.LogError($"Email verification failed for user {userId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    return BadRequest("Ugyldigt eller udløbet verifikationslink");
+                }
+                else
                 {
                     return Ok(
                         new { message = "Din emailadresse er bekræftet. Du kan nu logge ind." }
                     );
-                }
-                else
-                {
-                    Console.WriteLine(
-                        $"Email verification failed for user {userId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}"
-                    );
-                    return BadRequest("Ugyldigt eller udløbet verifikationslink");
                 }
             }
             catch (Exception ex)
@@ -177,7 +172,7 @@ namespace backend.Controllers
             if (user == null)
                 return BadRequest(new { error = "Bruger findes ikke" });
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
+            var result = await _userAuthenticationService.CheckPasswordSignInAsync(user, dto.Password, false);
 
             if (result.Succeeded)
             {
@@ -202,28 +197,20 @@ namespace backend.Controllers
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ForgotPasswordDto dto)
         {
-            var user = await _userManager.FindByEmailAsync(dto.Email);
+            var user = await _userAuthenticationService.FindUserByEmailAsync(dto.Email);
             if (user == null)
             {
                 return BadRequest(new { error = "Bruger findes ikke." });
             }
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var token = await _userAuthenticationService.GeneratePasswordResetTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-            var resetLink =
-                $"http://localhost:5173/reset-password?userId={user.Id}&token={encodedToken}";
-
-            var subject = "Nulstil din adgangskode";
-            var message =
-                $@"
-                <p>Du anmodede om at nulstille din adgangskode.</p>
-                <p>Klik venligst på linket nedenfor for at nulstille din adgangskode:</p>
-                <p><a href='{resetLink}'>Nulstil adgangskode</a></p>";
+            var emailContent = await _emailService.GenerateRegistrationEmailAsync(encodedToken, user);
 
             try
             {
-                await _emailService.SendEmailAsync(user.Email, subject, message);
+                await _emailService.SendEmailAsync(dto.Email, emailContent);
                 return Ok(
                     new
                     {
@@ -251,7 +238,7 @@ namespace backend.Controllers
             [FromQuery] string token
         )
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var user = await _userAuthenticationService.GetUserAsync(userId);
             if (user == null)
             {
                 return BadRequest(new { error = "Bruger findes ikke." });
@@ -267,7 +254,7 @@ namespace backend.Controllers
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
 
-                var result = await _userManager.ResetPasswordAsync(
+                var result = await _userAuthenticationService.ResetPasswordAsync(
                     user,
                     decodedToken,
                     dto.NewPassword
@@ -325,7 +312,7 @@ namespace backend.Controllers
                 propertiesRedirectUri
             );
 
-            var authenticationProperties = _signInManager.ConfigureExternalAuthenticationProperties(
+            var authenticationProperties = _userAuthenticationService.ConfigureExternalAuthenticationProperties(
                 GoogleDefaults.AuthenticationScheme,
                 propertiesRedirectUri // Denne URL peger på vores HandleGoogleCallback med den oprindelige clientReturnUrl
             );
@@ -368,8 +355,7 @@ namespace backend.Controllers
 
             // Ryd den midlertidige eksterne cookie
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-            await _signInManager.SignOutAsync();
-
+            await _userAuthenticationService.SignOutAsync();
 
             string frontendBaseUrl = _config["FrontendBaseUrl"] ?? "http://localhost:5173";
             string loginSuccessPathOnFrontend = "/login-success";
@@ -399,49 +385,5 @@ namespace backend.Controllers
             return Redirect(urlForLoginSuccessPage);
         }
 
-        // private async Task<string> GenerateJwtToken(User user)
-        // {
-        //     var jwtKey = _config["Jwt:Key"];
-        //     if (string.IsNullOrEmpty(jwtKey))
-        //     {
-        //         throw new InvalidOperationException("JWT Key is not configured.");
-        //     }
-        //     var key = Encoding.UTF8.GetBytes(jwtKey);
-        //     var userRoles = await _userManager.GetRolesAsync(user);
-
-        //     var claims = new List<Claim>
-        //     {
-        //         new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-        //         new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-        //         new Claim(JwtRegisteredClaimNames.Name, user.UserName ?? ""),
-        //         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        //         // Claims specifikke for ASP.NET Core Identity
-        //         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        //         new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
-        //         // applikationsspecifikke claims
-        //         new Claim("username", user.UserName ?? string.Empty),
-        //         new Claim("userId", user.Id.ToString()),
-        //     };
-
-        //     foreach (var role in userRoles)
-        //     {
-        //         claims.Add(new Claim(ClaimTypes.Role, role));
-        //     }
-
-        //     var tokenDescriptor = new SecurityTokenDescriptor
-        //     {
-        //         Subject = new ClaimsIdentity(claims),
-        //         Expires = DateTime.UtcNow.AddHours(1),
-        //         Issuer = _config["Jwt:Issuer"],
-        //         Audience = _config["Jwt:Audience"],
-        //         SigningCredentials = new SigningCredentials(
-        //             new SymmetricSecurityKey(key),
-        //             SecurityAlgorithms.HmacSha256Signature
-        //         ),
-        //     };
-        //     var tokenHandler = new JwtSecurityTokenHandler();
-        //     var token = tokenHandler.CreateToken(tokenDescriptor);
-        //     return tokenHandler.WriteToken(token);
-        // }
     }
 }

@@ -16,28 +16,29 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 
 namespace backend.Services.Authentication
 {
     public class UserAuthenticationService : IUserAuthenticationService
     {
         private readonly IUserAuthenticationRepository _authenticationRepository;
-        private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly ILogger<UserAuthenticationService> _logger;
         private readonly IConfiguration _config;
 
 
         public UserAuthenticationService(
             IUserAuthenticationRepository authenticationRepository,
-            SignInManager<User> signInManager,
             UserManager<User> userManager,
+            SignInManager<User> signInManager,
             ILogger<UserAuthenticationService> logger,
             IConfiguration config)
         {
             _authenticationRepository = authenticationRepository;
-            _signInManager = signInManager;
             _userManager = userManager;
+            _signInManager = signInManager;
             _logger = logger;
             _config = config;
         }
@@ -45,7 +46,7 @@ namespace backend.Services.Authentication
         public async Task<User?> FindUserByNameAsync(string username)
         {
             _logger.LogInformation("Attempting to find user by username in service: {Username}", username);
-            return await _authenticationRepository.FindUserByNameAsync(username);
+            return await _authenticationRepository.GetUserByNameAsync(username);
         }
 
         public async Task<IdentityResult> CreateUserAsync(RegisterUserDto dto)
@@ -56,8 +57,13 @@ namespace backend.Services.Authentication
                 Email = dto.Email,
             };
 
-            var result = await _authenticationRepository.CreateUserAsync(user, dto.Password);
-            return result;
+            if (dto.Password == null)
+            {
+                _logger.LogInformation("Creating user without password: {UserName}", dto.Username);
+                return await _userManager.CreateAsync(user);
+            }
+
+            return await _userManager.CreateAsync(user, dto.Password);
         }
 
         public async Task<SignInResult> CheckPasswordSignInAsync(User user, string password, bool lockoutOnFailure)
@@ -67,7 +73,23 @@ namespace backend.Services.Authentication
 
         public async Task<string> GenerateEmailConfirmationTokenAsync(User user)
         {
-            return await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            return token;
+        }
+
+        public async Task<IdentityResult> ConfirmEmailAsync(User user, string token)
+        {
+            return await _userManager.ConfirmEmailAsync(user, token);
+        }
+
+        public async Task<string> GeneratePasswordResetTokenAsync(User user)
+        {
+            return await _userManager.GeneratePasswordResetTokenAsync(user);
+        }
+
+        public async Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword)
+        {
+            return await _userManager.ResetPasswordAsync(user, token, newPassword);
         }
 
         public async Task<IdentityResult> AddToRoleAsync(User user, string role)
@@ -75,14 +97,14 @@ namespace backend.Services.Authentication
             return await _userManager.AddToRoleAsync(user, role);
         }
 
-        public async Task DeleteUserAsync(User user)
+        public async Task<IdentityResult> DeleteUserAsync(User user)
         {
-            await _userManager.DeleteAsync(user);
+            return await _userManager.DeleteAsync(user);        
         }
 
         public async Task<User?> FindUserByEmailAsync(string email)
         {
-            return await _authenticationRepository.FindUserByEmailAsync(email);
+            return await _authenticationRepository.GetUserByEmailAsync(email);
         }
 
         public string? SanitizeReturnUrl(string? clientReturnUrl)
@@ -102,6 +124,13 @@ namespace backend.Services.Authentication
             }
             return new User { Id = user.Id, UserName = user.UserName, Email = user.Email };
         }
+
+        public async Task SignOutAsync()
+        {
+            _logger.LogInformation("Signing out user in service.");
+            await _signInManager.SignOutAsync();
+        }
+
         public async Task<ExternalLoginInfo?> GetExternalLoginInfoAsync()
         {
             _logger.LogInformation("Attempting to get external login info in service.");
@@ -128,7 +157,7 @@ namespace backend.Services.Authentication
             User? appUser;
             if (signInResult.Succeeded)
             {
-                appUser = await _authenticationRepository.FindUserByLoginAsync(info.LoginProvider, info.ProviderKey);
+                appUser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
                 if (appUser == null)
                 {
                     _logger.LogError("User not found with FindByLoginAsync after successful ExternalLoginSignInAsync for {LoginProvider} - {ProviderKey}.", info.LoginProvider, info.ProviderKey);
@@ -145,7 +174,7 @@ namespace backend.Services.Authentication
                     return new GoogleLoginResultDto { Status = GoogleLoginStatus.ErrorNoEmailClaim, ErrorMessage = "Email ikke modtaget fra Google." };
                 }
 
-                appUser = await _authenticationRepository.FindUserByEmailAsync(email);
+                appUser = await _authenticationRepository.GetUserByEmailAsync(email);
                 if (appUser == null) // Opret ny lokal bruger
                 {
                     var nameFromGoogle = info.Principal.FindFirstValue(ClaimTypes.Name);
@@ -174,7 +203,7 @@ namespace backend.Services.Authentication
 
                     var tempUserName = sanitizedUserName;
                     int count = 1;
-                    while (await _authenticationRepository.FindUserByNameAsync(tempUserName) != null)
+                    while (await _authenticationRepository.GetUserByNameAsync(tempUserName) != null)
                     {
                         tempUserName = $"{sanitizedUserName}{count++}";
                     }
@@ -185,10 +214,10 @@ namespace backend.Services.Authentication
                     {
                         UserName = sanitizedUserName,
                         Email = email,
-                        EmailConfirmed = true, // Antag email fra Google er bekræftet
+                        EmailConfirmed = true, 
                     };
 
-                    var createUserResult = await _authenticationRepository.CreateUserAsync(appUser);
+                    var createUserResult = await _userManager.CreateAsync(appUser);
                     if (!createUserResult.Succeeded)
                     {
                         var errorDescriptions = createUserResult.Errors.Select(e => e.Description);
@@ -202,7 +231,7 @@ namespace backend.Services.Authentication
                     if (!appUser.EmailConfirmed)
                     {
                         appUser.EmailConfirmed = true;
-                        var updateResult = await _authenticationRepository.UpdateUserAsync(appUser);
+                        var updateResult = await _userManager.UpdateAsync(appUser);
                         if (!updateResult.Succeeded)
                         {
                             _logger.LogWarning("Could not confirm email for existing user {UserName} during Google Sign In. Errors: {Errors}", appUser.UserName, string.Join(", ", updateResult.Errors.Select(e => e.Description)));
@@ -215,7 +244,7 @@ namespace backend.Services.Authentication
                     }
                 }
 
-                var addLoginResult = await _authenticationRepository.AddLoginAsync(appUser, new UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName));
+                var addLoginResult = await _userManager.AddLoginAsync(appUser, new UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName));
                 if (!addLoginResult.Succeeded)
                 {
                     var errorDescriptions = addLoginResult.Errors.Select(e => e.Description);
@@ -226,7 +255,7 @@ namespace backend.Services.Authentication
             }
 
             // Generer JWT token her i servicen
-            var localJwtToken = await GenerateJwtTokenAsync(appUser); // Antager at appUser ikke er null her
+            var localJwtToken = await GenerateJwtTokenAsync(appUser); 
 
             return new GoogleLoginResultDto { Status = GoogleLoginStatus.Success, JwtToken = localJwtToken, AppUser = appUser };
         }
@@ -239,6 +268,7 @@ namespace backend.Services.Authentication
                 throw new InvalidOperationException("JWT Key is not configured.");
             }
             var key = Encoding.UTF8.GetBytes(jwtKey);
+
             var userRoles = await _userManager.GetRolesAsync(user);
 
             var claims = new List<Claim>
@@ -255,9 +285,12 @@ namespace backend.Services.Authentication
                 new Claim("userId", user.Id.ToString()),
             };
 
-            foreach (var role in userRoles)
+            if (userRoles != null)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                foreach (var role in userRoles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -274,6 +307,15 @@ namespace backend.Services.Authentication
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        public AuthenticationProperties ConfigureExternalAuthenticationProperties(string provider, string redirectUrl)
+        {
+            _logger.LogDebug(
+                "Configuring external authentication properties in service for provider {Provider} with redirectUrl {RedirectUrl}",
+                provider,
+                redirectUrl);
+            return _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
         }
     }
 }
