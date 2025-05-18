@@ -42,6 +42,8 @@ using OpenSearch.Client;
 using OpenSearch.Net;
 using backend.Services.Feed;
 using backend.Repositories.Feed;
+using backend.Repositories.Polls;
+using backend.Services.Polls;
 // for .env secrets
 DotNetEnv.Env.Load();
 
@@ -310,6 +312,8 @@ builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHostedService<DailySelectionJob>();
 builder.Services.AddScoped<IFeedRepository, FeedRepository>();
 builder.Services.AddScoped<IFeedService, FeedService>();
+builder.Services.AddScoped<IPollsRepository, PollsRepository>();
+builder.Services.AddScoped<IPollsService, PollsService>();
 //builder.Services.AddHttpClient<TwitterService>();
 
 builder.Services.AddHttpClient();

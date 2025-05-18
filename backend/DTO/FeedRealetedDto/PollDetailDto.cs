@@ -36,4 +36,11 @@ namespace backend.DTOs
         public int PoliticianTwitterId { get; set; }
         public DateTime? EndedAt { get; set; }
     }
+
+    public class PollSummaryDto
+    {
+        public int Id { get; set; }
+        public string Question { get; set; } = string.Empty;
+        public int PoliticianTwitterId { get; set; }
+    }
 }
