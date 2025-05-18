@@ -2,7 +2,7 @@
 import React from "react";
 import GuessItem from "../GuessItem/GuessItem";
 import styles from "./GuessList.module.css";
-import { headers } from "../../../hooks/GuessList.logic";
+import { headers } from "./GuessList.logic";
 import { GuessResultDto } from "../../../types/PolidleTypes";
 
 interface GuessListProps {

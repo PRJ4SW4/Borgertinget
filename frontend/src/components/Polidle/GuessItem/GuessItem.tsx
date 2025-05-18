@@ -6,10 +6,7 @@ import {
   DailyPoliticianDto,
   FeedbackType,
 } from "../../../types/PolidleTypes";
-import {
-  FeedbackFieldKeys,
-  getFeedbackClass,
-} from "../../../hooks/GuessItem.logic";
+import { FeedbackFieldKeys, getFeedbackClass } from "./GuessItem.logic";
 
 interface GuessItemProps {
   result: GuessResultDto;

@@ -1,5 +1,5 @@
 // src/components/Polidle/GuessList/GuessItem.logic.ts
-import { FeedbackType } from "../types/PolidleTypes";
+import { FeedbackType } from "../../../types/PolidleTypes";
 import styles from "../components/Polidle/GuessItem/GuessItem.module.css";
 
 export const FeedbackFieldKeys = {
