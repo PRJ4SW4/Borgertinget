@@ -78,9 +78,7 @@ namespace backend.Controllers
                 }
 
                 var token = await _userAuthenticationService.GenerateEmailConfirmationTokenAsync(user);
-                _logger.LogInformation("Token 1: {Token}", token);
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-                _logger.LogInformation("Token 2: {EncodedToken}", encodedToken);
 
                 var emailContent = await _emailService.GenerateRegistrationEmailAsync(encodedToken, user);
 
@@ -123,14 +121,11 @@ namespace backend.Controllers
                 return BadRequest("Ugyldigt bruger ID.");
             }
 
-            _logger.LogInformation("Token 3: {Token}", token);
 
             try
             {
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
-                _logger.LogInformation("Token 4: {DecodedTokenBytes}", decodedTokenBytes);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
-                _logger.LogInformation("Token 5: {DecodedToken}", decodedToken);
                 var result = await _userAuthenticationService.ConfirmEmailAsync(user, decodedToken);
 
                 if (!result.Succeeded)
