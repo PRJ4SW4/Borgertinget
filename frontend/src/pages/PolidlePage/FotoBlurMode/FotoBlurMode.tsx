@@ -2,18 +2,10 @@
 import React from "react";
 import GameSelector from "../../../components/Polidle/GamemodeSelector/GamemodeSelector";
 import Input from "../../../components/Polidle/Input/Input";
+import { useFotoBlurModePage } from "./FotoBlurMode.logic";
 
-import { usePoliticianSearch } from "../../../hooks/usePoliticianSearch";
-import { useFotoPolidleGame } from "../../../hooks/useFotoPolidleGame"; // Antager denne hook findes
-import { DailyPoliticianDto } from "../../../types/PolidleTypes";
-
-import pageStyles from "./FotoBlurMode.module.css"; // <<< Specifikke styles
-import sharedStyles from "../../../components/Polidle/SharedPolidle.module.css"; // <<< Delte Polidle styles
-
-interface FotoGuessHistoryDisplayItem {
-  guessedInfo: DailyPoliticianDto;
-  isCorrect: boolean;
-}
+import pageStyles from "./FotoBlurMode.module.css";
+import sharedStyles from "../../../components/Polidle/SharedPolidle.module.css";
 
 const FotoBlurMode: React.FC = () => {
   const {
@@ -24,36 +16,18 @@ const FotoBlurMode: React.FC = () => {
     selectedPoliticianId,
     handleSearchChange,
     handleOptionSelect,
-    clearSelectionAndSearch,
-  } = usePoliticianSearch();
 
-  const {
     photoUrl,
     isLoadingPhoto,
     photoError,
     blurLevel,
     guessHistory,
     isGuessing,
-    guessError: gameGuessError,
+    guessError,
     isGameWon,
-    makeFotoGuess,
+    handleGuessSubmit,
     resetGame,
-  } = useFotoPolidleGame(); // Brug den korrekte hook
-
-  const handleGuessSubmit = async () => {
-    // ... (samme som i ClassicMode, men kalder makeFotoGuess) ...
-    if (selectedPoliticianId === null || isGameWon) return;
-    const result = await makeFotoGuess(selectedPoliticianId);
-    if (result) {
-      clearSelectionAndSearch();
-      if (result.isCorrectGuess) {
-        setTimeout(
-          () => alert("Tillykke, du gættede rigtigt! (Foto Mode)"),
-          100
-        );
-      }
-    }
-  };
+  } = useFotoBlurModePage();
 
   return (
     <div
@@ -63,8 +37,6 @@ const FotoBlurMode: React.FC = () => {
       <GameSelector />
 
       <div className={pageStyles.photoDisplayContainer}>
-        {" "}
-        {/* Bruges i stedet for polidleStyles.photoContainer */}
         <p className={sharedStyles.gameInstructions}>Hvem er på billedet?</p>
         {isLoadingPhoto && <p>Henter dagens billede...</p>}
         {photoError && (
@@ -85,7 +57,6 @@ const FotoBlurMode: React.FC = () => {
         )}
       </div>
 
-      {/* Søge- og gætte-sektion (genbruger sharedStyles) */}
       {!isGameWon && (
         <div className={sharedStyles.searchContainer}>
           <Input
@@ -97,7 +68,7 @@ const FotoBlurMode: React.FC = () => {
             className={sharedStyles.searchInput}
             autoComplete="off"
           />
-          {/* ... Søgeresultater (som i ClassicMode, bruger sharedStyles) ... */}
+
           {searchText && selectedPoliticianId === null && (
             <>
               {isSearching && (
@@ -108,14 +79,11 @@ const FotoBlurMode: React.FC = () => {
                   Fejl: {searchError}
                 </div>
               )}
-              {!isSearching &&
-                !searchError &&
-                searchResults.length === 0 &&
-                searchText.length > 0 && (
-                  <div className={sharedStyles.noResults}>
-                    Ingen match fundet.
-                  </div>
-                )}
+              {!isSearching && !searchError && searchResults.length === 0 && (
+                <div className={sharedStyles.noResults}>
+                  Ingen match fundet.
+                </div>
+              )}
               {!isSearching && !searchError && searchResults.length > 0 && (
                 <ul className={sharedStyles.searchResults}>
                   {searchResults.map((option) => (
@@ -153,13 +121,12 @@ const FotoBlurMode: React.FC = () => {
           >
             {isGuessing ? "Gætter..." : "Gæt"}
           </button>
-          {gameGuessError && (
-            <div className={sharedStyles.guessError}>
-              Fejl: {gameGuessError}
-            </div>
+          {guessError && (
+            <div className={sharedStyles.guessError}>Fejl: {guessError}</div>
           )}
         </div>
       )}
+
       {isGameWon && (
         <div className={sharedStyles.gameWonMessage}>
           <p>Godt gået! Du fandt politikeren!</p>
@@ -169,16 +136,13 @@ const FotoBlurMode: React.FC = () => {
         </div>
       )}
 
-      {/* Gættehistorik (genbruger sharedStyles for .citatGuessHistory osv.) */}
       <div
         className={`${sharedStyles.fotoGuessHistory} ${pageStyles.fotoModeGuessHistory}`}
       >
-        {" "}
-        {/* Kan have både delt og specifik klasse */}
         {guessHistory.length > 0 && (
           <h3 className={sharedStyles.historyHeader}>Dine Gæt:</h3>
         )}
-        {guessHistory.map((item: FotoGuessHistoryDisplayItem, index) => (
+        {guessHistory.map((item, index) => (
           <div
             key={index}
             className={`${sharedStyles.citatGuessItem} ${
