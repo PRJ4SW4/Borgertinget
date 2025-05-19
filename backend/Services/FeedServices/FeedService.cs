@@ -16,7 +16,8 @@ namespace backend.Services.Feed
 
         public FeedService(IFeedRepository feedRepository, ILogger<FeedService> logger)
         {
-            _feedRepository = feedRepository ?? throw new ArgumentNullException(nameof(feedRepository));
+            _feedRepository =
+                feedRepository ?? throw new ArgumentNullException(nameof(feedRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -33,14 +34,22 @@ namespace backend.Services.Feed
             }
         }
 
-        public async Task<PaginatedFeedResult> GetUserFeedAsync(int userId, int page, int pageSize, int? politicianId)
+        public async Task<PaginatedFeedResult> GetUserFeedAsync(
+            int userId,
+            int page,
+            int pageSize,
+            int? politicianId
+        )
         {
             try
             {
                 // Normalize pagination parameters
-                if (page < 1) page = 1;
-                if (pageSize < 1) pageSize = 5;
-                if (pageSize > 50) pageSize = 50;
+                if (page < 1)
+                    page = 1;
+                if (pageSize < 1)
+                    pageSize = 5;
+                if (pageSize > 50)
+                    pageSize = 50;
 
                 List<int> relevantPoliticianIds;
                 bool isFiltered = politicianId.HasValue;
@@ -48,31 +57,40 @@ namespace backend.Services.Feed
                 if (isFiltered)
                 {
                     int politicianIdValue = politicianId!.Value;
-                    
-                    bool isSubscribed = await _feedRepository.IsUserSubscribedToPoliticianAsync(userId, politicianIdValue);
+
+                    bool isSubscribed = await _feedRepository.IsUserSubscribedToPoliticianAsync(
+                        userId,
+                        politicianIdValue
+                    );
                     if (!isSubscribed)
-                        return new PaginatedFeedResult(); 
+                        return new PaginatedFeedResult();
 
                     relevantPoliticianIds = new List<int> { politicianIdValue };
                 }
                 else
                 {
-                    relevantPoliticianIds = await _feedRepository.GetUserSubscribedPoliticianIdsAsync(userId);
+                    relevantPoliticianIds =
+                        await _feedRepository.GetUserSubscribedPoliticianIdsAsync(userId);
                 }
 
                 if (!relevantPoliticianIds.Any())
                 {
-                    return new PaginatedFeedResult(); 
+                    return new PaginatedFeedResult();
                 }
 
                 List<Tweet> tweetsToPaginate;
                 if (isFiltered)
                 {
-                    tweetsToPaginate = await _feedRepository.GetTweetsByPoliticianIdAsync(politicianId!.Value);
+                    tweetsToPaginate = await _feedRepository.GetTweetsByPoliticianIdAsync(
+                        politicianId!.Value
+                    );
                 }
                 else
                 {
-                    tweetsToPaginate = await _feedRepository.GetTopTweetsByPoliticianIdsAsync(relevantPoliticianIds, 5);
+                    tweetsToPaginate = await _feedRepository.GetTopTweetsByPoliticianIdsAsync(
+                        relevantPoliticianIds,
+                        5
+                    );
                 }
 
                 int totalTweets = tweetsToPaginate.Count;
@@ -99,12 +117,16 @@ namespace backend.Services.Feed
 
                 if (!isFiltered)
                 {
-                    var allLatestPolls = await _feedRepository.GetLatestPollsByPoliticianIdsAsync(relevantPoliticianIds, 2);
-                    
+                    var allLatestPolls = await _feedRepository.GetLatestPollsByPoliticianIdsAsync(
+                        relevantPoliticianIds,
+                        2
+                    );
+
                     if (allLatestPolls.Any())
                     {
                         var pollIdsToCheck = allLatestPolls.Select(p => p.Id).Distinct().ToList();
-                        var userVotesForLatestPolls = await _feedRepository.GetUserVotesForPollsAsync(userId, pollIdsToCheck);
+                        var userVotesForLatestPolls =
+                            await _feedRepository.GetUserVotesForPollsAsync(userId, pollIdsToCheck);
 
                         latestPollDtos = allLatestPolls
                             .OrderByDescending(p => p.CreatedAt)
@@ -125,16 +147,19 @@ namespace backend.Services.Feed
                 {
                     Tweets = feedTweetDtos,
                     HasMore = hasMoreTweets,
-                    LatestPolls = latestPollDtos
+                    LatestPolls = latestPollDtos,
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting feed for user {userId} with filter {politicianId}");
+                _logger.LogError(
+                    ex,
+                    $"Error getting feed for user {userId} with filter {politicianId}"
+                );
                 throw;
             }
         }
-        
+
         private PollDetailsDto MapPollToDetailsDto(
             Poll poll,
             PoliticianTwitterId politician,

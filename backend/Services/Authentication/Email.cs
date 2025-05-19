@@ -26,7 +26,7 @@ namespace backend.Services.Authentication
             public string HtmlMessage { get; set; } = string.Empty;
         };
 
-        public async Task<EmailData> GenerateRegistrationEmailAsync(string token, User user)
+        public EmailData GenerateRegistrationEmail(string token, User user)
         {
             var verificationLink = $"http://localhost:5173/verify?userId={user.Id}&token={token}";
             var subject = "Bekræft din e-mailadresse";
@@ -37,13 +37,13 @@ namespace backend.Services.Authentication
 
             return new EmailData
             {
-                ToEmail = user.Email, // Antager at din IdentityUser har en Email property
+                ToEmail = user.Email!, // Antager at din IdentityUser har en Email property
                 Subject = subject,
                 HtmlMessage = message,
             };
         }
 
-        public async Task<EmailData> GenerateResetPasswordEmailAsync(string token, User user)
+        public EmailData GenerateResetPasswordEmail(string token, User user)
         {
             var resetLink = $"http://localhost:5173/reset-password?userId={user.Id}&token={token}";
 
@@ -56,7 +56,7 @@ namespace backend.Services.Authentication
 
             return new EmailData
             {
-                ToEmail = user.Email,
+                ToEmail = user.Email!,
                 Subject = subject,
                 HtmlMessage = message,
             };

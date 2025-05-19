@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using System.Web;
+using backend.Models;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
-using backend.Models;
 
 namespace backend.Services.Authentication
 {
@@ -13,9 +13,5 @@ namespace backend.Services.Authentication
         public Task<EmailService> GenerateRegistrationEmailAsync(string token, User user);
 
         public Task SendEmailAsync(string toEmail, string subject, string htmlMessage);
-
     }
 }
-
-
-
