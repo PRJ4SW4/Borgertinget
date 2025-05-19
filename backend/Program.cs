@@ -11,22 +11,32 @@ using backend.Models;
 using backend.Persistence.Repositories;
 using backend.Repositories;
 using backend.Repositories.Authentication;
+using backend.Repositories.Authentication;
+using backend.Repositories.Authentication;
 using backend.Repositories.Calendar;
+using backend.Repositories.Feed;
+using backend.Repositories.Feed;
 using backend.Repositories.Flashcards;
 using backend.Repositories.LearningEnvironment;
 using backend.Repositories.PolidleSelection;
 using backend.Repositories.PolidleTracker;
 using backend.Repositories.Politicians;
+using backend.Repositories.Polls;
 using backend.Services;
+using backend.Services.Authentication;
+using backend.Services.Authentication;
 using backend.Services.Authentication;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
+using backend.Services.Feed;
+using backend.Services.Feed;
 using backend.Services.Flashcards;
 using backend.Services.LearningEnvironment;
 using backend.Services.Mapping;
 using backend.Services.Politicians;
+using backend.Services.Polls;
 using backend.Services.Search;
 using backend.Services.Selection;
 using backend.Services.Utility;
@@ -309,6 +319,18 @@ builder.Services.AddScoped<IFetchService, FetchService>();
 
 builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHostedService<DailySelectionJob>();
+builder.Services.AddScoped<IFeedRepository, FeedRepository>();
+builder.Services.AddScoped<IFeedService, FeedService>();
+builder.Services.AddScoped<IPollsRepository, PollsRepository>();
+builder.Services.AddScoped<IPollsService, PollsService>();
+builder.Services.AddScoped<
+    backend.Repositories.Subscription.ISubscriptionRepository,
+    backend.Repositories.Subscription.SubscriptionRepository
+>();
+builder.Services.AddScoped<
+    backend.Services.Subscription.ISubscriptionService,
+    backend.Services.Subscription.SubscriptionService
+>();
 builder.Services.AddHttpClient<TwitterService>();
 
 builder.Services.AddHttpClient();
