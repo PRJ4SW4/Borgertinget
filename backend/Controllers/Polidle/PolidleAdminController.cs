@@ -17,7 +17,7 @@ namespace backend.Controllers
     /// Kræver Admin-rolle for adgang.
     [Route("api/polidle/admin")] // Base route for admin funktioner
     [ApiController]
-    //[Authorize(Roles = "Admin")] // <<< SIKRING: Kræver "Admin"-rolle for *alle* actions her
+    [Authorize(Roles = "Admin")] // <<< SIKRING: Kræver "Admin"-rolle for *alle* actions her
     public class PolidleAdminController : ControllerBase
     {
         private readonly IDailySelectionService _selectionService;

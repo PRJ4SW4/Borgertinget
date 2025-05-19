@@ -4,8 +4,9 @@ using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
+using backend.Models;
 
-namespace backend.Services
+namespace backend.Services.Authentication
 {
     public class EmailService
     {
@@ -18,7 +19,50 @@ namespace backend.Services
             _config = config;
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage)
+        public class EmailData
+        {
+            public string ToEmail { get; set; } = string.Empty;
+            public string Subject { get; set; } = string.Empty;
+            public string HtmlMessage { get; set; } = string.Empty;
+        };
+
+        public async Task<EmailData> GenerateRegistrationEmailAsync(string token, User user)
+        {
+            var verificationLink = $"http://localhost:5173/verify?userId={user.Id}&token={token}";
+            var subject = "Bekræft din e-mailadresse";
+            var message = $@"<p>Tak fordi du oprettede en konto.</p>
+                                    <p>Klik venligst på linket nedenfor for at bekræfte din e-mailadresse:</p>
+                                    <p><a href='{verificationLink}'>Bekræft min e-mail</a></p>";
+
+            return new EmailData
+            {
+                ToEmail = user.Email, // Antager at din IdentityUser har en Email property
+                Subject = subject,
+                HtmlMessage = message
+            };
+        }
+
+        public async Task<EmailData> GenerateResetPasswordEmailAsync(string token, User user)
+        {
+            var resetLink =
+                $"http://localhost:5173/reset-password?userId={user.Id}&token={token}";
+
+            var subject = "Nulstil din adgangskode";
+            var message =
+                $@"
+                <p>Du anmodede om at nulstille din adgangskode.</p>
+                <p>Klik venligst på linket nedenfor for at nulstille din adgangskode:</p>
+                <p><a href='{resetLink}'>Nulstil adgangskode</a></p>";
+
+            return new EmailData
+            {
+                ToEmail = user.Email,
+                Subject = subject,
+                HtmlMessage = message
+            };
+        }
+
+        public async Task SendEmailAsync(string toEmail, EmailData emailContent)
         {
             var emailSettings = _config.GetSection("Email");
 
@@ -37,10 +81,10 @@ namespace backend.Services
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(fromName, fromEmail));
             message.To.Add(new MailboxAddress("", toEmail)); // Modtagernavn kan være tomt
-            message.Subject = subject;
+            message.Subject = emailContent.Subject;
 
             var bodyBuilder = new BodyBuilder();
-            bodyBuilder.HtmlBody = htmlMessage;
+            bodyBuilder.HtmlBody = emailContent.HtmlMessage;
             message.Body = bodyBuilder.ToMessageBody();
 
             using (var client = new SmtpClient())

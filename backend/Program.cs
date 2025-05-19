@@ -14,6 +14,8 @@ using backend.Models;
 using backend.Persistence.Repositories;
 using backend.Repositories;
 using backend.Repositories.Calendar;
+using backend.Repositories.PolidleSelection;
+using backend.Repositories.PolidleTracker;
 using backend.Repositories.Politicians;
 using backend.Services;
 using backend.Services.Calendar;
@@ -44,7 +46,9 @@ using OpenSearch.Net;
 using backend.Services.Feed;
 using backend.Repositories.Feed;
 using backend.Repositories.Polls;
-using backend.Services.Polls;
+using backend.Services.Polls;using backend.Repositories.Authentication;
+using backend.Services.Authentication;
+
 // for .env secrets
 DotNetEnv.Env.Load();
 
@@ -389,6 +393,11 @@ builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository
 builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
 builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
+
+// user authentication
+builder.Services.AddScoped<IUserAuthenticationRepository, UserAuthenticationRepository>();
+builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+
 
 builder.Services.AddRouting();
 

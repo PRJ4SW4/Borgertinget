@@ -19,18 +19,15 @@ public class CalendarEventRepository : ICalendarEventRepository
 {
     private readonly DataContext _context; // Database context for data operations.
     private readonly ILogger<CalendarEventRepository> _logger; // Logger for recording repository activity.
-    private readonly UserManager<User> _userManager; // User manager for user-related operations.
 
     // Constructor: Takes injected DataContext and logger.
     public CalendarEventRepository(
         DataContext context,
-        ILogger<CalendarEventRepository> logger,
-        UserManager<User> userManager
+        ILogger<CalendarEventRepository> logger
     )
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
     }
 
     // Retrieves future CalendarEvents.
@@ -153,10 +150,8 @@ public class CalendarEventRepository : ICalendarEventRepository
 
     // Retrieves EventInterests for a specific CalendarEvent and user.
     // Returns null if the event or user is not found.
-    public async Task<EventInterest?> RetrieveInterestPairsAsync(int eventId, string userId)
+    public async Task<EventInterest?> RetrieveInterestPairsAsync(int eventId, int userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
-
         var calendarEvent = await _context.CalendarEvents.FindAsync(eventId);
         if (calendarEvent == null)
         {
@@ -164,14 +159,8 @@ public class CalendarEventRepository : ICalendarEventRepository
             return null;
         }
 
-        if (user == null)
-        {
-            _logger.LogWarning("User with ID {UserId} not found.", userId);
-            return null;
-        }
-
         var alreadyInterested = await _context
-            .EventInterests.Where(ei => ei.CalendarEventId == eventId && ei.UserId == user.Id)
+            .EventInterests.Where(ei => ei.CalendarEventId == eventId && ei.UserId == userId)
             .FirstOrDefaultAsync();
 
         return alreadyInterested;
@@ -197,17 +186,6 @@ public class CalendarEventRepository : ICalendarEventRepository
             eventInterest.UserId
         );
         await Task.CompletedTask;
-    }
-
-    public async Task<User?> GetUserModelByIdStringAsync(string userId)
-    {
-        if (userId == null)
-        {
-            _logger.LogWarning("User ID is null.");
-            return null;
-        }
-        var user = await _userManager.FindByIdAsync(userId);
-        return user;
     }
 
     public async Task<int> GetInterestedUsersAsync(int eventId)
