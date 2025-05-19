@@ -54,7 +54,7 @@ const HomePage: React.FC = () => {
             <p>En oversigt over partierne og deres politikere</p>
             <div className="feature-buttons">
                 <a href="/parties"><button className="feature-button">Partier</button></a>
-                <a href="/politicians"><button className="feature-button">Politikere</button></a>
+                <a href="/parties"><button className="feature-button">Politikere</button></a>
             </div>
           </div>
           <div className="feature-image">
@@ -67,8 +67,8 @@ const HomePage: React.FC = () => {
              <h2>Ugentlige Poldies</h2>
              <p>Sjovt minispil der udfordrer ens paratviden i politik</p>
              <div className="feature-buttons">
-               <a href="/polidles/classic"><button className="feature-button">Klassisk</button></a>
-               <a href="/polidles/image"><button className="feature-button">Billede</button></a>
+               <a href="/ClassicMode"><button className="feature-button">Klassisk</button></a>
+               <a href="/FotoBlurMode"><button className="feature-button">Billede</button></a>
              </div>
            </div>
            <div className="feature-image">
