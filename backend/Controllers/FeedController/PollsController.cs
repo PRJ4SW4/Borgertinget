@@ -186,7 +186,8 @@ namespace backend.Controllers
                     return BadRequest("Ugyldig svarmulighed valgt.");
 
                 var updatedPoll = await _pollsService.GetPollByIdAsync(pollId, currentUserId);
-
+                if (updatedPoll == null)
+                    return NotFound();
                 var updatedOptionsData = updatedPoll
                     .Options.OrderBy(o => o.Id)
                     .Select(o => new { OptionId = o.Id, Votes = o.Votes })
