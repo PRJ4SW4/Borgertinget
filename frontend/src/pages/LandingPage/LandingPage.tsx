@@ -10,8 +10,6 @@ import JourneySection from "../../components/LandingPage/Journey/JourneySection"
 import featureImage1 from "../../assets/features/feature_1.png";
 import featureImage2 from "../../assets/features/feature_2.png";
 import featureImage3 from "../../assets/features/feature_3.png";
-
-import styles from "./LandingPage.module.css";
 import { useLandingPageLogic, FeatureItem } from "../../hooks/useLandingPage";
 
 const featuresData1: FeatureItem[] = [
