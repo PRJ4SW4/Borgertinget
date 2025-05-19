@@ -47,7 +47,10 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Fejl under hentning af subscriptions for bruger {currentUserId}");
+                _logger.LogError(
+                    ex,
+                    $"Fejl under hentning af subscriptions for bruger {currentUserId}"
+                );
                 return StatusCode(500, "Intern fejl ved hentning af abonnementer.");
             }
         }
@@ -76,12 +79,20 @@ namespace backend.Controllers
 
             try
             {
-                var result = await _feedService.GetUserFeedAsync(currentUserId, page, pageSize, politicianId);
+                var result = await _feedService.GetUserFeedAsync(
+                    currentUserId,
+                    page,
+                    pageSize,
+                    politicianId
+                );
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Fejl under hentning af feed for bruger {currentUserId} (Filter: {politicianId})");
+                _logger.LogError(
+                    ex,
+                    $"Fejl under hentning af feed for bruger {currentUserId} (Filter: {politicianId})"
+                );
                 return StatusCode(500, "Der opstod en intern fejl under hentning af dit feed.");
             }
         }

@@ -23,25 +23,27 @@ namespace backend.Repositories.Subscription
         {
             try
             {
-                var politicianExists = await _context.PoliticianTwitterIds.AnyAsync(p => p.Id == politicianTwitterId);
+                var politicianExists = await _context.PoliticianTwitterIds.AnyAsync(p =>
+                    p.Id == politicianTwitterId
+                );
                 if (!politicianExists)
                 {
-                    return false; 
+                    return false;
                 }
 
                 bool alreadySubscribed = await _context.Subscriptions.AnyAsync(s =>
-                    s.UserId == userId && s.PoliticianTwitterId == politicianTwitterId);
+                    s.UserId == userId && s.PoliticianTwitterId == politicianTwitterId
+                );
 
                 if (alreadySubscribed)
                 {
                     return false;
                 }
 
-               
                 var newSubscription = new Models.Subscription
                 {
                     UserId = userId,
-                    PoliticianTwitterId = politicianTwitterId
+                    PoliticianTwitterId = politicianTwitterId,
                 };
 
                 _context.Subscriptions.Add(newSubscription);
@@ -50,7 +52,10 @@ namespace backend.Repositories.Subscription
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error subscribing user {userId} to politician {politicianTwitterId}");
+                _logger.LogError(
+                    ex,
+                    $"Error subscribing user {userId} to politician {politicianTwitterId}"
+                );
                 return false;
             }
         }
@@ -60,11 +65,12 @@ namespace backend.Repositories.Subscription
             try
             {
                 var subscription = await _context.Subscriptions.FirstOrDefaultAsync(s =>
-                    s.UserId == userId && s.PoliticianTwitterId == politicianTwitterId);
+                    s.UserId == userId && s.PoliticianTwitterId == politicianTwitterId
+                );
 
                 if (subscription == null)
                 {
-                    return false; 
+                    return false;
                 }
 
                 _context.Subscriptions.Remove(subscription);
@@ -73,7 +79,10 @@ namespace backend.Repositories.Subscription
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error unsubscribing user {userId} from politician {politicianTwitterId}");
+                _logger.LogError(
+                    ex,
+                    $"Error unsubscribing user {userId} from politician {politicianTwitterId}"
+                );
                 return false;
             }
         }

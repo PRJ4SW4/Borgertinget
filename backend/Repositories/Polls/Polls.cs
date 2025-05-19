@@ -3,7 +3,6 @@ using backend.DTOs;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace backend.Repositories.Polls
 {
     public class PollsRepository : IPollsRepository
@@ -49,8 +48,7 @@ namespace backend.Repositories.Polls
         public async Task<UserVote?> GetUserVoteAsync(int pollId, int userId)
         {
             return await _context
-                .UserVotes
-                .AsNoTracking()
+                .UserVotes.AsNoTracking()
                 .FirstOrDefaultAsync(uv => uv.PollId == pollId && uv.UserId == userId);
         }
 
@@ -104,18 +102,20 @@ namespace backend.Repositories.Polls
                     };
                     chosenOption.Votes++;
                     _context.UserVotes.Add(userVote);
-                    _context.Entry(chosenOption).State = EntityState.Modified; 
+                    _context.Entry(chosenOption).State = EntityState.Modified;
                 }
                 else
                 {
                     if (existingVote.ChosenOptionId == optionId)
                         return true;
 
-                    var oldOption = poll.Options.FirstOrDefault(o => o.Id == existingVote.ChosenOptionId);
+                    var oldOption = poll.Options.FirstOrDefault(o =>
+                        o.Id == existingVote.ChosenOptionId
+                    );
                     if (oldOption != null)
                     {
                         oldOption.Votes--;
-                        _context.Entry(oldOption).State = EntityState.Modified; 
+                        _context.Entry(oldOption).State = EntityState.Modified;
                     }
 
                     chosenOption.Votes++;
@@ -124,12 +124,15 @@ namespace backend.Repositories.Polls
                     _context.Entry(existingVote).State = EntityState.Modified;
                 }
 
-                await _context.SaveChangesAsync(); 
+                await _context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error updating vote for poll {pollId}, user {userId}, option {optionId}");
+                _logger.LogError(
+                    ex,
+                    $"Error updating vote for poll {pollId}, user {userId}, option {optionId}"
+                );
                 throw;
             }
         }

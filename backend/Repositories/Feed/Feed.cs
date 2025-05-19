@@ -35,7 +35,7 @@ namespace backend.Repositories.Feed
                     })
                     .OrderBy(p => p.Name)
                     .ToListAsync();
-                
+
                 return subscriptions;
             }
             catch (Exception ex)
@@ -69,10 +69,13 @@ namespace backend.Repositories.Feed
                 .ToListAsync();
         }
 
-        public async Task<List<Tweet>> GetTopTweetsByPoliticianIdsAsync(List<int> politicianIds, int topCount)
+        public async Task<List<Tweet>> GetTopTweetsByPoliticianIdsAsync(
+            List<int> politicianIds,
+            int topCount
+        )
         {
             var allTweets = new List<Tweet>();
-            
+
             foreach (var polDbId in politicianIds)
             {
                 var politicianTopTweets = await _context
@@ -81,26 +84,30 @@ namespace backend.Repositories.Feed
                     .Take(topCount)
                     .Include(t => t.Politician)
                     .ToListAsync();
-                    
+
                 allTweets.AddRange(politicianTopTweets);
             }
-            
+
             return allTweets.OrderByDescending(t => t.CreatedAt).ToList();
         }
 
-        public async Task<Dictionary<int, UserVote>> GetUserVotesForPollsAsync(int userId, List<int> pollIds)
+        public async Task<Dictionary<int, UserVote>> GetUserVotesForPollsAsync(
+            int userId,
+            List<int> pollIds
+        )
         {
             return await _context
-                .UserVotes.Where(uv =>
-                    uv.UserId == userId && pollIds.Contains(uv.PollId)
-                )
+                .UserVotes.Where(uv => uv.UserId == userId && pollIds.Contains(uv.PollId))
                 .ToDictionaryAsync(uv => uv.PollId, uv => uv);
         }
 
-        public async Task<List<Poll>> GetLatestPollsByPoliticianIdsAsync(List<int> politicianIds, int count)
+        public async Task<List<Poll>> GetLatestPollsByPoliticianIdsAsync(
+            List<int> politicianIds,
+            int count
+        )
         {
             var allPolls = new List<Poll>();
-            
+
             foreach (var polDbId in politicianIds)
             {
                 var politicianLatestPolls = await _context
@@ -110,10 +117,10 @@ namespace backend.Repositories.Feed
                     .Include(p => p.Politician)
                     .Include(p => p.Options)
                     .ToListAsync();
-                    
+
                 allPolls.AddRange(politicianLatestPolls);
             }
-            
+
             return allPolls;
         }
     }

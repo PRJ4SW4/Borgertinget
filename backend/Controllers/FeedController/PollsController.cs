@@ -1,6 +1,4 @@
-
 using System.Security.Claims;
-
 using backend.DTOs;
 using backend.Hubs;
 using backend.Services.Polls;
@@ -22,7 +20,8 @@ namespace backend.Controllers
         public PollsController(
             IPollsService pollsService,
             IHubContext<FeedHub> hubContext,
-            ILogger<PollsController> logger)
+            ILogger<PollsController> logger
+        )
         {
             _pollsService = pollsService ?? throw new ArgumentNullException(nameof(pollsService));
             _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
@@ -36,10 +35,15 @@ namespace backend.Controllers
             var isValid = await _pollsService.ValidatePoll(createPollDto);
             if (!isValid)
             {
-                var politician = await _pollsService.GetPolitician(createPollDto.PoliticianTwitterId);
+                var politician = await _pollsService.GetPolitician(
+                    createPollDto.PoliticianTwitterId
+                );
                 if (politician == null)
                 {
-                    ModelState.AddModelError(nameof(createPollDto.PoliticianTwitterId), "Den angivne politiker findes ikke.");
+                    ModelState.AddModelError(
+                        nameof(createPollDto.PoliticianTwitterId),
+                        "Den angivne politiker findes ikke."
+                    );
                 }
                 return ValidationProblem(ModelState);
             }
@@ -47,7 +51,11 @@ namespace backend.Controllers
             try
             {
                 var createdPollDto = await _pollsService.CreatePollAsync(createPollDto);
-                return CreatedAtAction(nameof(GetPollById), new { id = createdPollDto.Id }, createdPollDto);
+                return CreatedAtAction(
+                    nameof(GetPollById),
+                    new { id = createdPollDto.Id },
+                    createdPollDto
+                );
             }
             catch (DbUpdateException ex)
             {
@@ -76,7 +84,8 @@ namespace backend.Controllers
         [Authorize]
         public async Task<ActionResult<PollDetailsDto>> GetPollById(int id)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            var userIdString =
+                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
             if (
                 string.IsNullOrEmpty(userIdString)
                 || !int.TryParse(userIdString, out int currentUserId)
@@ -148,7 +157,8 @@ namespace backend.Controllers
         [Authorize]
         public async Task<IActionResult> Vote(int pollId, VoteDto voteDto)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            var userIdString =
+                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
             if (
                 string.IsNullOrEmpty(userIdString)
                 || !int.TryParse(userIdString, out int currentUserId)
@@ -160,35 +170,42 @@ namespace backend.Controllers
             var poll = await _pollsService.GetPollAsync(pollId);
             if (poll == null)
                 return NotFound("Afstemningen blev ikke fundet.");
-                
+
             if (poll.EndedAt.HasValue && poll.EndedAt.Value < DateTime.UtcNow)
                 return BadRequest("Afstemningen er afsluttet.");
 
             try
             {
-                var (success, updatedOptions) = await _pollsService.VoteAsync(pollId, currentUserId, voteDto.OptionId);
-                
+                var (success, updatedOptions) = await _pollsService.VoteAsync(
+                    pollId,
+                    currentUserId,
+                    voteDto.OptionId
+                );
+
                 if (!success)
                     return BadRequest("Ugyldig svarmulighed valgt.");
-                
+
                 var updatedPoll = await _pollsService.GetPollByIdAsync(pollId, currentUserId);
-                
-                var updatedOptionsData = updatedPoll.Options
-                    .OrderBy(o => o.Id)
+
+                var updatedOptionsData = updatedPoll
+                    .Options.OrderBy(o => o.Id)
                     .Select(o => new { OptionId = o.Id, Votes = o.Votes })
                     .ToList();
-                    
+
                 await _hubContext.Clients.All.SendAsync(
                     "PollVotesUpdated",
                     pollId,
                     updatedOptionsData
                 );
-                
+
                 return Ok();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Fejl ved opdatering af stemme for poll {pollId}, bruger {currentUserId}, option {voteDto.OptionId}");
+                _logger.LogError(
+                    ex,
+                    $"Fejl ved opdatering af stemme for poll {pollId}, bruger {currentUserId}, option {voteDto.OptionId}"
+                );
                 return StatusCode(500, "Intern fejl ved opdatering af stemme.");
             }
         }

@@ -20,7 +20,8 @@ namespace backend.Controllers
 
         public SubscriptionController(
             ISubscriptionService subscriptionService,
-            ILogger<SubscriptionController> logger)
+            ILogger<SubscriptionController> logger
+        )
         {
             _subscriptionService = subscriptionService;
             _logger = logger;
@@ -29,8 +30,12 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<IActionResult> Subscribe([FromBody] SubscribeDto subscribeDto)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))
+            var userIdString =
+                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            if (
+                string.IsNullOrEmpty(userIdString)
+                || !int.TryParse(userIdString, out int currentUserId)
+            )
             {
                 return Unauthorized("Kunne ikke identificere brugeren.");
             }
@@ -38,7 +43,7 @@ namespace backend.Controllers
             try
             {
                 var (success, message) = await _subscriptionService.SubscribeAsync(
-                    currentUserId, 
+                    currentUserId,
                     subscribeDto.PoliticianId
                 );
 
@@ -64,16 +69,23 @@ namespace backend.Controllers
         [HttpDelete("{politicianTwitterId}")]
         public async Task<IActionResult> Unsubscribe(int politicianTwitterId)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int currentUserId))
+            var userIdString =
+                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            if (
+                string.IsNullOrEmpty(userIdString)
+                || !int.TryParse(userIdString, out int currentUserId)
+            )
             {
                 return Unauthorized("Kunne ikke identificere brugeren.");
             }
 
             try
             {
-                var (success, message) = await _subscriptionService.UnsubscribeAsync(currentUserId, politicianTwitterId);
-                
+                var (success, message) = await _subscriptionService.UnsubscribeAsync(
+                    currentUserId,
+                    politicianTwitterId
+                );
+
                 if (!success)
                     return NotFound(message);
 
@@ -87,7 +99,9 @@ namespace backend.Controllers
         }
 
         [HttpGet("lookup/politicianTwitterId")]
-        public async Task<ActionResult<object>> GetPoliticianTwitterIdByAktorId([FromQuery] int aktorId)
+        public async Task<ActionResult<object>> GetPoliticianTwitterIdByAktorId(
+            [FromQuery] int aktorId
+        )
         {
             if (aktorId <= 0)
             {
@@ -97,7 +111,9 @@ namespace backend.Controllers
 
             try
             {
-                var (success, result, message) = await _subscriptionService.LookupPoliticianAsync(aktorId);
+                var (success, result, message) = await _subscriptionService.LookupPoliticianAsync(
+                    aktorId
+                );
 
                 if (!success)
                     return NotFound(message);
@@ -106,7 +122,11 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Fejl ved opslag af PoliticianTwitterId for AktorId {AktorId}", aktorId);
+                _logger.LogError(
+                    ex,
+                    "Fejl ved opslag af PoliticianTwitterId for AktorId {AktorId}",
+                    aktorId
+                );
                 return StatusCode(500, "Intern fejl ved opslag.");
             }
         }
