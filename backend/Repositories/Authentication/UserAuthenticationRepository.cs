@@ -13,12 +13,10 @@ using System;
 public class UserAuthenticationRepository : IUserAuthenticationRepository
 {
     private readonly DataContext _context;
-    private readonly ILogger<UserAuthenticationRepository> _logger;
     
     public UserAuthenticationRepository(DataContext context, ILogger<UserAuthenticationRepository> logger)
     {
         _context = context;
-        _logger = logger;
     }
 
 
