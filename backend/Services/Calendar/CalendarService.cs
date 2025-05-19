@@ -1,6 +1,8 @@
 using backend.DTO.Calendar;
+using backend.Models;
 using backend.Models.Calendar;
 using backend.Repositories.Calendar;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services.Calendar
@@ -9,7 +11,7 @@ namespace backend.Services.Calendar
     {
         private readonly ICalendarEventRepository _calendarEventRepository;
         private readonly ILogger<CalendarService> _logger;
-        private readonly UserManager<User> _userManager; 
+        private readonly UserManager<User> _userManager;
 
         public CalendarService(
             ICalendarEventRepository calendarEventRepository,
