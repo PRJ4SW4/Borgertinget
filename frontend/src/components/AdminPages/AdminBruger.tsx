@@ -5,12 +5,15 @@ import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 import "./AdminBruger.css";
 import BackButton from "../Button/backbutton";
 
+// Allow an admin to edit a users username
 export default function AdminBruger() {
   const [oldUsername, setOldUsername] = useState<string>("");
   const [newUsername, setNewUsername] = useState<string>("");
   const location = useLocation();
-
+  // Back button
   const matchProp = { path: location.pathname };
+
+  // Edit username
   const editUsername = async () => {
     if (!oldUsername.trim() || !newUsername.trim()) {
       alert("Udfyld både det gamle og det nye brugernavn.");
@@ -41,17 +44,22 @@ export default function AdminBruger() {
       );
 
       alert("Brugernavn opdateret!");
+
       // Reset inputs
       setOldUsername("");
       setNewUsername("");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 404) {
+          // If user is not found
+
           alert("Fejl: Bruger ikke fundet");
         } else {
+          // Error updating username
           alert("Fejl under opdatering af brugernavn");
         }
       } else {
+        // Unkown issue
         console.error("Ukendt fejl:", err);
         alert("Uventet fejl opstod.");
       }
@@ -68,7 +76,7 @@ export default function AdminBruger() {
           alt="Borgertinget Icon"
         />
         <div style={{ position: "absolute", top: "10px", left: "10px" }}>
-          {" "}
+          {/* --- Back button ---*/}
           <BackButton match={matchProp} destination="admin" />
         </div>
       </div>
@@ -77,6 +85,7 @@ export default function AdminBruger() {
       <h1>Ændre Brugernavn</h1>
 
       <div className="input-group">
+        {/* --- input old username ---*/}
         <input
           type="text"
           required
@@ -85,6 +94,7 @@ export default function AdminBruger() {
           onChange={(e) => setOldUsername(e.target.value)}
         />
 
+        {/* --- Input new username ---*/}
         <input
           type="text"
           required
@@ -94,6 +104,7 @@ export default function AdminBruger() {
         />
       </div>
 
+      {/* --- Edit username button ---*/}
       <button className="Button" onClick={editUsername}>
         Ændrer brugernavn
       </button>
