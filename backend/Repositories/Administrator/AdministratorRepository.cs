@@ -15,12 +15,9 @@ namespace backend.Repositories
     public class AdministratorRepository : IAdministratorRepository
     {
         private readonly DataContext _context;
-        private readonly ILogger<AdministratorRepository> _logger;
-
         public AdministratorRepository(DataContext context, ILogger<AdministratorRepository> logger)
         {
             _context = context;
-            _logger = logger;
         }
 
         #region Flashcard collections
@@ -75,11 +72,6 @@ namespace backend.Repositories
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
-        }
-
-        public async Task<User[]> GetAllUsersAsync()
-        {
-            return await _context.Users.ToArrayAsync();
         }
 
         public async Task UpdateUserAsync(User user)

@@ -112,8 +112,8 @@ namespace backend.Services
 
         #region User
 
-        // GET user by username
-        public async Task<User> GetUserByUsernameAsync(string username)
+        // GET userId by username
+        public async Task<UserIdDTO> GetUserIdByUsernameAsync(string username)
         {
             var user = await _repository.GetUserByUsernameAsync(username);
 
@@ -122,20 +122,9 @@ namespace backend.Services
                 throw new KeyNotFoundException($"User with username {username} not found");
             }
 
-            return user;
-        }
+            var userIdDTO = new UserIdDTO { UserId = user.Id };
 
-        // GET all users
-        public async Task<User[]> GetAllUsersAsync()
-        {
-            var users = await _repository.GetAllUsersAsync();
-
-            if (users.Length == 0)
-            {
-                throw new KeyNotFoundException("Error finding users");
-            }
-
-            return users;
+            return userIdDTO;
         }
 
         // PUT changing a Users username
