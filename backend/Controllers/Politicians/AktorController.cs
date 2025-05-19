@@ -6,6 +6,7 @@ using backend.Data;
 using backend.DTO.FT;
 using backend.Models.Politicians;
 using backend.Services.Politicians;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -34,6 +35,7 @@ public class AktorController : ControllerBase
 
     //Sender hele listen af politikere med bruger AktorDetailDto
     [HttpGet("all")]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<Aktor>>> GetAllAktors()
     {
         try
@@ -50,6 +52,7 @@ public class AktorController : ControllerBase
 
     //Sender en politiker, bruger AktorDetailDto
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<ActionResult<Aktor>> GetAktorById(int id)
     {
         try
@@ -65,6 +68,7 @@ public class AktorController : ControllerBase
 
     //sender politikere med samme partyName, bruger aktorDetailDto
     [HttpGet("GetParty/{partyName}")]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<Aktor>>> GetParty(string partyName)
     {
         try
@@ -79,6 +83,7 @@ public class AktorController : ControllerBase
     }
 
     [HttpPost("fetch")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateAktorsFromExternal()
     {
         _logger.LogInformation(

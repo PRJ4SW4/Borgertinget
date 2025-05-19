@@ -6,6 +6,7 @@ using backend.Interfaces.Services;
 using backend.Models; // For PoliticianSummaryDto (hvis den ligger her)
 using backend.Services;
 using backend.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +16,7 @@ namespace backend.Controllers
     /// Controller til håndtering af endpoints for selve Polidle-spillet (klient-interaktion).
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PolidleController : ControllerBase
     {
         private readonly IDailySelectionService _selectionService;

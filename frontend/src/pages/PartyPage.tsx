@@ -1,52 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { IAktor } from '../types/Aktor';
-import { IParty } from '../types/Party';
-import PartyInfoCard from '../components/Party/PartyInfoCard';
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { IAktor } from "../types/Aktor";
+import { IParty } from "../types/Party";
+import PartyInfoCard from "../components/Party/PartyInfoCard";
 import "./PartyPage.css"; // Ensure this CSS file is imported
 import DefaultPic from "../images/defaultPic.jpg";
 // --- Logo Map ---
-import socialdemokratietLogo from '../images/PartyLogos/socialdemokratiet.webp';
-import venstreLogo from '../images/PartyLogos/Venstre.png';
-import moderaterneLogo from '../images/PartyLogos/Moderaterne.png';
-import alternativetLogo from '../images/PartyLogos/alternativet.png';
-import borgernesLogo from '../images/PartyLogos/borgernesParti.jpg';
-import centrumLogo from '../images/PartyLogos/centrumDemokraterne.png';
-import danmarksLogo from '../images/PartyLogos/danmarksDemokraterne.jpg';
-import DFLogo from '../images/PartyLogos/DanskFolkeparti.png';
-import enhedslistenLogo from '../images/PartyLogos/enhedslisten.jpg';
-import inuitLogo from '../images/PartyLogos/InuitAtaqatigiit.png';
-import javnaLogo from '../images/PartyLogos/Javnaðarflokkurin.png';
-import konsvertiveLogo from '../images/PartyLogos/konservative.png';
-import kristeligtLogo from '../images/PartyLogos/KristeligFolkeparti.png';
-import LALogo from '../images/PartyLogos/LiberalAlliance.png';
-import naleraq from '../images/PartyLogos/NaleraqLogo.svg';
-import radikale from '../images/PartyLogos/radikaleVenstre.png';
-import sambands from '../images/PartyLogos/sambandspartiet.png';
-import SF from '../images/PartyLogos/SocialistiskeFolkeparti.png';
+import socialdemokratietLogo from "../images/PartyLogos/socialdemokratiet.webp";
+import venstreLogo from "../images/PartyLogos/Venstre.png";
+import moderaterneLogo from "../images/PartyLogos/Moderaterne.png";
+import alternativetLogo from "../images/PartyLogos/alternativet.png";
+import borgernesLogo from "../images/PartyLogos/borgernesParti.jpg";
+import centrumLogo from "../images/PartyLogos/centrumDemokraterne.png";
+import danmarksLogo from "../images/PartyLogos/danmarksDemokraterne.jpg";
+import DFLogo from "../images/PartyLogos/DanskFolkeparti.png";
+import enhedslistenLogo from "../images/PartyLogos/enhedslisten.jpg";
+import inuitLogo from "../images/PartyLogos/InuitAtaqatigiit.png";
+import javnaLogo from "../images/PartyLogos/Javnaðarflokkurin.png";
+import konsvertiveLogo from "../images/PartyLogos/konservative.png";
+import kristeligtLogo from "../images/PartyLogos/KristeligFolkeparti.png";
+import LALogo from "../images/PartyLogos/LiberalAlliance.png";
+import naleraq from "../images/PartyLogos/NaleraqLogo.svg";
+import radikale from "../images/PartyLogos/radikaleVenstre.png";
+import sambands from "../images/PartyLogos/sambandspartiet.png";
+import SF from "../images/PartyLogos/SocialistiskeFolkeparti.png";
 
 const partyLogoMap: { [key: string]: string } = {
-  "Socialdemokratiet": socialdemokratietLogo,
-  "Venstre": venstreLogo,
-  "Moderaterne": moderaterneLogo,
-  "Alternativet": alternativetLogo,
+  Socialdemokratiet: socialdemokratietLogo,
+  Venstre: venstreLogo,
+  Moderaterne: moderaterneLogo,
+  Alternativet: alternativetLogo,
   "Borgernes Parti": borgernesLogo,
   "Centrum-Demokraterne": centrumLogo,
-  "Danmarksdemokraterne": danmarksLogo,
+  Danmarksdemokraterne: danmarksLogo,
   "Dansk Folkeparti": DFLogo,
   "Det Konservative Folkeparti": konsvertiveLogo,
-  "Enhedslisten": enhedslistenLogo,
+  Enhedslisten: enhedslistenLogo,
   "Inuit Ataqatigiit": inuitLogo,
-  "Javnaðarflokkurin": javnaLogo,
+  Javnaðarflokkurin: javnaLogo,
   "Kristeligt Folkeparti": kristeligtLogo,
   "Liberal Alliance": LALogo,
-  "Naleraq": naleraq,
+  Naleraq: naleraq,
   "Radikale Venstre": radikale,
-  "Sambandsflokkurin": sambands,
-  "Socialistisk Folkeparti": SF
+  Sambandsflokkurin: sambands,
+  "Socialistisk Folkeparti": SF,
 };
 // --- End Logo Map ---
-
 
 const PartyPage: React.FC = () => {
   const { partyName } = useParams<{ partyName: string }>();
@@ -65,20 +64,25 @@ const PartyPage: React.FC = () => {
   const [spokesperson, setSpokesperson] = useState<IAktor | null>(null);
   const [groupLeader, setGroupLeader] = useState<IAktor | null>(null);
 
-
-  const displayPartyName = partyName ? decodeURIComponent(partyName) : 'Ukendt Parti';
+  const displayPartyName = partyName ? decodeURIComponent(partyName) : "Ukendt Parti";
   const defaultPoliticianImageUrl = DefaultPic;
 
   // --- Helper function to fetch Aktor details by ID (still needed for role holders) ---
   const fetchAktorById = async (id: number | null): Promise<IAktor | null> => {
     if (!id) return null;
     try {
-      const response = await fetch(`http://localhost:5218/api/Aktor/${id}`);
+      const response = await fetch(`http://localhost:5218/api/Aktor/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+        },
+      });
       if (!response.ok) {
         console.error(`Failed to fetch Aktor with ID ${id}: ${response.status}`);
         return null;
       }
-      return await response.json() as IAktor;
+      return (await response.json()) as IAktor;
     } catch (err) {
       console.error(`Error fetching Aktor with ID ${id}:`, err);
       return null;
@@ -109,15 +113,26 @@ const PartyPage: React.FC = () => {
       try {
         // --- Step 1: Fetch Party Details ---
         const partyApiUrl = `http://localhost:5218/api/Party/Party/${encodeURIComponent(partyName)}`;
-        const partyResponse = await fetch(partyApiUrl);
+        const partyResponse = await fetch(partyApiUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+          },
+        });
 
         if (!partyResponse.ok) {
           if (partyResponse.status === 404) {
-             throw new Error(`Partiet "${displayPartyName}" blev ikke fundet.`);
+            throw new Error(`Partiet "${displayPartyName}" blev ikke fundet.`);
           } else {
-             let errorMsg = `HTTP error ${partyResponse.status}: ${partyResponse.statusText}`;
-             try { const errorBody = await partyResponse.json(); errorMsg = errorBody.message || errorBody.title || errorMsg; } catch { /* Ignore */ }
-             throw new Error(errorMsg);
+            let errorMsg = `HTTP error ${partyResponse.status}: ${partyResponse.statusText}`;
+            try {
+              const errorBody = await partyResponse.json();
+              errorMsg = errorBody.message || errorBody.title || errorMsg;
+            } catch {
+              /* Ignore */
+            }
+            throw new Error(errorMsg);
           }
         }
         const fetchedPartyData: IParty = await partyResponse.json();
@@ -130,16 +145,11 @@ const PartyPage: React.FC = () => {
             fetchAktorById(fetchedPartyData.chairmanId),
             fetchAktorById(fetchedPartyData.viceChairmanId),
             fetchAktorById(fetchedPartyData.secretaryId),
-            fetchAktorById(fetchedPartyData.spokesmanId)
+            fetchAktorById(fetchedPartyData.spokesmanId),
             // Add fetches for group leader etc. if IDs become available in IParty
           ];
 
-          const [
-            fetchedChairman,
-            fetchedViceChairman,
-            fetchedSecretary,
-            fetchedSpokesperson
-          ] = await Promise.all(rolePromises);
+          const [fetchedChairman, fetchedViceChairman, fetchedSecretary, fetchedSpokesperson] = await Promise.all(rolePromises);
 
           setChairman(fetchedChairman);
           setViceChairman(fetchedViceChairman);
@@ -150,20 +160,25 @@ const PartyPage: React.FC = () => {
         // --- Step 3: Fetch Party Members using the new endpoint ---
         // This runs after party details are fetched and set.
         const membersApiUrl = `http://localhost:5218/api/Aktor/GetParty/${encodeURIComponent(partyName)}`;
-        const membersResponse = await fetch(membersApiUrl);
+        const membersResponse = await fetch(membersApiUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+          },
+        });
         if (!membersResponse.ok) {
-            console.error(`Failed to fetch members for party ${displayPartyName}: ${membersResponse.status}`);
-            // Set an error or leave members array empty, depending on desired behavior
-            throw new Error(`Kunne ikke hente medlemmer for ${displayPartyName}. Status: ${membersResponse.status}`);
+          console.error(`Failed to fetch members for party ${displayPartyName}: ${membersResponse.status}`);
+          // Set an error or leave members array empty, depending on desired behavior
+          throw new Error(`Kunne ikke hente medlemmer for ${displayPartyName}. Status: ${membersResponse.status}`);
         }
         const fetchedMembers: IAktor[] = await membersResponse.json();
         setMembers(fetchedMembers);
-
       } catch (err: unknown) {
         console.error("Fetch error in PartyPage:", err);
         let message = `Kunne ikke hente data for partiet ${displayPartyName}`;
         if (err instanceof Error) message = err.message;
-        else if (typeof err === 'string') message = err;
+        else if (typeof err === "string") message = err;
         setError(message);
         // Ensure loading states are false on error
         setLoadingParty(false);
@@ -174,14 +189,18 @@ const PartyPage: React.FC = () => {
     };
 
     fetchPartyData();
-
   }, [partyName, displayPartyName]); // Rerun if partyName changes
 
   // --- Render Logic ---
   // isLoading can now primarily reflect partyDetails loading,
   // while loadingMembers handles the member list specifically.
   if (loadingParty) return <div className="loading-message">Henter partiinformation for {displayPartyName}...</div>;
-  if (error && !partyDetails) return <div className="error-message">Fejl: {error} <Link to="/parties">Tilbage til partioversigt</Link></div>;
+  if (error && !partyDetails)
+    return (
+      <div className="error-message">
+        Fejl: {error} <Link to="/parties">Tilbage til partioversigt</Link>
+      </div>
+    );
   // If partyDetails loaded but members failed, we might still want to show party info.
   // The error related to members can be shown near the members list.
 
@@ -189,8 +208,8 @@ const PartyPage: React.FC = () => {
 
   // Helper to get logo URL
   const getLogoUrl = (name: string | null): string | undefined => {
-      return name ? partyLogoMap[name] : undefined;
-  }
+    return name ? partyLogoMap[name] : undefined;
+  };
 
   return (
     <div className="party-page">
@@ -198,85 +217,82 @@ const PartyPage: React.FC = () => {
         <Link to="/parties">← Tilbage til partioversigt</Link>
       </nav>
 
-       {/* --- Main Content Area (Flex Container) --- */}
+      {/* --- Main Content Area (Flex Container) --- */}
       <div className="party-main-content">
+        {/* --- Left Column: Details Sections --- */}
+        <div className="party-details-column">
+          {partyDetails.partyProgram && (
+            <section className="party-details-section">
+              <h3>Partiprogram</h3>
+              <p className="party-details-content">{partyDetails.partyProgram}</p>
+            </section>
+          )}
+          {partyDetails.politics && (
+            <section className="party-details-section">
+              <h3>Politik</h3>
+              <p className="party-details-content">{partyDetails.politics}</p>
+            </section>
+          )}
+          {partyDetails.history && (
+            <section className="party-details-section">
+              <h3>Historie</h3>
+              <p className="party-details-content">{partyDetails.history}</p>
+            </section>
+          )}
+        </div>
+        {/* --- End Left Column --- */}
 
-          {/* --- Left Column: Details Sections --- */}
-          <div className="party-details-column">
-              {partyDetails.partyProgram && (
-                 <section className="party-details-section">
-                     <h3>Partiprogram</h3>
-                     <p className="party-details-content">{partyDetails.partyProgram}</p>
-                 </section>
-              )}
-               {partyDetails.politics && (
-                 <section className="party-details-section">
-                     <h3>Politik</h3>
-                     <p className="party-details-content">{partyDetails.politics}</p>
-                 </section>
-              )}
-               {partyDetails.history && (
-                 <section className="party-details-section">
-                     <h3>Historie</h3>
-                     <p className="party-details-content">{partyDetails.history}</p>
-                 </section>
-              )}
-          </div>
-          {/* --- End Left Column --- */}
-
-          {/* --- Right Column: Info Card --- */}
-          <div className="party-infobox-column">
-              <PartyInfoCard
-                partyName={partyDetails.partyName || displayPartyName}
-                slogan={undefined}
-                logoUrl={getLogoUrl(partyDetails.partyName)}
-                defaultLogo={DefaultPic}
-                chairmanName={chairman?.navn}
-                viceChairmanName={viceChairman?.navn}
-                secretaryName={secretary?.navn}
-                politicalSpokespersonName={spokesperson?.navn}
-                groupLeaderName={groupLeader?.navn}
-              />
-          </div>
-          {/* --- End Right Column --- */}
+        {/* --- Right Column: Info Card --- */}
+        <div className="party-infobox-column">
+          <PartyInfoCard
+            partyName={partyDetails.partyName || displayPartyName}
+            slogan={undefined}
+            logoUrl={getLogoUrl(partyDetails.partyName)}
+            defaultLogo={DefaultPic}
+            chairmanName={chairman?.navn}
+            viceChairmanName={viceChairman?.navn}
+            secretaryName={secretary?.navn}
+            politicalSpokespersonName={spokesperson?.navn}
+            groupLeaderName={groupLeader?.navn}
+          />
+        </div>
+        {/* --- End Right Column --- */}
       </div>
       {/* --- End Main Content Area --- */}
 
       {/* --- Member List (Below the columns) --- */}
       <section className="party-members-section">
-         <h3>Medlemmer</h3>
-         {loadingMembers ? (
-            <div className="loading-message">Henter medlemmer...</div>
-         ) : error && members.length === 0 ? ( // Show error if member fetch failed and no members are loaded
-            <div className="error-message">Fejl ved hentning af medlemmer: {error}</div>
-         ) : members.length > 0 ? (
-           <ul className="party-member-list">
-             {members.map((politician) => (
-               <li key={politician.id}>
-                 <Link to={`/politician/${politician.id}`} className="party-member-link">
-                   <img
-                     src={politician.pictureMiRes || defaultPoliticianImageUrl}
-                     alt={`Portræt af ${politician.navn}`}
-                     className="party-member-photo"
-                     onError={(e) => {
-                       const imgElement = e.target as HTMLImageElement;
-                       if (imgElement.src !== defaultPoliticianImageUrl) {
-                         imgElement.src = defaultPoliticianImageUrl;
-                       } else {
-                         imgElement.style.display = 'none';
-                       }
-                     }}
-                   />
-                   <span className="party-member-name">{politician.navn}</span>
-                 </Link>
-               </li>
-             ))}
-           </ul>
-         ) : (
-           <p className="info-message">
-             Ingen medlemmer fundet for partiet "{displayPartyName}".
-           </p>
-         )}
+        <h3>Medlemmer</h3>
+        {loadingMembers ? (
+          <div className="loading-message">Henter medlemmer...</div>
+        ) : error && members.length === 0 ? ( // Show error if member fetch failed and no members are loaded
+          <div className="error-message">Fejl ved hentning af medlemmer: {error}</div>
+        ) : members.length > 0 ? (
+          <ul className="party-member-list">
+            {members.map((politician) => (
+              <li key={politician.id}>
+                <Link to={`/politician/${politician.id}`} className="party-member-link">
+                  <img
+                    src={politician.pictureMiRes || defaultPoliticianImageUrl}
+                    alt={`Portræt af ${politician.navn}`}
+                    className="party-member-photo"
+                    onError={(e) => {
+                      const imgElement = e.target as HTMLImageElement;
+                      if (imgElement.src !== defaultPoliticianImageUrl) {
+                        imgElement.src = defaultPoliticianImageUrl;
+                      } else {
+                        imgElement.style.display = "none";
+                      }
+                    }}
+                  />
+                  <span className="party-member-name">{politician.navn}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="info-message">Ingen medlemmer fundet for partiet "{displayPartyName}".</p>
+        )}
       </section>
     </div>
   );
