@@ -27,6 +27,7 @@ public class PartyController : ControllerBase
     }
 
     [HttpGet("Parties")]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<Party>>> getParties()
     {
         var parties = await _service.GetAll();
@@ -39,6 +40,7 @@ public class PartyController : ControllerBase
     }
 
     [HttpGet("Party/{partyName}")]
+    [Authorize]
     public async Task<ActionResult<Party>> GetPartyByName(string partyName)
     {
         if (string.IsNullOrWhiteSpace(partyName))
@@ -68,6 +70,7 @@ public class PartyController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Party>> UpdatePartyDetails(
         int partyId,
         [FromBody] PartyDto updateDto
