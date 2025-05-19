@@ -53,6 +53,7 @@ namespace backend.Controllers
 
         // POST: api/users
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserDto dto)
         {
             var result = await _userAuthenticationService.CreateUserAsync(dto);
@@ -120,6 +121,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("verify")]
+        [AllowAnonymous]
         public async Task<IActionResult> VerifyEmail(
             [FromQuery] int userId,
             [FromQuery] string token
@@ -165,6 +167,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             string loginInput = dto.EmailOrUsername.ToLower();
@@ -210,6 +213,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("forgot-password")]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ForgotPasswordDto dto)
         {
             var user = await _userAuthenticationService.FindUserByEmailAsync(dto.Email);
@@ -247,6 +251,7 @@ namespace backend.Controllers
         }
 
         [HttpPut("reset-password")]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword(
             [FromBody] ResetPasswordDto dto,
             [FromQuery] int userId,
@@ -291,8 +296,8 @@ namespace backend.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpGet("login-google")]
+        [AllowAnonymous]
         public IActionResult LoginWithGoogle([FromQuery] string? clientReturnUrl = null)
         {
             var sanitizedClientReturnUrl = _userAuthenticationService.SanitizeReturnUrl(

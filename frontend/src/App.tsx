@@ -1,5 +1,5 @@
 import { useState, useEffect, JSX } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 
 // Layout Components: Provide consistent page structure.
 import LearningLayout from "./layouts/LearningEnvironment/LearningLayout";
@@ -51,6 +51,19 @@ import ResetPasswordVerification from "./utils/resetPassword";
 // Navbar and Footer are rendered via MainLayout.
 // The main application component.
 
+// Utility function to check if a JWT token is expired.
+const isTokenExpired = (token: string | null): boolean => {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const exp = payload.exp; // Expiration time in seconds since epoch
+    return Date.now() >= exp * 1000; // Convert to milliseconds and compare
+  } catch (err) {
+    console.error("Invalid token", err);
+    return true;
+  }
+};
+
 function App() {
   // State hook for the JWT authentication token.
   // Initializes state from localStorage to persist login status.
@@ -74,6 +87,19 @@ function App() {
     // Removes the event listener on component unmount to prevent memory leaks.
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []); // Empty dependency array ensures the effect runs only on mount and unmount.
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check token expiration on route change or token change
+    if (token && isTokenExpired(token)) {
+      console.log("Token expired. Logging out...");
+      handleSetToken(null); // Clear token state and localStorage
+      navigate("/login", { replace: true }); // Redirect to login page without adding to history
+      alert("Din session er udløbet. Log ind igen for at fortsætte."); // Alert user about session expiration
+    }
+  }, [token, location]); // Run effect on token or route change
 
   // --- Protected Route Component ---
   // Wraps routes that require user authentication.

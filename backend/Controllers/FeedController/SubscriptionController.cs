@@ -28,6 +28,7 @@ namespace backend.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Subscribe([FromBody] SubscribeDto subscribeDto)
         {
             var userIdString =
@@ -67,6 +68,7 @@ namespace backend.Controllers
         }
 
         [HttpDelete("{politicianTwitterId}")]
+        [Authorize]
         public async Task<IActionResult> Unsubscribe(int politicianTwitterId)
         {
             var userIdString =
@@ -99,6 +101,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("lookup/politicianTwitterId")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<object>> GetPoliticianTwitterIdByAktorId(
             [FromQuery] int aktorId
         )

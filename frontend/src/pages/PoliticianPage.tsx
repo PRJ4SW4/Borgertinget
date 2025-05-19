@@ -32,7 +32,13 @@ const PoliticianPage: React.FC = () => {
 
       try {
         const apiUrl = `http://localhost:5218/api/Aktor/${id}`;
-        const response = await fetch(apiUrl);
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+          },
+        });
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -78,26 +84,19 @@ const PoliticianPage: React.FC = () => {
           const subscriptions = await getSubscriptions();
 
           // Find Twitter ID via lookup-API'et (behold aktorId som parameter i URL)
-          const lookupResponse = await fetch(
-            `http://localhost:5218/api/subscription/lookup/politicianTwitterId?aktorId=${politician.id}`,
-            {
-              // KORREKT: aktørId → id
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("jwt")}`,
-              },
-            }
-          );
+          const lookupResponse = await fetch(`http://localhost:5218/api/subscription/lookup/politicianTwitterId?aktorId=${politician.id}`, {
+            // KORREKT: aktørId → id
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("jwt")}`,
+            },
+          });
 
           if (lookupResponse.ok) {
             const lookupData = await lookupResponse.json();
             setTwitterId(lookupData.politicianTwitterId);
 
             // Tjek om politikeren allerede følges
-            setIsSubscribed(
-              subscriptions.some(
-                (sub) => sub.id === lookupData.politicianTwitterId
-              )
-            );
+            setIsSubscribed(subscriptions.some((sub) => sub.id === lookupData.politicianTwitterId));
           } else {
             console.error("Kunne ikke finde Twitter ID for denne politiker");
           }
@@ -111,8 +110,7 @@ const PoliticianPage: React.FC = () => {
   }, [politician]);
 
   // --- Loading & Error States ---
-  if (loading)
-    return <div className="loading-message">Henter politiker detaljer...</div>;
+  if (loading) return <div className="loading-message">Henter politiker detaljer...</div>;
   if (error)
     return (
       <div className="error-message">
@@ -122,19 +120,16 @@ const PoliticianPage: React.FC = () => {
   if (!politician)
     return (
       <div className="info-message">
-        Politikerdata er ikke tilgængelig.{" "}
-        <Link to="/">Tilbage til forsiden</Link>
+        Politikerdata er ikke tilgængelig. <Link to="/">Tilbage til forsiden</Link>
       </div>
     );
 
   return (
     <div className="politician-page">
       <nav>
-        { }
+        {}
         {politician.party ? (
-          <Link to={`/party/${encodeURIComponent(politician.party)}`}>
-            ← Tilbage til {politician.party}
-          </Link>
+          <Link to={`/party/${encodeURIComponent(politician.party)}`}>← Tilbage til {politician.party}</Link>
         ) : (
           <Link to="/parties">← Tilbage til partioversigt</Link> // Fallback to general parties list
         )}
@@ -148,9 +143,7 @@ const PoliticianPage: React.FC = () => {
             className="info-box-photo"
             onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
               const imgElement = e.target as HTMLImageElement;
-              console.error(
-                `Kunne ikke loade billede: ${politician.pictureMiRes}`
-              ); // Danish
+              console.error(`Kunne ikke loade billede: ${politician.pictureMiRes}`); // Danish
               imgElement.style.display = "none"; // Simple hide on error
             }}
           />
@@ -158,11 +151,7 @@ const PoliticianPage: React.FC = () => {
           <div className="info-box-photo-placeholder">Intet billede</div> // Danish
         )}
         <h4>Navn</h4>
-        <p>
-          {politician.fornavn && politician.efternavn
-            ? `${politician.fornavn} ${politician.efternavn}`
-            : politician.navn || "Ukendt"}
-        </p>
+        <p>{politician.fornavn && politician.efternavn ? `${politician.fornavn} ${politician.efternavn}` : politician.navn || "Ukendt"}</p>
 
         {/*Subscribe*/}
         {twitterId !== null && (
@@ -178,21 +167,13 @@ const PoliticianPage: React.FC = () => {
         <h4>Parti</h4>
         <p>
           {politician.party ? (
-            <Link to={`/party/${encodeURIComponent(politician.party)}`}>
-              {politician.party}
-            </Link>
+            <Link to={`/party/${encodeURIComponent(politician.party)}`}>{politician.party}</Link>
           ) : (
             politician.partyShortname || "Partiløs/Ukendt" // Show shortname or indicate independent/unknown
           )}
         </p>
         <h4>Email</h4>
-        <p>
-          {politician.email ? (
-            <a href={`mailto:${politician.email}`}>{politician.email}</a>
-          ) : (
-            "Ikke tilgængelig"
-          )}
-        </p>
+        <p>{politician.email ? <a href={`mailto:${politician.email}`}>{politician.email}</a> : "Ikke tilgængelig"}</p>
 
         {/* Conditional rendering for lists inside the info-box */}
         {politician.educations && politician.educations.length > 0 && (
@@ -227,8 +208,7 @@ const PoliticianPage: React.FC = () => {
             <strong>Født:</strong> {politician.born || "Ikke tilgængelig"}
           </p>
           <p>
-            <strong>Titel:</strong>{" "}
-            {politician.functionFormattedTitle || "Ikke tilgængelig"}
+            <strong>Titel:</strong> {politician.functionFormattedTitle || "Ikke tilgængelig"}
           </p>
         </section>
 
@@ -259,35 +239,31 @@ const PoliticianPage: React.FC = () => {
             </ul>
           </section>
         )}
-        {politician.parliamentaryPositionsOfTrust &&
-          politician.parliamentaryPositionsOfTrust.length > 0 && (
-            <section className="detail-section">
-              <h3>Forfatterskab</h3>
+        {politician.parliamentaryPositionsOfTrust && politician.parliamentaryPositionsOfTrust.length > 0 && (
+          <section className="detail-section">
+            <h3>Forfatterskab</h3>
+            <ul>
+              {politician.parliamentaryPositionsOfTrust.map((ptrust, index) => (
+                <li key={`ptrust-${index}`}>{ptrust}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {politician.positionsOfTrust && politician.positionsOfTrust.length > 0 && (
+          <section className="detail-section">
+            <h3>Tillidshverv (ikke-parliamentarisk)</h3>
+            {/* Check if it's a simple string or needs mapping */}
+            {typeof politician.positionsOfTrust === "string" ? (
+              <p>{politician.positionsOfTrust}</p> // Render directly if string
+            ) : (
               <ul>
-                {politician.parliamentaryPositionsOfTrust.map(
-                  (ptrust, index) => (
-                    <li key={`ptrust-${index}`}>{ptrust}</li>
-                  )
-                )}
+                {politician.positionsOfTrust.map((trust, index) => (
+                  <li key={`trust-${index}`}>{trust}</li>
+                ))}
               </ul>
-            </section>
-          )}
-        {politician.positionsOfTrust &&
-          politician.positionsOfTrust.length > 0 && (
-            <section className="detail-section">
-              <h3>Tillidshverv (ikke-parliamentarisk)</h3>
-              {/* Check if it's a simple string or needs mapping */}
-              {typeof politician.positionsOfTrust === "string" ? (
-                <p>{politician.positionsOfTrust}</p> // Render directly if string
-              ) : (
-                <ul>
-                  {politician.positionsOfTrust.map((trust, index) => (
-                    <li key={`trust-${index}`}>{trust}</li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          )}
+            )}
+          </section>
+        )}
         {politician.nominations && politician.nominations.length > 0 && (
           <section className="detail-section">
             <h3>Kandidaturer</h3>
@@ -335,19 +311,16 @@ const PoliticianPage: React.FC = () => {
           </section>
         )}
 
-        {politician.parliamentaryPositionsOfTrust &&
-          politician.parliamentaryPositionsOfTrust.length > 0 && (
-            <section className="detail-section">
-              <h3>Tillidshverv (Parlamentarisk)</h3>
-              <ul>
-                {politician.parliamentaryPositionsOfTrust.map(
-                  (ptrust, index) => (
-                    <li key={`ptrust-${index}`}>{ptrust}</li>
-                  )
-                )}
-              </ul>
-            </section>
-          )}
+        {politician.parliamentaryPositionsOfTrust && politician.parliamentaryPositionsOfTrust.length > 0 && (
+          <section className="detail-section">
+            <h3>Tillidshverv (Parlamentarisk)</h3>
+            <ul>
+              {politician.parliamentaryPositionsOfTrust.map((ptrust, index) => (
+                <li key={`ptrust-${index}`}>{ptrust}</li>
+              ))}
+            </ul>
+          </section>
+        )}
       </article>
     </div>
   );

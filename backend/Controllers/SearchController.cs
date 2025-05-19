@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using backend.Models; // Assuming your SearchDocument is here
 using backend.Services.Search;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OpenSearch.Client;
@@ -48,6 +49,7 @@ namespace backend.Controllers
         [ProducesResponseType(typeof(IEnumerable<SearchDocument>), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
+        [Authorize]
         public async Task<IActionResult> Search([FromQuery] string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -127,6 +129,7 @@ namespace backend.Controllers
         [ProducesResponseType(typeof(IEnumerable<string>), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
+        [Authorize]
         public async Task<IActionResult> Suggest([FromQuery] string prefix)
         {
             if (string.IsNullOrWhiteSpace(prefix))
@@ -194,6 +197,7 @@ namespace backend.Controllers
         [HttpPost("ensure-and-reindex")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EnsureAndReindex()
         {
             _logger.LogInformation("Ensure and Reindex endpoint called.");
