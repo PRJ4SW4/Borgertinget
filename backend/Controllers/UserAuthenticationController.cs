@@ -16,6 +16,7 @@ using System.Web;
 using backend.Data;
 using backend.DTOs;
 using backend.Models;
+using backend.Services.Authentication;
 using backend.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -25,7 +26,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using backend.Services.Authentication;
 
 namespace backend.Controllers
 {
@@ -38,12 +38,11 @@ namespace backend.Controllers
         private readonly ILogger<UsersController> _logger; // Corrected logger type to match class name
         private readonly IUserAuthenticationService _userAuthenticationService;
 
-
         public UsersController(
             IConfiguration config,
             EmailService emailService,
             ILogger<UsersController> logger,
-            IUserAuthenticationService userAuthenticationService 
+            IUserAuthenticationService userAuthenticationService
         )
         {
             _config = config;
@@ -61,6 +60,10 @@ namespace backend.Controllers
             if (result.Succeeded)
             {
                 var user = await _userAuthenticationService.FindUserByEmailAsync(dto.Email);
+                if (user == null)
+                {
+                    return BadRequest(new { error = "Bruger blev ikke oprettet." });
+                }
 
                 var roleResult = await _userAuthenticationService.AddToRoleAsync(user, "User");
                 if (!roleResult.Succeeded)
@@ -71,13 +74,22 @@ namespace backend.Controllers
                     );
                     await _userAuthenticationService.DeleteUserAsync(user);
 
-                    return StatusCode(500, new { message = "Brugeren blev oprettet, men der opstod en fejl ved tildeling af rolle.", errors });
+                    return StatusCode(
+                        500,
+                        new
+                        {
+                            message = "Brugeren blev oprettet, men der opstod en fejl ved tildeling af rolle.",
+                            errors,
+                        }
+                    );
                 }
 
-                var token = await _userAuthenticationService.GenerateEmailConfirmationTokenAsync(user);
+                var token = await _userAuthenticationService.GenerateEmailConfirmationTokenAsync(
+                    user
+                );
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-                var emailContent = await _emailService.GenerateRegistrationEmailAsync(encodedToken, user);
+                var emailContent = _emailService.GenerateRegistrationEmailAsync(encodedToken, user);
 
                 try
                 {
@@ -86,10 +98,18 @@ namespace backend.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Fejl ved afsendelse af bekræftelsesmail: {ex.Message}");
-                    return StatusCode(500, new { message = "Fejl ved afsendelse af mail. Prøv venligst igen senere." });
+                    return StatusCode(
+                        500,
+                        new { message = "Fejl ved afsendelse af mail. Prøv venligst igen senere." }
+                    );
                 }
 
-                return Ok(new { message = "Registrering succesfuld! Tjek din email for at bekræfte din konto." });
+                return Ok(
+                    new
+                    {
+                        message = "Registrering succesfuld! Tjek din email for at bekræfte din konto.",
+                    }
+                );
             }
             else
             {
@@ -117,7 +137,6 @@ namespace backend.Controllers
                 return BadRequest("Ugyldigt bruger ID.");
             }
 
-
             try
             {
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
@@ -126,7 +145,9 @@ namespace backend.Controllers
 
                 if (!result.Succeeded)
                 {
-                    _logger.LogError($"Email verification failed for user {userId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    _logger.LogError(
+                        $"Email verification failed for user {userId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}"
+                    );
                     return BadRequest("Ugyldigt eller udløbet verifikationslink");
                 }
                 else
@@ -162,7 +183,11 @@ namespace backend.Controllers
             if (user == null)
                 return BadRequest(new { error = "Bruger findes ikke" });
 
-            var result = await _userAuthenticationService.CheckPasswordSignInAsync(user, dto.Password, false);
+            var result = await _userAuthenticationService.CheckPasswordSignInAsync(
+                user,
+                dto.Password,
+                false
+            );
 
             if (result.Succeeded)
             {
@@ -196,7 +221,7 @@ namespace backend.Controllers
             var token = await _userAuthenticationService.GeneratePasswordResetTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-            var emailContent = await _emailService.GenerateResetPasswordEmailAsync(encodedToken, user);
+            var emailContent = _emailService.GenerateResetPasswordEmailAsync(encodedToken, user);
 
             try
             {
@@ -270,7 +295,9 @@ namespace backend.Controllers
         [HttpGet("login-google")]
         public IActionResult LoginWithGoogle([FromQuery] string? clientReturnUrl = null)
         {
-            var sanitizedClientReturnUrl = _userAuthenticationService.SanitizeReturnUrl(clientReturnUrl);
+            var sanitizedClientReturnUrl = _userAuthenticationService.SanitizeReturnUrl(
+                clientReturnUrl
+            );
 
             _logger.LogInformation(
                 "Start Google login process. Ønsket frontend returnUrl for efterfølgende redirect: {ClientReturnUrl}",
@@ -302,10 +329,11 @@ namespace backend.Controllers
                 propertiesRedirectUri
             );
 
-            var authenticationProperties = _userAuthenticationService.ConfigureExternalAuthenticationProperties(
-                GoogleDefaults.AuthenticationScheme,
-                propertiesRedirectUri // Denne URL peger på vores HandleGoogleCallback med den oprindelige clientReturnUrl
-            );
+            var authenticationProperties =
+                _userAuthenticationService.ConfigureExternalAuthenticationProperties(
+                    GoogleDefaults.AuthenticationScheme,
+                    propertiesRedirectUri // Denne URL peger på vores HandleGoogleCallback med den oprindelige clientReturnUrl
+                );
 
             return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
         }
@@ -314,32 +342,47 @@ namespace backend.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> HandleGoogleCallback(
             [FromQuery] string? returnUrl = null,
-            [FromQuery] string? remoteError = null)
+            [FromQuery] string? remoteError = null
+        )
         {
             _logger.LogInformation("Modtaget callback fra Google i controller.");
 
             if (!string.IsNullOrEmpty(remoteError))
             {
-                var sanitizedRemoteError = _userAuthenticationService.SanitizeReturnUrl(remoteError); 
-                _logger.LogError("Fejl fra ekstern udbyder (Google): {RemoteError}", sanitizedRemoteError);
-                return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode(remoteError)}");
+                var sanitizedRemoteError = _userAuthenticationService.SanitizeReturnUrl(
+                    remoteError
+                );
+                _logger.LogError(
+                    "Fejl fra ekstern udbyder (Google): {RemoteError}",
+                    sanitizedRemoteError
+                );
+                return Redirect(
+                    $"http://localhost:5173/login?error={HttpUtility.UrlEncode(remoteError)}"
+                );
             }
 
             var info = await _userAuthenticationService.GetExternalLoginInfoAsync();
             if (info == null)
             {
                 _logger.LogError("Kunne ikke hente ekstern login information i controlleren.");
-                return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode("Fejl ved eksternt login.")}");
+                return Redirect(
+                    $"http://localhost:5173/login?error={HttpUtility.UrlEncode("Fejl ved eksternt login.")}"
+                );
             }
 
             // Kald service til at håndtere resten af logikken
             var loginResult = await _userAuthenticationService.HandleGoogleLoginCallbackAsync(info);
 
-            if (loginResult.Status != GoogleLoginStatus.Success || string.IsNullOrEmpty(loginResult.JwtToken) || loginResult.AppUser == null)
+            if (
+                loginResult.Status != GoogleLoginStatus.Success
+                || string.IsNullOrEmpty(loginResult.JwtToken)
+                || loginResult.AppUser == null
+            )
             {
-                return Redirect($"http://localhost:5173/login?error={HttpUtility.UrlEncode(loginResult.ErrorMessage ?? "Ukendt fejl ved Google login.")}");
+                return Redirect(
+                    $"http://localhost:5173/login?error={HttpUtility.UrlEncode(loginResult.ErrorMessage ?? "Ukendt fejl ved Google login.")}"
+                );
             }
-            
 
             // Ryd den midlertidige eksterne cookie
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
@@ -350,28 +393,30 @@ namespace backend.Controllers
 
             var queryParams = new Dictionary<string, string?> { { "token", loginResult.JwtToken } };
 
-            var sanitizedReturnUrl = _userAuthenticationService.SanitizeReturnUrl(returnUrl); 
+            var sanitizedReturnUrl = _userAuthenticationService.SanitizeReturnUrl(returnUrl);
 
             if (!string.IsNullOrEmpty(sanitizedReturnUrl) && sanitizedReturnUrl.StartsWith("/"))
             {
                 queryParams.Add("originalReturnUrl", sanitizedReturnUrl);
             }
-            else if (!string.IsNullOrEmpty(returnUrl)) 
+            else if (!string.IsNullOrEmpty(returnUrl))
             {
                 _logger.LogWarning(
                     "Ignorerer ugyldig returnUrl ('{OriginalReturnUrl}') modtaget i HandleGoogleCallback for redirect til LoginSuccessPage.",
-                     _userAuthenticationService.SanitizeReturnUrl(returnUrl) 
+                    _userAuthenticationService.SanitizeReturnUrl(returnUrl)
                 );
             }
-            
+
             string urlForLoginSuccessPage = QueryHelpers.AddQueryString(
                 $"{frontendBaseUrl}{loginSuccessPathOnFrontend}",
                 queryParams
             );
 
-            _logger.LogInformation("Redirecter til frontend's LoginSuccessPage: {FinalUrl}", urlForLoginSuccessPage);
+            _logger.LogInformation(
+                "Redirecter til frontend's LoginSuccessPage: {FinalUrl}",
+                urlForLoginSuccessPage
+            );
             return Redirect(urlForLoginSuccessPage);
         }
-
     }
 }
