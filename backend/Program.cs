@@ -38,6 +38,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenSearch.Client;
 using OpenSearch.Net;
+using backend.Repositories.Authentication;
+using backend.Services.Authentication;
 
 // for .env secrets
 DotNetEnv.Env.Load();
@@ -379,6 +381,11 @@ builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository
 builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
 builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
+
+// user authentication
+builder.Services.AddScoped<IUserAuthenticationRepository, UserAuthenticationRepository>();
+builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+
 
 builder.Services.AddRouting();
 

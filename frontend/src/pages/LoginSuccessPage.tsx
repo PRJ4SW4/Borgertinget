@@ -26,7 +26,7 @@ useEffect(() => {
     console.error("LoginSuccessPage: Intet token fundet i URL.");
     navigate('/login', { replace: true });
   }
-}, [location, navigate, setToken]); // Dependency array sikrer, at effekten kører igen hvis disse ændres (selvom det næppe sker her)
+}, [location, navigate, setToken]); // Dependency array sikrer, at effekten kører igen hvis disse ændres 
 
   return (
     <div>
