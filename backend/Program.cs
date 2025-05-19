@@ -43,7 +43,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenSearch.Client;
 using OpenSearch.Net;
-using backend.Repositories.Authentication;
+using backend.Services.Feed;
+using backend.Repositories.Feed;
+using backend.Repositories.Polls;
+using backend.Services.Polls;using backend.Repositories.Authentication;
 using backend.Services.Authentication;
 
 // for .env secrets
@@ -312,6 +315,14 @@ builder.Services.AddScoped<IFetchService, FetchService>();
 
 builder.Services.AddHostedService<TweetFetchingService>();
 builder.Services.AddHostedService<DailySelectionJob>();
+builder.Services.AddScoped<IFeedRepository, FeedRepository>();
+builder.Services.AddScoped<IFeedService, FeedService>();
+builder.Services.AddScoped<IPollsRepository, PollsRepository>();
+builder.Services.AddScoped<IPollsService, PollsService>();
+builder.Services.AddScoped<backend.Repositories.Subscription.ISubscriptionRepository, 
+                           backend.Repositories.Subscription.SubscriptionRepository>();
+builder.Services.AddScoped<backend.Services.Subscription.ISubscriptionService, 
+                           backend.Services.Subscription.SubscriptionService>();
 builder.Services.AddHttpClient<TwitterService>();
 
 builder.Services.AddHttpClient();
