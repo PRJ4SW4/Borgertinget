@@ -6,10 +6,12 @@ import "./DeleteFlashcardCollection.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 import BackButton from "../Button/backbutton";
 
+// Allow Admin to delete a flashcard collection
 export default function DeleteFlashcardCollection() {
   const [titles, setTitles] = useState<string[]>([]);
   const location = useLocation();
 
+  // Back button
   const matchProp = { path: location.pathname };
 
   // Load all titles

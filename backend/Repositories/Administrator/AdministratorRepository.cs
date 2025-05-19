@@ -10,8 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace backend.Repositories
 {
     /// <summary>
-    /// Repository that performs **pure data‑access** operations for administrator‑related
-    /// entities.  All business/validation logic lives in the AdministratorService.
+    /// Repository that performs data‑access operations for administrator related operations
     /// </summary>
     public class AdministratorRepository : IAdministratorRepository
     {
@@ -34,6 +33,7 @@ namespace backend.Repositories
 
         public async Task UpdateFlashcardCollectionAsync(FlashcardCollection collection)
         {
+            // Mark Flashcard collection entity as modified so EF Core will update all its properties in the database
             _context.Entry(collection).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
@@ -84,6 +84,7 @@ namespace backend.Repositories
 
         public async Task UpdateUserAsync(User user)
         {
+            // Mark User entity as modified so EF Core will update all its properties in the database
             _context.Entry(user).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
@@ -104,6 +105,7 @@ namespace backend.Repositories
 
         public async Task UpdateQuoteAsync(PoliticianQuote quote)
         {
+            // Mark quote entity as modified so EF Core will update all its properties in the database
             _context.Entry(quote).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }

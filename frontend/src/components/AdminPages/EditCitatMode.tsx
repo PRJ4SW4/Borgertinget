@@ -6,12 +6,14 @@ import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 import BackButton from "../Button/backbutton";
 import { EditQuoteDTO } from "../../types/PolidleTypes";
 
+// Allow Admin to edit a politician quote from Polidles Citat-mode
 export default function EditCitatMode() {
   const [quotes, setQuotes] = useState<EditQuoteDTO[]>([]);
   const [selectedQuote, setSelectedQuote] = useState<EditQuoteDTO | null>(null);
   const [newText, setNewText] = useState<string>("");
   const location = useLocation();
 
+  // Back Button
   const matchProp = { path: location.pathname };
 
   // Load all Quotes
@@ -24,7 +26,9 @@ export default function EditCitatMode() {
             Authorization: `Bearer ${localStorage.getItem("jwt")}`,
           },
         });
+
         setQuotes(res.data);
+
       } catch (err) {
         console.error(err);
       }
@@ -42,8 +46,10 @@ export default function EditCitatMode() {
           Authorization: `Bearer ${localStorage.getItem("jwt")}`,
         },
       });
+
       setSelectedQuote(res.data);
       setNewText(res.data.quoteText);
+
     } catch (err) {
       console.error(err);
     }
@@ -83,6 +89,8 @@ export default function EditCitatMode() {
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
         <div style={{ position: "absolute", top: "10px", left: "10px" }}>
           {" "}
+
+          {/* --- Back button ---*/}
           <BackButton match={matchProp} destination="admin" />
         </div>
       </div>
@@ -113,15 +121,18 @@ export default function EditCitatMode() {
         </button>
       )}
 
+      {/* --- Display and edit current quote ---*/}
       {selectedQuote && (
         <div className="editor">
           <span className="quote-badge">ID #{selectedQuote.quoteId}</span>
           <br />
-
+          
           <label htmlFor="editQuoteTextarea">Rediger citat:</label>
           <textarea id="editQuoteTextarea" value={newText} onChange={(e) => setNewText(e.target.value)} />
 
           <br />
+
+          {/* --- Submit changes button ---*/}
           <button className="save-button" onClick={saveQuote}>
             Gem
           </button>
