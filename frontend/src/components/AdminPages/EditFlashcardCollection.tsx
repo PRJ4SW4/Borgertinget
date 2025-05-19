@@ -6,12 +6,14 @@ import "./EditFlashcardCollection.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
 import BackButton from "../Button/backbutton"; // Import BackButton
 
+// Allow Admin to edit an existing flashcard
 export default function EditFlashcardCollection() {
   const [titles, setTitles] = useState<string[]>([]);
   const [selectedTitle, setSelectedTitle] = useState<string>("");
   const [collection, setCollection] = useState<FlashcardCollectionDetailDto | null>(null);
   const location = useLocation();
 
+  // Back button
   const matchProp = { path: location.pathname };
 
   // Load all titles
@@ -45,8 +47,10 @@ export default function EditFlashcardCollection() {
           },
         }
       );
+
       setCollection(res.data);
       setSelectedTitle(title);
+
     } catch (err) {
       console.error(err);
     }
@@ -55,10 +59,15 @@ export default function EditFlashcardCollection() {
   // keyof for type safety
   // update one specific property on
   // one specific flashcard in the collection’s array, leaving everything else untouched.
+  // index - index of the flashcard
+  // field - The type of flashcard being changed (e.g. "frontText")
+  // value - value inside the flashcard
   const handleFlashcardChange = (index: number, field: keyof FlashcardDto, value: string) => {
     if (!collection) return;
 
+    // Clone existing collection
     const updatedCollection = { ...collection };
+    // Clone the specific flashcard being edited, and update the targeted field
     updatedCollection.flashcards[index] = { ...updatedCollection.flashcards[index], [field]: value };
     setCollection(updatedCollection);
   };
@@ -71,7 +80,9 @@ export default function EditFlashcardCollection() {
       await axios.put(`/api/administrator/UpdateFlashcardCollection/${collection.collectionId}`, collection, {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("jwt")}` },
       });
+
       alert("Flashcard serien er redigeret!");
+
     } catch (err) {
       console.error(err);
       console.log("Fejl med at gemme flashcard serien");
@@ -101,6 +112,8 @@ export default function EditFlashcardCollection() {
         <img src={BorgertingetIcon} className="Borgertinget-Icon" alt="Borgertinget Icon" />
         <div style={{ position: "absolute", top: "10px", left: "10px" }}>
           {" "}
+          
+          {/* --- Back button --- */}
           <BackButton match={matchProp} destination="admin" />
         </div>
       </div>
@@ -108,7 +121,7 @@ export default function EditFlashcardCollection() {
 
       <h1>Rediger Flashcard serie</h1>
 
-      {/* List all Titles */}
+      {/* --- List all Titles --- */}
       <div className="flashcard-titles">
         <h2>Flashcard serier:</h2>
         {titles.map((title, idx) => (
@@ -118,12 +131,13 @@ export default function EditFlashcardCollection() {
         ))}
       </div>
 
-      {/* Show and edit selected collection */}
+      {/* --- Show and edit selected collection --- */}
       {collection && (
         <div className="edit-form">
           <h3 className="flashcard-number">Redigere: {selectedTitle}</h3>
 
           <div>
+            {/* --- Titel --- */}
             <label htmlFor="collectionTitle">Serie Titel:</label>
             <input
               id="collectionTitle"
@@ -135,6 +149,7 @@ export default function EditFlashcardCollection() {
           </div>
 
           <div>
+            {/* --- Description --- */}
             <label htmlFor="collectionDescription">Serie Beskrivelse:</label>
             <textarea
               id="collectionDescription"
@@ -144,12 +159,12 @@ export default function EditFlashcardCollection() {
             />
           </div>
 
-          {/* Map through each flashcard in the collection */}
+          {/* --- Map through each flashcard in the collection --- */}
           {collection.flashcards.map((fc, index) => (
             <div key={index}>
               <p className="flashcard-number">Flashcard #{index + 1}</p>
 
-              {/* Front side */}
+              {/* --- Front side --- */}
               {fc.frontContentType === "Text" ? (
                 <div>
                   <label htmlFor={`frontText-${index}`}>Front Text:</label>
@@ -185,7 +200,7 @@ export default function EditFlashcardCollection() {
                 </div>
               )}
 
-              {/* Bag side */}
+              {/* --- Bag side --- */}
               {fc.backContentType === "Text" ? (
                 <div>
                   <label htmlFor={`backText-${index}`}>Bag Text:</label>
@@ -213,8 +228,10 @@ export default function EditFlashcardCollection() {
                       }
                     }}
                   />
+                  
                   {fc.backImagePath && (
                     <div>
+                      {/* app.UseStaticFiles()(backend) == Anything inside wwwroot is publicly accessible via HTTP GET*/}
                       <img src={`http://localhost:5218${fc.backImagePath}`} alt="Back" style={{ width: "150px", marginTop: "10px" }} />
                     </div>
                   )}

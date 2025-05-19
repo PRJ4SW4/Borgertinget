@@ -43,13 +43,13 @@ public interface ICalendarEventRepository
     // This method is asynchronous and returns a collection of CalendarEvent objects.
     Task<IEnumerable<CalendarEvent>> GetAllEventsAsync();
 
-    Task<EventInterest?> RetrieveInterestPairsAsync(int eventId, string userId);
+    Task<EventInterest?> RetrieveInterestPairsAsync(int eventId, int userId);
 
     Task AddEventInterest(EventInterest eventInterest);
 
     Task RemoveEventInterest(EventInterest eventInterest);
 
-    Task<User?> GetUserModelByIdStringAsync(string userId);
+    //Task<User?> GetUserModelByIdStringAsync(string userId);
 
     Task<int> GetInterestedUsersAsync(int eventId);
 }

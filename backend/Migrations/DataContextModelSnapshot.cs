@@ -183,103 +183,6 @@ namespace backend.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("backend.Models.Aktor", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Born")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Constituencies")
-                        .HasColumnType("text");
-
-                    b.Property<string>("EducationStatistic")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Educations")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FunctionFormattedTitle")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FunctionStartDate")
-                        .HasColumnType("text");
-
-                    b.Property<string>("MinisterTitel")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Ministers")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Nominations")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Occupations")
-                        .HasColumnType("text");
-
-                    b.PrimitiveCollection<List<string>>("ParliamentaryPositionsOfTrust")
-                        .HasColumnType("text[]");
-
-                    b.Property<string>("Party")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PartyShortname")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PictureMiRes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PositionsOfTrust")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PublicationTitles")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Sex")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Spokesmen")
-                        .HasColumnType("text");
-
-                    b.Property<string>("biografi")
-                        .HasColumnType("text");
-
-                    b.Property<string>("efternavn")
-                        .HasColumnType("text");
-
-                    b.Property<string>("fornavn")
-                        .HasColumnType("text");
-
-                    b.Property<string>("gruppeNavnKort")
-                        .HasColumnType("text");
-
-                    b.Property<string>("navn")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("opdateringsdato")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("periodeid")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("slutdato")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("startdato")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("typeid")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Aktor");
-                });
-
             modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
                 {
                     b.Property<int>("Id")
@@ -766,60 +669,6 @@ namespace backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("backend.Models.Party", b =>
-                {
-                    b.Property<int>("partyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
-
-                    b.Property<int?>("chairmanId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("history")
-                        .HasColumnType("text");
-
-                    b.Property<string>("memberIds")
-                        .HasColumnType("text");
-
-                    b.Property<string>("partyName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("partyProgram")
-                        .HasColumnType("text");
-
-                    b.Property<string>("partyShortName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("politics")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("secretaryId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("spokesmanId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("stats")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("viceChairmanId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("partyId");
-
-                    b.HasIndex("chairmanId");
-
-                    b.HasIndex("secretaryId");
-
-                    b.HasIndex("spokesmanId");
-
-                    b.HasIndex("viceChairmanId");
-
-                    b.ToTable("Party");
-                });
-
             modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
                 {
                     b.Property<int>("QuoteId")
@@ -897,6 +746,157 @@ namespace backend.Migrations
                             TwitterHandle = "troelslundp",
                             TwitterUserId = "2965907578"
                         });
+                });
+
+            modelBuilder.Entity("backend.Models.Politicians.Aktor", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Born")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Constituencies")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EducationStatistic")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Educations")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FunctionFormattedTitle")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FunctionStartDate")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MinisterTitel")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Ministers")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nominations")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Occupations")
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<List<string>>("ParliamentaryPositionsOfTrust")
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("Party")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PartyShortname")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PictureMiRes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PositionsOfTrust")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PublicationTitles")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sex")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Spokesmen")
+                        .HasColumnType("text");
+
+                    b.Property<string>("biografi")
+                        .HasColumnType("text");
+
+                    b.Property<string>("efternavn")
+                        .HasColumnType("text");
+
+                    b.Property<string>("fornavn")
+                        .HasColumnType("text");
+
+                    b.Property<string>("gruppeNavnKort")
+                        .HasColumnType("text");
+
+                    b.Property<string>("navn")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("opdateringsdato")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("periodeid")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("slutdato")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("startdato")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("typeid")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Aktor");
+                });
+
+            modelBuilder.Entity("backend.Models.Politicians.Party", b =>
+                {
+                    b.Property<int>("partyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("partyId"));
+
+                    b.Property<int?>("chairmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("history")
+                        .HasColumnType("text");
+
+                    b.Property<string>("memberIds")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyProgram")
+                        .HasColumnType("text");
+
+                    b.Property<string>("partyShortName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("politics")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("secretaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("spokesmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("stats")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("viceChairmanId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("partyId");
+
+                    b.HasIndex("chairmanId");
+
+                    b.HasIndex("secretaryId");
+
+                    b.HasIndex("spokesmanId");
+
+                    b.HasIndex("viceChairmanId");
+
+                    b.ToTable("Party");
                 });
 
             modelBuilder.Entity("backend.Models.Poll", b =>
@@ -1272,7 +1272,7 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.DailySelection", b =>
                 {
-                    b.HasOne("backend.Models.Aktor", "SelectedPolitiker")
+                    b.HasOne("backend.Models.Politicians.Aktor", "SelectedPolitiker")
                         .WithMany("DailySelections")
                         .HasForeignKey("SelectedPolitikerID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1294,7 +1294,7 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.GamemodeTracker", b =>
                 {
-                    b.HasOne("backend.Models.Aktor", "Politician")
+                    b.HasOne("backend.Models.Politicians.Aktor", "Politician")
                         .WithMany("GamemodeTrackings")
                         .HasForeignKey("PolitikerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1335,37 +1335,9 @@ namespace backend.Migrations
                     b.Navigation("Page");
                 });
 
-            modelBuilder.Entity("backend.Models.Party", b =>
-                {
-                    b.HasOne("backend.Models.Aktor", "chairman")
-                        .WithMany()
-                        .HasForeignKey("chairmanId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("backend.Models.Aktor", "secretary")
-                        .WithMany()
-                        .HasForeignKey("secretaryId");
-
-                    b.HasOne("backend.Models.Aktor", "spokesman")
-                        .WithMany()
-                        .HasForeignKey("spokesmanId");
-
-                    b.HasOne("backend.Models.Aktor", "viceChairman")
-                        .WithMany()
-                        .HasForeignKey("viceChairmanId");
-
-                    b.Navigation("chairman");
-
-                    b.Navigation("secretary");
-
-                    b.Navigation("spokesman");
-
-                    b.Navigation("viceChairman");
-                });
-
             modelBuilder.Entity("backend.Models.PoliticianQuote", b =>
                 {
-                    b.HasOne("backend.Models.Aktor", "Politician")
+                    b.HasOne("backend.Models.Politicians.Aktor", "Politician")
                         .WithMany("Quotes")
                         .HasForeignKey("AktorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1376,12 +1348,40 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.PoliticianTwitterId", b =>
                 {
-                    b.HasOne("backend.Models.Aktor", "Aktor")
+                    b.HasOne("backend.Models.Politicians.Aktor", "Aktor")
                         .WithOne()
                         .HasForeignKey("backend.Models.PoliticianTwitterId", "AktorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Aktor");
+                });
+
+            modelBuilder.Entity("backend.Models.Politicians.Party", b =>
+                {
+                    b.HasOne("backend.Models.Politicians.Aktor", "chairman")
+                        .WithMany()
+                        .HasForeignKey("chairmanId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("backend.Models.Politicians.Aktor", "secretary")
+                        .WithMany()
+                        .HasForeignKey("secretaryId");
+
+                    b.HasOne("backend.Models.Politicians.Aktor", "spokesman")
+                        .WithMany()
+                        .HasForeignKey("spokesmanId");
+
+                    b.HasOne("backend.Models.Politicians.Aktor", "viceChairman")
+                        .WithMany()
+                        .HasForeignKey("viceChairmanId");
+
+                    b.Navigation("chairman");
+
+                    b.Navigation("secretary");
+
+                    b.Navigation("spokesman");
+
+                    b.Navigation("viceChairman");
                 });
 
             modelBuilder.Entity("backend.Models.Poll", b =>
@@ -1463,15 +1463,6 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("backend.Models.Aktor", b =>
-                {
-                    b.Navigation("DailySelections");
-
-                    b.Navigation("GamemodeTrackings");
-
-                    b.Navigation("Quotes");
-                });
-
             modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
                 {
                     b.Navigation("InterestedUsers");
@@ -1501,6 +1492,15 @@ namespace backend.Migrations
                     b.Navigation("Subscriptions");
 
                     b.Navigation("Tweets");
+                });
+
+            modelBuilder.Entity("backend.Models.Politicians.Aktor", b =>
+                {
+                    b.Navigation("DailySelections");
+
+                    b.Navigation("GamemodeTrackings");
+
+                    b.Navigation("Quotes");
                 });
 
             modelBuilder.Entity("backend.Models.Poll", b =>

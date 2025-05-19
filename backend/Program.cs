@@ -10,11 +10,15 @@ using backend.Jobs;
 using backend.Models;
 using backend.Persistence.Repositories;
 using backend.Repositories;
+using backend.Repositories.Authentication;
 using backend.Repositories.Calendar;
 using backend.Repositories.Flashcards;
 using backend.Repositories.LearningEnvironment;
+using backend.Repositories.PolidleSelection;
+using backend.Repositories.PolidleTracker;
 using backend.Repositories.Politicians;
 using backend.Services;
+using backend.Services.Authentication;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
@@ -379,6 +383,10 @@ builder.Services.AddScoped<IGamemodeTrackerRepository, GamemodeTrackerRepository
 builder.Services.AddScoped<IPoliticianMapper, PoliticianMapper>();
 builder.Services.AddScoped<ISelectionAlgorithm, WeightedDateBasedSelectionAlgorithm>();
 builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
+
+// user authentication
+builder.Services.AddScoped<IUserAuthenticationRepository, UserAuthenticationRepository>();
+builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
 
 builder.Services.AddRouting();
 
