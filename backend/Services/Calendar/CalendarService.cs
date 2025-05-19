@@ -16,14 +16,17 @@ namespace backend.Services.Calendar
     {
         private readonly ICalendarEventRepository _calendarEventRepository;
         private readonly ILogger<CalendarService> _logger;
+        private readonly UserManager<User> _userManager; 
 
         public CalendarService(
             ICalendarEventRepository calendarEventRepository,
-            ILogger<CalendarService> logger
+            ILogger<CalendarService> logger,
+            UserManager<User> userManager
         )
         {
             _calendarEventRepository = calendarEventRepository;
             _logger = logger;
+            _userManager = userManager;
         }
 
         public async Task<IEnumerable<CalendarEventDTO>> GetAllEventsAsDTOAsync(int userId)
@@ -143,7 +146,7 @@ namespace backend.Services.Calendar
                 );
                 return null;
             }
-            var user = await _calendarEventRepository.GetUserModelByIdStringAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId);
             var calendarEvent = await _calendarEventRepository.GetEventByIdAsync(eventId);
             if (user == null || calendarEvent == null)
             {
@@ -157,7 +160,7 @@ namespace backend.Services.Calendar
 
             var alreadyInterested = await _calendarEventRepository.RetrieveInterestPairsAsync(
                 eventId,
-                userId
+                user.Id
             );
             bool isNowInterested;
 
@@ -171,7 +174,7 @@ namespace backend.Services.Calendar
                 var userInterest = new EventInterest
                 {
                     CalendarEventId = eventId,
-                    UserId = parsedUserIdAsInt,
+                    UserId = user.Id,
                 };
 
                 _calendarEventRepository.AddEventInterest(userInterest); // Add interest.
