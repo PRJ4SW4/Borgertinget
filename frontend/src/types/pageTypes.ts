@@ -1,5 +1,3 @@
-// src/types/pageTypes.ts
-
 export interface PageSummaryDto {
     id: number;
     title: string;

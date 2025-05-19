@@ -1,10 +1,6 @@
-// This component provides a standard page structure with Navbar and Footer.
 import React from 'react';
-// Outlet component from react-router-dom renders the matched child route component.
 import { Outlet } from 'react-router-dom';
-// Importing the shared Navbar component.
 import Navbar from '../components/Navbar/Navbar';
-// Importing the shared Footer component.
 import Footer from '../components/Footer/Footer';
 
 // The MainLayout functional component.

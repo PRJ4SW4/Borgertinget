@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using backend.Models.Calendar;
-using backend.Repositories.Calendar;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 
@@ -65,7 +64,9 @@ public class AltingetEventDataParser : IEventDataParser
         {
             var dateNode = dayGroupNode.SelectSingleNode(DateXPath); // Select the date node.
             string rawDate =
-                dateNode != null ? HtmlEntity.DeEntitize(dateNode.InnerText).Trim() : ""; // Extract the raw date string.
+                dateNode != null && dateNode.InnerText != null
+                    ? (HtmlEntity.DeEntitize(dateNode.InnerText)?.Trim() ?? "")
+                    : ""; // Extract the raw date string.
 
             // Try to parse the raw date string.
             if (
@@ -114,7 +115,7 @@ public class AltingetEventDataParser : IEventDataParser
                 };
 
                 var timeNode = eventLinkNode.SelectSingleNode(TimeXPath); // Select the time node.
-                scrapedEvent.RawTime = timeNode?.InnerText.Trim() ?? ""; // Extract the raw time string.
+                scrapedEvent.RawTime = timeNode?.InnerText?.Trim() ?? ""; // Extract the raw time string.
 
                 // Try to parse the raw time string.
                 if (
@@ -179,16 +180,32 @@ public class AltingetEventDataParser : IEventDataParser
                 }
 
                 var titleNode = eventLinkNode.SelectSingleNode(TitleXPath); // Select the title node.
-                scrapedEvent.Title =
-                    titleNode != null
-                        ? HtmlEntity.DeEntitize(titleNode.InnerText).Trim()
-                        : "Ukendt Titel"; // Extract the title.
+                if (titleNode != null)
+                {
+                    // InnerText is guaranteed non-null if titleNode is non-null.
+                    string titleInnerText = titleNode.InnerText;
+                    // DeEntitize can return null if titleInnerText is null, though InnerText itself won't be null here.
+                    string? deEntitizedTitle = HtmlEntity.DeEntitize(titleInnerText);
+                    scrapedEvent.Title = deEntitizedTitle?.Trim() ?? "Ukendt Titel";
+                }
+                else
+                {
+                    scrapedEvent.Title = "Ukendt Titel"; // Extract the title.
+                }
 
                 var locationNode = eventLinkNode.SelectSingleNode(LocationXPath); // Select the location node.
-                scrapedEvent.Location =
-                    locationNode != null
-                        ? HtmlEntity.DeEntitize(locationNode.InnerText).Trim()
-                        : null; // Extract the location.
+                if (locationNode != null)
+                {
+                    // InnerText is guaranteed non-null if locationNode is non-null.
+                    string locationInnerText = locationNode.InnerText;
+                    // DeEntitize can return null if locationInnerText is null, though InnerText itself won't be null here.
+                    string? deEntitizedLocation = HtmlEntity.DeEntitize(locationInnerText);
+                    scrapedEvent.Location = deEntitizedLocation?.Trim();
+                }
+                else
+                {
+                    scrapedEvent.Location = null; // Extract the location.
+                }
 
                 // Add the event if essential data (Title and a parsable StartDateTime) is present.
                 if (

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using backend.DTO.Flashcards;
 using backend.Services.Flashcards;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 // Specifies the route for this controller, defining the base URL segment for its endpoints.
@@ -23,6 +24,7 @@ public class FlashcardsController : ControllerBase
 
     // Defines an HTTP GET endpoint to retrieve a summary list of flashcard collections for the sidebar.
     [HttpGet("collections")]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<FlashcardCollectionSummaryDTO>>> GetCollections()
     {
         // Delegates the call to the service layer to fetch flashcard collection summaries.
@@ -34,6 +36,7 @@ public class FlashcardsController : ControllerBase
     // Defines an HTTP GET endpoint to retrieve details of a specific flashcard collection, including its flashcards.
     // The 'id' parameter in the route corresponds to the collectionId.
     [HttpGet("collections/{id}")]
+    [Authorize]
     public async Task<ActionResult<FlashcardCollectionDetailDTO>> GetCollectionDetails(int id)
     {
         // Delegates the call to the service layer to fetch details for the specified collection ID.

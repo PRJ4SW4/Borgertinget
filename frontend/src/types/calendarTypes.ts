@@ -1,5 +1,3 @@
-// src/types/calendarTypes.ts
-
 // Matches the backend CalendarEventDto
 export interface CalendarEventDto {
     id: number;

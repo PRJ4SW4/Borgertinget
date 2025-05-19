@@ -3,23 +3,27 @@ namespace backend.Services.Calendar.Scraping;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection; // Required for IServiceScopeFactory
-using Microsoft.Extensions.Hosting; // Required for BackgroundService
-using Microsoft.Extensions.Logging; // Required for ILogger
+using backend.utils.TimeZone;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 public class AltingetScraperServiceScheduler : BackgroundService
 {
     private readonly ILogger<AltingetScraperServiceScheduler> _logger;
     private readonly IServiceScopeFactory _scopeFactory; // Factory to create scopes for scoped services like DbContext
+    private readonly ITimeZoneHelper _timeZoneHelper;
 
-    // Inject logger and scope factory
+    // Inject logger, scope factory, and ITimeZoneHelper
     public AltingetScraperServiceScheduler(
         ILogger<AltingetScraperServiceScheduler> logger,
-        IServiceScopeFactory scopeFactory
+        IServiceScopeFactory scopeFactory,
+        ITimeZoneHelper timeZoneHelper
     )
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
+        _timeZoneHelper = timeZoneHelper;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -101,50 +105,29 @@ public class AltingetScraperServiceScheduler : BackgroundService
     private TimeSpan CalculateNextRunDelay()
     {
         // --- Calculate Delay until next 4:00 AM Copenhagen time ---
-        TimeZoneInfo copenhagenZone = FindTimeZone(); // Helper to get timezone reliably
+        TimeZoneInfo copenhagenZone = _timeZoneHelper.FindTimeZone();
         DateTimeOffset nowUtc = DateTimeOffset.UtcNow;
-        DateTimeOffset nowCopenhagen = TimeZoneInfo.ConvertTime(nowUtc, copenhagenZone);
+        DateTimeOffset nowCopenhagen = TimeZoneInfo.ConvertTime(nowUtc, copenhagenZone); // Get current time in Copenhagen timezone
+        DateTimeOffset nextRunTimeCopenhagen;
 
-        // Target time is 4:00 AM on the current local date
-        DateTime targetTimeToday = nowCopenhagen.Date.AddHours(4);
-
-        // Determine the next run time (either 4 AM today or 4 AM tomorrow)
-        DateTime nextRunTimeLocal;
         if (nowCopenhagen.TimeOfDay >= TimeSpan.FromHours(4))
         {
-            // It's 4 AM or later today, schedule for 4 AM tomorrow
-            nextRunTimeLocal = targetTimeToday.AddDays(1);
+            // If current time is 4 AM or later, schedule for 4 AM next day
+            nextRunTimeCopenhagen = nowCopenhagen.Date.AddDays(1).AddHours(4);
         }
         else
         {
-            // It's before 4 AM today, schedule for 4 AM today
-            nextRunTimeLocal = targetTimeToday;
+            // If current time is before 4 AM, schedule for 4 AM today
+            nextRunTimeCopenhagen = nowCopenhagen.Date.AddHours(4);
         }
 
-        // Convert the scheduled local run time into a DateTimeOffset using the correct zone offset
-        // This correctly handles potential DST transitions near 4 AM
-        DateTimeOffset nextRunTimeZoned = new DateTimeOffset(
-            nextRunTimeLocal,
-            copenhagenZone.GetUtcOffset(nextRunTimeLocal)
-        );
-
-        // Calculate the delay from the current UTC time until the target UTC time
-        TimeSpan delay = nextRunTimeZoned - nowUtc;
+        TimeSpan delay = nextRunTimeCopenhagen - nowCopenhagen;
 
         if (delay < TimeSpan.Zero)
         {
-            // Should not happen with the logic above, but safety check
-            _logger.LogWarning(
-                "Calculated delay was negative, setting to zero. Next run will be immediate."
-            );
-            delay = TimeSpan.Zero;
+            // This case should ideally not be hit if logic is correct, but as a fallback:
+            delay = delay.Add(TimeSpan.FromDays(1)); // Add 24 hours if calculated delay is negative
         }
-
-        _logger.LogInformation(
-            "Next Altinget scrape calculated for: {TargetRunTime} Copenhagen time ({TargetRunTimeUtc} UTC).",
-            nextRunTimeLocal.ToString("yyyy-MM-dd HH:mm:ss"),
-            nextRunTimeZoned.ToString("yyyy-MM-dd HH:mm:ss")
-        );
         return delay;
     }
 
@@ -154,28 +137,5 @@ public class AltingetScraperServiceScheduler : BackgroundService
     {
         _logger.LogInformation("Waiting for {Delay} until the next scheduled run.", delay);
         await Task.Delay(delay, stoppingToken);
-    }
-
-    // Helper to find the timezone reliably on different OS
-    // This makes sure it will work on both Linux, MacOS and Windows
-    private TimeZoneInfo FindTimeZone()
-    {
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("Europe/Copenhagen");
-        } // IANA ID (Linux/macOS)
-        catch (TimeZoneNotFoundException) { } // Ignore and try Windows ID
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
-        } // Windows ID
-        catch (TimeZoneNotFoundException ex)
-        {
-            _logger.LogCritical(
-                ex,
-                "Could not find Copenhagen timezone using either IANA or Windows ID."
-            );
-            throw; // Re-throw if neither is found
-        }
     }
 }

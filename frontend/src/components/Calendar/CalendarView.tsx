@@ -1,13 +1,7 @@
-// src/components/CalendarView.tsx
 import { useState, useEffect, useMemo, useCallback } from 'react';
-
-// --- date-fns Imports ---
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-
-// --- date-fns-tz Import ---
 import { toZonedTime } from 'date-fns-tz';
-
 import { fetchCalendarEvents, toggleEventInterest } from '../../services/ApiService';
 import type { CalendarEventDto } from '../../types/calendarTypes';
 
@@ -62,7 +56,7 @@ function CalendarView() {
             const utcDate = new Date(event.startDateTimeUtc);
             // Convert to Copenhagen time before formatting the date key
             const zonedDate = toZonedTime(utcDate, displayTimeZone);
-            // Format date using Danish locale for the key (e.g., "11. april 2025")
+            // Format date for the key (e.g., "11. april 2025")
             const dateKey = format(zonedDate, 'd. MMMM yyyy', { locale: da });
 
             if (!groups[dateKey]) {
@@ -151,7 +145,7 @@ function CalendarView() {
                   <a
                     href={eventUrl}
                     target="_blank" // Open in new tab
-                    rel="noopener noreferrer" // Security best practice
+                    rel="noopener noreferrer"
                     className="event-link"
                     title={`Se på Altinget: ${event.title}`} // Tooltip
                   >
@@ -163,7 +157,7 @@ function CalendarView() {
                         {/* Display location if available */}
                         {event.location && (
                             <div className="event-location">
-                                <span className="location-icon" aria-hidden="true">📍</span> {/* Simple icon */}
+                                <span className="location-icon" aria-hidden="true">📍</span> {/* Location icon */}
                                 {event.location}
                             </div>
                         )}

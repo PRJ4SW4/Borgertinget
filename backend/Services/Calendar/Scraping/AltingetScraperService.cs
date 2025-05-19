@@ -2,14 +2,13 @@ namespace backend.Services.Calendar.Scraping;
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Models.Calendar;
 using backend.Repositories.Calendar;
 using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
-using backend.Services.Calendar.Scraping;
+using backend.utils.TimeZone;
 using Microsoft.Extensions.Logging;
 
 // This service is responsible for orchestrating the scraping of event data from the Altinget calendar.
@@ -19,14 +18,16 @@ public class AltingetScraperService : IScraperService
     private readonly IEventDataParser _eventDataParser; // Service for parsing HTML into event data.
     private readonly ICalendarEventRepository _calendarEventRepository; // Repository for calendar event data operations.
     private readonly ILogger<AltingetScraperService> _logger; // Logger for recording service activity and errors.
+    private readonly ITimeZoneHelper _timeZoneHelper;
     private const string AltingetCalendarUrl = "https://www.altinget.dk/kalender"; // The URL of the Altinget calendar to scrape.
 
-    // Constructor:  Takes injected dependencies for HTML fetching, parsing, data repository, and logging.
+    // Constructor:  Takes injected dependencies for HTML fetching, parsing, data repository, logging, and timezone helper.
     public AltingetScraperService(
         IHtmlFetcher htmlFetcher,
         IEventDataParser eventDataParser,
         ICalendarEventRepository calendarEventRepository,
-        ILogger<AltingetScraperService> logger
+        ILogger<AltingetScraperService> logger,
+        ITimeZoneHelper timeZoneHelper
     )
     {
         _htmlFetcher = htmlFetcher ?? throw new ArgumentNullException(nameof(htmlFetcher));
@@ -36,6 +37,7 @@ public class AltingetScraperService : IScraperService
             calendarEventRepository
             ?? throw new ArgumentNullException(nameof(calendarEventRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeZoneHelper = timeZoneHelper ?? throw new ArgumentNullException(nameof(timeZoneHelper));
     }
 
     // Fetches HTML from Altinget and parses it into a list of ScrapedEventData.
@@ -74,7 +76,7 @@ public class AltingetScraperService : IScraperService
         try
         {
             // --- Step 0: Determine Time Thresholds and Delete Old Events ---
-            TimeZoneInfo cetZone = FindTimeZone(); // Get the Central European Time (CET) zone.
+            TimeZoneInfo cetZone = _timeZoneHelper.FindTimeZone();
             DateTimeOffset nowUtcForScrape = DateTimeOffset.UtcNow; // Use DateTimeOffset.UtcNow
             DateTimeOffset nowCopenhagen = TimeZoneInfo.ConvertTime(nowUtcForScrape, cetZone); // Convert current UTC time to Copenhagen time.
             DateTime startOfTodayCopenhagen = nowCopenhagen.Date; // Get the start of the current day in Copenhagen.
@@ -278,29 +280,6 @@ public class AltingetScraperService : IScraperService
         {
             _logger.LogError(ex, "ERROR during Altinget sync automation process."); // Log an error if there is an error during the Altinget sync.
             return -1; // Return -1 to indicate an error.
-        }
-    }
-
-    // Helper to find the timezone reliably on different OS
-    // This makes sure it will work on both Linux, MacOS and Windows
-    private TimeZoneInfo FindTimeZone()
-    {
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("Europe/Copenhagen"); // IANA ID (Linux/macOS)
-        }
-        catch (TimeZoneNotFoundException) { } // Ignore and try Windows ID
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"); // Windows ID
-        }
-        catch (TimeZoneNotFoundException ex)
-        {
-            _logger.LogCritical(
-                ex,
-                "Could not find Copenhagen timezone using either IANA ('Europe/Copenhagen') or Windows ('Central European Standard Time') ID."
-            ); // Log a critical error if the Copenhagen timezone is not found using either IANA or Windows ID.
-            throw; // Re-throw if neither is found, as this is critical for operation.
         }
     }
 }

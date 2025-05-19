@@ -1,14 +1,9 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using backend.Data;
 using backend.DTO.Calendar;
 using backend.Models;
 using backend.Models.Calendar;
 using backend.Repositories.Calendar;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Services.Calendar
 {
@@ -16,7 +11,7 @@ namespace backend.Services.Calendar
     {
         private readonly ICalendarEventRepository _calendarEventRepository;
         private readonly ILogger<CalendarService> _logger;
-        private readonly UserManager<User> _userManager; 
+        private readonly UserManager<User> _userManager;
 
         public CalendarService(
             ICalendarEventRepository calendarEventRepository,
@@ -40,7 +35,21 @@ namespace backend.Services.Calendar
                 return Enumerable.Empty<CalendarEventDTO>();
             }
 
-            var eventDTOs = calendarEvents
+            var eventDTOs = MapCalendarEventToDTO(calendarEvents, userId);
+
+            _logger.LogInformation(
+                "Successfully fetched and mapped {EventCount} events to DTOs in service.",
+                eventDTOs.Count
+            );
+            return eventDTOs;
+        }
+
+        private List<CalendarEventDTO> MapCalendarEventToDTO(
+            IEnumerable<CalendarEvent> calendarEvent,
+            int userId
+        )
+        {
+            return calendarEvent
                 .Select(e => new CalendarEventDTO
                 {
                     Id = e.Id,
@@ -53,12 +62,6 @@ namespace backend.Services.Calendar
                         e.InterestedUsers?.Any(iu => iu.UserId == userId) ?? false,
                 })
                 .ToList();
-
-            _logger.LogInformation(
-                "Successfully fetched and mapped {EventCount} events to DTOs in service.",
-                eventDTOs.Count
-            );
-            return eventDTOs;
         }
 
         public async Task<CalendarEventDTO> CreateEventAsync(CalendarEventDTO calendarEventDto)
@@ -166,7 +169,7 @@ namespace backend.Services.Calendar
 
             if (alreadyInterested != null)
             {
-                _calendarEventRepository.RemoveEventInterest(alreadyInterested); // Remove interest.
+                await _calendarEventRepository.RemoveEventInterest(alreadyInterested); // Remove interest.
                 isNowInterested = false;
             }
             else
@@ -177,7 +180,7 @@ namespace backend.Services.Calendar
                     UserId = user.Id,
                 };
 
-                _calendarEventRepository.AddEventInterest(userInterest); // Add interest.
+                await _calendarEventRepository.AddEventInterest(userInterest); // Add interest.
                 isNowInterested = true;
             }
 

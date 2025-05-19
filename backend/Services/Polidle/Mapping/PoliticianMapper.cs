@@ -119,6 +119,11 @@ namespace backend.Services.Mapping
             }
             catch (Exception ex)
             {
+                _logger.LogError(
+                    ex,
+                    "Error calculating age from date string: {DateString}",
+                    dateOfBirthString
+                );
                 return 0;
             }
         }

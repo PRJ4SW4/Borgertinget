@@ -1,10 +1,7 @@
 import React from "react";
-// NavLink adds styling attributes for active routes.
-// useNavigate provides a function for programmatic navigation.
 import { NavLink, useNavigate } from "react-router-dom";
 // Importing the small logo image.
 import logoSmall from "../../assets/logo-small.png";
-// Importing the specific CSS for this component.
 import "./Navbar.css";
 
 // Defines the props expected by the Navbar component.
@@ -27,7 +24,6 @@ const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
     // Removes the JWT token from the browser's local storage.
     localStorage.removeItem("jwt");
     // Calls the setToken function to update the application's authentication state to null.
-    // Optional chaining () prevents errors if setToken is not passed.
     setToken?.(null);
     // Redirects the user to the login page after logout actions.
     navigate("/landingpage");

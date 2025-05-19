@@ -1,5 +1,3 @@
-/* src/layouts/LearningLayout.css */
-
 .learning-layout {
     /* Use Flexbox to arrange children side-by-side */
     display: flex;

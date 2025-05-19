@@ -45,9 +45,9 @@ public interface ICalendarEventRepository
 
     Task<EventInterest?> RetrieveInterestPairsAsync(int eventId, int userId);
 
-    void AddEventInterest(EventInterest eventInterest);
+    Task AddEventInterest(EventInterest eventInterest);
 
-    void RemoveEventInterest(EventInterest eventInterest);
+    Task RemoveEventInterest(EventInterest eventInterest);
 
     //Task<User?> GetUserModelByIdStringAsync(string userId);
 

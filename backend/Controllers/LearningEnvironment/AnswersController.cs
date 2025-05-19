@@ -1,7 +1,6 @@
-using System.Threading.Tasks;
 using backend.DTO.LearningEnvironment;
-using backend.Models.LearningEnvironment;
 using backend.Services.LearningEnvironment;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
@@ -20,6 +19,7 @@ public class AnswersController : ControllerBase
 
     // Defines an HTTP POST endpoint at "api/answers/check" for checking user-submitted answers.
     [HttpPost("check")]
+    [Authorize]
     public async Task<ActionResult<AnswerCheckResponseDTO>> CheckAnswer(
         AnswerCheckRequestDTO request
     )

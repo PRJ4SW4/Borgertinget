@@ -1,10 +1,7 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-// google stuff
 using System.Web;
 using backend.Data;
-using backend.Enums;
 using backend.Hubs;
 using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
@@ -13,41 +10,42 @@ using backend.Jobs;
 using backend.Models;
 using backend.Persistence.Repositories;
 using backend.Repositories;
+using backend.Repositories.Authentication;
 using backend.Repositories.Calendar;
+using backend.Repositories.Feed;
+using backend.Repositories.Flashcards;
+using backend.Repositories.LearningEnvironment;
 using backend.Repositories.PolidleSelection;
 using backend.Repositories.PolidleTracker;
 using backend.Repositories.Politicians;
+using backend.Repositories.Polls;
 using backend.Services;
+using backend.Services.Authentication;
 using backend.Services.Calendar;
 using backend.Services.Calendar.HtmlFetching;
 using backend.Services.Calendar.Parsing;
 using backend.Services.Calendar.Scraping;
+using backend.Services.Feed;
 using backend.Services.Flashcards;
 using backend.Services.LearningEnvironment;
 using backend.Services.Mapping;
 using backend.Services.Politicians;
+using backend.Services.Polls;
 using backend.Services.Search;
 using backend.Services.Selection;
 using backend.Services.Utility;
 using backend.utils;
+using backend.utils.TimeZone;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenSearch.Client;
 using OpenSearch.Net;
-using backend.Services.Feed;
-using backend.Repositories.Feed;
-using backend.Repositories.Polls;
-using backend.Services.Polls;using backend.Repositories.Authentication;
-using backend.Services.Authentication;
 
 // for .env secrets
 DotNetEnv.Env.Load();
@@ -319,10 +317,14 @@ builder.Services.AddScoped<IFeedRepository, FeedRepository>();
 builder.Services.AddScoped<IFeedService, FeedService>();
 builder.Services.AddScoped<IPollsRepository, PollsRepository>();
 builder.Services.AddScoped<IPollsService, PollsService>();
-builder.Services.AddScoped<backend.Repositories.Subscription.ISubscriptionRepository, 
-                           backend.Repositories.Subscription.SubscriptionRepository>();
-builder.Services.AddScoped<backend.Services.Subscription.ISubscriptionService, 
-                           backend.Services.Subscription.SubscriptionService>();
+builder.Services.AddScoped<
+    backend.Repositories.Subscription.ISubscriptionRepository,
+    backend.Repositories.Subscription.SubscriptionRepository
+>();
+builder.Services.AddScoped<
+    backend.Services.Subscription.ISubscriptionService,
+    backend.Services.Subscription.SubscriptionService
+>();
 builder.Services.AddHttpClient<TwitterService>();
 
 builder.Services.AddHttpClient();
@@ -371,16 +373,20 @@ builder.Services.AddScoped<IEventDataParser, AltingetEventDataParser>();
 builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
 builder.Services.AddScoped<IScraperService, AltingetScraperService>();
 builder.Services.AddScoped<ICalendarService, CalendarService>();
+builder.Services.AddSingleton<ITimeZoneHelper, TimeZoneHelper>();
 builder.Services.AddScoped<IAktorRepo, AktorRepo>();
 builder.Services.AddScoped<IAktorService, AktorService>();
 builder.Services.AddScoped<IPartyRepository, PartyRepository>();
 builder.Services.AddScoped<IPartyService, PartyService>();
 
 // Learning Environment Services
+builder.Services.AddScoped<ILearningPageRepository, LearningPageRepository>();
+builder.Services.AddScoped<IAnswerRepository, AnswerRepository>();
 builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<ILearningPageService, LearningPageService>();
 
 // Flashcard Services
+builder.Services.AddScoped<IFlashcardRepository, FlashcardRepository>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
 //Search indexing service
@@ -397,7 +403,6 @@ builder.Services.AddScoped<IDailySelectionService, DailySelectionService>();
 // user authentication
 builder.Services.AddScoped<IUserAuthenticationRepository, UserAuthenticationRepository>();
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
-
 
 builder.Services.AddRouting();
 

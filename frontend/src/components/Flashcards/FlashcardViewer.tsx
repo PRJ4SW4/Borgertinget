@@ -1,4 +1,3 @@
-// src/components/FlashcardViewer.tsx
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchFlashcardCollectionDetails } from '../../services/ApiService';
@@ -110,10 +109,36 @@ function FlashcardViewer() {
     const currentCard: FlashcardDto = collectionDetails.flashcards[currentIndex]; // Safe access due to checks above
     const totalCards = collectionDetails.flashcards.length;
 
-    // Determine which side's content to display
-    const sideData = isFrontVisible
-        ? { type: currentCard.frontContentType, text: currentCard.frontText, path: currentCard.frontImagePath, alt: "Flashcard forside" }
-        : { type: currentCard.backContentType, text: currentCard.backText, path: currentCard.backImagePath, alt: "Flashcard bagside" };
+    // Determine content for front and back sides
+    const frontSideData = {
+        type: currentCard.frontContentType,
+        text: currentCard.frontText,
+        path: currentCard.frontImagePath,
+        defaultText: "(Spørgsmål mangler)",
+        missingImageText: "(Billede til forside mangler)"
+    };
+    const backSideData = {
+        type: currentCard.backContentType,
+        text: currentCard.backText,
+        path: currentCard.backImagePath,
+        defaultText: "(Svar mangler)",
+        missingImageText: "(Billede til bagside mangler)"
+    };
+
+    // Helper function to render content for a side
+    const renderSideContent = (side: typeof frontSideData) => (
+        <div className={`flashcard-content ${side.type === 'Image' ? 'content-image' : 'content-text'}`}>
+            {side.type === 'Text' && (
+                <p>{side.text || side.defaultText}</p>
+            )}
+            {side.type === 'Image' && side.path && (
+                <img src={side.path} />
+            )}
+            {side.type === 'Image' && !side.path && (
+                <p>{side.missingImageText}</p>
+            )}
+        </div>
+    );
 
     return (
         <div className="flashcard-viewer">
@@ -127,22 +152,17 @@ function FlashcardViewer() {
                 title="Klik for at vende kortet" // Tooltip
                 role="button" // Indicate interactivity
                 aria-live="polite" // Announce changes for screen readers
+                tabIndex={0} // Make it focusable
+                onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') handleFlip(); }} // Allow flip with Space/Enter
             >
-                <div className={`flashcard-content ${sideData.type === 'Image' ? 'content-image' : 'content-text'}`}>
-                    {/* Render Text or Image based on ContentType */}
-                    {sideData.type === 'Text' && (
-                        <p>{sideData.text || (isFrontVisible ? "(Spørgsmål mangler)" : "(Svar mangler)")}</p>
-                    )}
-                    {sideData.type === 'Image' && sideData.path && (
-                        // Use the relative path directly in src
-                        <img src={sideData.path} alt={sideData.alt} />
-                    )}
-                    {sideData.type === 'Image' && !sideData.path && (
-                        <p>(Billede mangler)</p> // Placeholder if path is missing
-                    )}
+                <div className={`flashcard-flipper ${!isFrontVisible ? 'flipped' : ''}`}>
+                    <div className="flashcard-face flashcard-front">
+                        {renderSideContent(frontSideData)}
+                    </div>
+                    <div className="flashcard-face flashcard-back">
+                        {renderSideContent(backSideData)}
+                    </div>
                 </div>
-                {/* Optional: Flip indicator icon */}
-                <span className="flip-indicator" aria-hidden="true">🔄</span>
             </div>
 
             {/* Bottom Navigation Bar */}

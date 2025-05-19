@@ -1,4 +1,3 @@
-// src/App.tsx
 import { useState, useEffect, JSX } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 

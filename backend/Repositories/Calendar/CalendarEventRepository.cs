@@ -103,11 +103,6 @@ public class CalendarEventRepository : ICalendarEventRepository
     public void UpdateEvent(CalendarEvent existingEvent)
     {
         _context.CalendarEvents.Update(existingEvent); // Mark for update.
-        // _logger.LogDebug(
-        //     "Marked existing calendar event for update: ID={EventId}, Title='{EventTitle}'",
-        //     existingEvent.Id,
-        //     existingEvent.Title
-        // );
     }
 
     // Marks a collection of CalendarEvents for deletion.
@@ -166,7 +161,7 @@ public class CalendarEventRepository : ICalendarEventRepository
         return alreadyInterested;
     }
 
-    public async void AddEventInterest(EventInterest eventInterest)
+    public async Task AddEventInterest(EventInterest eventInterest)
     {
         _context.EventInterests.Add(eventInterest);
         _logger.LogDebug(
@@ -177,7 +172,7 @@ public class CalendarEventRepository : ICalendarEventRepository
         await Task.CompletedTask;
     }
 
-    public async void RemoveEventInterest(EventInterest eventInterest)
+    public async Task RemoveEventInterest(EventInterest eventInterest)
     {
         _context.EventInterests.Remove(eventInterest);
         _logger.LogDebug(

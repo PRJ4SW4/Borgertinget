@@ -1,8 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using backend.DTO.LearningEnvironment;
-using backend.Models.LearningEnvironment;
 using backend.Services.LearningEnvironment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +18,7 @@ public class PagesController : ControllerBase
 
     // Defines an HTTP GET endpoint at "api/pages/structure" to retrieve the hierarchical structure of pages.
     [HttpGet("structure")]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<PageSummaryDTO>>> GetPagesStructure()
     {
         // Calls the service to get the page structure.
@@ -32,6 +29,7 @@ public class PagesController : ControllerBase
 
     // Defines an HTTP GET endpoint at "api/pages/{id}" to retrieve the details of a specific page.
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<ActionResult<PageDetailDTO>> GetPage(int id)
     {
         // Calls the service to get page details.
@@ -50,6 +48,7 @@ public class PagesController : ControllerBase
     // Defines an HTTP GET endpoint at "api/pages/{id}/sectionorder"
     // to retrieve the ordered list of page IDs within the same section as the given page.
     [HttpGet("{id}/sectionorder")]
+    [Authorize]
     public async Task<ActionResult<List<int>>> GetSectionPageOrder(int id)
     {
         // Calls the service to get the section page order.

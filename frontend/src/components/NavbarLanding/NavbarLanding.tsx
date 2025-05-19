@@ -26,7 +26,6 @@ const NavbarLanding: React.FC<NavbarLandingProps> = ({ setToken }) => {
     console.log("Moving to login from NavbarLandingPage...");
     // Removes the JWT token from the browser's local storage.
     // Calls the setToken function to update the application's authentication state to null.
-    // Optional chaining () prevents errors if setToken is not passed.
     setToken?.(null);
     // Redirects the user to the login page after login button clicked.
     navigate('/login');
