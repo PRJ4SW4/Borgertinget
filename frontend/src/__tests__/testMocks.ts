@@ -1,12 +1,7 @@
 // src/__tests__/testMocks.ts
 import axios from "axios";
 import { Mocked, vi } from "vitest";
-import {
-  AxiosError,
-  AxiosHeaders,
-  InternalAxiosRequestConfig,
-  AxiosResponse,
-} from "axios";
+import { AxiosError } from "axios";
 
 // Export shared mocks
 export const mockNavigate = vi.fn();
@@ -55,50 +50,24 @@ export function mockAlert() {
 
 // Mock Axios Error
 // Simulating real HTTP error responses
-export function createAxiosError(status: number, message: string): AxiosError {
-  // Create empty headers
-  const headers = new AxiosHeaders();
+export function createAxiosError(
+  status: number,
+  message = "Request failed"
+): AxiosError {
+  return {
+    isAxiosError: true, // sets this to true for all its errors
+    message, // Custom error message
+    name: "AxiosError",
+    config: {}, // Mocked Axios config
+    toJSON: () => ({}),
 
-  // Create a minimal dummy request config object
-  const dummyConfig: InternalAxiosRequestConfig = {
-    headers,
-    method: "GET",
-    url: "/mock-url",
-    transformRequest: [],
-    transformResponse: [],
-    timeout: 0,
-    adapter: async () =>
-      ({
-        data: {},
-        status: 200,
-        statusText: "OK",
-        headers,
-        config: {} as InternalAxiosRequestConfig,
-      } as AxiosResponse), // dummy adapter
-    data: undefined,
-    params: undefined,
-    responseType: "json",
-    withCredentials: false,
-    transitional: {},
-    signal: undefined,
-  };
-
-  // Create an AxiosError instance using its prototype
-  const error = Object.create(axios.AxiosError.prototype) as AxiosError;
-  // Call the AxiosError constructor with the dummy config
-  axios.AxiosError.call(error, message, "ERR_BAD_REQUEST", dummyConfig);
-
-  // Attach a fake response to simulate a real HTTP failure
-  error.response = {
-    status,
-    data: {},
-    statusText: message,
-    headers,
-    config: dummyConfig,
-  };
-
-  // Mark the error as an Axios error so axios.isAxiosError() returns true
-  error.isAxiosError = true;
-
-  return error;
+    // Simulated HTTP response object
+    response: {
+      status,
+      statusText: message,
+      headers: {},
+      config: {},
+      data: {},
+    },
+  } as AxiosError;
 }
