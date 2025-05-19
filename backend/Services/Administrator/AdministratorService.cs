@@ -12,9 +12,9 @@ using Microsoft.Extensions.Logging;
 namespace backend.Services
 {
     /// <summary>
-    /// Business‑logic layer for administrator actions. All persistence is delegated to
-    /// IAdministratorRepository This service handles validation and mapping
-    /// between DTOs and EF Core entities.
+    /// Business‑logic layer for administrator actions.
+    /// This service handles validation and mapping between DTOs and EF Core entities.
+    /// And includes helper functions for easier mapping
     /// </summary>
     public class AdministratorService : IAdministratorService
     {
@@ -191,6 +191,7 @@ namespace backend.Services
         // PUT a quoteText
         public async Task EditQuoteAsync(int quoteId, string quoteText)
         {
+            // Find the relevant quote by id
             var quote = await _repository.GetQuoteByIdAsync(quoteId);
 
             if (quote == null)
@@ -206,20 +207,23 @@ namespace backend.Services
 
         #region Helper mapping
 
+        // Convert a FlashcardCollectionDetailDTO coming from the client into an EF‑Core
         private static FlashcardCollection MapDtoToEntity(FlashcardCollectionDetailDTO dto)
         {
-            var collection = new FlashcardCollection
+            return new FlashcardCollection
             {
                 Title = dto.Title,
                 Description = dto.Description,
                 DisplayOrder = 0,
+                // Map each nested flashcard DTO.
                 Flashcards = dto.Flashcards.Select(MapFlashcardDtoToEntity).ToList(),
             };
-            return collection;
         }
 
+        /// Convert a single FlashcardDTO to its entity counterpart
         private static Flashcard MapFlashcardDtoToEntity(FlashcardDTO fc)
         {
+            // Convert string values ("Text", "Image") into their corresponding flashcard type
             Enum.TryParse(fc.FrontContentType, out FlashcardContentType frontType);
             Enum.TryParse(fc.BackContentType, out FlashcardContentType backType);
 
@@ -234,6 +238,7 @@ namespace backend.Services
             };
         }
 
+        /// Convert a saved FlashcardCollection entity back into a DTO.
         private static FlashcardCollectionDetailDTO MapEntityToDto(FlashcardCollection entity)
         {
             return new FlashcardCollectionDetailDTO
