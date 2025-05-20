@@ -84,15 +84,8 @@ namespace backend.Controllers
         [Authorize]
         public async Task<ActionResult<PollDetailsDto>> GetPollById(int id)
         {
-            var userIdString =
-                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
-            }
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdString, out int currentUserId);
 
             try
             {
@@ -157,15 +150,8 @@ namespace backend.Controllers
         [Authorize]
         public async Task<IActionResult> Vote(int pollId, VoteDto voteDto)
         {
-            var userIdString =
-                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
-            }
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdString, out int currentUserId);
 
             var poll = await _pollsService.GetPollAsync(pollId);
             if (poll == null)
