@@ -13,7 +13,7 @@ namespace backend.Services.Polls
     {
         private readonly IPollsRepository _repository;
 
-        public PollsService(IPollsRepository repository, ILogger<PollsService> logger)
+        public PollsService(IPollsRepository repository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
@@ -132,7 +132,11 @@ namespace backend.Services.Polls
 
         public async Task<bool> DeletePollAsync(int id)
         {
-            return await _repository.DeletePollAsync(id);
+            var poll = await _repository.GetPollByIdAsync(id);
+            // I'm not null checking here since the id is already checked by getting the poll earlier in the frontend
+            await _repository.DeletePoll(poll!);
+            int changes = await _repository.SaveChangesAsync();
+            return changes > 0;
         }
 
         public async Task<PoliticianTwitterId> GetPolitician(int politicianId)

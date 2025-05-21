@@ -15,5 +15,7 @@ namespace backend.Repositories.Polls
         Task<bool> UpdatePollAsync(Poll poll);
         Task<bool> VoteAsync(int pollId, int userId, int optionId);
         Task<bool> DeletePollAsync(int id);
+        Task DeletePoll(Poll poll);
+        Task<int> SaveChangesAsync();
     }
 }

@@ -209,7 +209,7 @@ public class CalendarController : ControllerBase
             _logger.LogInformation(
                 $"Successfully deleted calendar event with ID: {id} via service."
             );
-            return NoContent();
+            return Ok(new { message = $"Begivenhed med ID {id} blev slettet." });
         }
         catch (Exception ex)
         {

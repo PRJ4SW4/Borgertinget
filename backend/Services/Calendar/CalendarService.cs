@@ -120,13 +120,7 @@ namespace backend.Services.Calendar
             );
             var calendarEvent = await _calendarEventRepository.GetEventByIdAsync(id);
 
-            if (calendarEvent == null)
-            {
-                _logger.LogWarning($"Calendar event with ID: {id} not found for deletion.");
-                return false;
-            }
-
-            _calendarEventRepository.DeleteEvent(calendarEvent);
+            _calendarEventRepository.DeleteEvent(calendarEvent!);
             int changes = await _calendarEventRepository.SaveChangesAsync();
             return changes > 0;
         }
