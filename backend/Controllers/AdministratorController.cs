@@ -4,7 +4,6 @@ using System.Linq;
 using backend.Data;
 using backend.DTO.Flashcards;
 using backend.DTOs;
-using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -186,23 +185,6 @@ public class AdministratorController : ControllerBase
 
     #region Brugernavn
 
-    // GET all users
-    [HttpGet("GetAllUsers")]
-    public async Task<IActionResult> GetAllUsers()
-    {
-        try
-        {
-            var users = await _service.GetAllUsersAsync();
-
-            return Ok(users);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get all Users");
-            return StatusCode(500, $"An error occured while getting users: {ex.Message}");
-        }
-    }
-
     // GET Username ID
     [HttpGet("username")]
     public async Task<IActionResult> GetUsernameID(string username)
@@ -214,9 +196,9 @@ public class AdministratorController : ControllerBase
 
         try
         {
-            var user = await _service.GetUserByUsernameAsync(username);
+            var userId = await _service.GetUserIdByUsernameAsync(username);
 
-            return Ok(user.Id);
+            return Ok(userId.UserId);
         }
         catch (Exception ex)
         {

@@ -6,6 +6,7 @@ using backend.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
@@ -16,12 +17,14 @@ namespace Tests.Controllers
     {
         private AdministratorController _controller;
         private IAdministratorService _service;
+        private ILogger<AdministratorController> _mockLogger;
 
         [SetUp]
         public void Setup()
         {
             _service = Substitute.For<IAdministratorService>();
-            _controller = new AdministratorController(_service);
+            _mockLogger = Substitute.For<ILogger<AdministratorController>>();
+            _controller = new AdministratorController(_service, _mockLogger);
         }
 
         #region Flashcard Collection POST
@@ -208,47 +211,11 @@ namespace Tests.Controllers
         #region Username GET
 
         [Test]
-        public async Task GetAllUsers_ReturnsOkWithUsers()
-        {
-            // Arrange
-            var users = new[]
-            {
-                new User { Id = 1, UserName = "hummelgaard" },
-            };
-
-            // Act
-            _service.GetAllUsersAsync().Returns(users);
-
-            var result = await _controller.GetAllUsers();
-
-            // Assert
-            Assert.That(result, Is.TypeOf<OkObjectResult>());
-            var ok = result as OkObjectResult;
-            Assert.That(ok?.Value, Is.EqualTo(users));
-        }
-
-        [Test]
-        public async Task GetAllUsers_ServiceThrows_Returns500()
-        {
-            // Arrange
-            _service.GetAllUsersAsync().Throws(new Exception("db error"));
-
-            // Act
-            var result = await _controller.GetAllUsers();
-
-            // Assert
-            Assert.That(result, Is.TypeOf<ObjectResult>());
-            var objectResult = result as ObjectResult;
-            Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
-            Assert.That(objectResult?.Value?.ToString(), Does.Contain("db error"));
-        }
-
-        [Test]
         public async Task GetUsernameID_ValidUsername_ReturnsUserId()
         {
             // Arrange
-            var user = new User { Id = 88, UserName = "hellethorning" };
-            _service.GetUserByUsernameAsync("hellethorning").Returns(user);
+            var userId = new UserIdDTO { UserId = 88 };
+            _service.GetUserIdByUsernameAsync("hellethorning").Returns(userId);
 
             // Act
             var result = await _controller.GetUsernameID("hellethorning");

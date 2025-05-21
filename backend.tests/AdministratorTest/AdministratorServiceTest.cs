@@ -109,8 +109,8 @@ namespace Tests.Services
         public void GetAllFlashcardCollectionTitlesAsync_NoCollections_Throws()
         {
             _repository.GetAllFlashcardCollectionTitlesAsync().Returns(new List<string>());
-            Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _service.GetAllFlashcardCollectionTitlesAsync()
+            Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                _service.GetAllFlashcardCollectionTitlesAsync()
             );
         }
 
@@ -146,8 +146,8 @@ namespace Tests.Services
             _repository
                 .GetFlashcardCollectionByTitleAsync("Ukendt")
                 .Returns((FlashcardCollection)null!);
-            Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _service.GetFlashCardCollectionByTitle("Ukendt")
+            Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                _service.GetFlashCardCollectionByTitle("Ukendt")
             );
         }
 
@@ -199,8 +199,8 @@ namespace Tests.Services
                 Description = "x",
                 Flashcards = new List<FlashcardDTO>(),
             };
-            Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _service.UpdateCollectionInfoAsync(7, dto)
+            Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                _service.UpdateCollectionInfoAsync(7, dto)
             );
         }
 
@@ -222,8 +222,8 @@ namespace Tests.Services
         public void DeleteFlashcardCollectionAsync_InvalidId_Throws()
         {
             _repository.GetFlashcardCollectionByIdAsync(-9).Returns((FlashcardCollection)null!);
-            Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _service.DeleteFlashcardCollectionAsync(-9)
+            Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                _service.DeleteFlashcardCollectionAsync(-9)
             );
         }
 
@@ -236,37 +236,17 @@ namespace Tests.Services
         {
             var user = new User { Id = 1, UserName = "helle" };
             _repository.GetUserByUsernameAsync("helle").Returns(user);
-            var res = await _service.GetUserByUsernameAsync("helle");
-            Assert.That(res, Is.EqualTo(user));
+            var res = await _service.GetUserIdByUsernameAsync("helle");
+            Assert.That(res.UserId, Is.EqualTo(user.Id));
         }
 
         [Test]
         public void GetUserByUsernameAsync_NotFound_Throws()
         {
             _repository.GetUserByUsernameAsync("ghost").Returns((User)null!);
-            Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _service.GetUserByUsernameAsync("ghost")
+            Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                _service.GetUserIdByUsernameAsync("ghost")
             );
-        }
-
-        [Test]
-        public async Task GetAllUsersAsync_WithUsers_Returns()
-        {
-            var users = new[]
-            {
-                new User { UserName = "a" },
-                new User { UserName = "b" },
-            };
-            _repository.GetAllUsersAsync().Returns(users);
-            var res = await _service.GetAllUsersAsync();
-            Assert.That(res.Length, Is.EqualTo(2));
-        }
-
-        [Test]
-        public void GetAllUsersAsync_NoUsers_Throws()
-        {
-            _repository.GetAllUsersAsync().Returns(Array.Empty<User>());
-            Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetAllUsersAsync());
         }
 
         [Test]
@@ -283,8 +263,8 @@ namespace Tests.Services
         public void UpdateUserNameAsync_InvalidId_Throws()
         {
             _repository.GetUserByIdAsync(99).Returns((User)null!);
-            Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _service.UpdateUserNameAsync(99, new UpdateUserNameDto { UserName = "x" })
+            Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                _service.UpdateUserNameAsync(99, new UpdateUserNameDto { UserName = "x" })
             );
         }
 
