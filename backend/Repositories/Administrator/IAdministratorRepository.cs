@@ -14,7 +14,6 @@ public interface IAdministratorRepository
     // Users
     Task<User?> GetUserByIdAsync(int id);
     Task<User?> GetUserByUsernameAsync(string username);
-    Task<User[]> GetAllUsersAsync();
     Task UpdateUserAsync(User user);
 
     // Quotes

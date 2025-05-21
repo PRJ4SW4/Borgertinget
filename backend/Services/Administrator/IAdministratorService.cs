@@ -16,8 +16,7 @@ namespace backend.Services
         Task DeleteFlashcardCollectionAsync(int collectionId);
 
         // Username
-        Task<User> GetUserByUsernameAsync(string username);
-        Task<User[]> GetAllUsersAsync();
+        Task<UserIdDTO> GetUserIdByUsernameAsync(string username);
         Task UpdateUserNameAsync(int userId, UpdateUserNameDto dto);
 
         // Politician Quotes
