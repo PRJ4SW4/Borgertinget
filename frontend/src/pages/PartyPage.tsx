@@ -75,7 +75,7 @@ const PartyPage: React.FC = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+          authorization: `Bearer ${localStorage.getItem("jwt")}`,
         },
       });
       if (!response.ok) {
@@ -117,7 +117,7 @@ const PartyPage: React.FC = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+            authorization: `Bearer ${localStorage.getItem("jwt")}`,
           },
         });
 
@@ -164,7 +164,7 @@ const PartyPage: React.FC = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+            authorization: `Bearer ${localStorage.getItem("jwt")}`,
           },
         });
         if (!membersResponse.ok) {
