@@ -21,10 +21,7 @@ public class CalendarEventRepository : ICalendarEventRepository
     private readonly ILogger<CalendarEventRepository> _logger; // Logger for recording repository activity.
 
     // Constructor: Takes injected DataContext and logger.
-    public CalendarEventRepository(
-        DataContext context,
-        ILogger<CalendarEventRepository> logger
-    )
+    public CalendarEventRepository(DataContext context, ILogger<CalendarEventRepository> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

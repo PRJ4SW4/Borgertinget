@@ -12,12 +12,10 @@ namespace backend.Services.Polls
     public class PollsService : IPollsService
     {
         private readonly IPollsRepository _repository;
-        private readonly ILogger<PollsService> _logger;
 
         public PollsService(IPollsRepository repository, ILogger<PollsService> logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<PollDetailsDto> CreatePollAsync(CreatePollDto createPollDto)

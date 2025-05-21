@@ -7,8 +7,8 @@ using backend.DTO.FT;
 using backend.Models;
 using backend.Models.Politicians;
 using backend.Services.Politicians;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
