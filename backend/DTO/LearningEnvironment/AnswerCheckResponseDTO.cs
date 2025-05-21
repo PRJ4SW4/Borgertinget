@@ -1,4 +1,3 @@
-// /backend/DTO/LearningEnvironment/AnswerCheckResponseDTO.cs
 namespace backend.DTO.LearningEnvironment;
 
 public class AnswerCheckResponseDTO

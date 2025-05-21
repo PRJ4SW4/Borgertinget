@@ -1,4 +1,3 @@
-// /backend/DTO/LearningEnvironment/QuestionDTO.cs
 namespace backend.DTO.LearningEnvironment;
 
 public class QuestionDTO

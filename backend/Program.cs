@@ -327,8 +327,6 @@ builder.Services.AddScoped<
 >();
 builder.Services.AddHttpClient<TwitterService>();
 
-builder.Services.AddHttpClient();
-
 // CORS
 builder.Services.AddCors(options =>
 {
