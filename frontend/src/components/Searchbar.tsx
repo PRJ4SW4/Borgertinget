@@ -41,7 +41,7 @@ const SearchBar: React.FC = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+          authorization: `Bearer ${localStorage.getItem("jwt")}`,
         },
       });
       if (!response.ok) {
@@ -80,7 +80,7 @@ const SearchBar: React.FC = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+            authorization: `Bearer ${localStorage.getItem("jwt")}`,
           },
         });
         if (!response.ok) {
