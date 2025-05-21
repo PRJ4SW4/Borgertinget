@@ -72,7 +72,7 @@ public class PartyController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<Party>> UpdatePartyDetails(
+    public async Task<ActionResult<PartyDto>> UpdatePartyDetails(
         int partyId,
         [FromBody] PartyDto updateDto
     )
@@ -91,15 +91,7 @@ public class PartyController : ControllerBase
         // --- Fetch Existing Entity ---
         try
         {
-            var existingParty = await _service.GetById(partyId);
-
-            if (existingParty == null)
-            {
-                _logger.LogWarning("Party with ID not found for update.");
-                return NotFound($"Party with ID {partyId} not found.");
-            }
-
-            await _service.UpdateDetails(partyId, updateDto);
+            var existingParty = await _service.UpdateDetails(partyId, updateDto);
 
             // --- Return Success Response ---
             return Ok(existingParty);

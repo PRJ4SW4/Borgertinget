@@ -30,24 +30,8 @@ namespace backend.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<PollDetailsDto>> CreatePoll(CreatePollDto createPollDto)
+        public async Task<ActionResult<PollDetailsDto>> CreatePoll(PollDto createPollDto)
         {
-            var isValid = await _pollsService.ValidatePoll(createPollDto);
-            if (!isValid)
-            {
-                var politician = await _pollsService.GetPolitician(
-                    createPollDto.PoliticianTwitterId
-                );
-                if (politician == null)
-                {
-                    ModelState.AddModelError(
-                        nameof(createPollDto.PoliticianTwitterId),
-                        "Den angivne politiker findes ikke."
-                    );
-                }
-                return ValidationProblem(ModelState);
-            }
-
             try
             {
                 var createdPollDto = await _pollsService.CreatePollAsync(createPollDto);
@@ -104,44 +88,8 @@ namespace backend.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdatePoll(int id, UpdatePollDto updateDto)
+        public async Task<IActionResult> UpdatePoll(int id, PollDto updateDto)
         {
-            var poll = await _pollsService.GetPollAsync(id);
-            if (poll == null)
-                return NotFound();
-
-            if (!await _pollsService.ValidateUpdatePoll(updateDto))
-            {
-                var politician = await _pollsService.GetPolitician(updateDto.PoliticianTwitterId);
-                if (politician == null)
-                {
-                    ModelState.AddModelError(
-                        nameof(updateDto.PoliticianTwitterId),
-                        "Politikeren findes ikke."
-                    );
-                }
-
-                if (updateDto.Options.Any(string.IsNullOrWhiteSpace))
-                {
-                    ModelState.AddModelError(
-                        nameof(updateDto.Options),
-                        "Svarmuligheder må ikke være tomme."
-                    );
-                }
-
-                if (
-                    updateDto.Options.Select(o => o.Trim().ToLowerInvariant()).Distinct().Count()
-                    != updateDto.Options.Count
-                )
-                {
-                    ModelState.AddModelError(
-                        nameof(updateDto.Options),
-                        "Svarmuligheder må ikke være ens."
-                    );
-                }
-                return ValidationProblem(ModelState);
-            }
-
             await _pollsService.UpdatePollAsync(id, updateDto);
             return NoContent();
         }

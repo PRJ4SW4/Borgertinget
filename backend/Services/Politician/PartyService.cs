@@ -15,7 +15,7 @@ public class PartyService : IPartyService
         _logger = logger;
     }
 
-    public async Task UpdateDetails(int Id, PartyDto dto)
+    public async Task<PartyDto?> UpdateDetails(int Id, PartyDto dto)
     {
         var party = await _repo.GetById(Id);
         bool changesMade = false;
@@ -52,6 +52,13 @@ public class PartyService : IPartyService
         {
             await _repo.UpdatePartyDetail(party);
         }
+        // Return the updated PartyDto
+        return new PartyDto
+        {
+            partyProgram = party.partyProgram,
+            politics = party.politics,
+            history = party.history,
+        };
     }
 
     public async Task<Party?> GetById(int Id)

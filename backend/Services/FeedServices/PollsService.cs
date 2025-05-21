@@ -18,7 +18,7 @@ namespace backend.Services.Polls
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        public async Task<PollDetailsDto> CreatePollAsync(CreatePollDto createPollDto)
+        public async Task<PollDetailsDto> CreatePollAsync(PollDto createPollDto)
         {
             var newPoll = new Poll
             {
@@ -60,32 +60,12 @@ namespace backend.Services.Polls
             );
         }
 
-        public async Task<bool> ValidatePoll(CreatePollDto pollDto)
-        {
-            var politician = await _repository.GetPoliticianByIdAsync(pollDto.PoliticianTwitterId);
-            return politician != null
-                && !pollDto.Options.Any(string.IsNullOrWhiteSpace)
-                && pollDto.Options.Select(o => o.Trim().ToLowerInvariant()).Distinct().Count()
-                    == pollDto.Options.Count;
-        }
-
-        public async Task<bool> ValidateUpdatePoll(UpdatePollDto updateDto)
-        {
-            var politician = await _repository.GetPoliticianByIdAsync(
-                updateDto.PoliticianTwitterId
-            );
-            return politician != null
-                && !updateDto.Options.Any(string.IsNullOrWhiteSpace)
-                && updateDto.Options.Select(o => o.Trim().ToLowerInvariant()).Distinct().Count()
-                    == updateDto.Options.Count;
-        }
-
         public async Task<Poll> GetPollAsync(int id)
         {
             return await _repository.GetPollByIdAsync(id) ?? new Poll();
         }
 
-        public async Task<bool> UpdatePollAsync(int id, UpdatePollDto updateDto)
+        public async Task<bool> UpdatePollAsync(int id, PollDto updateDto)
         {
             var poll = await _repository.GetPollByIdAsync(id);
             if (poll == null)

@@ -29,14 +29,6 @@ namespace backend.DTOs
         public string NewQuestion { get; set; } = string.Empty;
     }
 
-    public class UpdatePollDto
-    {
-        public string Question { get; set; } = string.Empty;
-        public List<string> Options { get; set; } = new();
-        public int PoliticianTwitterId { get; set; }
-        public DateTime? EndedAt { get; set; }
-    }
-
     public class PollSummaryDto
     {
         public int Id { get; set; }

@@ -7,15 +7,10 @@ namespace backend.Services.Subscription
     public class SubscriptionService : ISubscriptionService
     {
         private readonly ISubscriptionRepository _repository;
-        private readonly ILogger<SubscriptionService> _logger;
 
-        public SubscriptionService(
-            ISubscriptionRepository repository,
-            ILogger<SubscriptionService> logger
-        )
+        public SubscriptionService(ISubscriptionRepository repository)
         {
             _repository = repository;
-            _logger = logger;
         }
 
         public async Task<(bool success, string message)> SubscribeAsync(

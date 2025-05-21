@@ -5,7 +5,7 @@ namespace backend.Services.Politicians;
 
 public interface IPartyService
 {
-    public Task UpdateDetails(int Id, PartyDto party);
+    public Task<PartyDto?> UpdateDetails(int Id, PartyDto party);
     public Task<Party?> GetById(int Id);
     public Task<List<Party>> GetAll();
     public Task Add(Party party);
