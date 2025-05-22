@@ -4,8 +4,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO.FT;
-using backend.Models;
-using backend.Models.Politicians;
 using backend.Services.Politicians;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +27,7 @@ public class PartyController : ControllerBase
 
     [HttpGet("Parties")]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<Party>>> getParties()
+    public async Task<ActionResult<IEnumerable<PartyDetailsDto>>> getParties()
     {
         var parties = await _service.GetAll();
 
@@ -42,7 +40,7 @@ public class PartyController : ControllerBase
 
     [HttpGet("{partyName}")]
     [Authorize]
-    public async Task<ActionResult<Party>> GetPartyByName(string partyName)
+    public async Task<ActionResult<PartyDetailsDto>> GetPartyByName(string partyName)
     {
         if (string.IsNullOrWhiteSpace(partyName))
         {
@@ -55,14 +53,15 @@ public class PartyController : ControllerBase
 
             if (party == null)
             {
-                return NotFound($"No party found with name '{partyName}'.");
+                return NotFound("Party not found.");
             }
+
             return Ok(party);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching party'.");
-            return StatusCode(500, "An error occurred while fetching the party.");
+            _logger.LogError(ex, "An error occurred while fetching the party.");
+            return StatusCode(500, "Internal server error.");
         }
     }
 
@@ -72,9 +71,9 @@ public class PartyController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PartyDto>> UpdatePartyDetails(
+    public async Task<ActionResult<UpdatePartyDto>> UpdatePartyDetails(
         int partyId,
-        [FromBody] PartyDto updateDto
+        [FromBody] UpdatePartyDto updateDto
     )
     {
         // --- Input Validation ---

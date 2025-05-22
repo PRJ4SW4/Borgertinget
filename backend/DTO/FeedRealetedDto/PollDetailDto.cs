@@ -24,11 +24,6 @@ namespace backend.DTOs
         public int TotalVotes { get; set; }
     }
 
-    public class PollQuestionUpdate
-    {
-        public string NewQuestion { get; set; } = string.Empty;
-    }
-
     public class PollSummaryDto
     {
         public int Id { get; set; }

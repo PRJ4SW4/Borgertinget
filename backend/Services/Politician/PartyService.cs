@@ -15,7 +15,7 @@ public class PartyService : IPartyService
         _logger = logger;
     }
 
-    public async Task<bool> UpdateDetails(int Id, PartyDto dto)
+    public async Task<bool> UpdateDetails(int Id, UpdatePartyDto dto)
     {
         var party = await _repo.GetById(Id);
         if (party == null)
@@ -33,25 +33,14 @@ public class PartyService : IPartyService
         return changes > 0;
     }
 
-    public async Task<Party?> GetById(int Id)
-    {
-        var party = await _repo.GetById(Id);
-        if (party == null)
-        {
-            _logger.LogInformation("No Party found");
-            return null;
-        }
-        return party;
-    }
-
-    public async Task<List<Party>?> GetAll()
+    public async Task<List<PartyDetailsDto>?> GetAll()
     {
         var parties = await _repo.GetAll();
         if (parties == null)
         {
             return null;
         }
-        return parties;
+        return parties.Select(p => MapToPartyDetailsDto(p)).ToList();
     }
 
     public async Task Add(Party party)
@@ -74,7 +63,7 @@ public class PartyService : IPartyService
         await _repo.RemoveMember(party, MemberId);
     }
 
-    public async Task<Party?> GetByName(string partyName)
+    public async Task<PartyDetailsDto?> GetByName(string partyName)
     {
         var party = await _repo.GetByName(partyName);
 
@@ -83,6 +72,25 @@ public class PartyService : IPartyService
             _logger.LogInformation("Unable to find party");
             return null;
         }
-        return party;
+        return MapToPartyDetailsDto(party);
+    }
+
+    public PartyDetailsDto MapToPartyDetailsDto(Party party)
+    {
+        return new PartyDetailsDto
+        {
+            partyId = party.partyId,
+            partyName = party.partyName,
+            partyShortName = party.partyShortName,
+            partyProgram = party.partyProgram,
+            politics = party.politics,
+            history = party.history,
+            stats = party.stats,
+            chairmanId = party.chairmanId,
+            viceChairmanId = party.viceChairmanId,
+            secretaryId = party.secretaryId,
+            spokesmanId = party.spokesmanId,
+            memberIds = party.memberIds,
+        };
     }
 }
