@@ -101,10 +101,6 @@ public class AltingetScraperService : IScraperService
                 _logger.LogInformation(
                     "No events scraped and no past events deleted, sync finished."
                 );
-                // No SaveChangesAsync needed if no operations were performed on the repository for past events.
-                // If MarkPastEventsForDeletionAsync only stages deletions, SaveChangesAsync would be needed here or at the end.
-                // Assuming MarkPastEventsForDeletionAsync stages and a final SaveChangesAsync handles all.
-                // If it saves immediately, this is fine. For now, we'll assume a final save.
                 return 0; // Return 0 to indicate that no changes were made.
             }
 

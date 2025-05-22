@@ -1,4 +1,3 @@
-// /backend/DTO/LearningEnvironment/PageDetailDTO.cs
 namespace backend.DTO.LearningEnvironment;
 
 // DTO for the detailed page view (includes content)
