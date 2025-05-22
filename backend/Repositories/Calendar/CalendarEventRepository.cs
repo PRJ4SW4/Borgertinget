@@ -21,10 +21,7 @@ public class CalendarEventRepository : ICalendarEventRepository
     private readonly ILogger<CalendarEventRepository> _logger; // Logger for recording repository activity.
 
     // Constructor: Takes injected DataContext and logger.
-    public CalendarEventRepository(
-        DataContext context,
-        ILogger<CalendarEventRepository> logger
-    )
+    public CalendarEventRepository(DataContext context, ILogger<CalendarEventRepository> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -41,7 +38,7 @@ public class CalendarEventRepository : ICalendarEventRepository
         );
         var events = await _context
             .CalendarEvents.Where(e => e.StartDateTimeUtc >= utcThreshold)
-            .ToDictionaryAsync(e => e.SourceUrl, e => e); // Assuming SourceUrl is unique for future events.
+            .ToDictionaryAsync(e => e.SourceUrl, e => e);
         _logger.LogDebug("Found {Count} existing future calendar events.", events.Count);
         return events;
     }
@@ -56,11 +53,6 @@ public class CalendarEventRepository : ICalendarEventRepository
         if (oldEventsToDelete.Any())
         {
             _context.CalendarEvents.RemoveRange(oldEventsToDelete); // Mark for deletion.
-            // _logger.LogInformation(
-            //     "Marked {Count} past calendar events (before {ThresholdUtc:O}) for deletion.",
-            //     oldEventsToDelete.Count,
-            //     utcThreshold
-            // );
             return oldEventsToDelete.Count;
         }
         _logger.LogInformation(
@@ -74,15 +66,10 @@ public class CalendarEventRepository : ICalendarEventRepository
     public async Task AddEventAsync(CalendarEvent newEvent)
     {
         await _context.CalendarEvents.AddAsync(newEvent); // Mark for addition.
-        // _logger.LogDebug(
-        //     "Marked new calendar event for addition: Title='{EventTitle}', SourceUrl='{SourceUrl}'",
-        //     newEvent.Title,
-        //     newEvent.SourceUrl
-        // );
     }
 
     // Retrieves a specific CalendarEvent by its ID.
-    public async Task<CalendarEvent?> GetEventByIdAsync(int id) // Added nullable return type
+    public async Task<CalendarEvent?> GetEventByIdAsync(int id)
     {
         _logger.LogDebug(
             "Fetching calendar event by ID: {EventId}",

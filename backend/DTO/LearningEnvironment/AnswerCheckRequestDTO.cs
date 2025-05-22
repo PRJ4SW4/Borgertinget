@@ -1,4 +1,3 @@
-// /backend/DTO/LearningEnvironment/AnswerCheckRequestDTO.cs
 namespace backend.DTO.LearningEnvironment;
 
 using System.ComponentModel.DataAnnotations;

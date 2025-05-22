@@ -1,4 +1,3 @@
-// /backend/DTO/LearningEnvironment/PageSummaryDTO.cs
 namespace backend.DTO.LearningEnvironment;
 
 // DTO for the list/hierarchy view (doesn't need full content)
