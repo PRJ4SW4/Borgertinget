@@ -40,7 +40,7 @@ public class PartyController : ControllerBase
         return Ok(parties);
     }
 
-    [HttpGet("Party/{partyName}")]
+    [HttpGet("{partyName}")]
     [Authorize]
     public async Task<ActionResult<Party>> GetPartyByName(string partyName)
     {
@@ -66,7 +66,7 @@ public class PartyController : ControllerBase
         }
     }
 
-    [HttpPut("Party/{partyId:int}")]
+    [HttpPut("{partyId:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -91,10 +91,10 @@ public class PartyController : ControllerBase
         // --- Fetch Existing Entity ---
         try
         {
-            var existingParty = await _service.UpdateDetails(partyId, updateDto);
+            var result = await _service.UpdateDetails(partyId, updateDto);
 
             // --- Return Success Response ---
-            return Ok(existingParty);
+            return Ok(result);
         }
         catch (DbUpdateConcurrencyException dbEx) // Handle potential concurrency issues
         {

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using backend.DTOs;
 using backend.Repositories.Subscription;
 using Microsoft.Extensions.Logging;
 
@@ -42,20 +43,15 @@ namespace backend.Services.Subscription
             return success ? (true, "Abonnement slettet.") : (false, "Abonnement ikke fundet.");
         }
 
-        public async Task<(bool success, object? result, string? message)> LookupPoliticianAsync(
-            int aktorId
-        )
+        public async Task<PoliticianInfoDto?> LookupPoliticianAsync(int aktorId)
         {
             var result = await _repository.LookupPoliticianAsync(aktorId);
-
             if (result == null)
-                return (
-                    false,
-                    null,
-                    $"Ingen tilknyttet 'PoliticianTwitterId' fundet for Aktor ID {aktorId}. Er data linket i databasen?"
-                );
+            {
+                return null;
+            }
 
-            return (true, result, null);
+            return new PoliticianInfoDto { Id = result!.Id, Name = result.Name };
         }
     }
 }

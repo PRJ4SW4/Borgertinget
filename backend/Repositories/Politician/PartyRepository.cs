@@ -90,4 +90,9 @@ public class PartyRepository : IPartyRepository
         _context.Entry(party).State = EntityState.Modified;
         await _context.SaveChangesAsync();
     }
+
+    public async Task<int> SaveChangesAsync()
+    {
+        return await _context.SaveChangesAsync();
+    }
 }

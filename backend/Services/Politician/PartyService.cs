@@ -15,50 +15,22 @@ public class PartyService : IPartyService
         _logger = logger;
     }
 
-    public async Task<PartyDto?> UpdateDetails(int Id, PartyDto dto)
+    public async Task<bool> UpdateDetails(int Id, PartyDto dto)
     {
         var party = await _repo.GetById(Id);
-        bool changesMade = false;
         if (party == null)
         {
-            throw new KeyNotFoundException($"Party Not found with Id {Id}");
+            _logger.LogInformation("No Party found");
+            return false;
         }
-        if (dto.partyProgram != null)
-        {
-            if (party.partyProgram != dto.partyProgram)
-            {
-                party.partyProgram = dto.partyProgram;
-                changesMade = true;
-            }
-        }
+        party.partyProgram = dto.partyProgram;
+        party.politics = dto.politics;
+        party.history = dto.history;
 
-        if (dto.politics != null)
-        {
-            if (party.politics != dto.politics)
-            {
-                party.politics = dto.politics;
-                changesMade = true;
-            }
-        }
-        if (dto.history != null)
-        {
-            if (party.history != dto.history)
-            {
-                party.history = dto.history;
-                changesMade = true;
-            }
-        }
-        if (changesMade)
-        {
-            await _repo.UpdatePartyDetail(party);
-        }
-        // Return the updated PartyDto
-        return new PartyDto
-        {
-            partyProgram = party.partyProgram,
-            politics = party.politics,
-            history = party.history,
-        };
+        await _repo.UpdatePartyDetail(party); // Mark as edited
+        int changes = await _repo.SaveChangesAsync(); // Save changes
+
+        return changes > 0;
     }
 
     public async Task<Party?> GetById(int Id)
@@ -72,9 +44,13 @@ public class PartyService : IPartyService
         return party;
     }
 
-    public async Task<List<Party>> GetAll()
+    public async Task<List<Party>?> GetAll()
     {
         var parties = await _repo.GetAll();
+        if (parties == null)
+        {
+            return null;
+        }
         return parties;
     }
 

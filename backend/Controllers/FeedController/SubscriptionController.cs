@@ -88,7 +88,7 @@ namespace backend.Controllers
 
         [HttpGet("lookup/politicianTwitterId")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<object>> GetPoliticianTwitterIdByAktorId(
+        public async Task<ActionResult<PoliticianInfoDto>> GetPoliticianTwitterIdByAktorId(
             [FromQuery] int aktorId
         )
         {
@@ -100,12 +100,11 @@ namespace backend.Controllers
 
             try
             {
-                var (success, result, message) = await _subscriptionService.LookupPoliticianAsync(
-                    aktorId
-                );
-
-                if (!success)
-                    return NotFound(message);
+                var result = await _subscriptionService.LookupPoliticianAsync(aktorId);
+                if (result == null)
+                {
+                    return NotFound("Politiker ikke fundet.");
+                }
 
                 return Ok(result);
             }
