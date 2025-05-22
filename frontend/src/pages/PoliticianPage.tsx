@@ -93,7 +93,7 @@ const PoliticianPage: React.FC = () => {
 
           if (lookupResponse.ok) {
             const lookupData = await lookupResponse.json();
-            setTwitterId(lookupData.politicianTwitterId);
+            setTwitterId(lookupData.id);
 
             // Tjek om politikeren allerede følges
             setIsSubscribed(subscriptions.some((sub) => sub.id === lookupData.politicianTwitterId));

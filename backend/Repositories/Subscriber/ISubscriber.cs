@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using backend.Models;
 
 namespace backend.Repositories.Subscription
 {
@@ -6,6 +7,6 @@ namespace backend.Repositories.Subscription
     {
         Task<bool> SubscribeAsync(int userId, int politicianTwitterId); // Handles all subscription logic
         Task<bool> UnsubscribeAsync(int userId, int politicianTwitterId); // Handles all unsubscribe logic
-        Task<object?> LookupPoliticianAsync(int aktorId); // Handles lookup logic
+        Task<PoliticianTwitterId?> LookupPoliticianAsync(int aktorId); // Handles lookup logic
     }
 }
