@@ -96,7 +96,7 @@ const PoliticianPage: React.FC = () => {
             setTwitterId(lookupData.id);
 
             // Tjek om politikeren allerede følges
-            setIsSubscribed(subscriptions.some((sub) => sub.id === lookupData.politicianTwitterId));
+            setIsSubscribed(subscriptions.some((sub) => sub.id === lookupData.id));
           } else {
             console.error("Kunne ikke finde Twitter ID for denne politiker");
           }
