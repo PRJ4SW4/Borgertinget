@@ -371,7 +371,7 @@ namespace backend.Data
             modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
 
             // --- SEED SUPERUSER (ADMIN + USER ROLES) ---
-            var superUserId = 1; // Using a distinct ID for this user
+            var superUserId = 1;
 
             var superUser = new User
             {
