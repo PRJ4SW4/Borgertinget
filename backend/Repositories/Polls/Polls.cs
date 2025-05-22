@@ -137,30 +137,7 @@ namespace backend.Repositories.Polls
             }
         }
 
-        public async Task<bool> DeletePollAsync(int id)
-        {
-            var poll = await _context
-                .Polls.Include(p => p.Options)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (poll == null)
-                return false;
-
-            var votes = await _context.UserVotes.Where(uv => uv.PollId == id).ToListAsync();
-
-            if (votes.Any())
-            {
-                _context.UserVotes.RemoveRange(votes);
-            }
-
-            _context.PollOptions.RemoveRange(poll.Options);
-            _context.Polls.Remove(poll);
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task DeletePoll(Poll poll)
+        public async Task DeletePollAsync(Poll poll)
         {
             var votes = await _context.UserVotes.Where(uv => uv.PollId == poll.Id).ToListAsync();
 

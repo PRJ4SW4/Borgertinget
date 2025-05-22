@@ -114,7 +114,7 @@ namespace backend.Services.Polls
         {
             var poll = await _repository.GetPollByIdAsync(id);
             // I'm not null checking here since the id is already checked by getting the poll earlier in the frontend
-            await _repository.DeletePoll(poll!);
+            await _repository.DeletePollAsync(poll!);
             int changes = await _repository.SaveChangesAsync();
             return changes > 0;
         }

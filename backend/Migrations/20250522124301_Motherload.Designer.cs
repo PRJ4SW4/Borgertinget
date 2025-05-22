@@ -13,7 +13,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250519085447_Motherload")]
+    [Migration("20250522124301_Motherload")]
     partial class Motherload
     {
         /// <inheritdoc />
@@ -92,7 +92,7 @@ namespace backend.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RoleClaims", (string)null);
+                    b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
@@ -116,7 +116,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserClaims", (string)null);
+                    b.ToTable("AspNetUserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
@@ -137,7 +137,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserLogins", (string)null);
+                    b.ToTable("AspNetUserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
@@ -157,12 +157,12 @@ namespace backend.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = 100,
+                            UserId = 1,
                             RoleId = 1
                         },
                         new
                         {
-                            UserId = 100,
+                            UserId = 1,
                             RoleId = 2
                         });
                 });
@@ -183,7 +183,7 @@ namespace backend.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("UserTokens", (string)null);
+                    b.ToTable("AspNetUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Calendar.CalendarEvent", b =>
@@ -1158,7 +1158,7 @@ namespace backend.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 100,
+                            Id = 1,
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "9a90d138-772e-44b1-b052-18d591edef58",
                             Email = "superuser@borgertinget.dk",
