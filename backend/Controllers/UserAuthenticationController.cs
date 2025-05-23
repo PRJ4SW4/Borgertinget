@@ -34,7 +34,7 @@ namespace backend.Controllers
     public class UsersController : ControllerBase // Corrected class name based on common practice and constructor
     {
         private readonly IConfiguration _config;
-        private readonly EmailService _emailService;
+        private readonly IEmailService _emailService;
         private readonly ILogger<UsersController> _logger; // Corrected logger type to match class name
         private readonly IUserAuthenticationService _userAuthenticationService;
 

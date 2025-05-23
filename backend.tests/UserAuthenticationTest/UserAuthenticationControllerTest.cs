@@ -13,6 +13,8 @@ using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using System.Text;
 using System.Collections.Generic;
 
@@ -205,7 +207,7 @@ namespace Tests.Controllers
             // Arrange
             var loginDto = new LoginDto { EmailOrUsername = "test@example.com", Password = "Password123!" };
             var user = new User { UserName = "testuser", Email = "test@example.com" };
-            var signInResult = SignInResult.Success;
+            var signInResult = Microsoft.AspNetCore.Identity.SignInResult.Success;
             var jwtToken = "dummyJwtToken";
 
             _mockUserAuthService.FindUserByEmailAsync(loginDto.EmailOrUsername.ToLower()).Returns(Task.FromResult<User?>(user));
@@ -249,7 +251,7 @@ namespace Tests.Controllers
             var user = new User { UserName = "testuser", Email = "test@example.com", EmailConfirmed = false };
 
             _mockUserAuthService.FindUserByEmailAsync(loginDto.EmailOrUsername.ToLower()).Returns(Task.FromResult<User?>(user));
-            _mockUserAuthService.CheckPasswordSignInAsync(user, loginDto.Password, false).Returns(Task.FromResult(SignInResult.NotAllowed));
+            _mockUserAuthService.CheckPasswordSignInAsync(user, loginDto.Password, false).Returns(Task.FromResult(Microsoft.AspNetCore.Identity.SignInResult.NotAllowed));
 
             // Act
             var result = await _controller.Login(loginDto);
@@ -326,15 +328,12 @@ namespace Tests.Controllers
         {
             // Arrange
             var clientReturnUrl = "/test-return";
-            var sanitizedReturnUrl = "/test-return"; // Antag at SanitizeReturnUrl returnerer dette
+            var sanitizedReturnUrl = "/test-return";
             var propertiesRedirectUri = "http://localhost/api/Users/HandleGoogleCallback?returnUrl=%2Ftest-return";
-            var authProperties = new AuthenticationProperties { RedirectUri = propertiesRedirectUri };
+            var authProperties = new AuthenticationProperties { RedirectUri = propertiesRedirectUri }; 
 
             _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedReturnUrl);
-             // NSubstitute kan ikke direkte mocke Url.Action. Controlleren skal kalde en service for dette, eller vi tester ikke den del.
-            // For nu antager vi, at Url.Action virker, eller at vi fokuserer på ConfigureExternalAuthenticationProperties.
-             _mockUserAuthService.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, Arg.Is<string>(s => s.Contains(clientReturnUrl))).Returns(authProperties);
-
+            _mockUserAuthService.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, Arg.Is<string>(s => s.Contains(clientReturnUrl))).Returns(authProperties); 
 
             // Act
             var result = _controller.LoginWithGoogle(clientReturnUrl);
@@ -343,8 +342,8 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<ChallengeResult>());
             var challengeResult = result as ChallengeResult;
             Assert.That(challengeResult, Is.Not.Null);
-            Assert.That(challengeResult.AuthenticationSchemes.Contains(GoogleDefaults.AuthenticationScheme), Is.True);
-            Assert.That(challengeResult.Properties, Is.EqualTo(authProperties)); // Tjek at de korrekte properties bruges
+            Assert.That(challengeResult.AuthenticationSchemes.Contains(GoogleDefaults.AuthenticationScheme), Is.True); 
+            Assert.That(challengeResult.Properties, Is.EqualTo(authProperties));
         }
     }
 }
