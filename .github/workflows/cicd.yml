@@ -38,36 +38,15 @@ jobs:
           dotnet build backend/backend.csproj --configuration Release
           dotnet build backend.tests/Backend.Tests.csproj --configuration Release
 
-      - name: Run Unit Tests with Coverage
+      - name: Run Backend Tests with Coverage
         run: |
-          mkdir -p TestResults
-          dotnet test backend.tests/Backend.Tests.csproj \
-            --no-build --configuration Release \
-            /p:CollectCoverage=true \
-            /p:CoverletOutput=TestResults/coverage.cobertura.xml \
-            /p:CoverletOutputFormat=cobertura
+          dotnet test backend.tests/Backend.Tests.csproj --collect:"XPlat Code Coverage" --results-directory coverage
 
-      - name: Confirm coverage output exists
-        run: ls -la TestResults
-
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      - name: List coverage output for debug
-        run: find . -name "coverage.cobertura.xml"
-
-      - name: Generate Coverage Report
-        run: |
-          reportgenerator \
-            -reports:"TestResults/coverage.cobertura.xml" \
-            -targetdir:"coverage-report" \
-            -reporttypes:HtmlInline_AzurePipelines;Cobertura
-
-      - name: Upload Coverage Report Artifact
-        uses: actions/upload-artifact@v4.6.2
+      - name: Upload Backend Coverage Report
+        uses: actions/upload-artifact@v3
         with:
-          name: coverage-report
-          path: coverage-report
+          name: backend-coverage-report
+          path: backend.tests/coverage
 
   frontend:
     name: Frontend (React.js)
@@ -94,6 +73,12 @@ jobs:
         run: npm run build
         working-directory: frontend
 
-      - name: Run Frontend Tests
-        run: npm test
+      - name: Run Frontend Tests with Coverage
+        run: npm test -- --coverage
         working-directory: frontend
+
+      - name: Upload Frontend Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-coverage-report
+          path: frontend/coverage
