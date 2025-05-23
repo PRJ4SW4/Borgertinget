@@ -34,10 +34,13 @@ jobs:
         run: dotnet build --configuration Release backend
 
       - name: Run Unit Tests with Coverage
-        run: >
-          dotnet test backend.tests/Backend.Tests.csproj
-          --no-build --configuration Release
-          --collect:"XPlat Code Coverage"
+        run: |
+          dotnet test backend.tests/Backend.Tests.csproj \
+            --no-build --configuration Release \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=cobertura \
+            /p:CoverletOutput=TestResults/coverage.cobertura.xml
+
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
@@ -48,7 +51,7 @@ jobs:
       - name: Generate Coverage Report
         run: |
           reportgenerator \
-            -reports:"**/TestResults/**/coverage.cobertura.xml" \
+            -reports:"TestResults/coverage.cobertura.xml" \
             -targetdir:"coverage-report" \
             -reporttypes:HtmlInline_AzurePipelines;Cobertura
 
