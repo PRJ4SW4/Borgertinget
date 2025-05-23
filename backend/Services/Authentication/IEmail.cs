@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Web;
 using backend.Models;
+using backend.DTO.UserAuthentication;
 using backend.Services.Authentication;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
@@ -12,10 +13,10 @@ namespace backend.Services.Authentication
 {
     public interface IEmailService
     {
-        public EmailData GenerateRegistrationEmailAsync(string token, User user);
+        public EmailDataDto GenerateRegistrationEmailAsync(string token, User user);
 
-        public Task SendEmailAsync(string toEmail, EmailData emailContent);
+        public Task SendEmailAsync(string toEmail, EmailDataDto emailContent);
 
-        public EmailData GenerateResetPasswordEmailAsync(string token, User user);
+        public EmailDataDto GenerateResetPasswordEmailAsync(string token, User user);
     }
 }
