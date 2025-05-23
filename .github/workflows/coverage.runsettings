@@ -8,8 +8,8 @@
               <ModulePath>.*</ModulePath>
               <SourceFiles>
                 <Include>
-                  <SourceFile>.*Controllers.*</SourceFile>
-                  <SourceFile>.*Services.*</SourceFile>
+                  <SourceFile>.*\\Controllers\\.*</SourceFile>
+                  <SourceFile>.*\\Services\\.*</SourceFile>
                 </Include>
               </SourceFiles>
             </Include>
