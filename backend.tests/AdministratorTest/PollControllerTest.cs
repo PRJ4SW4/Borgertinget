@@ -100,19 +100,19 @@
 
 //         #region CreatePoll Tests
 
-        [Test]
-        public async Task CreatePoll_ValidDto_ReturnsCreatedAtActionResult()
-        {
-            // Arrange
-            var politician = await SeedPolitician(101);
-            var endedAtDate = DateTime.UtcNow.AddDays(7);
-            var createPollDto = new PollDto
-            {
-                Question = "Favorite color?",
-                Options = new List<string> { "Red", "Blue" },
-                PoliticianTwitterId = politician.Id,
-                EndedAt = endedAtDate,
-            };
+//         [Test]
+//         public async Task CreatePoll_ValidDto_ReturnsCreatedAtActionResult()
+//         {
+//             Arrange
+//             var politician = await SeedPolitician(101);
+//             var endedAtDate = DateTime.UtcNow.AddDays(7);
+//             var createPollDto = new PollDto
+//             {
+//                 Question = "Favorite color?",
+//                 Options = new List<string> { "Red", "Blue" },
+//                 PoliticianTwitterId = politician.Id,
+//                 EndedAt = endedAtDate,
+//             };
 
 //             // Act
 //             var result = await _uut.CreatePoll(createPollDto);
@@ -143,16 +143,16 @@
 //             );
 //         }
 
-        [Test]
-        public async Task CreatePoll_PoliticianNotFound_ReturnsValidationProblem()
-        {
-            // Arrange
-            var createPollDto = new PollDto
-            {
-                Question = "Test Question",
-                Options = new List<string> { "Opt1", "Opt2" },
-                PoliticianTwitterId = 999, // Non-existent
-            };
+//         [Test]
+//         public async Task CreatePoll_PoliticianNotFound_ReturnsValidationProblem()
+//         {
+//             Arrange
+//             var createPollDto = new PollDto
+//             {
+//                 Question = "Test Question",
+//                 Options = new List<string> { "Opt1", "Opt2" },
+//                 PoliticianTwitterId = 999, // Non-existent
+//             };
 
 //             // Act
 //             var result = await _uut.CreatePoll(createPollDto);
@@ -166,53 +166,23 @@
 //             var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
 //             Assert.That(validationProblemDetails, Is.Not.Null);
 
-            Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.PoliticianTwitterId)),
-                Is.True
-            );
-        }
+//             Assert.That(
+//                 validationProblemDetails.Errors.ContainsKey(nameof(PollDto.PoliticianTwitterId)),
+//                 Is.True
+//             );
+//         }
 
-        [Test]
-        public async Task CreatePoll_EmptyOption_ReturnsValidationProblem()
-        {
-            // Arrange
-            var politician = await SeedPolitician(102);
-            var createPollDto = new PollDto
-            {
-                Question = "Test Question",
-                Options = new List<string> { "Opt1", "" }, // Empty option
-                PoliticianTwitterId = politician.Id,
-            };
-
-//             // Act
-//             var result = await _uut.CreatePoll(createPollDto);
-
-//             // Assert
-//             Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
-//             var objectResult = result.Result as ObjectResult;
-//             Assert.That(objectResult, Is.Not.Null);
-
-//             Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
-//             var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
-//             Assert.That(validationProblemDetails, Is.Not.Null);
-
-            Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
-                Is.True
-            );
-        }
-
-        [Test]
-        public async Task CreatePoll_DuplicateOptions_ReturnsValidationProblem()
-        {
-            // Arrange
-            var politician = await SeedPolitician(103);
-            var createPollDto = new PollDto
-            {
-                Question = "Test Question",
-                Options = new List<string> { "Opt1", "Opt1" }, // Duplicate options
-                PoliticianTwitterId = politician.Id,
-            };
+//         [Test]
+//         public async Task CreatePoll_EmptyOption_ReturnsValidationProblem()
+//         {
+//             Arrange
+//             var politician = await SeedPolitician(102);
+//             var createPollDto = new PollDto
+//             {
+//                 Question = "Test Question",
+//                 Options = new List<string> { "Opt1", "" }, // Empty option
+//                 PoliticianTwitterId = politician.Id,
+//             };
 
 //             // Act
 //             var result = await _uut.CreatePoll(createPollDto);
@@ -226,11 +196,41 @@
 //             var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
 //             Assert.That(validationProblemDetails, Is.Not.Null);
 
-            Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
-                Is.True
-            );
-        }
+//             Assert.That(
+//                 validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
+//                 Is.True
+//             );
+//         }
+
+//         [Test]
+//         public async Task CreatePoll_DuplicateOptions_ReturnsValidationProblem()
+//         {
+//             Arrange
+//             var politician = await SeedPolitician(103);
+//             var createPollDto = new PollDto
+//             {
+//                 Question = "Test Question",
+//                 Options = new List<string> { "Opt1", "Opt1" }, // Duplicate options
+//                 PoliticianTwitterId = politician.Id,
+//             };
+
+//             // Act
+//             var result = await _uut.CreatePoll(createPollDto);
+
+//             // Assert
+//             Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
+//             var objectResult = result.Result as ObjectResult;
+//             Assert.That(objectResult, Is.Not.Null);
+
+//             Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
+//             var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
+//             Assert.That(validationProblemDetails, Is.Not.Null);
+
+//             Assert.That(
+//                 validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
+//                 Is.True
+//             );
+//         }
 
 //         #endregion
 
@@ -253,13 +253,13 @@
 //             await _context.SaveChangesAsync();
 //             _context.Entry(initialPoll).State = EntityState.Detached; // Detach to avoid tracking issues
 
-            var updateDto = new PollDto
-            {
-                Question = "Updated Question",
-                Options = new List<string> { "NewOpt1", "NewOpt2" },
-                PoliticianTwitterId = politician2.Id,
-                EndedAt = DateTime.UtcNow.AddDays(10),
-            };
+//             var updateDto = new PollDto
+//             {
+//                 Question = "Updated Question",
+//                 Options = new List<string> { "NewOpt1", "NewOpt2" },
+//                 PoliticianTwitterId = politician2.Id,
+//                 EndedAt = DateTime.UtcNow.AddDays(10),
+//             };
 
 //             // Act
 //             var result = await _uut.UpdatePoll(initialPoll.Id, updateDto);
@@ -281,16 +281,16 @@
 //             );
 //         }
 
-        [Test]
-        public async Task UpdatePoll_PollNotFound_ReturnsNotFoundResult()
-        {
-            // Arrange
-            var updateDto = new PollDto
-            {
-                Question = "Q",
-                Options = new List<string> { "O" },
-                PoliticianTwitterId = 1,
-            };
+//         [Test]
+//         public async Task UpdatePoll_PollNotFound_ReturnsNotFoundResult()
+//         {
+//             Arrange
+//             var updateDto = new PollDto
+//             {
+//                 Question = "Q",
+//                 Options = new List<string> { "O" },
+//                 PoliticianTwitterId = 1,
+//             };
 
 //             // Act
 //             var result = await _uut.UpdatePoll(999, updateDto); // Non-existent poll ID
@@ -313,12 +313,12 @@
 //             _context.Polls.Add(poll);
 //             await _context.SaveChangesAsync();
 
-            var updateDto = new PollDto
-            {
-                Question = "Updated Q",
-                Options = new List<string> { "Opt1" },
-                PoliticianTwitterId = 998, // Non-existent politician
-            };
+//             var updateDto = new PollDto
+//             {
+//                 Question = "Updated Q",
+//                 Options = new List<string> { "Opt1" },
+//                 PoliticianTwitterId = 998, // Non-existent politician
+//             };
 
 //             // Act
 //             var result = await _uut.UpdatePoll(poll.Id, updateDto);
@@ -332,11 +332,11 @@
 //             var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
 //             Assert.That(validationProblemDetails, Is.Not.Null);
 
-            Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.PoliticianTwitterId)),
-                Is.True
-            );
-        }
+//             Assert.That(
+//                 validationProblemDetails.Errors.ContainsKey(nameof(PollDto.PoliticianTwitterId)),
+//                 Is.True
+//             );
+//         }
 
 //         [Test]
 //         public async Task UpdatePoll_EmptyOption_ReturnsValidationProblem()
@@ -352,12 +352,12 @@
 //             _context.Polls.Add(poll);
 //             await _context.SaveChangesAsync();
 
-            var updateDto = new PollDto
-            {
-                Question = "Updated Q",
-                Options = new List<string> { "Opt1", "" }, // Empty option
-                PoliticianTwitterId = politician.Id,
-            };
+//             var updateDto = new PollDto
+//             {
+//                 Question = "Updated Q",
+//                 Options = new List<string> { "Opt1", "" }, // Empty option
+//                 PoliticianTwitterId = politician.Id,
+//             };
 
 //             // Act
 //             var result = await _uut.UpdatePoll(poll.Id, updateDto);
@@ -371,11 +371,11 @@
 //             var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
 //             Assert.That(validationProblemDetails, Is.Not.Null);
 
-            Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
-                Is.True
-            );
-        }
+//             Assert.That(
+//                 validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
+//                 Is.True
+//             );
+//         }
 
 //         [Test]
 //         public async Task UpdatePoll_DuplicateOptions_ReturnsValidationProblem()
@@ -391,12 +391,12 @@
 //             _context.Polls.Add(poll);
 //             await _context.SaveChangesAsync();
 
-            var updateDto = new PollDto
-            {
-                Question = "Updated Q",
-                Options = new List<string> { "Opt1", "Opt1" }, // Duplicate options
-                PoliticianTwitterId = politician.Id,
-            };
+//             var updateDto = new PollDto
+//             {
+//                 Question = "Updated Q",
+//                 Options = new List<string> { "Opt1", "Opt1" }, // Duplicate options
+//                 PoliticianTwitterId = politician.Id,
+//             };
 
 //             // Act
 //             var result = await _uut.UpdatePoll(poll.Id, updateDto);
@@ -410,11 +410,11 @@
 //             var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
 //             Assert.That(validationProblemDetails, Is.Not.Null);
 
-            Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
-                Is.True
-            );
-        }
+//             Assert.That(
+//                 validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
+//                 Is.True
+//             );
+//         }
 
 //         #endregion
 

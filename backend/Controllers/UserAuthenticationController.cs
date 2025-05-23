@@ -40,7 +40,7 @@ namespace backend.Controllers
 
         public UsersController(
             IConfiguration config,
-            EmailService emailService,
+            IEmailService emailService,
             ILogger<UsersController> logger,
             IUserAuthenticationService userAuthenticationService
         )
