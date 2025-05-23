@@ -40,7 +40,7 @@ jobs:
 
       - name: Run Backend Tests with Coverage
         run: |
-          dotnet test backend.tests/Backend.Tests.csproj --collect:"XPlat Code Coverage" --results-directory coverage
+          dotnet test backend.tests/Backend.Tests.csproj --collect:"XPlat Code Coverage" --results-directory coverage -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[backend.Controllers]*,[backend.Services]*"
 
       - name: Upload Backend Coverage Report
         uses: actions/upload-artifact@v4.6.2
