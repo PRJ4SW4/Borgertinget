@@ -45,7 +45,7 @@ jobs:
       - name: Generate Coverage Report
         run: |
           reportgenerator \
-            -reports:"**/coverage.cobertura.xml" \
+            -reports:"**/TestResults/**/coverage.cobertura.xml" \
             -targetdir:"coverage-report" \
             -reporttypes:HtmlInline_AzurePipelines;Cobertura
 
