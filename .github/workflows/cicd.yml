@@ -40,7 +40,7 @@ jobs:
 
       - name: Run Backend Tests with Coverage
         run: |
-          dotnet test backend.tests/Backend.Tests.csproj --collect:"XPlat Code Coverage" --results-directory coverage --DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[backend.Controllers]*,[backend.Services]*,[backend.Services.Subscription]*,[backend.Services.Politicians]*,[backend.Services.Search]*,[backend.Services.Selection]*,[backend.Services.Utility]*"
+          dotnet test backend.tests/Backend.Tests.csproj --collect:"XPlat Code Coverage" --results-directory coverage --settings coverage.runsettings
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
