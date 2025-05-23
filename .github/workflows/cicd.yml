@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4.6.2
         with:
           name: backend-coverage-report
-          path: backend.tests/coverage
+          path: backend.tests/TestResults/**/coverage.cobertura.xml
 
   frontend:
     name: Frontend (React.js)
