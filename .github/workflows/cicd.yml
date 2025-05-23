@@ -48,6 +48,19 @@ jobs:
           name: backend-coverage-report
           path: coverage/**/coverage.cobertura.xml
 
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Generate HTML Coverage Report
+        run: |
+          reportgenerator -reports:coverage/**/coverage.cobertura.xml -targetdir:coverage/html -reporttypes:Html
+
+      - name: Upload HTML Coverage Report
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: backend-html-coverage-report
+          path: coverage/html
+
   frontend:
     name: Frontend (React.js)
     runs-on: ubuntu-latest
