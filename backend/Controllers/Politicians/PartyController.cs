@@ -4,11 +4,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO.FT;
-using backend.Models;
-using backend.Models.Politicians;
 using backend.Services.Politicians;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -29,7 +27,7 @@ public class PartyController : ControllerBase
 
     [HttpGet("Parties")]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<Party>>> getParties()
+    public async Task<ActionResult<IEnumerable<PartyDetailsDto>>?> getParties()
     {
         var parties = await _service.GetAll();
 
@@ -40,9 +38,9 @@ public class PartyController : ControllerBase
         return Ok(parties);
     }
 
-    [HttpGet("Party/{partyName}")]
+    [HttpGet("{partyName}")]
     [Authorize]
-    public async Task<ActionResult<Party>> GetPartyByName(string partyName)
+    public async Task<ActionResult<PartyDetailsDto>?> GetPartyByName(string partyName)
     {
         if (string.IsNullOrWhiteSpace(partyName))
         {
@@ -55,26 +53,27 @@ public class PartyController : ControllerBase
 
             if (party == null)
             {
-                return NotFound($"No party found with name '{partyName}'.");
+                return NotFound("Party not found.");
             }
+
             return Ok(party);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching party'.");
-            return StatusCode(500, "An error occurred while fetching the party.");
+            _logger.LogError(ex, "An error occurred while fetching the party.");
+            return StatusCode(500, "Internal server error.");
         }
     }
 
-    [HttpPut("Party/{partyId:int}")]
+    [HttpPut("{partyId:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<Party>> UpdatePartyDetails(
+    public async Task<ActionResult<bool>> UpdatePartyDetails(
         int partyId,
-        [FromBody] PartyDto updateDto
+        [FromBody] UpdatePartyDto updateDto
     )
     {
         // --- Input Validation ---
@@ -91,18 +90,10 @@ public class PartyController : ControllerBase
         // --- Fetch Existing Entity ---
         try
         {
-            var existingParty = await _service.GetById(partyId);
-
-            if (existingParty == null)
-            {
-                _logger.LogWarning("Party with ID not found for update.");
-                return NotFound($"Party with ID {partyId} not found.");
-            }
-
-            await _service.UpdateDetails(partyId, updateDto);
+            var result = await _service.UpdateDetails(partyId, updateDto);
 
             // --- Return Success Response ---
-            return Ok(existingParty);
+            return Ok(result);
         }
         catch (DbUpdateConcurrencyException dbEx) // Handle potential concurrency issues
         {

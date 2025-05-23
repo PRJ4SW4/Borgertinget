@@ -155,9 +155,9 @@ describe("AddPolls", () => {
     fireEvent.change(screen.getByLabelText("Vælg Politiker *"), {
       target: { value: mockPoliticians[0].id },
     });
-    // await waitFor(() =>
-    //   expect(mockedAxios.get).toHaveBeenCalledWith(`/api/subscription/lookup/politicianTwitterId?aktorId=${mockPoliticians[0].id}`, expect.anything())
-    // );
+    await waitFor(() =>
+      expect(mockedAxios.get).toHaveBeenCalledWith(`/api/subscription/lookup/politicianTwitterId?aktorId=${mockPoliticians[0].id}`, expect.anything())
+    );
 
     fireEvent.change(screen.getByPlaceholderText("Skriv spørgsmålet her..."), {
       target: { value: "Favorite Season?" },
@@ -181,8 +181,7 @@ describe("AddPolls", () => {
         {
           question: "Favorite Season?",
           options: ["Summer", "Winter"],
-          politicianTwitterId: 3, // As per component's current hardcoding
-          // politicianTwitterId: 12345, // This would be if using fetched twitterId
+          politicianTwitterId: undefined,
           endedAt: new Date("2024-12-31").toISOString(),
         },
         { headers: { Authorization: "Bearer fake-jwt-token" } }

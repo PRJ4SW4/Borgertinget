@@ -13,4 +13,5 @@ public interface IPartyRepository
     public Task AddMember(Party party, int MemberId);
     public Task<List<Party>> GetPartyByMemberId(int MemberId);
     public Task RemoveMember(Party party, int MemberId);
+    public Task<int> SaveChangesAsync();
 }

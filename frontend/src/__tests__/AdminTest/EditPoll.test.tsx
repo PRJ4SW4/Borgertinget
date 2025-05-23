@@ -155,7 +155,7 @@ describe("EditPoll", () => {
         {
           question: "Updated Question?",
           options: ["Updated Opt A", mockSelectedPollDetails.options[1].optionText],
-          politicianTwitterId: 3,
+          politicianTwitterId: undefined,
           endedAt: new Date("2024-01-01T00:00:00Z").toISOString(),
         },
         expect.anything()
