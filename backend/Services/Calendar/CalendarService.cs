@@ -119,10 +119,8 @@ namespace backend.Services.Calendar
                 $"Deleting calendar event with ID: {id} via Calendar Repository."
             );
             var calendarEvent = await _calendarEventRepository.GetEventByIdAsync(id);
-
             if (calendarEvent == null)
             {
-                _logger.LogWarning($"Calendar event with ID: {id} not found for deletion.");
                 return false;
             }
 

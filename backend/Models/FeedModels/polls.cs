@@ -71,6 +71,4 @@ namespace backend.Models
         public int ChosenOptionId { get; set; } // Foreign Key til PollOption tabellen
         public virtual PollOption ChosenOption { get; set; } = null!; // Navigation Property
     }
-
-    
 }

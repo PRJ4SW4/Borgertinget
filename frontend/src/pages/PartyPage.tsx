@@ -112,7 +112,7 @@ const PartyPage: React.FC = () => {
 
       try {
         // --- Step 1: Fetch Party Details ---
-        const partyApiUrl = `http://localhost:5218/api/Party/Party/${encodeURIComponent(partyName)}`;
+        const partyApiUrl = `http://localhost:5218/api/Party/${encodeURIComponent(partyName)}`;
         const partyResponse = await fetch(partyApiUrl, {
           method: "GET",
           headers: {

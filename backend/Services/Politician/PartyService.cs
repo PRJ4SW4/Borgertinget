@@ -15,60 +15,32 @@ public class PartyService : IPartyService
         _logger = logger;
     }
 
-    public async Task UpdateDetails(int Id, PartyDto dto)
-    {
-        var party = await _repo.GetById(Id);
-        bool changesMade = false;
-        if (party == null)
-        {
-            throw new KeyNotFoundException($"Party Not found with Id {Id}");
-        }
-        if (dto.partyProgram != null)
-        {
-            if (party.partyProgram != dto.partyProgram)
-            {
-                party.partyProgram = dto.partyProgram;
-                changesMade = true;
-            }
-        }
-
-        if (dto.politics != null)
-        {
-            if (party.politics != dto.politics)
-            {
-                party.politics = dto.politics;
-                changesMade = true;
-            }
-        }
-        if (dto.history != null)
-        {
-            if (party.history != dto.history)
-            {
-                party.history = dto.history;
-                changesMade = true;
-            }
-        }
-        if (changesMade)
-        {
-            await _repo.UpdatePartyDetail(party);
-        }
-    }
-
-    public async Task<Party?> GetById(int Id)
+    public async Task<bool> UpdateDetails(int Id, UpdatePartyDto dto)
     {
         var party = await _repo.GetById(Id);
         if (party == null)
         {
             _logger.LogInformation("No Party found");
-            return null;
+            return false;
         }
-        return party;
+        party.partyProgram = dto.partyProgram;
+        party.politics = dto.politics;
+        party.history = dto.history;
+
+        await _repo.UpdatePartyDetail(party); // Mark as edited
+        int changes = await _repo.SaveChangesAsync(); // Save changes
+
+        return changes > 0;
     }
 
-    public async Task<List<Party>> GetAll()
+    public async Task<List<PartyDetailsDto>?> GetAll()
     {
         var parties = await _repo.GetAll();
-        return parties;
+        if (parties == null)
+        {
+            return null;
+        }
+        return parties.Select(p => MapToPartyDetailsDto(p)).ToList();
     }
 
     public async Task Add(Party party)
@@ -91,7 +63,7 @@ public class PartyService : IPartyService
         await _repo.RemoveMember(party, MemberId);
     }
 
-    public async Task<Party?> GetByName(string partyName)
+    public async Task<PartyDetailsDto?> GetByName(string partyName)
     {
         var party = await _repo.GetByName(partyName);
 
@@ -100,6 +72,25 @@ public class PartyService : IPartyService
             _logger.LogInformation("Unable to find party");
             return null;
         }
-        return party;
+        return MapToPartyDetailsDto(party);
+    }
+
+    public PartyDetailsDto MapToPartyDetailsDto(Party party)
+    {
+        return new PartyDetailsDto
+        {
+            partyId = party.partyId,
+            partyName = party.partyName,
+            partyShortName = party.partyShortName,
+            partyProgram = party.partyProgram,
+            politics = party.politics,
+            history = party.history,
+            stats = party.stats,
+            chairmanId = party.chairmanId,
+            viceChairmanId = party.viceChairmanId,
+            secretaryId = party.secretaryId,
+            spokesmanId = party.spokesmanId,
+            memberIds = party.memberIds,
+        };
     }
 }

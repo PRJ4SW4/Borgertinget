@@ -75,10 +75,6 @@ public class CalendarController : ControllerBase
         _logger.LogInformation("Attempting to fetch all calendar events via Service.");
 
         var userId = GetUserId();
-        if (userId == null)
-        {
-            return Unauthorized("User not authenticated or could not be retrieved.");
-        }
         int.TryParse(userId, out int parsedUserId);
 
         try
@@ -213,7 +209,7 @@ public class CalendarController : ControllerBase
             _logger.LogInformation(
                 $"Successfully deleted calendar event with ID: {id} via service."
             );
-            return NoContent();
+            return Ok(new { message = $"Begivenhed med ID {id} blev slettet." });
         }
         catch (Exception ex)
         {
@@ -233,10 +229,6 @@ public class CalendarController : ControllerBase
     public async Task<ActionResult> ToggleInterest([FromRoute] int id)
     {
         var userId = GetUserId();
-        if (userId == null)
-        {
-            return Unauthorized("User not authenticated or could not be retrieved.");
-        }
         try
         {
             var result = await _calendarService.ToggleInterestAsync(id, userId);
@@ -267,11 +259,6 @@ public class CalendarController : ControllerBase
     // Retrieves the number of users interested in a specific event.
     public async Task<ActionResult<int>> GetAmountInterested(int eventId)
     {
-        var userId = GetUserId();
-        if (userId == null)
-        {
-            return Unauthorized("User not authenticated or could not be retrieved.");
-        }
         try
         {
             var count = await _calendarService.GetAmountInterestedAsync(eventId);
@@ -290,13 +277,9 @@ public class CalendarController : ControllerBase
         }
     }
 
-    private string? GetUserId()
+    private string GetUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim != null)
-        {
-            return userIdClaim.Value;
-        }
-        return null;
+        return userIdClaim!.Value;
     }
 }

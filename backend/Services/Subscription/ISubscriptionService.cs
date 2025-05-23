@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using backend.DTOs;
 
 namespace backend.Services.Subscription
 {
@@ -6,6 +7,6 @@ namespace backend.Services.Subscription
     {
         Task<(bool success, string message)> SubscribeAsync(int userId, int politicianTwitterId);
         Task<(bool success, string message)> UnsubscribeAsync(int userId, int politicianTwitterId);
-        Task<(bool success, object? result, string? message)> LookupPoliticianAsync(int aktorId);
+        Task<PoliticianInfoDto?> LookupPoliticianAsync(int aktorId);
     }
 }
