@@ -28,10 +28,15 @@ jobs:
           dotnet-version: "9.0"
 
       - name: Restore dependencies
-        run: dotnet restore backend
+        run: |
+          dotnet restore backend/backend.csproj
+          dotnet restore backend.tests/Backend.Tests.csproj
 
-      - name: Build Backend
-        run: dotnet build
+
+      - name: Build Backend and Tests
+        run: |
+          dotnet build backend/backend.csproj
+          dotnet build backend.tests/Backend.Tests.csproj
 
       - name: Run Unit Tests with Coverage
         run: |
