@@ -7,7 +7,6 @@ using backend.Controllers;
 using backend.DTO.UserAuthentication;
 using backend.DTOs;
 using backend.Models;
-using backend.utils;
 using backend.Services.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -68,14 +67,14 @@ namespace Tests.Controllers
             // Mock IUrlHelper
             var mockUrlHelper = Substitute.For<IUrlHelper>();
             mockUrlHelper
-                .Action(Arg.Any<UrlActionContext>()) // Matcher ethvert kald til Action
-                .Returns("http://localhost/fakeaction"); // Returner en dummy URL
+                .Action(Arg.Any<UrlActionContext>()) 
+                .Returns("http://localhost/fakeaction"); 
 
             _controller.ControllerContext = new ControllerContext()
             {
                 HttpContext = new DefaultHttpContext() { User = user },
             };
-            _controller.Url = mockUrlHelper; // Sæt den mockede UrlHelper på controlleren
+            _controller.Url = mockUrlHelper; 
         }
 
         [Test]
@@ -123,14 +122,12 @@ namespace Tests.Controllers
                 .GenerateRegistrationEmailAsync(encodedToken, user)
                 .Returns(emailDataGenerated);
 
-            // Brug EmailDataDto direkte i Arg.Any<> og Arg.Is<>
             _mockEmailService
-                .When(x => x.SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>())) // RETTET
+                .When(x => x.SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>())) 
                 .Do(callInfo =>
-                { /* Gør intet for at undgå reel afsendelse */
-                });
+                {});
             _mockEmailService
-                .SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>()) // RETTET
+                .SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>()) 
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -141,19 +138,19 @@ namespace Tests.Controllers
             var okResult = result as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
             Assert.That(okResult.StatusCode, Is.EqualTo(200));
-            dynamic value = okResult.Value; // Antager OkObjectResult.Value er et anonymt objekt
+            dynamic value = okResult.Value;
             Assert.That(
                 (string)value.GetType().GetProperty("message").GetValue(value, null),
                 Does.Contain("Registrering succesfuld!")
             );
 
-            // Verificer at SendEmailAsync blev kaldt med den korrekte EmailDataDto
+            
             await _mockEmailService
                 .Received(1)
                 .SendEmailAsync(
                     registerDto.Email,
                     Arg.Is<EmailDataDto>(ed => ed.Subject == "Bekræft din e-mailadresse")
-                ); // RETTET
+                ); 
         }
 
         [Test]
@@ -253,7 +250,7 @@ namespace Tests.Controllers
 
             // Act
             var result = await _controller.VerifyEmail(userId, encodedToken);
-
+            
             // Assert
             Assert.That(result, Is.InstanceOf<OkObjectResult>());
             var okResult = result as OkObjectResult;
@@ -270,7 +267,7 @@ namespace Tests.Controllers
         {
             // Arrange
             var userId = 1;
-            var token = "anyToken"; // encoded form
+            var token = "anyToken"; 
             _mockUserAuthService.GetUserAsync(userId).Returns(Task.FromResult<User?>(null));
 
             // Act
@@ -475,7 +472,7 @@ namespace Tests.Controllers
             _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedReturnUrl);
             _mockUserAuthService.ConfigureExternalAuthenticationProperties(
                 GoogleDefaults.AuthenticationScheme, 
-                expectedPropertiesRedirectUri) // Den URI controlleren forventes at sende til servicen
+                expectedPropertiesRedirectUri) 
                 .Returns(authPropertiesReturnedByService);
 
             // Act
