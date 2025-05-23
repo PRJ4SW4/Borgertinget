@@ -7,13 +7,11 @@ namespace backend.Services.Polls
 {
     public interface IPollsService
     {
-        Task<PollDetailsDto> CreatePollAsync(CreatePollDto createPollDto);
+        Task<PollDetailsDto> CreatePollAsync(PollDto createPollDto);
         Task<List<PollSummaryDto>> GetAllPollsAsync();
         Task<PollDetailsDto?> GetPollByIdAsync(int id, int userId);
-        Task<bool> ValidatePoll(CreatePollDto pollDto);
-        Task<bool> ValidateUpdatePoll(UpdatePollDto updateDto);
         Task<Poll> GetPollAsync(int id);
-        Task<bool> UpdatePollAsync(int id, UpdatePollDto updateDto);
+        Task<bool> UpdatePollAsync(int id, PollDto updateDto);
         Task<(bool success, List<PollOptionDto> updatedOptions)> VoteAsync(
             int pollId,
             int userId,

@@ -23,23 +23,6 @@ namespace backend.Repositories.Subscription
         {
             try
             {
-                var politicianExists = await _context.PoliticianTwitterIds.AnyAsync(p =>
-                    p.Id == politicianTwitterId
-                );
-                if (!politicianExists)
-                {
-                    return false;
-                }
-
-                bool alreadySubscribed = await _context.Subscriptions.AnyAsync(s =>
-                    s.UserId == userId && s.PoliticianTwitterId == politicianTwitterId
-                );
-
-                if (alreadySubscribed)
-                {
-                    return false;
-                }
-
                 var newSubscription = new Models.Subscription
                 {
                     UserId = userId,
@@ -87,15 +70,13 @@ namespace backend.Repositories.Subscription
             }
         }
 
-        public async Task<object?> LookupPoliticianAsync(int aktorId)
+        public async Task<PoliticianTwitterId?> LookupPoliticianAsync(int aktorId)
         {
             try
             {
                 return await _context
                     .PoliticianTwitterIds.AsNoTracking()
-                    .Where(p => p.AktorId == aktorId)
-                    .Select(p => new { politicianTwitterId = p.Id })
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(p => p.AktorId == aktorId);
             }
             catch (Exception ex)
             {

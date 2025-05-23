@@ -18,7 +18,7 @@ export default function AddPolls() {
   const [questions, setQuestions] = useState<Question[]>([{ question: "", options: ["", ""] }]);
   const [politicians, setPoliticians] = useState<Politician[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string | null>(null);
-  // const [twitterId, setTwitterId] = useState<number | null>(null); Uncomment this line when TwitterUserIds are available
+  const [twitterId, setTwitterId] = useState<number | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +45,7 @@ export default function AddPolls() {
     fetchPoliticians();
   }, []);
 
-  /*useEffect(() => {
+  useEffect(() => {
     const fetchTwitterId = async () => {
       if (!selectedPoliticianId) return;
 
@@ -54,7 +54,7 @@ export default function AddPolls() {
         const response = await axios.get(`/api/subscription/lookup/politicianTwitterId?aktorId=${selectedPoliticianId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setTwitterId(response.data.politicianTwitterId);
+        setTwitterId(response.data.id);
       } catch (error) {
         console.error("Could not fetch politicianTwitterId", error);
         setTwitterId(null);
@@ -63,7 +63,7 @@ export default function AddPolls() {
 
     fetchTwitterId();
   }, [selectedPoliticianId]);
-*/
+
   const handleQuestionChange = (index: number, value: string) => {
     const newQuestions = [...questions];
     newQuestions[index].question = value;
@@ -114,8 +114,7 @@ export default function AddPolls() {
     const payload = {
       question: questions[0].question,
       options: questions[0].options.filter((o) => o.trim() !== ""),
-      politicianTwitterId: 3, // Troels Lunds Twitter ID
-      // politicianTwitterId: twitterId, // Uncomment this line when TwitterUserIds are available
+      politicianTwitterId: twitterId, // Uncomment this line when TwitterUserIds are available
       endedAt: endDate ? new Date(endDate).toISOString() : null,
     };
 
