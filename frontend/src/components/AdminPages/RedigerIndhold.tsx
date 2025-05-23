@@ -74,7 +74,7 @@ export default function RedigerInhold() {
     }
 
     try {
-      await axios.put(`/api/Party/Party/${selectedParty.partyId}`, editData, {
+      await axios.put(`/api/Party/${selectedParty.partyId}`, editData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

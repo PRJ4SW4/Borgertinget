@@ -106,7 +106,7 @@ namespace Tests.Controllers
             // Arrange
             var politician = await SeedPolitician(101);
             var endedAtDate = DateTime.UtcNow.AddDays(7);
-            var createPollDto = new CreatePollDto
+            var createPollDto = new PollDto
             {
                 Question = "Favorite color?",
                 Options = new List<string> { "Red", "Blue" },
@@ -147,7 +147,7 @@ namespace Tests.Controllers
         public async Task CreatePoll_PoliticianNotFound_ReturnsValidationProblem()
         {
             // Arrange
-            var createPollDto = new CreatePollDto
+            var createPollDto = new PollDto
             {
                 Question = "Test Question",
                 Options = new List<string> { "Opt1", "Opt2" },
@@ -167,9 +167,7 @@ namespace Tests.Controllers
             Assert.That(validationProblemDetails, Is.Not.Null);
 
             Assert.That(
-                validationProblemDetails.Errors.ContainsKey(
-                    nameof(CreatePollDto.PoliticianTwitterId)
-                ),
+                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.PoliticianTwitterId)),
                 Is.True
             );
         }
@@ -179,7 +177,7 @@ namespace Tests.Controllers
         {
             // Arrange
             var politician = await SeedPolitician(102);
-            var createPollDto = new CreatePollDto
+            var createPollDto = new PollDto
             {
                 Question = "Test Question",
                 Options = new List<string> { "Opt1", "" }, // Empty option
@@ -199,7 +197,7 @@ namespace Tests.Controllers
             Assert.That(validationProblemDetails, Is.Not.Null);
 
             Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(CreatePollDto.Options)),
+                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
                 Is.True
             );
         }
@@ -209,7 +207,7 @@ namespace Tests.Controllers
         {
             // Arrange
             var politician = await SeedPolitician(103);
-            var createPollDto = new CreatePollDto
+            var createPollDto = new PollDto
             {
                 Question = "Test Question",
                 Options = new List<string> { "Opt1", "Opt1" }, // Duplicate options
@@ -229,7 +227,7 @@ namespace Tests.Controllers
             Assert.That(validationProblemDetails, Is.Not.Null);
 
             Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(CreatePollDto.Options)),
+                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
                 Is.True
             );
         }
@@ -255,7 +253,7 @@ namespace Tests.Controllers
             await _context.SaveChangesAsync();
             _context.Entry(initialPoll).State = EntityState.Detached; // Detach to avoid tracking issues
 
-            var updateDto = new UpdatePollDto
+            var updateDto = new PollDto
             {
                 Question = "Updated Question",
                 Options = new List<string> { "NewOpt1", "NewOpt2" },
@@ -287,7 +285,7 @@ namespace Tests.Controllers
         public async Task UpdatePoll_PollNotFound_ReturnsNotFoundResult()
         {
             // Arrange
-            var updateDto = new UpdatePollDto
+            var updateDto = new PollDto
             {
                 Question = "Q",
                 Options = new List<string> { "O" },
@@ -315,7 +313,7 @@ namespace Tests.Controllers
             _context.Polls.Add(poll);
             await _context.SaveChangesAsync();
 
-            var updateDto = new UpdatePollDto
+            var updateDto = new PollDto
             {
                 Question = "Updated Q",
                 Options = new List<string> { "Opt1" },
@@ -335,9 +333,7 @@ namespace Tests.Controllers
             Assert.That(validationProblemDetails, Is.Not.Null);
 
             Assert.That(
-                validationProblemDetails.Errors.ContainsKey(
-                    nameof(UpdatePollDto.PoliticianTwitterId)
-                ),
+                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.PoliticianTwitterId)),
                 Is.True
             );
         }
@@ -356,7 +352,7 @@ namespace Tests.Controllers
             _context.Polls.Add(poll);
             await _context.SaveChangesAsync();
 
-            var updateDto = new UpdatePollDto
+            var updateDto = new PollDto
             {
                 Question = "Updated Q",
                 Options = new List<string> { "Opt1", "" }, // Empty option
@@ -376,7 +372,7 @@ namespace Tests.Controllers
             Assert.That(validationProblemDetails, Is.Not.Null);
 
             Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(UpdatePollDto.Options)),
+                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
                 Is.True
             );
         }
@@ -395,7 +391,7 @@ namespace Tests.Controllers
             _context.Polls.Add(poll);
             await _context.SaveChangesAsync();
 
-            var updateDto = new UpdatePollDto
+            var updateDto = new PollDto
             {
                 Question = "Updated Q",
                 Options = new List<string> { "Opt1", "Opt1" }, // Duplicate options
@@ -415,7 +411,7 @@ namespace Tests.Controllers
             Assert.That(validationProblemDetails, Is.Not.Null);
 
             Assert.That(
-                validationProblemDetails.Errors.ContainsKey(nameof(UpdatePollDto.Options)),
+                validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
                 Is.True
             );
         }

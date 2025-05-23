@@ -36,7 +36,7 @@ public class AktorController : ControllerBase
     //Sender hele listen af politikere med bruger AktorDetailDto
     [HttpGet("all")]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<Aktor>>> GetAllAktors()
+    public async Task<ActionResult<IEnumerable<AktorDetailDto>>> GetAllAktors()
     {
         try
         {
@@ -53,7 +53,7 @@ public class AktorController : ControllerBase
     //Sender en politiker, bruger AktorDetailDto
     [HttpGet("{id}")]
     [Authorize]
-    public async Task<ActionResult<Aktor>> GetAktorById(int id)
+    public async Task<ActionResult<AktorDetailDto>> GetAktorById(int id)
     {
         try
         {
@@ -69,7 +69,7 @@ public class AktorController : ControllerBase
     //sender politikere med samme partyName, bruger aktorDetailDto
     [HttpGet("GetParty/{partyName}")]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<Aktor>>> GetParty(string partyName)
+    public async Task<ActionResult<IEnumerable<AktorDetailDto>>> GetParty(string partyName)
     {
         try
         {

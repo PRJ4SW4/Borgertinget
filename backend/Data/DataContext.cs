@@ -369,20 +369,9 @@ namespace backend.Data
                     }
                 );
             modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
-            modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
-            modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");
-            modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
-            modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
 
             // --- SEED SUPERUSER (ADMIN + USER ROLES) ---
-            var superUserId = 100; // Using a distinct ID for this user
-
-            // IMPORTANT: You MUST replace the PasswordHash below with a securely generated hash.
-            // To generate a hash, you can use ASP.NET Core Identity's PasswordHasher.
-            // For example, in a temporary controller or a utility method:
-            // var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
-            // var hashedPassword = hasher.HashPassword(null, "YourChosenSecureP@ssw0rd1!");
-            // Console.WriteLine(hashedPassword); // Then copy the output here.
+            var superUserId = 1;
 
             var superUser = new User
             {
