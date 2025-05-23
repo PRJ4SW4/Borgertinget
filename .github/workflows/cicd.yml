@@ -35,8 +35,8 @@ jobs:
 
       - name: Build Backend and Tests
         run: |
-          dotnet build backend/backend.csproj
-          dotnet build backend.tests/Backend.Tests.csproj
+          dotnet build backend/backend.csproj --configuration Release
+          dotnet build backend.tests/Backend.Tests.csproj --configuration Release
 
       - name: Run Unit Tests with Coverage
         run: |
