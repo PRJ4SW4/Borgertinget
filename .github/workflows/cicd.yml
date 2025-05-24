@@ -28,13 +28,32 @@ jobs:
           dotnet-version: "9.0"
 
       - name: Restore dependencies
-        run: dotnet restore backend
+        run: |
+          dotnet restore backend/backend.csproj
+          dotnet restore backend.tests/Backend.Tests.csproj
 
-      - name: Build Backend
-        run: dotnet build --configuration Release backend
 
-      - name: Run Backend Tests
-        run: dotnet test backend --no-build --verbosity normal
+      - name: Build Backend and Tests
+        run: |
+          dotnet build backend/backend.csproj --configuration Release
+          dotnet build backend.tests/Backend.Tests.csproj --configuration Release
+
+      - name: Run Backend Tests with Coverage
+        run: |
+          dotnet test backend.tests/Backend.Tests.csproj --collect:"XPlat Code Coverage" --results-directory coverage --settings coverage.runsettings
+
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Generate HTML Coverage Report
+        run: |
+          reportgenerator -reports:coverage/**/coverage.cobertura.xml -targetdir:coverage/html -reporttypes:Html
+
+      - name: Upload HTML Coverage Report
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: backend-html-coverage-report
+          path: coverage/html
 
   frontend:
     name: Frontend (React.js)
@@ -61,6 +80,12 @@ jobs:
         run: npm run build
         working-directory: frontend
 
-      - name: Run Frontend Tests
-        run: npm test
+      - name: Run Frontend Tests with Coverage
+        run: npm test -- --coverage
         working-directory: frontend
+
+      - name: Upload Frontend Coverage Report
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: frontend-coverage-report
+          path: frontend/coverage

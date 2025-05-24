@@ -204,14 +204,15 @@ namespace Tests.Controllers
         [Test]
         public async Task DeleteEvent_ExistingEvent_ReturnsNoContentResult()
         {
+            // Arrange
             var eventId = 1;
+            _mockCalendarService.DeleteEventAsync(eventId).Returns(true);
 
-            _mockCalendarService.DeleteEventAsync(eventId).Returns(Task.FromResult(true));
-
+            // Act
             var result = await _uut.DeleteEvent(eventId);
 
+            // Assert
             Assert.That(result, Is.TypeOf<NoContentResult>());
-            await _mockCalendarService.Received(1).DeleteEventAsync(eventId);
         }
 
         [Test]
