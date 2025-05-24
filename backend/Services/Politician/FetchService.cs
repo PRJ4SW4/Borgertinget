@@ -15,7 +15,7 @@ namespace backend.Services.Politicians
 {
     public class FetchService : IFetchService
     {
-        private readonly HttpService _httpService; // Assuming HttpService is still used
+        private readonly HttpService _httpService;
         private readonly IConfiguration _configuration;
         private readonly IAktorRepo _aktorRepo;
         private readonly IPartyRepository _partyRepo;
@@ -58,7 +58,6 @@ namespace backend.Services.Politicians
                 _logger.LogError(
                     "One or more required API URLs are missing in configuration for AktorUpdateService."
                 );
-                // Consider throwing a specific exception or returning a failure indicator
                 throw new InvalidOperationException(
                     "API URL configuration for Aktor update is incomplete."
                 );
@@ -148,7 +147,7 @@ namespace backend.Services.Politicians
                     ex,
                     "[AktorUpdateService] Error during initial fetch of titles or relationships."
                 );
-                throw; // Re-throw to be handled by the controller or a higher-level error handler
+                throw;
             }
 
             // --- STEP 3: Process Politicians and Assign Titles ---
@@ -254,7 +253,6 @@ namespace backend.Services.Politicians
                                         && !string.IsNullOrWhiteSpace(currentAktor.navn)
                                     )
                                     {
-                                        // Assuming _context.PoliticianTwitterIds is the DbSet for PoliticianTwitterId entities
                                         var politicianTwitterEntry =
                                             await _aktorRepo.GetPoliticianTwitterIdByNameAsync(
                                                 currentAktor.navn
@@ -266,8 +264,6 @@ namespace backend.Services.Politicians
                                             if (politicianTwitterEntry.AktorId != currentAktor.Id)
                                             {
                                                 politicianTwitterEntry.AktorId = currentAktor.Id;
-                                                // EF Core's change tracker should detect this modification.
-                                                // If issues arise, you might need: _context.Entry(politicianTwitterEntry).State = EntityState.Modified;
                                                 _logger.LogInformation(
                                                     $"Updated PoliticianTwitterId.AktorId for '{politicianTwitterEntry.Name}' (PoliticianTwitterId: {politicianTwitterEntry.Id}) to Aktor ID: {currentAktor.Id}."
                                                 );
@@ -392,11 +388,7 @@ namespace backend.Services.Politicians
                         "[AktorUpdateService] Error fetching or processing data from {Url}",
                         nextPolitikerLink ?? "Unknown"
                     );
-                    // Decide if you want to stop the whole process on a page error or continue
-                    // For now, we'll log and continue to the next link if one was previously found,
-                    // or stop if this was the first page error.
-                    // To be safer, perhaps set nextPolitikerLink to null to stop further processing.
-                    nextPolitikerLink = null; // Stop on error for this page.
+                    nextPolitikerLink = null;
                 }
             }
             await _aktorRepo.SaveChangesAsync(); // Save all accumulated changes
@@ -422,7 +414,7 @@ namespace backend.Services.Politicians
             aktor.navn = dto.navn;
             aktor.fornavn = dto.fornavn;
             aktor.efternavn = dto.efternavn;
-            aktor.biografi = dto.biografi; // Store the raw XML biography
+            aktor.biografi = dto.biografi;
 
             aktor.startdato = dto.startdato.HasValue
                 ? DateTime.SpecifyKind(dto.startdato.Value, DateTimeKind.Utc)
@@ -431,7 +423,7 @@ namespace backend.Services.Politicians
                 ? DateTime.SpecifyKind(dto.slutdato.Value, DateTimeKind.Utc)
                 : null;
             aktor.opdateringsdato = DateTime.UtcNow;
-            aktor.typeid = 5; // Default to 5 for person
+            aktor.typeid = 5;
 
             // Map parsed fields from BioParser
             aktor.Party = bioDetails.GetValueOrDefault("Party") as string;
@@ -445,7 +437,7 @@ namespace backend.Services.Politicians
                 bioDetails.GetValueOrDefault("FunctionFormattedTitle") as string;
             aktor.FunctionStartDate = bioDetails.GetValueOrDefault("FunctionStartDate") as string;
             aktor.PositionsOfTrust = bioDetails.GetValueOrDefault("PositionsOfTrust") as string;
-            aktor.MinisterTitel = ministerTitle; // Assign the looked-up title
+            aktor.MinisterTitel = ministerTitle;
 
             aktor.ParliamentaryPositionsOfTrust =
                 bioDetails.GetValueOrDefault("ParliamentaryPositionsOfTrust") as List<string>
