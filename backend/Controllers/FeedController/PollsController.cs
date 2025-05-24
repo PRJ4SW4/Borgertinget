@@ -32,9 +32,32 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<PollDetailsDto>> CreatePoll(PollDto createPollDto)
         {
+            if (createPollDto == null)
+            {
+                return BadRequest(
+                    new ValidationProblemDetails
+                    {
+                        Title = "Invalid input",
+                        Detail = "Poll data is required.",
+                    }
+                );
+            }
+
             try
             {
                 var createdPollDto = await _pollsService.CreatePollAsync(createPollDto);
+
+                if (createdPollDto == null)
+                {
+                    return NotFound(
+                        new ValidationProblemDetails
+                        {
+                            Title = "Creation failed",
+                            Detail = "Failed to create poll.",
+                        }
+                    );
+                }
+
                 return CreatedAtAction(
                     nameof(GetPollById),
                     new { id = createdPollDto.Id },
@@ -43,8 +66,15 @@ namespace backend.Controllers
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Fejl ved gemning af ny poll");
-                return StatusCode(500, "Intern fejl ved oprettelse af poll.");
+                _logger.LogError(ex, "Error saving new poll");
+                return StatusCode(
+                    500,
+                    new ValidationProblemDetails
+                    {
+                        Title = "Internal Server Error",
+                        Detail = "An error occurred while creating the poll.",
+                    }
+                );
             }
         }
 
@@ -90,7 +120,9 @@ namespace backend.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdatePoll(int id, PollDto updateDto)
         {
-            await _pollsService.UpdatePollAsync(id, updateDto);
+            var result = await _pollsService.UpdatePollAsync(id, updateDto);
+            if (result == false)
+                return NotFound("Poll blev ikke fundet.");
             return NoContent();
         }
 
