@@ -47,7 +47,6 @@ namespace backend.Services.Politicians.Tests
                 Sex = "Male",
                 Born = "01-01-1980",
                 opdateringsdato = DateTime.UtcNow,
-                // Add other necessary properties for AktorDetailDto.FromAktor to work
             };
             _mockAktorRepo.GetAktorByIdAsync(testId).Returns(Task.FromResult<Aktor?>(aktorEntity));
 
@@ -59,8 +58,7 @@ namespace backend.Services.Politicians.Tests
             Assert.That(result.Id, Is.EqualTo(aktorEntity.Id));
             Assert.That(result.navn, Is.EqualTo(aktorEntity.navn));
             Assert.That(result.Party, Is.EqualTo(aktorEntity.Party));
-            // Add more assertions for other mapped properties
-            _mockLogger.DidNotReceiveWithAnyArgs().LogError(default(string)); // Ensure no error was logged
+            _mockLogger.DidNotReceiveWithAnyArgs().LogError(default(string));
         }
 
         [Test]
@@ -158,7 +156,7 @@ namespace backend.Services.Politicians.Tests
             Assert.That(
                 result.All(dto => dto.Party == testParty || dto.PartyShortname == testParty),
                 Is.True
-            ); // Basic check
+            );
         }
 
         [Test]

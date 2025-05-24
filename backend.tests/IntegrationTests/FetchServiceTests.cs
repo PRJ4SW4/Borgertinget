@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Data;
-using backend.DTO.FT; // For ODA DTOs (CreateAktor, etc.) - though not directly used in this test setup
-using backend.Models; // For PoliticianTwitterId
-using backend.Models.Politicians; // For Aktor, Party
+using backend.DTO.FT;
+using backend.Models;
+using backend.Models.Politicians;
 using backend.Repositories.Politicians;
 using backend.Services.Politicians;
 using Microsoft.EntityFrameworkCore;
@@ -72,7 +72,7 @@ namespace backend.Services.Tests
 
             // Service under test
             _uut = new FetchService(
-                _context, // FetchService uses DataContext directly too
+                _context,
                 _httpService,
                 _configuration,
                 _aktorRepo,
@@ -90,14 +90,10 @@ namespace backend.Services.Tests
 
         [Test]
         [Category("Integration")]
-        [Explicit("This test makes live API calls and can be slow/unreliable.")] // Mark as explicit due to live calls
+        [Explicit("This test makes live API calls and can be slow/unreliable.")]
         public async Task FetchAndUpdateAktorsAsync_WhenApisAreResponsive_ProcessesSomeData()
         {
-            // Arrange
-            // Optional: Pre-seed a PoliticianTwitterId to check if its AktorId gets linked.
-            // This depends on a politician name that is highly likely to be returned by the live API.
-            // Example (replace with a very common, active politician name if needed):
-            string knownPoliticianName = "Mette Frederiksen"; // Adjust if needed for a stable test
+            string knownPoliticianName = "Mette Frederiksen";
             var twitterIdEntry = new PoliticianTwitterId
             {
                 Name = knownPoliticianName,
@@ -110,9 +106,6 @@ namespace backend.Services.Tests
             // Act
             var (totalAdded, totalUpdated, totalDeleted) = await _uut.FetchAndUpdateAktorsAsync();
 
-            // Assert
-            // Due to live API calls, we can't assert exact numbers easily.
-            // We check that the process ran and some activity likely occurred.
             _loggerFetchService
                 .Received()
                 .LogInformation(Arg.Is<string>(s => s.Contains("Starting Aktor update process")));
@@ -134,8 +127,6 @@ namespace backend.Services.Tests
 
             // Check if any Aktors were actually added or updated in the database
             var aktorsInDb = await _context.Aktor.ToListAsync();
-            // This assertion is weak because if the DB was empty and API returned nothing new, it could be 0.
-            // But if the API is working, it should find/create some.
             Assert.That(
                 aktorsInDb,
                 Is.Not.Empty,
@@ -144,7 +135,6 @@ namespace backend.Services.Tests
 
             // Check if any Parties were created
             var partiesInDb = await _context.Party.ToListAsync();
-            // Similar to Aktors, this depends on API data.
             if (aktorsInDb.Any(a => !string.IsNullOrEmpty(a.Party)))
             {
                 Assert.That(
@@ -154,14 +144,13 @@ namespace backend.Services.Tests
                 );
             }
 
-            // Check if the pre-seeded PoliticianTwitterId had its AktorId linked
             var updatedTwitterIdEntry = await _context.PoliticianTwitterIds.FirstOrDefaultAsync(p =>
                 p.Name == knownPoliticianName
             );
             Assert.That(updatedTwitterIdEntry, Is.Not.Null);
 
             var linkedAktor = aktorsInDb.FirstOrDefault(a => a.navn == knownPoliticianName);
-            if (linkedAktor != null) // Only assert if we found the Aktor in the DB
+            if (linkedAktor != null)
             {
                 Assert.That(
                     updatedTwitterIdEntry.AktorId,

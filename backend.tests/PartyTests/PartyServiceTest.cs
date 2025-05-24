@@ -228,8 +228,8 @@ namespace backend.Services.Tests
                     Arg.Any<EventId>(),
                     Arg.Is<object>(o =>
                         o != null && o.ToString()!.Contains("Unable to find party")
-                    ), // Added null check for o
-                    null, // Exception can be null
+                    ),
+                    null,
                     Arg.Any<Func<object, Exception?, string>>()
                 );
         }
