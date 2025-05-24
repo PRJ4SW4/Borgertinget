@@ -307,7 +307,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // --- EKSISTERENDE SERVICES ---
-builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<HttpService>();
 builder.Services.AddScoped<IFetchService, FetchService>();
 
