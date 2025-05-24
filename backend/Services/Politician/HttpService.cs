@@ -17,14 +17,11 @@ namespace backend.Services.Politicians
                 response.EnsureSuccessStatusCode();
 
                 string jsonResponse = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("Raw JSON Response:");
-                Console.WriteLine(jsonResponse); // Debugging output
 
                 return JsonSerializer.Deserialize<T>(jsonResponse);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Error fetching data: {ex.Message}");
                 return default;
             }
         }

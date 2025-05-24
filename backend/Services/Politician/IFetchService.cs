@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc; // For IActionResult if detailed results are needed
+using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Services.Politicians
 {
