@@ -141,7 +141,7 @@ namespace Tests.Controllers
             dynamic value = okResult.Value;
             Assert.That(
                 (string)value.GetType().GetProperty("message").GetValue(value, null),
-                Does.Contain("Registrering succesfuld!")
+                Does.Contain("Registrering succesfuld! Tjek din email for at bekræfte din konto.")
             );
 
             
@@ -182,6 +182,46 @@ namespace Tests.Controllers
             Assert.That(badRequestResult.StatusCode, Is.EqualTo(400));
             dynamic value = badRequestResult.Value;
             Assert.That(value.GetType().GetProperty("errors").GetValue(value, null), Is.Not.Null);
+        }
+
+        [Test]
+        public async Task CreateUser_UserNotFoundAfterCreation_ReturnsStatusCode500()
+        {
+            // Arrange
+            var registerDto = new RegisterUserDto
+            {
+                Username = "testuser",
+                Email = "test@example.com",
+                Password = "Password123!",
+            };
+            var identityResultSucceeded = IdentityResult.Success;
+            var user = new User
+            {
+                Id = 1,
+                UserName = registerDto.Username,
+                Email = registerDto.Email,
+            };
+
+            _mockUserAuthService
+                .CreateUserAsync(registerDto)
+                .Returns(Task.FromResult(identityResultSucceeded));
+            _mockUserAuthService
+                .FindUserByEmailAsync(registerDto.Email)
+                .Returns(Task.FromResult<User?>(null));
+
+            // Act
+            var result = await _controller.CreateUser(registerDto);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult.StatusCode, Is.EqualTo(400));
+            dynamic value = objectResult.Value;
+            Assert.That(
+                (string)value.GetType().GetProperty("error").GetValue(value, null),
+                Does.Contain("Bruger blev ikke oprettet.")
+            );
         }
 
         [Test]
