@@ -3,6 +3,8 @@ using backend.Services.LearningEnvironment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+namespace backend.Controllers;
+
 [Route("api/[controller]")]
 [ApiController]
 public class PagesController : ControllerBase
@@ -85,11 +87,6 @@ public class PagesController : ControllerBase
 
         if (!success)
         {
-            // Consider if UpdatePageAsync should distinguish between "not found" and "other error"
-            // For now, assuming false means something went wrong, potentially "not found" or concurrency.
-            // The service layer should log specifics. Here, we might return NotFound or a generic error.
-            // If the service specifically indicates "not found" (e.g., by throwing a specific exception or returning a more detailed result object),
-            // we could return NotFound(). For now, NoContent() if successful, or a problem if not.
             return NotFound();
         }
 
