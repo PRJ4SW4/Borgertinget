@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using System.Web;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 
@@ -31,6 +33,7 @@ namespace Tests.Controllers
         private IConfiguration _mockConfiguration;
         private ILogger<UsersController> _mockLogger;
         private UsersController _uut;
+        private IUrlHelper _mockUrlHelper;
 
         [SetUp]
         public void Setup()
@@ -38,10 +41,11 @@ namespace Tests.Controllers
             _mockUserAuthService = Substitute.For<IUserAuthenticationService>();
             _mockConfiguration = Substitute.For<IConfiguration>();
             var mockEmailServiceLogger = Substitute.For<ILogger<EmailService>>();
-            _mockEmailService = Substitute.For<IEmailService>(); 
-
-
+            _mockEmailService = Substitute.For<IEmailService>();
             _mockLogger = Substitute.For<ILogger<UsersController>>();
+            _mockUrlHelper = Substitute.For<IUrlHelper>();
+
+            _mockConfiguration["FrontendBaseUrl"].Returns("http://localhost:5173");
 
             _uut = new UsersController(
                 _mockConfiguration,
@@ -60,23 +64,27 @@ namespace Tests.Controllers
                     "mock"
                 )
             );
+
+            var defaultHttpContext = new DefaultHttpContext() { User = user };
+            defaultHttpContext.Request.Scheme = "http"; 
+
+            // Opsætning for HttpContext.SignOutAsync(IdentityConstants.ExternalScheme)
+            var authServiceMock = Substitute.For<IAuthenticationService>();
+            var services = new ServiceCollection();
+            services.AddSingleton(authServiceMock); // Gør IAuthenticationService tilgængelig
+            defaultHttpContext.RequestServices = services.BuildServiceProvider();
+
+            authServiceMock
+            .SignOutAsync(Arg.Any<HttpContext>(), IdentityConstants.ExternalScheme, Arg.Any<AuthenticationProperties>())
+            .Returns(Task.CompletedTask); // Sikrer at kaldet ikke fejler
+
+
             _uut.ControllerContext = new ControllerContext()
             {
-                HttpContext = new DefaultHttpContext() { User = user },
+                HttpContext = defaultHttpContext,
             };
-
-            // Mock IUrlHelper
-            var mockUrlHelper = Substitute.For<IUrlHelper>();
-            mockUrlHelper
-                .Action(Arg.Any<UrlActionContext>()) 
-                .Returns("http://localhost/fakeaction"); 
-
-            _uut.ControllerContext = new ControllerContext()
-            {
-                HttpContext = new DefaultHttpContext() { User = user },
-            };
-            _uut.Url = mockUrlHelper; 
-        }
+            _uut.Url = _mockUrlHelper;
+            }
 
         [Test]
         public async Task CreateUser_ValidDto_ReturnsOkResult()
@@ -124,11 +132,11 @@ namespace Tests.Controllers
                 .Returns(emailDataGenerated);
 
             _mockEmailService
-                .When(x => x.SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>())) 
+                .When(x => x.SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>()))
                 .Do(callInfo =>
-                {});
+                { });
             _mockEmailService
-                .SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>()) 
+                .SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>())
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -145,7 +153,7 @@ namespace Tests.Controllers
                 Does.Contain("Registrering succesfuld! Tjek din email for at bekræfte din konto.")
             );
 
-            
+
             // await _mockEmailService
             //     .Received(1)
             //     .SendEmailAsync(
@@ -168,7 +176,7 @@ namespace Tests.Controllers
             var identityResultFailed = IdentityResult.Failed(
                 new IdentityError { Description = "User was not created" }
             );
-            
+
             _mockUserAuthService
                 .CreateUserAsync(registerDto)
                 .Returns(Task.FromResult(IdentityResult.Failed()));
@@ -357,7 +365,7 @@ namespace Tests.Controllers
 
             // Act
             var result = await _uut.VerifyEmail(userId, encodedToken);
-            
+
             // Assert
             Assert.That(result, Is.InstanceOf<OkObjectResult>());
             var okResult = result as OkObjectResult;
@@ -391,7 +399,7 @@ namespace Tests.Controllers
         {
             // Arrange
             var userId = 1;
-            var token = "anyToken"; 
+            var token = "anyToken";
             _mockUserAuthService.GetUserAsync(userId).Returns(Task.FromResult<User?>(null));
 
             // Act
@@ -886,7 +894,7 @@ namespace Tests.Controllers
                 Does.Contain("Ugyldigt token format")
             );
         }
-
+        #region OAuth del
         [Test]
         public void LoginWithGoogle_ValidCall_ReturnsChallengeResult()
         {
@@ -900,9 +908,17 @@ namespace Tests.Controllers
             };
 
             _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedReturnUrl);
+
+            _mockUrlHelper.Action(Arg.Is<UrlActionContext>(uac =>
+                uac.Action == nameof(UsersController.HandleGoogleCallback) &&
+                uac.Controller == "Users" &&
+                (string?)uac.Values.GetType().GetProperty("returnUrl").GetValue(uac.Values, null) == clientReturnUrl &&
+                uac.Protocol == "http" 
+            )).Returns(expectedPropertiesRedirectUri);
+
             _mockUserAuthService.ConfigureExternalAuthenticationProperties(
-                GoogleDefaults.AuthenticationScheme, 
-                expectedPropertiesRedirectUri) 
+                GoogleDefaults.AuthenticationScheme,
+                expectedPropertiesRedirectUri)
                 .Returns(authPropertiesReturnedByService);
 
             // Act
@@ -918,5 +934,243 @@ namespace Tests.Controllers
             );
             Assert.That(challengeResult.Properties, Is.EqualTo(authPropertiesReturnedByService));
         }
+        
+        [Test]
+        public void LoginWithGoogle_WhenUrlActionReturnsNull_ReturnsStatusCode500()
+        {
+            // Arrange
+            var clientReturnUrl = "/test-return";
+            _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(clientReturnUrl);
+
+            _mockUrlHelper.Action(Arg.Any<UrlActionContext>()).Returns((string)null);
+
+            // Act
+            var result = _uut.LoginWithGoogle(clientReturnUrl);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
+            Assert.That(objectResult.Value, Is.EqualTo("Intern fejl: Kunne ikke starte Google login."));
+        }
+
+        [Test]
+        public void LoginWithGoogle_WhenClientReturnUrlIsNull_CallsSanitizeAndProceeds()
+        {
+            // Arrange
+            string? clientReturnUrl = null;
+            var sanitizedReturnUrl = "/"; // Dette er hvad SanitizeReturnUrl forventes at returnere for null
+            var expectedPropertiesRedirectUri = "http://localhost/someaction"; // En gyldig URL
+            var authPropertiesReturnedByService = new AuthenticationProperties { RedirectUri = expectedPropertiesRedirectUri };
+
+            _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedReturnUrl);
+
+            _mockUrlHelper.Action(Arg.Is<UrlActionContext>(uac =>
+                uac.Action == nameof(UsersController.HandleGoogleCallback) &&
+                uac.Controller == "Users" &&
+                ((string?)uac.Values.GetType().GetProperty("returnUrl").GetValue(uac.Values, null)) == clientReturnUrl && // clientReturnUrl er null her
+                uac.Protocol == "http"
+            )).Returns(expectedPropertiesRedirectUri);
+
+            _mockUserAuthService.ConfigureExternalAuthenticationProperties(
+                GoogleDefaults.AuthenticationScheme,
+                expectedPropertiesRedirectUri)
+                .Returns(authPropertiesReturnedByService);
+
+            // Act
+            var result = _uut.LoginWithGoogle(clientReturnUrl);
+
+            // Assert
+            _mockUserAuthService.Received(1).SanitizeReturnUrl(null);
+            Assert.That(result, Is.InstanceOf<ChallengeResult>());
+        }
+
+
+        // --- Tests for HandleGoogleCallback ---
+
+        [Test]
+        public async Task HandleGoogleCallback_WithRemoteError_RedirectsToLoginWithError()
+        {
+            // Arrange
+            var remoteError = "google_auth_error";
+            var expectedRedirectUrl = $"http://localhost:5173/login?error={HttpUtility.UrlEncode(remoteError)}";
+
+            // Act
+            var result = await _uut.HandleGoogleCallback(null, remoteError);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<RedirectResult>());
+            var redirectResult = result as RedirectResult;
+            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+        }
+
+        [Test]
+        public async Task HandleGoogleCallback_GetExternalLoginInfoReturnsNull_RedirectsToLoginWithError()
+        {
+            // Arrange
+            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(null));
+            var expectedRedirectUrl = $"http://localhost:5173/login?error={HttpUtility.UrlEncode("Fejl ved eksternt login.")}";
+
+            // Act
+            var result = await _uut.HandleGoogleCallback(null, null);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<RedirectResult>());
+            var redirectResult = result as RedirectResult;
+            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+        }
+
+        [Test]
+        public async Task HandleGoogleCallback_ServiceReturnsError_RedirectsToLoginWithError()
+        {
+            // Arrange
+            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
+            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+
+            var serviceErrorResult = new GoogleLoginResultDto
+            {
+                Status = GoogleLoginStatus.ErrorCreateUserFailed,
+                ErrorMessage = "Kunne ikke oprette bruger."
+            };
+            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                                .Returns(Task.FromResult(serviceErrorResult));
+
+            var expectedRedirectUrl = $"http://localhost:5173/login?error={HttpUtility.UrlEncode(serviceErrorResult.ErrorMessage)}";
+
+            // Act
+            var result = await _uut.HandleGoogleCallback(null, null);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<RedirectResult>());
+            var redirectResult = result as RedirectResult;
+            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+        }
+
+        [Test]
+        public async Task HandleGoogleCallback_ServiceReturnsErrorWithoutMessage_RedirectsToLoginWithGenericError()
+        {
+            // Arrange
+            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
+            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+
+            var serviceErrorResult = new GoogleLoginResultDto
+            {
+                Status = GoogleLoginStatus.ErrorNoLoginInfo, 
+                ErrorMessage = null 
+            };
+            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                                .Returns(Task.FromResult(serviceErrorResult));
+
+            var expectedRedirectUrl = $"http://localhost:5173/login?error={HttpUtility.UrlEncode("Ukendt fejl ved Google login.")}";
+
+            // Act
+            var result = await _uut.HandleGoogleCallback(null, null);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<RedirectResult>());
+            var redirectResult = result as RedirectResult;
+            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+        }
+
+        [Test]
+        public async Task HandleGoogleCallback_Success_RedirectsToLoginSuccessWithTokenAndReturnUrl()
+        {
+            // Arrange
+            var clientReturnUrl = "/original-path";
+            var sanitizedClientReturnUrl = "/original-path";
+            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
+            var appUser = new User { Id = 1, UserName = "googleuser" };
+            var jwtToken = "generated.jwt.token";
+
+            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                                .Returns(Task.FromResult(new GoogleLoginResultDto
+                                {
+                                    Status = GoogleLoginStatus.Success,
+                                    JwtToken = jwtToken,
+                                    AppUser = appUser
+                                }));
+            _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedClientReturnUrl);
+            _mockUserAuthService.SignOutAsync().Returns(Task.CompletedTask); // Mock din service SignOut
+
+            var expectedRedirectUrl = $"http://localhost:5173/login-success?token={jwtToken}&originalReturnUrl={HttpUtility.UrlEncode(sanitizedClientReturnUrl).Replace("%2f", "%2F")}";
+
+            // Act
+            var result = await _uut.HandleGoogleCallback(clientReturnUrl, null);
+
+            // Assert
+            await _mockUserAuthService.Received(1).SignOutAsync(); 
+
+            Assert.That(result, Is.InstanceOf<RedirectResult>());
+            var redirectResult = result as RedirectResult;
+            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+        }
+
+        [Test]
+        public async Task HandleGoogleCallback_Success_WhenReturnUrlIsNull_RedirectsToLoginSuccessWithTokenOnly()
+        {
+            // Arrange
+            string? clientReturnUrl = null;
+            var sanitizedClientReturnUrl = "/";
+            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
+            var appUser = new User { Id = 1, UserName = "googleuser" };
+            var jwtToken = "generated.jwt.token";
+
+            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                                .Returns(Task.FromResult(new GoogleLoginResultDto
+                                {
+                                    Status = GoogleLoginStatus.Success,
+                                    JwtToken = jwtToken,
+                                    AppUser = appUser
+                                }));
+            _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedClientReturnUrl);
+            _mockUserAuthService.SignOutAsync().Returns(Task.CompletedTask);
+
+            var expectedRedirectUrl = $"http://localhost:5173/login-success?token={jwtToken}&originalReturnUrl=%2F";
+
+            // Act
+            var result = await _uut.HandleGoogleCallback(clientReturnUrl, null);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<RedirectResult>());
+            var redirectResult = result as RedirectResult;
+            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+        }
+
+        [Test]
+        public async Task HandleGoogleCallback_Success_WhenReturnUrlIsInvalid_RedirectsToLoginSuccessWithTokenOnly()
+        {
+            // Arrange
+            var clientReturnUrl = "http://malicious.com/path"; // Ugyldig
+            var sanitizedClientReturnUrl = "http://malicious.com/path"; // Antager SanitizeReturnUrl ikke ændrer den, men controller-logik ignorerer den
+            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
+            var appUser = new User { Id = 1, UserName = "googleuser" };
+            var jwtToken = "generated.jwt.token";
+
+            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                                .Returns(Task.FromResult(new GoogleLoginResultDto
+                                {
+                                    Status = GoogleLoginStatus.Success,
+                                    JwtToken = jwtToken,
+                                    AppUser = appUser
+                                }));
+            _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedClientReturnUrl);
+            _mockUserAuthService.SignOutAsync().Returns(Task.CompletedTask);
+
+
+            var expectedRedirectUrl = $"http://localhost:5173/login-success?token={jwtToken}";
+
+            // Act
+            var result = await _uut.HandleGoogleCallback(clientReturnUrl, null);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<RedirectResult>());
+            var redirectResult = result as RedirectResult;
+            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+        }
+        
+#endregion
     }
 }
