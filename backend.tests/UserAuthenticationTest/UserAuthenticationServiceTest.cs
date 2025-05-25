@@ -533,48 +533,49 @@ namespace backend.Tests.Services
             Assert.That(result.AppUser, Is.EqualTo(user));
         }
 
-        // [Test]
-        // public async Task HandleGoogleLoginCallbackAsync_ExternalLoginFails_NewUserCreatedAndLinked_ReturnsSuccessDto()
-        // {
-        //     // Arrange
-        //     var email = "newuser@example.com";
-        //     var userNameBase = "newuser"; // Forventet brugernavn før unik check
-        //     var claims = new List<Claim> { new Claim(ClaimTypes.Email, email), new Claim(ClaimTypes.Name, "New User") };
-        //     var claimsIdentity = new ClaimsIdentity(claims, "Google");
-        //     var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-        //     var externalLoginInfo = new ExternalLoginInfo(claimsPrincipal, "Google", "providerKey", "Google");
+        [Test]
+        public async Task HandleGoogleLoginCallbackAsync_ExternalLoginFails_NewUserCreatedAndLinked_ReturnsSuccessDto()
+        {
+            // Arrange
+            var email = "newuser@example.com";
+            var userNameBase = "newuser"; // Forventet brugernavn før unik check
+            var claims = new List<Claim> { new Claim(ClaimTypes.Email, email), new Claim(ClaimTypes.Name, "new user") };
+            var claimsIdentity = new ClaimsIdentity(claims, "Google");
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+            var externalLoginInfo = new ExternalLoginInfo(claimsPrincipal, "Google", "providerKey", "Google");
             
-        //     User? createdUser = null; // Bruges til at fange den bruger, der sendes til CreateAsync
+            User? createdUser = null; // Bruges til at fange den bruger, der sendes til CreateAsync
 
-        //     _signInManager.ExternalLoginSignInAsync("Google", "providerKey", false, true)
-        //                 .Returns(Task.FromResult(SignInResult.Failed)); // Eksternt login fejler -> ny bruger flow
-        //     _authenticationRepository.GetUserByEmailAsync(email).Returns(Task.FromResult<User?>(null)); // Ingen eksisterende bruger med denne email
+            _signInManager.ExternalLoginSignInAsync("Google", "providerKey", false, true)
+                        .Returns(Task.FromResult(SignInResult.Failed)); // Eksternt login fejler -> ny bruger flow
+            _authenticationRepository.GetUserByEmailAsync(email).Returns(Task.FromResult<User?>(null)); // Ingen eksisterende bruger med denne email
 
-        //     // Mock for at fange den bruger, der oprettes, og for at sikre, at brugernavnet er unikt
-        //     _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u))
-        //                 .Returns(callInfo => Task.FromResult(IdentityResult.Success));
-        //     _userManager.FindByNameAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null)); // Antag at genererede brugernavne er unikke
+            // Mock for at fange den bruger, der oprettes, og for at sikre, at brugernavnet er unikt
+            _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u))
+                        .Returns(callInfo => Task.FromResult(IdentityResult.Success));
+            _userManager.FindByNameAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null)); // Antag at genererede brugernavne er unikke
 
-        //     _userManager.AddLoginAsync(Arg.Any<User>(), externalLoginInfo).Returns(Task.FromResult(IdentityResult.Success));
+            _userManager.AddLoginAsync(Arg.Any<User>(), Arg.Any<UserLoginInfo>()).Returns(Task.FromResult(IdentityResult.Success));
 
-        //     _config["Jwt:Key"].Returns("SuperSecretTestKey12345678901234567890");
-        //     _config["Jwt:Issuer"].Returns("TestIssuer");
-        //     _config["Jwt:Audience"].Returns("TestAudience");
-        //     _userManager.GetRolesAsync(Arg.Any<User>()).Returns(Task.FromResult<IList<string>>(new List<string>()));
+            _config["Jwt:Key"].Returns("SuperSecretTestKey12345678901234567890");
+            _config["Jwt:Issuer"].Returns("TestIssuer");
+            _config["Jwt:Audience"].Returns("TestAudience");
+            _userManager.GetRolesAsync(Arg.Any<User>()).Returns(Task.FromResult<IList<string>>(new List<string>()));
 
-        //     // Act
-        //     var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
+            // Act
+            var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
 
-        //     // Assert
-        //     Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.Success));
-        //     Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
-        //     Assert.That(result.AppUser, Is.Not.Null);
-        //     Assert.That(result.AppUser?.Email, Is.EqualTo(email));
-        //     Assert.That(createdUser, Is.Not.Null, "UserManager.CreateAsync blev ikke kaldt med en bruger.");
-        //     Assert.That(createdUser?.UserName, Does.StartWith(userNameBase.Replace(" ", "")), "Brugernavn blev ikke genereret korrekt.");
-        //     await _userManager.Received(1).CreateAsync(Arg.Is<User>(u => u.Email == email && u.EmailConfirmed));
-        //     await _userManager.Received(1).AddLoginAsync(Arg.Is<User>(u => u.Email == email), externalLoginInfo);
-        // }
+            // Assert
+            Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.Success));
+            Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
+            Assert.That(result.AppUser, Is.Not.Null);
+            Assert.That(result.AppUser?.Email, Is.EqualTo(email));
+            Assert.That(createdUser, Is.Not.Null, "UserManager.CreateAsync blev ikke kaldt med en bruger.");
+            Assert.That(createdUser?.UserName, Does.StartWith(userNameBase), "Brugernavn blev ikke genereret korrekt.");
+            await _userManager.Received(1).CreateAsync(Arg.Is<User>(u => u.Email == email && u.EmailConfirmed));
+            await _userManager.Received(1).AddLoginAsync(Arg.Is<User>(u => u.Email == email),
+                Arg.Is<UserLoginInfo>(uli => uli.LoginProvider == externalLoginInfo.LoginProvider && uli.ProviderKey == externalLoginInfo.ProviderKey && uli.ProviderDisplayName == externalLoginInfo.ProviderDisplayName));
+        }
         
         [Test]
         public async Task HandleGoogleLoginCallbackAsync_ExternalLoginFails_NoEmailClaim_ReturnsErrorNoEmailClaim()
@@ -624,35 +625,35 @@ namespace backend.Tests.Services
             Assert.That(result.ErrorMessage, Is.EqualTo(identityError.Description));
         }
 
-        // [Test]
-        // public async Task HandleGoogleLoginCallbackAsync_ExternalLoginFails_LinkLoginFails_ReturnsErrorLinkLoginFailed()
-        // {
-        //     // Arrange
-        //     var email = "linkfail@example.com";
-        //     var claims = new List<Claim> { new Claim(ClaimTypes.Email, email), new Claim(ClaimTypes.Name, "Link Fail User") };
-        //     var claimsIdentity = new ClaimsIdentity(claims, "Google");
-        //     var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-        //     var externalLoginInfo = new ExternalLoginInfo(claimsPrincipal, "Google", "providerKey", "Google");
+        [Test]
+        public async Task HandleGoogleLoginCallbackAsync_ExternalLoginFails_LinkLoginFails_ReturnsErrorLinkLoginFailed()
+        {
+            // Arrange
+            var email = "linkfail@example.com";
+            var claims = new List<Claim> { new Claim(ClaimTypes.Email, email), new Claim(ClaimTypes.Name, "Link Fail User") };
+            var claimsIdentity = new ClaimsIdentity(claims, "Google");
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+            var externalLoginInfo = new ExternalLoginInfo(claimsPrincipal, "Google", "providerKey", "Google");
             
-        //     User? createdUser = null;
+            User? createdUser = null;
 
-        //     _signInManager.ExternalLoginSignInAsync("Google", "providerKey", false, true)
-        //                 .Returns(Task.FromResult(SignInResult.Failed));
-        //     _authenticationRepository.GetUserByEmailAsync(email).Returns(Task.FromResult<User?>(null));
+            _signInManager.ExternalLoginSignInAsync("Google", "providerKey", false, true)
+                        .Returns(Task.FromResult(SignInResult.Failed));
+            _authenticationRepository.GetUserByEmailAsync(email).Returns(Task.FromResult<User?>(null));
 
-        //     _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u)).Returns(Task.FromResult(IdentityResult.Success));
-        //     _userManager.FindByNameAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null));
+            _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u)).Returns(Task.FromResult(IdentityResult.Success));
+            _userManager.FindByNameAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null));
             
-        //     var identityError = new IdentityError { Description = "Simuleret linkfejl" };
-        //     _userManager.AddLoginAsync(Arg.Any<User>(), externalLoginInfo).Returns(Task.FromResult(IdentityResult.Failed(identityError)));
+            var identityError = new IdentityError { Description = "Simuleret linkfejl" };
+            _userManager.AddLoginAsync(Arg.Any<User>(), Arg.Any<UserLoginInfo>()).Returns(Task.FromResult(IdentityResult.Failed(identityError)));
 
-        //     // Act
-        //     var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
+            // Act
+            var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
 
-        //     // Assert
-        //     Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.ErrorLinkLoginFailed));
-        //     Assert.That(result.ErrorMessage, Is.EqualTo("Kunne ikke linke Google konto.")); // Matcher den faktiske fejlbesked i servicen
-        // }
+            // Assert
+            Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.ErrorLinkLoginFailed));
+            Assert.That(result.ErrorMessage, Is.EqualTo("Kunne ikke linke Google konto.")); // Matcher den faktiske fejlbesked i servicen
+        }
 #endregion
     }
 }
