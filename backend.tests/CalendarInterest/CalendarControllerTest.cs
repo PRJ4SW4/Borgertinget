@@ -8,7 +8,7 @@ using backend.Services.Calendar.Scraping;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using System; // For Exception
+using System; 
 
 namespace backend.Tests.Controllers
 {
@@ -64,7 +64,6 @@ namespace backend.Tests.Controllers
             var okResult = actionResult as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
             
-            // Hent værdien fra OkObjectResult
             var resultValue = okResult?.Value;
             Assert.That(resultValue, Is.Not.Null);
 

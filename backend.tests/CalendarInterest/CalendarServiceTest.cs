@@ -4,13 +4,14 @@ using backend.Services.Calendar;
 using backend.Repositories.Calendar;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
-using backend.Models; // For User
+using backend.Models; 
 using backend.Models.Calendar;
 using Microsoft.AspNetCore.Identity;
 using System;
-using System.Collections.Generic; // For List
-using NSubstitute.ExceptionExtensions; // For ThrowsAsync
+using System.Collections.Generic;
+using NSubstitute.ExceptionExtensions; 
 using Microsoft.EntityFrameworkCore;
+
 
 
 namespace backend.Tests.Services
@@ -20,7 +21,7 @@ namespace backend.Tests.Services
     {
         private ICalendarEventRepository _calendarEventRepository;
         private ILogger<CalendarService> _logger;
-        private UserManager<User> _userManager; 
+        private UserManager<User> _userManager;
         private CalendarService _service;
 
         #pragma warning disable NUnit1032 //fordi den brokkede sig for meget over at denne ikke blev disposed, selvom den gjorde
@@ -46,7 +47,7 @@ namespace backend.Tests.Services
         [TearDown]
         public void Teardown()
         {
-            _userManager?.Dispose(); 
+            _userManager?.Dispose();
             var disposableUserStore = _mockUserStore as IDisposable;
             disposableUserStore?.Dispose();
         }
@@ -97,7 +98,7 @@ namespace backend.Tests.Services
             _userManager.FindByIdAsync(userIdString).Returns(Task.FromResult<User?>(user));
             _calendarEventRepository.GetEventByIdAsync(eventId).Returns(Task.FromResult<CalendarEvent?>(calendarEvent));
             _calendarEventRepository.RetrieveInterestPairsAsync(eventId, parsedUserId)
-                .Returns(Task.FromResult<EventInterest?>(existingInterest)); // Allerede interesseret
+                .Returns(Task.FromResult<EventInterest?>(existingInterest)); 
             _calendarEventRepository.GetInterestedUsersAsync(eventId).Returns(Task.FromResult(expectedCountAfterRemove));
             _calendarEventRepository.SaveChangesAsync().Returns(Task.FromResult(1));
 
