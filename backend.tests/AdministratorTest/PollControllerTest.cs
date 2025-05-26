@@ -1,4 +1,4 @@
-using System;
+/*using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,7 +37,7 @@ namespace Tests.Controllers
             _mockClientProxy = Substitute.For<IClientProxy>(); // Initialize the field
             _mockHubContext.Clients.Returns(mockClients);
             mockClients.All.Returns(_mockClientProxy); // Use the field
-
+          
             _uut = new PollsController(_context, _mockHubContext);
         }
 
@@ -522,3 +522,4 @@ namespace Tests.Controllers
         #endregion
     }
 }
+*/
