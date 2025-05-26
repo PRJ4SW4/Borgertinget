@@ -22,7 +22,6 @@ namespace backend.Services.Politicians
         private readonly ILogger<FetchService> _logger;
 
         public FetchService(
-            DataContext context,
             HttpService httpService,
             IConfiguration configuration,
             IAktorRepo aktorRepo,
