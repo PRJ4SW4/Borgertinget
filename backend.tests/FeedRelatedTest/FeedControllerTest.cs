@@ -27,7 +27,6 @@ namespace Tests.Controllers
             _mockLogger = Substitute.For<ILogger<FeedController>>();
             _controller = new FeedController(_mockFeedService, _mockLogger);
 
-            // Set up mock user identity
             var user = new ClaimsPrincipal(
                 new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.NameIdentifier, "123") })
             );
@@ -40,17 +39,14 @@ namespace Tests.Controllers
         [Test]
         public async Task GetMySubscriptions_ValidUser_ReturnsOkWithSubscriptions()
         {
-            // Arrange
             var subscriptions = new List<PoliticianInfoDto>
             {
                 new PoliticianInfoDto { Id = 1, Name = "Politician 1" },
             };
             _mockFeedService.GetUserSubscriptionsAsync(123).Returns(subscriptions);
 
-            // Act
             var result = await _controller.GetMySubscriptions();
 
-            // Assert
             Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
             var okResult = result.Result as OkObjectResult;
             Assert.That(okResult!.Value, Is.EqualTo(subscriptions));
@@ -59,7 +55,6 @@ namespace Tests.Controllers
         [Test]
         public async Task GetMySubscriptions_ServiceThrowsException_Returns500()
         {
-            // Arrange
             _mockFeedService
                 .When(x => x.GetUserSubscriptionsAsync(123))
                 .Do(x =>
@@ -67,10 +62,8 @@ namespace Tests.Controllers
                     throw new Exception("Test exception");
                 });
 
-            // Act
             var result = await _controller.GetMySubscriptions();
 
-            // Assert
             Assert.That(result.Result, Is.TypeOf<ObjectResult>());
             var objectResult = result.Result as ObjectResult;
             Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
@@ -79,7 +72,6 @@ namespace Tests.Controllers
         [Test]
         public async Task GetMyFeed_ValidParameters_ReturnsOkWithFeed()
         {
-            // Arrange
             var feedResult = new PaginatedFeedResult
             {
                 Tweets = new List<TweetDto>(),
@@ -88,10 +80,8 @@ namespace Tests.Controllers
             };
             _mockFeedService.GetUserFeedAsync(123, 1, 5, null).Returns(feedResult);
 
-            // Act
             var result = await _controller.GetMyFeed(1, 5, null);
 
-            // Assert
             Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
             var okResult = result.Result as OkObjectResult;
             Assert.That(okResult!.Value, Is.EqualTo(feedResult));
@@ -100,22 +90,18 @@ namespace Tests.Controllers
         [Test]
         public async Task GetMyFeed_WithFilter_ReturnsOkWithFilteredFeed()
         {
-            // Arrange
             int politicianId = 42;
             var feedResult = new PaginatedFeedResult();
             _mockFeedService.GetUserFeedAsync(123, 1, 5, politicianId).Returns(feedResult);
 
-            // Act
             var result = await _controller.GetMyFeed(1, 5, politicianId);
 
-            // Assert
             Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
         }
 
         [Test]
         public async Task GetMyFeed_ServiceThrowsException_Returns500()
         {
-            // Arrange
             _mockFeedService
                 .When(x => x.GetUserFeedAsync(123, 1, 5, null))
                 .Do(x =>
@@ -123,10 +109,8 @@ namespace Tests.Controllers
                     throw new Exception("Test exception");
                 });
 
-            // Act
             var result = await _controller.GetMyFeed();
 
-            // Assert
             Assert.That(result.Result, Is.TypeOf<ObjectResult>());
             var objectResult = result.Result as ObjectResult;
             Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
