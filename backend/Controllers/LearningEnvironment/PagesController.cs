@@ -69,7 +69,7 @@ public class PagesController : ControllerBase
     {
         // Calls the service to create a page.
         var newPageDto = await _pageService.CreatePageAsync(createRequest);
-        // Assuming CreatePageAsync now correctly returns PageDetailDTO and handles all logic
+
         return CreatedAtAction(nameof(GetPage), new { id = newPageDto.Id }, newPageDto);
     }
 
@@ -103,7 +103,7 @@ public class PagesController : ControllerBase
 
         if (!success)
         {
-            // Similar to PUT, service should log. Controller returns NotFound if deletion failed (likely due to item not existing).
+            // Controller returns NotFound if deletion failed.
             return NotFound();
         }
 
