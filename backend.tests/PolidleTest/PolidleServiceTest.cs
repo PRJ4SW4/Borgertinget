@@ -1,23 +1,23 @@
-using NUnit.Framework;
-using NSubstitute;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore; // For DbContextOptions, DatabaseFacade, IDbContextTransaction
-using Microsoft.EntityFrameworkCore.Infrastructure; // For DatabaseFacade
-using Microsoft.EntityFrameworkCore.Storage; // For IDbContextTransaction
-using backend.Services; // Namespace for DailySelectionService
-using backend.Interfaces.Repositories;
-using backend.Interfaces.Services; // For ISelectionAlgorithm, IPoliticianMapper
-using backend.Interfaces.Utility;  // For IDateTimeProvider, IRandomProvider
-using backend.Models;
-using backend.Models.Politicians;
-using backend.DTO;
-using backend.Enums;
-using backend.Data; // For DataContext
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using backend.Data; // For DataContext
+using backend.DTO;
+using backend.Enums;
+using backend.Interfaces.Repositories;
+using backend.Interfaces.Services; // For ISelectionAlgorithm, IPoliticianMapper
+using backend.Interfaces.Utility; // For IDateTimeProvider, IRandomProvider
+using backend.Models;
+using backend.Models.Politicians;
+using backend.Services; // Namespace for DailySelectionService
+using Microsoft.EntityFrameworkCore; // For DbContextOptions, DatabaseFacade, IDbContextTransaction
+using Microsoft.EntityFrameworkCore.Infrastructure; // For DatabaseFacade
 using Microsoft.EntityFrameworkCore.Query; // For IAsyncQueryProvider
+using Microsoft.EntityFrameworkCore.Storage; // For IDbContextTransaction
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using NUnit.Framework;
 
 namespace backend.tests.Services // Eller et mere specifikt namespace som backend.tests.Polidle.Services
 {
@@ -74,7 +74,9 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             // I stedet mocker vi DatabaseFacade og transaktionen.
             _databaseFacadeMock = Substitute.For<DatabaseFacade>(new MockDbContext()); // MockDbContext er en dummy for at tilfredsstille DatabaseFacade constructor
             _dbContextTransactionMock = Substitute.For<IDbContextTransaction>();
-            _databaseFacadeMock.BeginTransactionAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(_dbContextTransactionMock));
+            _databaseFacadeMock
+                .BeginTransactionAsync(Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(_dbContextTransactionMock));
 
             // Vi kan ikke direkte mocke DataContext, hvis den ikke er designet til det (f.eks. mangler interface eller virtuelle metoder).
             // En måde at håndtere dette på for unit tests er at bruge en in-memory database for den faktiske DataContext,
@@ -122,8 +124,7 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
 
             _contextMock = Substitute.ForPartsOf<DataContext>(options); // Tillader at mocke virtuelle metoder som SaveChangesAsync
             _contextMock.Database.Returns(_databaseFacadeMock); // Hvis Database property er virtuel, ellers virker dette ikke.
-                                                              // Hvis ikke virtuel, er det svært.
-
+            // Hvis ikke virtuel, er det svært.
 
             _service = new DailySelectionService(
                 _aktorRepositoryMock,
@@ -141,15 +142,61 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             _today = new DateOnly(2024, 5, 25);
             _dateTimeProviderMock.TodayUtc.Returns(_today);
 
-            _defaultAktor1 = new Aktor { Id = 1, fornavn = "Classic", efternavn = "Politician", Born = "1980-01-01", PictureMiRes = "img1.jpg", Quotes = new List<PoliticianQuote> { new PoliticianQuote { QuoteText = "Citat 1" } } };
-            _defaultAktor2 = new Aktor { Id = 2, fornavn = "Quote", efternavn = "Master", Born = "1970-01-01", PictureMiRes = "img2.jpg", Quotes = new List<PoliticianQuote> { new PoliticianQuote { QuoteText = "Citat 2" } } };
-            _defaultAktor3 = new Aktor { Id = 3, fornavn = "Photo", efternavn = "Star", Born = "1990-01-01", PictureMiRes = "img3.jpg", Quotes = new List<PoliticianQuote>() }; // Ingen citater for denne
+            _defaultAktor1 = new Aktor
+            {
+                Id = 1,
+                fornavn = "Classic",
+                efternavn = "Politician",
+                Born = "1980-01-01",
+                PictureMiRes = "img1.jpg",
+                Quotes = new List<PoliticianQuote>
+                {
+                    new PoliticianQuote { QuoteText = "Citat 1" },
+                },
+            };
+            _defaultAktor2 = new Aktor
+            {
+                Id = 2,
+                fornavn = "Quote",
+                efternavn = "Master",
+                Born = "1970-01-01",
+                PictureMiRes = "img2.jpg",
+                Quotes = new List<PoliticianQuote>
+                {
+                    new PoliticianQuote { QuoteText = "Citat 2" },
+                },
+            };
+            _defaultAktor3 = new Aktor
+            {
+                Id = 3,
+                fornavn = "Photo",
+                efternavn = "Star",
+                Born = "1990-01-01",
+                PictureMiRes = "img3.jpg",
+                Quotes = new List<PoliticianQuote>(),
+            }; // Ingen citater for denne
         }
 
         // --- Helper til Aktor oprettelse for tests ---
-        private Aktor CreateTestAktor(int id, string fnavn, string enavn, string born, string picUrl, List<string> citater = null)
+        private Aktor CreateTestAktor(
+            int id,
+            string? fnavn,
+            string? enavn,
+            string? born,
+            string? picUrl,
+            List<string>? citater = null
+        )
         {
-            var aktor = new Aktor { Id = id, fornavn = fnavn, efternavn = enavn, navn = $"{fnavn} {enavn}", Born = born, PictureMiRes = picUrl, Quotes = new List<PoliticianQuote>() };
+            var aktor = new Aktor
+            {
+                Id = id,
+                fornavn = fnavn,
+                efternavn = enavn,
+                navn = $"{fnavn} {enavn}",
+                Born = born,
+                PictureMiRes = picUrl,
+                Quotes = new List<PoliticianQuote>(),
+            };
             if (citater != null)
             {
                 foreach (var citat in citater)
@@ -160,7 +207,6 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             return aktor;
         }
 
-
         // --- Tests for GetAllPoliticiansForGuessingAsync ---
         [Test]
         public async Task GetAllPoliticiansForGuessingAsync_WithSearchTerm_CallsRepositoryAndMapper()
@@ -168,9 +214,14 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             // Arrange
             var searchTerm = "Test";
             var aktorsFromRepo = new List<Aktor> { _defaultAktor1 };
-            var expectedDtos = new List<SearchListDto> { new SearchListDto { PolitikerNavn = "Classic Politician" } };
+            var expectedDtos = new List<SearchListDto>
+            {
+                new SearchListDto { PolitikerNavn = "Classic Politician" },
+            };
 
-            _aktorRepositoryMock.GetAllForSummaryAsync(searchTerm).Returns(Task.FromResult(aktorsFromRepo));
+            _aktorRepositoryMock
+                .GetAllForSummaryAsync(searchTerm)
+                .Returns(Task.FromResult(aktorsFromRepo));
             _mapperMock.MapToSummaryDtoList(aktorsFromRepo).Returns(expectedDtos);
 
             // Act
@@ -190,7 +241,9 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var dailySelection = new DailySelection { SelectedQuoteText = "Dagens citat!" };
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, GamemodeTypes.Citat, false).Returns(Task.FromResult(dailySelection));
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, GamemodeTypes.Citat, false)
+                .Returns(Task.FromResult<DailySelection?>(dailySelection));
 
             // Act
             var result = await _service.GetQuoteOfTheDayAsync();
@@ -205,11 +258,18 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         public void GetQuoteOfTheDayAsync_NoDailySelection_ThrowsKeyNotFoundException()
         {
             // Arrange
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, GamemodeTypes.Citat, false).Returns(Task.FromResult<DailySelection>(null));
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, GamemodeTypes.Citat, false)
+                .Returns(Task.FromResult<DailySelection?>(null));
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () => await _service.GetQuoteOfTheDayAsync());
-            Assert.That(ex.Message, Does.Contain($"Ingen DailySelection fundet for Citat d. {_today}"));
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+                await _service.GetQuoteOfTheDayAsync()
+            );
+            Assert.That(
+                ex.Message,
+                Does.Contain($"Ingen DailySelection fundet for Citat d. {_today}")
+            );
         }
 
         [Test]
@@ -217,22 +277,40 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var dailySelection = new DailySelection { SelectedQuoteText = null }; // Eller string.Empty
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, GamemodeTypes.Citat, false).Returns(Task.FromResult(dailySelection));
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, GamemodeTypes.Citat, false)
+                .Returns(Task.FromResult<DailySelection?>(dailySelection));
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await _service.GetQuoteOfTheDayAsync());
-            Assert.That(ex.Message, Does.Contain($"Citat-tekst mangler i DailySelection for {_today}"));
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _service.GetQuoteOfTheDayAsync()
+            );
+            Assert.That(
+                ex.Message,
+                Does.Contain($"Citat-tekst mangler i DailySelection for {_today}")
+            );
         }
-
 
         // --- Tests for GetPhotoOfTheDayAsync ---
         [Test]
         public async Task GetPhotoOfTheDayAsync_SelectionAndPhotoExists_ReturnsPhotoDto()
         {
             // Arrange
-            var aktorWithPhoto = CreateTestAktor(1, "Foto", "Graf", "1990-01-01", "url/til/foto.jpg");
-            var dailySelection = new DailySelection { SelectedPolitikerID = 1, SelectedPolitiker = aktorWithPhoto };
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, GamemodeTypes.Foto, true).Returns(Task.FromResult(dailySelection));
+            var aktorWithPhoto = CreateTestAktor(
+                1,
+                "Foto",
+                "Graf",
+                "1990-01-01",
+                "url/til/foto.jpg"
+            );
+            var dailySelection = new DailySelection
+            {
+                SelectedPolitikerID = 1,
+                SelectedPolitiker = aktorWithPhoto,
+            };
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, GamemodeTypes.Foto, true)
+                .Returns(Task.FromResult<DailySelection?>(dailySelection));
 
             // Act
             var result = await _service.GetPhotoOfTheDayAsync();
@@ -246,22 +324,37 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         public void GetPhotoOfTheDayAsync_NoDailySelection_ThrowsKeyNotFoundException()
         {
             // Arrange
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, GamemodeTypes.Foto, true).Returns(Task.FromResult<DailySelection>(null));
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, GamemodeTypes.Foto, true)
+                .Returns(Task.FromResult<DailySelection?>(null));
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () => await _service.GetPhotoOfTheDayAsync());
-            Assert.That(ex.Message, Does.Contain($"Ingen DailySelection fundet for Foto d. {_today}."));
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+                await _service.GetPhotoOfTheDayAsync()
+            );
+            Assert.That(
+                ex.Message,
+                Does.Contain($"Ingen DailySelection fundet for Foto d. {_today}.")
+            );
         }
 
         [Test]
         public void GetPhotoOfTheDayAsync_SelectionExistsButAktorMissing_ThrowsKeyNotFoundException()
         {
             // Arrange
-            var dailySelectionWithoutAktor = new DailySelection { SelectedPolitikerID = 1, SelectedPolitiker = null };
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, GamemodeTypes.Foto, true).Returns(Task.FromResult(dailySelectionWithoutAktor));
+            var dailySelectionWithoutAktor = new DailySelection
+            {
+                SelectedPolitikerID = 1,
+                SelectedPolitiker = null,
+            };
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, GamemodeTypes.Foto, true)
+                .Returns(Task.FromResult<DailySelection?>(dailySelectionWithoutAktor));
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () => await _service.GetPhotoOfTheDayAsync());
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+                await _service.GetPhotoOfTheDayAsync()
+            );
             Assert.That(ex.Message, Does.Contain($"Tilhørende Aktor for Foto d. {_today}"));
         }
 
@@ -270,14 +363,24 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var aktorWithoutPhotoUrl = CreateTestAktor(1, "Foto", "Mangler", "1990-01-01", null); // PictureMiRes er null
-            var dailySelection = new DailySelection { SelectedPolitikerID = 1, SelectedPolitiker = aktorWithoutPhotoUrl };
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, GamemodeTypes.Foto, true).Returns(Task.FromResult(dailySelection));
+            var dailySelection = new DailySelection
+            {
+                SelectedPolitikerID = 1,
+                SelectedPolitiker = aktorWithoutPhotoUrl,
+            };
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, GamemodeTypes.Foto, true)
+                .Returns(Task.FromResult<DailySelection?>(dailySelection));
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await _service.GetPhotoOfTheDayAsync());
-            Assert.That(ex.Message, Does.Contain($"Billede URL (PictureMiRes) mangler for den valgte politiker"));
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _service.GetPhotoOfTheDayAsync()
+            );
+            Assert.That(
+                ex.Message,
+                Does.Contain($"Billede URL (PictureMiRes) mangler for den valgte politiker")
+            );
         }
-
 
         // --- Tests for GetClassicDetailsOfTheDayAsync ---
         [Test]
@@ -285,10 +388,21 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var classicAktor = CreateTestAktor(1, "Klassisk", "Type", "1985-05-05", "pic.jpg");
-            var dailySelection = new DailySelection { SelectedPolitikerID = 1, SelectedPolitiker = classicAktor };
-            var expectedDto = new DailyPoliticianDto { Id = 1, PolitikerNavn = "Klassisk Type", Age = 39 /* Beregnet ud fra _today og Born */};
+            var dailySelection = new DailySelection
+            {
+                SelectedPolitikerID = 1,
+                SelectedPolitiker = classicAktor,
+            };
+            var expectedDto = new DailyPoliticianDto
+            {
+                Id = 1,
+                PolitikerNavn = "Klassisk Type",
+                Age = 39, /* Beregnet ud fra _today og Born */
+            };
 
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, GamemodeTypes.Klassisk, true).Returns(Task.FromResult(dailySelection));
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, GamemodeTypes.Klassisk, true)
+                .Returns(Task.FromResult<DailySelection?>(dailySelection));
             _mapperMock.MapToDetailsDto(classicAktor).Returns(expectedDto); // Antager din mapper har denne overload
 
             // Act
@@ -304,13 +418,19 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         public void GetClassicDetailsOfTheDayAsync_NoDailySelection_ThrowsKeyNotFoundException()
         {
             // Arrange
-             _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, GamemodeTypes.Klassisk, true).Returns(Task.FromResult<DailySelection>(null));
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, GamemodeTypes.Klassisk, true)
+                .Returns(Task.FromResult<DailySelection?>(null));
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () => await _service.GetClassicDetailsOfTheDayAsync());
-            Assert.That(ex.Message, Does.Contain($"Ingen DailySelection fundet for Classic d. {_today}."));
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+                await _service.GetClassicDetailsOfTheDayAsync()
+            );
+            Assert.That(
+                ex.Message,
+                Does.Contain($"Ingen DailySelection fundet for Classic d. {_today}.")
+            );
         }
-
 
         // --- Tests for ProcessGuessAsync ---
         [Test]
@@ -318,15 +438,36 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var correctAktor = CreateTestAktor(1, "Correct", "Politician", "1980-01-01", "pic.jpg");
-            var guessDto = new GuessRequestDto { GameMode = GamemodeTypes.Klassisk, GuessedPoliticianId = 1 };
+            var guessDto = new GuessRequestDto
+            {
+                GameMode = GamemodeTypes.Klassisk,
+                GuessedPoliticianId = 1,
+            };
 
-            var correctSelection = new DailySelection { SelectedPolitikerID = 1, SelectedPolitiker = correctAktor };
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, guessDto.GameMode, true).Returns(Task.FromResult(correctSelection));
+            var correctSelection = new DailySelection
+            {
+                SelectedPolitikerID = 1,
+                SelectedPolitiker = correctAktor,
+            };
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, guessDto.GameMode, true)
+                .Returns(Task.FromResult<DailySelection?>(correctSelection));
 
-            _aktorRepositoryMock.GetByIdAsync(guessDto.GuessedPoliticianId, true).Returns(Task.FromResult(correctAktor)); // Gættet er den korrekte
+            _aktorRepositoryMock
+                .GetByIdAsync(guessDto.GuessedPoliticianId, true)
+                .Returns(Task.FromResult<Aktor?>(correctAktor)); // Gættet er den korrekte
 
             // Opsæt mapper til at returnere DTO'er for både den korrekte og den gættede (som er den samme her)
-            var mappedDto = new DailyPoliticianDto { Id = 1, PolitikerNavn = "Correct Politician", Age = 44, PartyShortname = "A", Køn = "Mand", Region = "Nord", Uddannelse = "Cand.Test" };
+            var mappedDto = new DailyPoliticianDto
+            {
+                Id = 1,
+                PolitikerNavn = "Correct Politician",
+                Age = 44,
+                PartyShortname = "A",
+                Køn = "Mand",
+                Region = "Nord",
+                Uddannelse = "Cand.Test",
+            };
             _mapperMock.MapToDetailsDto(correctAktor).Returns(mappedDto);
 
             // Act
@@ -335,7 +476,10 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             // Assert
             Assert.That(result, Is.Not.Null);
             Assert.That(result.IsCorrectGuess, Is.True);
-            Assert.That(result.GuessedPolitician.Id.ToString(), Is.EqualTo(correctAktor.Id.ToString()));
+            Assert.That(
+                result.GuessedPolitician!.Id.ToString(),
+                Is.EqualTo(correctAktor.Id.ToString())
+            );
             Assert.That(result.Feedback, Is.Empty);
         }
 
@@ -345,16 +489,48 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             // Arrange
             var correctAktor = CreateTestAktor(1, "Correct", "P", "1980-01-01", "pic1.jpg");
             var guessedAktor = CreateTestAktor(2, "Guessed", "P", "1990-01-01", "pic2.jpg"); // Yngre, andet ID
-            var guessDto = new GuessRequestDto { GameMode = GamemodeTypes.Klassisk, GuessedPoliticianId = 2 };
+            var guessDto = new GuessRequestDto
+            {
+                GameMode = GamemodeTypes.Klassisk,
+                GuessedPoliticianId = 2,
+            };
 
-            var correctSelection = new DailySelection { SelectedPolitikerID = 1, SelectedPolitiker = correctAktor };
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, guessDto.GameMode, true).Returns(Task.FromResult(correctSelection));
+            var correctSelection = new DailySelection
+            {
+                SelectedPolitikerID = 1,
+                SelectedPolitiker = correctAktor,
+            };
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, guessDto.GameMode, true)
+                .Returns(Task.FromResult<DailySelection?>(correctSelection));
 
-            _aktorRepositoryMock.GetByIdAsync(1, true).Returns(Task.FromResult(correctAktor));
-            _aktorRepositoryMock.GetByIdAsync(2, true).Returns(Task.FromResult(guessedAktor));
+            _aktorRepositoryMock
+                .GetByIdAsync(1, true)
+                .Returns(Task.FromResult<Aktor?>(correctAktor));
+            _aktorRepositoryMock
+                .GetByIdAsync(2, true)
+                .Returns(Task.FromResult<Aktor?>(guessedAktor));
 
-            var correctDto = new DailyPoliticianDto { Id = 1, PolitikerNavn = "Correct P", Age = 44, PartyShortname = "A", Køn = "Mand", Region = "Nord", Uddannelse = "Cand.Correct" };
-            var guessedDto = new DailyPoliticianDto { Id = 2, PolitikerNavn = "Guessed P", Age = 34, PartyShortname = "B", Køn = "Kvinde", Region = "Syd", Uddannelse = "Cand.Guessed" }; // Antag forskellige værdier
+            var correctDto = new DailyPoliticianDto
+            {
+                Id = 1,
+                PolitikerNavn = "Correct P",
+                Age = 44,
+                PartyShortname = "A",
+                Køn = "Mand",
+                Region = "Nord",
+                Uddannelse = "Cand.Correct",
+            };
+            var guessedDto = new DailyPoliticianDto
+            {
+                Id = 2,
+                PolitikerNavn = "Guessed P",
+                Age = 34,
+                PartyShortname = "B",
+                Køn = "Kvinde",
+                Region = "Syd",
+                Uddannelse = "Cand.Guessed",
+            }; // Antag forskellige værdier
 
             _mapperMock.MapToDetailsDto(correctAktor).Returns(correctDto);
             _mapperMock.MapToDetailsDto(guessedAktor).Returns(guessedDto);
@@ -365,7 +541,10 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             // Assert
             Assert.That(result, Is.Not.Null);
             Assert.That(result.IsCorrectGuess, Is.False);
-            Assert.That(result.GuessedPolitician.Id.ToString(), Is.EqualTo(guessedAktor.Id.ToString()));
+            Assert.That(
+                result.GuessedPolitician!.Id.ToString(),
+                Is.EqualTo(guessedAktor.Id.ToString())
+            );
             Assert.That(result.Feedback, Is.Not.Empty);
             Assert.That(result.Feedback["PartyShortname"], Is.EqualTo(FeedbackType.Forkert));
             Assert.That(result.Feedback["Køn"], Is.EqualTo(FeedbackType.Forkert));
@@ -379,17 +558,33 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var correctAktor = CreateTestAktor(1, "Correct", "P", "1980-01-01", "pic1.jpg");
-            var guessDto = new GuessRequestDto { GameMode = GamemodeTypes.Klassisk, GuessedPoliticianId = 99 }; // ID findes ikke
+            var guessDto = new GuessRequestDto
+            {
+                GameMode = GamemodeTypes.Klassisk,
+                GuessedPoliticianId = 99,
+            }; // ID findes ikke
 
-            var correctSelection = new DailySelection { SelectedPolitikerID = 1, SelectedPolitiker = correctAktor };
-            _dailySelectionRepositoryMock.GetByDateAndModeAsync(_today, guessDto.GameMode, true).Returns(Task.FromResult(correctSelection));
-            _aktorRepositoryMock.GetByIdAsync(99, true).Returns(Task.FromResult<Aktor>(null)); // Gættet politiker findes ikke
+            var correctSelection = new DailySelection
+            {
+                SelectedPolitikerID = 1,
+                SelectedPolitiker = correctAktor,
+            };
+            _dailySelectionRepositoryMock
+                .GetByDateAndModeAsync(_today, guessDto.GameMode, true)
+                .Returns(Task.FromResult<DailySelection?>(correctSelection));
+            _aktorRepositoryMock.GetByIdAsync(99, true).Returns(Task.FromResult<Aktor?>(null)); // Gættet politiker findes ikke
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () => await _service.ProcessGuessAsync(guessDto));
-            Assert.That(ex.Message, Does.Contain($"Den gættede politiker med ID {guessDto.GuessedPoliticianId} blev ikke fundet."));
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+                await _service.ProcessGuessAsync(guessDto)
+            );
+            Assert.That(
+                ex.Message,
+                Does.Contain(
+                    $"Den gættede politiker med ID {guessDto.GuessedPoliticianId} blev ikke fundet."
+                )
+            );
         }
-
 
         // --- Tests for SelectAndSaveDailyPoliticiansAsync ---
         [Test]
@@ -397,24 +592,45 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var dateToSelect = new DateOnly(2024, 5, 26);
-            _dailySelectionRepositoryMock.ExistsForDateAsync(dateToSelect).Returns(Task.FromResult(false)); // Ingen eksisterende
+            _dailySelectionRepositoryMock
+                .ExistsForDateAsync(dateToSelect)
+                .Returns(Task.FromResult(false)); // Ingen eksisterende
 
             var allAktors = new List<Aktor> { _defaultAktor1, _defaultAktor2, _defaultAktor3 };
-            _aktorRepositoryMock.GetAllWithDetailsForSelectionAsync().Returns(Task.FromResult(allAktors));
+            _aktorRepositoryMock
+                .GetAllWithDetailsForSelectionAsync()
+                .Returns(Task.FromResult(allAktors));
 
             // Mock selection algorithm - antag den vælger _defaultAktor1, _defaultAktor2, _defaultAktor3 for hhv. Classic, Citat, Foto
-            _selectionAlgorithmMock.SelectWeightedRandomCandidate(Arg.Any<List<CandidateData>>(), dateToSelect, GamemodeTypes.Klassisk)
+            _selectionAlgorithmMock
+                .SelectWeightedRandomCandidate(
+                    Arg.Any<List<CandidateData>>(),
+                    dateToSelect,
+                    GamemodeTypes.Klassisk
+                )
                 .Returns(_defaultAktor1);
-            _selectionAlgorithmMock.SelectWeightedRandomCandidate(Arg.Any<List<CandidateData>>(), dateToSelect, GamemodeTypes.Citat)
+            _selectionAlgorithmMock
+                .SelectWeightedRandomCandidate(
+                    Arg.Any<List<CandidateData>>(),
+                    dateToSelect,
+                    GamemodeTypes.Citat
+                )
                 .Returns(_defaultAktor2); // Antager _defaultAktor2 har citater
-            _selectionAlgorithmMock.SelectWeightedRandomCandidate(Arg.Any<List<CandidateData>>(), dateToSelect, GamemodeTypes.Foto)
+            _selectionAlgorithmMock
+                .SelectWeightedRandomCandidate(
+                    Arg.Any<List<CandidateData>>(),
+                    dateToSelect,
+                    GamemodeTypes.Foto
+                )
                 .Returns(_defaultAktor3);
 
-             _randomProviderMock.Next(Arg.Any<int>()).Returns(0); // For at vælge første citat, hvis der er flere
+            _randomProviderMock.Next(Arg.Any<int>()).Returns(0); // For at vælge første citat, hvis der er flere
 
             // Capture DailySelection added
             var addedSelections = new List<DailySelection>();
-            await _dailySelectionRepositoryMock.AddManyAsync(Arg.Do<List<DailySelection>>(list => addedSelections.AddRange(list)));
+            await _dailySelectionRepositoryMock.AddManyAsync(
+                Arg.Do<List<DailySelection>>(list => addedSelections.AddRange(list))
+            );
 
             _contextMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(3)); // Antal gemte ændringer
 
@@ -423,20 +639,68 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
 
             // Assert
             // 1. Tjek at algoritmen blev kaldt for hver gamemode
-            _selectionAlgorithmMock.Received(1).SelectWeightedRandomCandidate(Arg.Is<List<CandidateData>>(l => l.All(c => allAktors.Contains(c.Politician))), dateToSelect, GamemodeTypes.Klassisk);
-            _selectionAlgorithmMock.Received(1).SelectWeightedRandomCandidate(Arg.Is<List<CandidateData>>(l => l.Any(c => c.Politician.Id == _defaultAktor2.Id)), dateToSelect, GamemodeTypes.Citat);
-            _selectionAlgorithmMock.Received(1).SelectWeightedRandomCandidate(Arg.Is<List<CandidateData>>(l => l.Any(c => c.Politician.Id == _defaultAktor3.Id)), dateToSelect, GamemodeTypes.Foto);
+            _selectionAlgorithmMock
+                .Received(1)
+                .SelectWeightedRandomCandidate(
+                    Arg.Is<List<CandidateData>>(l => l.All(c => allAktors.Contains(c.Politician))),
+                    dateToSelect,
+                    GamemodeTypes.Klassisk
+                );
+            _selectionAlgorithmMock
+                .Received(1)
+                .SelectWeightedRandomCandidate(
+                    Arg.Is<List<CandidateData>>(l =>
+                        l.Any(c => c.Politician.Id == _defaultAktor2.Id)
+                    ),
+                    dateToSelect,
+                    GamemodeTypes.Citat
+                );
+            _selectionAlgorithmMock
+                .Received(1)
+                .SelectWeightedRandomCandidate(
+                    Arg.Is<List<CandidateData>>(l =>
+                        l.Any(c => c.Politician.Id == _defaultAktor3.Id)
+                    ),
+                    dateToSelect,
+                    GamemodeTypes.Foto
+                );
 
             // 2. Tjek at DailySelections blev tilføjet
-            await _dailySelectionRepositoryMock.Received(1).AddManyAsync(Arg.Is<List<DailySelection>>(ds => ds.Count == 3));
-            Assert.That(addedSelections.Any(ds => ds.GameMode == GamemodeTypes.Klassisk && ds.SelectedPolitikerID == _defaultAktor1.Id), Is.True);
-            Assert.That(addedSelections.Any(ds => ds.GameMode == GamemodeTypes.Citat && ds.SelectedPolitikerID == _defaultAktor2.Id && ds.SelectedQuoteText == "Citat 2"), Is.True);
-            Assert.That(addedSelections.Any(ds => ds.GameMode == GamemodeTypes.Foto && ds.SelectedPolitikerID == _defaultAktor3.Id), Is.True);
+            await _dailySelectionRepositoryMock
+                .Received(1)
+                .AddManyAsync(Arg.Is<List<DailySelection>>(ds => ds.Count == 3));
+            Assert.That(
+                addedSelections.Any(ds =>
+                    ds.GameMode == GamemodeTypes.Klassisk
+                    && ds.SelectedPolitikerID == _defaultAktor1.Id
+                ),
+                Is.True
+            );
+            Assert.That(
+                addedSelections.Any(ds =>
+                    ds.GameMode == GamemodeTypes.Citat
+                    && ds.SelectedPolitikerID == _defaultAktor2.Id
+                    && ds.SelectedQuoteText == "Citat 2"
+                ),
+                Is.True
+            );
+            Assert.That(
+                addedSelections.Any(ds =>
+                    ds.GameMode == GamemodeTypes.Foto && ds.SelectedPolitikerID == _defaultAktor3.Id
+                ),
+                Is.True
+            );
 
             // 3. Tjek at GamemodeTracker blev opdateret
-            await _trackerRepositoryMock.Received(1).UpdateOrCreateForAktorAsync(_defaultAktor1, GamemodeTypes.Klassisk, dateToSelect);
-            await _trackerRepositoryMock.Received(1).UpdateOrCreateForAktorAsync(_defaultAktor2, GamemodeTypes.Citat, dateToSelect);
-            await _trackerRepositoryMock.Received(1).UpdateOrCreateForAktorAsync(_defaultAktor3, GamemodeTypes.Foto, dateToSelect);
+            await _trackerRepositoryMock
+                .Received(1)
+                .UpdateOrCreateForAktorAsync(_defaultAktor1, GamemodeTypes.Klassisk, dateToSelect);
+            await _trackerRepositoryMock
+                .Received(1)
+                .UpdateOrCreateForAktorAsync(_defaultAktor2, GamemodeTypes.Citat, dateToSelect);
+            await _trackerRepositoryMock
+                .Received(1)
+                .UpdateOrCreateForAktorAsync(_defaultAktor3, GamemodeTypes.Foto, dateToSelect);
 
             // 4. Tjek transaktion og save (svært at unit teste dybt uden et fuldt UoW mock)
             // Vi verificerer at SaveChangesAsync blev kaldt
@@ -449,16 +713,22 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var dateToSelect = new DateOnly(2024, 5, 26);
-            _dailySelectionRepositoryMock.ExistsForDateAsync(dateToSelect).Returns(Task.FromResult(true)); // Eksisterer allerede
+            _dailySelectionRepositoryMock
+                .ExistsForDateAsync(dateToSelect)
+                .Returns(Task.FromResult(true)); // Eksisterer allerede
 
             // Act
             await _service.SelectAndSaveDailyPoliticiansAsync(dateToSelect, false); // Overwrite er false
 
             // Assert
             // Verificer at ingen selection/tracking sker
-            _selectionAlgorithmMock.DidNotReceiveWithAnyArgs().SelectWeightedRandomCandidate(default, default, default);
-            await _dailySelectionRepositoryMock.DidNotReceiveWithAnyArgs().AddManyAsync(default);
-            await _trackerRepositoryMock.DidNotReceiveWithAnyArgs().UpdateOrCreateForAktorAsync(default, default, default);
+            _selectionAlgorithmMock
+                .DidNotReceiveWithAnyArgs()
+                .SelectWeightedRandomCandidate(default!, default, default);
+            await _dailySelectionRepositoryMock.DidNotReceiveWithAnyArgs().AddManyAsync(default!);
+            await _trackerRepositoryMock
+                .DidNotReceiveWithAnyArgs()
+                .UpdateOrCreateForAktorAsync(default!, default, default);
             await _contextMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
             await _dbContextTransactionMock.Received(1).RollbackAsync(Arg.Any<CancellationToken>()); // Tjek Rollback
         }
@@ -468,14 +738,22 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var dateToSelect = new DateOnly(2024, 5, 26);
-            _dailySelectionRepositoryMock.ExistsForDateAsync(dateToSelect).Returns(Task.FromResult(true)); // Eksisterer
+            _dailySelectionRepositoryMock
+                .ExistsForDateAsync(dateToSelect)
+                .Returns(Task.FromResult(true)); // Eksisterer
 
             var allAktors = new List<Aktor> { _defaultAktor1 };
-            _aktorRepositoryMock.GetAllWithDetailsForSelectionAsync().Returns(Task.FromResult(allAktors));
-             _selectionAlgorithmMock.SelectWeightedRandomCandidate(Arg.Any<List<CandidateData>>(), dateToSelect, Arg.Any<GamemodeTypes>())
+            _aktorRepositoryMock
+                .GetAllWithDetailsForSelectionAsync()
+                .Returns(Task.FromResult(allAktors));
+            _selectionAlgorithmMock
+                .SelectWeightedRandomCandidate(
+                    Arg.Any<List<CandidateData>>(),
+                    dateToSelect,
+                    Arg.Any<GamemodeTypes>()
+                )
                 .Returns(_defaultAktor1); // Bare returner noget for at komme videre
-             _randomProviderMock.Next(Arg.Any<int>()).Returns(0);
-
+            _randomProviderMock.Next(Arg.Any<int>()).Returns(0);
 
             // Act
             await _service.SelectAndSaveDailyPoliticiansAsync(dateToSelect, true); // Overwrite er true
@@ -483,7 +761,9 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             // Assert
             await _dailySelectionRepositoryMock.Received(1).DeleteByDateAsync(dateToSelect); // Verificer sletning
             // ... (verificer at resten af processen kører, lignende NewSelections testen) ...
-            await _dailySelectionRepositoryMock.Received(1).AddManyAsync(Arg.Any<List<DailySelection>>());
+            await _dailySelectionRepositoryMock
+                .Received(1)
+                .AddManyAsync(Arg.Any<List<DailySelection>>());
             await _contextMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
             await _dbContextTransactionMock.Received(1).CommitAsync(Arg.Any<CancellationToken>());
         }
@@ -493,18 +773,23 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
         {
             // Arrange
             var dateToSelect = new DateOnly(2024, 5, 26);
-            _dailySelectionRepositoryMock.ExistsForDateAsync(dateToSelect).Returns(Task.FromResult(false));
-            _aktorRepositoryMock.GetAllWithDetailsForSelectionAsync().Returns(Task.FromResult(new List<Aktor>())); // Ingen politikere
+            _dailySelectionRepositoryMock
+                .ExistsForDateAsync(dateToSelect)
+                .Returns(Task.FromResult(false));
+            _aktorRepositoryMock
+                .GetAllWithDetailsForSelectionAsync()
+                .Returns(Task.FromResult(new List<Aktor>())); // Ingen politikere
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await _service.SelectAndSaveDailyPoliticiansAsync(dateToSelect, false));
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _service.SelectAndSaveDailyPoliticiansAsync(dateToSelect, false)
+            );
             Assert.That(ex.Message, Does.Contain($"No politicians in DB for {dateToSelect}"));
         }
 
-
         // --- Tests for SeedQuotesForAllAktorsAsync ---
         [Test]
-        public async Task SeedQuotesForAllAktorsAsync_NoGenericQuotes_ReturnsError()
+        public void SeedQuotesForAllAktorsAsync_NoGenericQuotes_ReturnsError()
         {
             // Din service har en static liste GenericQuotesForSeeding.
             // For at teste dette scenarie, skal vi midlertidigt "tømme" den.
@@ -518,17 +803,49 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             // eller reflektere for at ændre den, men det er grimt.
 
             // Vi springer denne test over for nu pga. static listen.
-            Assert.Pass("Skipping test for no generic quotes due to static list. Consider refactoring for testability.");
+            Assert.Pass(
+                "Skipping test for no generic quotes due to static list. Consider refactoring for testability."
+            );
         }
 
         [Test]
         public async Task SeedQuotesForAllAktorsAsync_AktorsNeedQuotes_AddsQuotesAndSaves()
         {
             // Arrange
-            var aktor1 = new Aktor { Id = 1, navn = "Test Aktor 1", typeid = 5, Quotes = new List<PoliticianQuote>() }; // Behøver 2 citater
-            var aktor2 = new Aktor { Id = 2, navn = "Test Aktor 2", typeid = 5, Quotes = new List<PoliticianQuote> { new PoliticianQuote { QuoteText = "Eksisterende citat"} } }; // Behøver 1 citat
-            var aktor3 = new Aktor { Id = 3, navn = "Test Aktor 3", typeid = 5, Quotes = new List<PoliticianQuote> { new PoliticianQuote { QuoteText = "C1"}, new PoliticianQuote { QuoteText = "C2"} } }; // Behøver 0 citater
-            var aktor4 = new Aktor { Id = 4, navn = "Test Aktor 4", typeid = 3 }; // Forkert typeid, skal ignoreres
+            var aktor1 = new Aktor
+            {
+                Id = 1,
+                navn = "Test Aktor 1",
+                typeid = 5,
+                Quotes = new List<PoliticianQuote>(),
+            }; // Behøver 2 citater
+            var aktor2 = new Aktor
+            {
+                Id = 2,
+                navn = "Test Aktor 2",
+                typeid = 5,
+                Quotes = new List<PoliticianQuote>
+                {
+                    new PoliticianQuote { QuoteText = "Eksisterende citat" },
+                },
+            }; // Behøver 1 citat
+            var aktor3 = new Aktor
+            {
+                Id = 3,
+                navn = "Test Aktor 3",
+                typeid = 5,
+                Quotes = new List<PoliticianQuote>
+                {
+                    new PoliticianQuote { QuoteText = "C1" },
+                    new PoliticianQuote { QuoteText = "C2" },
+                },
+            }; // Behøver 0 citater
+            var aktor4 = new Aktor
+            {
+                Id = 4,
+                navn = "Test Aktor 4",
+                typeid = 3,
+            }; // Forkert typeid, skal ignoreres
 
             var aktorsInDb = new List<Aktor> { aktor1, aktor2, aktor3, aktor4 };
             var mockAktorDbSet = MockDbSetHelper.CreateMockDbSet(aktorsInDb.AsQueryable());
@@ -557,14 +874,18 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
     public class MockDbContext : DbContext
     {
         public MockDbContext() { } // Nødvendig for DatabaseFacade mock
-        public MockDbContext(DbContextOptions options) : base(options) { }
+
+        public MockDbContext(DbContextOptions options)
+            : base(options) { }
+
         public virtual DbSet<Aktor> Aktor { get; set; } // Gør den virtuel
         public virtual DbSet<PoliticianQuote> PoliticianQuotes { get; set; } // Gør den virtuel
     }
 
     internal static class MockDbSetHelper
     {
-        public static DbSet<T> CreateMockDbSet<T>(IQueryable<T> data) where T : class
+        public static DbSet<T> CreateMockDbSet<T>(IQueryable<T> data)
+            where T : class
         {
             var mockSet = Substitute.For<DbSet<T>, IQueryable<T>, IAsyncEnumerable<T>>();
 
@@ -573,20 +894,24 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             ((IQueryable<T>)mockSet).ElementType.Returns(data.ElementType);
             ((IQueryable<T>)mockSet).GetEnumerator().Returns(data.GetEnumerator());
 
-            ((IAsyncEnumerable<T>)mockSet).GetAsyncEnumerator(Arg.Any<CancellationToken>())
+            ((IAsyncEnumerable<T>)mockSet)
+                .GetAsyncEnumerator(Arg.Any<CancellationToken>())
                 .Returns(new TestAsyncEnumerator<T>(data.GetEnumerator()));
 
             // Hvis du bruger AddRange direkte på DbSet i din service (f.eks. _context.PoliticianQuotes.AddRange(...))
             // Du kan mocke AddRange her, hvis nødvendigt, eller verificere det på _contextMock hvis det er en partiel mock.
-             mockSet.When(x => x.AddRange(Arg.Any<IEnumerable<T>>())).Do(ci => {
-                 // Du kan evt. tilføje logik her for at fange de tilføjede entiteter,
-                 // hvis du ikke vil gøre det på _contextMock.
-             });
-
+            mockSet
+                .When(x => x.AddRange(Arg.Any<IEnumerable<T>>()))
+                .Do(ci =>
+                {
+                    // Du kan evt. tilføje logik her for at fange de tilføjede entiteter,
+                    // hvis du ikke vil gøre det på _contextMock.
+                });
 
             return mockSet;
         }
     }
+
     internal class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     {
         private readonly IQueryProvider _inner;
@@ -601,14 +926,17 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             return new TestAsyncEnumerable<TEntity>(expression);
         }
 
-        public IQueryable<TElement> CreateQuery<TElement>(System.Linq.Expressions.Expression expression)
+        public IQueryable<TElement> CreateQuery<TElement>(
+            System.Linq.Expressions.Expression expression
+        )
         {
             return new TestAsyncEnumerable<TElement>(expression);
         }
 
         public object Execute(System.Linq.Expressions.Expression expression)
         {
-            return _inner.Execute(expression);
+            var result = _inner.Execute(expression);
+            return result!;
         }
 
         public TResult Execute<TResult>(System.Linq.Expressions.Expression expression)
@@ -616,31 +944,34 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             return _inner.Execute<TResult>(expression);
         }
 
-        public TResult ExecuteAsync<TResult>(System.Linq.Expressions.Expression expression, CancellationToken cancellationToken = default)
+        public TResult ExecuteAsync<TResult>(
+            System.Linq.Expressions.Expression expression,
+            CancellationToken cancellationToken = default
+        )
         {
             // Dette er en simpel implementering. For fuld understøttelse af ToListAsync etc.,
             // kan du have brug for at køre synkront eller bruge en mere avanceret mock.
             var resultType = typeof(TResult).GetGenericArguments()[0];
             var executionResult = typeof(IQueryProvider)
-                                 .GetMethods()
-                                 .First(method => method.Name == nameof(IQueryProvider.Execute) && method.IsGenericMethod)
-                                 .MakeGenericMethod(resultType)
-                                 .Invoke(this, new object[] { expression });
+                .GetMethods()
+                .First(method =>
+                    method.Name == nameof(IQueryProvider.Execute) && method.IsGenericMethod
+                )
+                .MakeGenericMethod(resultType)
+                .Invoke(this, new object[] { expression });
 
-            return (TResult)typeof(Task).GetMethod(nameof(Task.FromResult))
-                                        .MakeGenericMethod(resultType)
-                                        .Invoke(null, new[] { executionResult });
-
-            // For simple cases (som ToListAsync), kan dette være nok:
-            // var expectedResult = _inner.Execute<IEnumerable<TEntity>>(expression);
-            // return Task.FromResult((TResult)(object)expectedResult.ToList());
+            var expectedResult = _inner.Execute<IEnumerable<TEntity>>(expression);
+            return (TResult)(object)expectedResult.ToList();
         }
     }
 
     internal class TestAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
     {
-        public TestAsyncEnumerable(IEnumerable<T> enumerable) : base(enumerable) { }
-        public TestAsyncEnumerable(System.Linq.Expressions.Expression expression) : base(expression) { }
+        public TestAsyncEnumerable(IEnumerable<T> enumerable)
+            : base(enumerable) { }
+
+        public TestAsyncEnumerable(System.Linq.Expressions.Expression expression)
+            : base(expression) { }
 
         public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {

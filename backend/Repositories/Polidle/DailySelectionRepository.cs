@@ -61,5 +61,10 @@ namespace backend.Repositories.PolidleSelection
                 // SaveChangesAsync kaldes centralt i servicen indenfor transaktionen
             }
         }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
     }
 }

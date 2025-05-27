@@ -18,5 +18,7 @@ namespace backend.Interfaces.Repositories
 
         // SaveChangesAsync håndteres typisk af UnitOfWork eller centralt i service
         Task DeleteByDateAsync(DateOnly date);
+
+        Task<int> SaveChangesAsync();
     }
 }

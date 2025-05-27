@@ -28,14 +28,14 @@ namespace backend.tests.PolidleTest
 
         private Aktor CreateTestAktor(
             int id = 1,
-            string navn = "Test Testesen",
-            string pictureMiRes = "url/to/pic.jpg",
-            string sex = "Mand",
-            string partyShortname = "A",
-            string party = "Arbejderpartiet",
-            string born = "1990-01-01",
-            List<string> constituencies = null,
-            List<string> educations = null
+            string? navn = "Test Testesen",
+            string? pictureMiRes = "url/to/pic.jpg",
+            string? sex = "Mand",
+            string? partyShortname = "A",
+            string? party = "Arbejderpartiet",
+            string? born = "1990-01-01",
+            List<string>? constituencies = null,
+            List<string>? educations = null
         )
         {
             return new Aktor
@@ -57,7 +57,13 @@ namespace backend.tests.PolidleTest
         {
             // Arrange
             var referenceDate = new DateOnly(2023, 1, 1);
-            var aktor = CreateTestAktor(born: "1990-01-01", partyShortname: "S", party: "Socialdemokratiet", constituencies: new List<string> { "København" }, educations: new List<string> { "Cand.polit." });
+            var aktor = CreateTestAktor(
+                born: "1990-01-01",
+                partyShortname: "S",
+                party: "Socialdemokratiet",
+                constituencies: new List<string> { "København" },
+                educations: new List<string> { "Cand.polit." }
+            );
             // Age should be 33 (2023 - 1990)
 
             // Act
@@ -95,11 +101,12 @@ namespace backend.tests.PolidleTest
         public void MapToDetailsDto_NullAktor_ThrowsArgumentNullException()
         {
             // Arrange
-            Aktor aktor = null;
+            Aktor? aktor = null;
             var referenceDate = new DateOnly(2023, 1, 1);
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => _mapper.MapToDetailsDto(aktor, referenceDate));
+            Assert.Throws<ArgumentNullException>(() => _mapper.MapToDetailsDto(aktor, referenceDate)
+            );
         }
 
         [Test]
@@ -116,14 +123,18 @@ namespace backend.tests.PolidleTest
             Assert.That(result.PolitikerNavn, Is.EqualTo("N/A"));
         }
 
-        [TestCase((string)null, "FuldtPartiNavn", "FuldtPartiNavn")]
+        [TestCase(null, "FuldtPartiNavn", "FuldtPartiNavn")]
         [TestCase("", "FuldtPartiNavn", "FuldtPartiNavn")]
         [TestCase(" ", "FuldtPartiNavn", "FuldtPartiNavn")]
         [TestCase("S", "FuldtPartiNavn", "S")]
         [TestCase(null, null, "Ukendt Parti")]
         [TestCase("", "", "Ukendt Parti")]
         [TestCase(" ", " ", "Ukendt Parti")]
-        public void MapToDetailsDto_PartyDisplayLogic_CorrectlyDeterminesParty(string? shortName, string? fullName, string expectedDisplay)
+        public void MapToDetailsDto_PartyDisplayLogic_CorrectlyDeterminesParty(
+            string? shortName,
+            string? fullName,
+            string expectedDisplay
+        )
         {
             // Arrange
             var aktor = CreateTestAktor(partyShortname: shortName, party: fullName);
@@ -180,7 +191,10 @@ namespace backend.tests.PolidleTest
             var aktorEmptyEd = CreateTestAktor(educations: new List<string>());
             // Act
             var resultNullEd = _mapper.MapToDetailsDto(aktorNullEd, _dateTimeProviderMock.TodayUtc);
-            var resultEmptyEd = _mapper.MapToDetailsDto(aktorEmptyEd, _dateTimeProviderMock.TodayUtc);
+            var resultEmptyEd = _mapper.MapToDetailsDto(
+                aktorEmptyEd,
+                _dateTimeProviderMock.TodayUtc
+            );
             // Assert
             Assert.That(resultNullEd.Uddannelse, Is.Null);
             Assert.That(resultEmptyEd.Uddannelse, Is.Null);
@@ -197,19 +211,22 @@ namespace backend.tests.PolidleTest
             Assert.That(result.Uddannelse, Is.Null);
         }
 
-
         private static IEnumerable<TestCaseData> CalculateAgeTestCases()
         {
             yield return new TestCaseData("1990-01-01", "2023-01-01", 33); // Birthday passed
             yield return new TestCaseData("1990-05-25", "2024-05-25", 34); // Born today (relative to year)
-            yield return new TestCaseData("2023-01-01", "2023-01-01", 0);  // Born on reference date
-            yield return new TestCaseData((string)null, "2023-01-01", 0);
+            yield return new TestCaseData("2023-01-01", "2023-01-01", 0); // Born on reference date
+            yield return new TestCaseData(null, "2023-01-01", 0);
             yield return new TestCaseData("", "2023-01-01", 0);
             yield return new TestCaseData("invalid-date", "2023-01-01", 0);
         }
 
         [Test, TestCaseSource(nameof(CalculateAgeTestCases))]
-        public void CalculateAge_VariousScenarios_ReturnsCorrectAge(string dobString, string refDateString, int expectedAge)
+        public void CalculateAge_VariousScenarios_ReturnsCorrectAge(
+            string dobString,
+            string refDateString,
+            int expectedAge
+        )
         {
             // Arrange
             var referenceDate = DateOnly.Parse(refDateString);
@@ -263,7 +280,7 @@ namespace backend.tests.PolidleTest
         public void MapToSummaryDtoList_NullAktors_ReturnsEmptyDtoList()
         {
             // Arrange
-            List<Aktor> aktors = null;
+            List<Aktor>? aktors = null;
 
             // Act
             var result = _mapper.MapToSummaryDtoList(aktors);
@@ -277,7 +294,11 @@ namespace backend.tests.PolidleTest
         public void MapToSummaryDto_ValidAktor_MapsCorrectly()
         {
             // Arrange
-            var aktor = CreateTestAktor(id: 10, navn: "Summary Person", pictureMiRes: "summary.jpg");
+            var aktor = CreateTestAktor(
+                id: 10,
+                navn: "Summary Person",
+                pictureMiRes: "summary.jpg"
+            );
 
             // Act
             var result = _mapper.MapToSummaryDto(aktor);
@@ -319,7 +340,7 @@ namespace backend.tests.PolidleTest
         public void MapToSummaryDto_NullAktor_ThrowsArgumentNullException()
         {
             // Arrange
-            Aktor aktor = null;
+            Aktor? aktor = null;
 
             // Act & Assert
             Assert.Throws<ArgumentNullException>(() => _mapper.MapToSummaryDto(aktor));
