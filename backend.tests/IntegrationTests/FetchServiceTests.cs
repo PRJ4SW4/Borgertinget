@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
-using backend.Data;
 using backend.DTO.FT;
 using backend.Models;
 using backend.Models.Politicians;
 using backend.Repositories.Politicians;
 using backend.Services.Politicians;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -16,33 +15,22 @@ using NUnit.Framework;
 namespace backend.Services.Tests
 {
     [TestFixture]
-    public class FetchServiceIntegrationTests
+    public class FetchServiceTests
     {
-        private DataContext _context;
         private HttpService _httpService;
         private IConfiguration _configuration;
-        private IAktorRepo _aktorRepo;
-        private IPartyRepository _partyRepo;
-        private ILogger<FetchService> _loggerFetchService;
-        private ILogger<AktorRepo> _loggerAktorRepo;
-        private ILogger<PartyRepository> _loggerPartyRepo;
+        private IAktorRepo _aktorRepoMock;
+        private IPartyRepository _partyRepoMock;
+        private ILogger<FetchService> _loggerFetchServiceMock;
         private FetchService _uut;
 
         [SetUp]
         public void SetUp()
         {
-            // In-memory database
-            var options = new DbContextOptionsBuilder<DataContext>()
-                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString()) // Unique DB for each test
-                .Options;
-            _context = new DataContext(options);
-
             // Logger mocks
-            _loggerFetchService = Substitute.For<ILogger<FetchService>>();
-            _loggerAktorRepo = Substitute.For<ILogger<AktorRepo>>();
-            _loggerPartyRepo = Substitute.For<ILogger<PartyRepository>>();
+            _loggerFetchServiceMock = Substitute.For<ILogger<FetchService>>();
 
-            // Configuration mock for API URLs
+            // Configuration for API URLs
             var inMemorySettings = new Dictionary<string, string?>
             {
                 {
@@ -63,52 +51,59 @@ namespace backend.Services.Tests
                 .AddInMemoryCollection(inMemorySettings)
                 .Build();
 
-            // Real HttpService
             _httpService = new HttpService();
 
-            // Real Repositories with the in-memory context
-            _aktorRepo = new AktorRepo(_context, _loggerAktorRepo);
-            _partyRepo = new PartyRepository(_context, _loggerPartyRepo);
+            // Mock Repositories
+            _aktorRepoMock = Substitute.For<IAktorRepo>();
+            _partyRepoMock = Substitute.For<IPartyRepository>();
 
-            // Service under test
             _uut = new FetchService(
-                _context,
                 _httpService,
                 _configuration,
-                _aktorRepo,
-                _partyRepo,
-                _loggerFetchService
+                _aktorRepoMock,
+                _partyRepoMock,
+                _loggerFetchServiceMock
             );
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            _context.Database.EnsureDeleted(); // Clean up the in-memory database
-            _context.Dispose();
         }
 
         [Test]
         [Category("Integration")]
-        [Explicit("This test makes live API calls and can be slow/unreliable.")]
-        public async Task FetchAndUpdateAktorsAsync_WhenApisAreResponsive_ProcessesSomeData()
+        [Explicit(
+            "This test makes live API calls and can be slow/unreliable. Focus is on FetchService interaction with mocked repos."
+        )]
+        public async Task FetchAndUpdateAktorsAsync_WhenApisAreResponsive_InteractsWithRepositoriesCorrectly()
         {
+            // Arrange
             string knownPoliticianName = "Mette Frederiksen";
             var twitterIdEntry = new PoliticianTwitterId
             {
+                Id = 138,
                 Name = knownPoliticianName,
-                TwitterUserId = "testUser123",
-                TwitterHandle = "testHandle",
+                TwitterUserId = "twitterUserMette",
+                TwitterHandle = "metteHandle",
+                AktorId = null,
             };
-            _context.PoliticianTwitterIds.Add(twitterIdEntry);
-            await _context.SaveChangesAsync();
+
+            _aktorRepoMock.GetAktorByIdAsync(Arg.Any<int>()).Returns(Task.FromResult<Aktor?>(null));
+
+            _partyRepoMock.GetByName(Arg.Any<string>()).Returns(Task.FromResult<Party?>(null));
+
+            _aktorRepoMock
+                .GetPoliticianTwitterIdByNameAsync(knownPoliticianName)
+                .Returns(Task.FromResult<PoliticianTwitterId?>(twitterIdEntry));
+
+            _aktorRepoMock.SaveChangesAsync().Returns(Task.FromResult(1));
+            _partyRepoMock.SaveChangesAsync().Returns(Task.FromResult(1));
 
             // Act
             var (totalAdded, totalUpdated, totalDeleted) = await _uut.FetchAndUpdateAktorsAsync();
 
-            _loggerFetchService
+            // Assert
+            _loggerFetchServiceMock
                 .Received()
                 .LogInformation(Arg.Is<string>(s => s.Contains("Starting Aktor update process")));
+
+            // Check return values (these depend on live API data, so broad checks)
             Assert.That(
                 totalAdded,
                 Is.GreaterThanOrEqualTo(0),
@@ -125,38 +120,26 @@ namespace backend.Services.Tests
                 "Total deleted should be non-negative."
             );
 
-            // Check if any Aktors were actually added or updated in the database
-            var aktorsInDb = await _context.Aktor.ToListAsync();
-            Assert.That(
-                aktorsInDb,
-                Is.Not.Empty,
-                "Expected some Aktors to be processed into the database if the API is responsive."
-            );
+            await _aktorRepoMock.ReceivedWithAnyArgs().AddAktor(Arg.Any<Aktor>());
+            await _partyRepoMock.ReceivedWithAnyArgs().AddParty(Arg.Any<Party>());
 
-            // Check if any Parties were created
-            var partiesInDb = await _context.Party.ToListAsync();
-            if (aktorsInDb.Any(a => !string.IsNullOrEmpty(a.Party)))
+            await _aktorRepoMock.Received().SaveChangesAsync();
+
+            await _partyRepoMock.Received().SaveChangesAsync();
+
+            await _aktorRepoMock.Received().GetPoliticianTwitterIdByNameAsync(knownPoliticianName);
+
+            if (twitterIdEntry.AktorId.HasValue)
             {
-                Assert.That(
-                    partiesInDb,
-                    Is.Not.Empty,
-                    "Expected some Parties to be created if Aktors with party info were processed."
-                );
-            }
-
-            var updatedTwitterIdEntry = await _context.PoliticianTwitterIds.FirstOrDefaultAsync(p =>
-                p.Name == knownPoliticianName
-            );
-            Assert.That(updatedTwitterIdEntry, Is.Not.Null);
-
-            var linkedAktor = aktorsInDb.FirstOrDefault(a => a.navn == knownPoliticianName);
-            if (linkedAktor != null)
-            {
-                Assert.That(
-                    updatedTwitterIdEntry.AktorId,
-                    Is.EqualTo(linkedAktor.Id),
-                    $"AktorId for '{knownPoliticianName}' in PoliticianTwitterIds should be linked."
-                );
+                _loggerFetchServiceMock
+                    .Received()
+                    .LogInformation(
+                        Arg.Is<string>(s =>
+                            s.Contains(
+                                $"Updated PoliticianTwitterId.AktorId for '{knownPoliticianName}'"
+                            )
+                        )
+                    );
             }
         }
 
@@ -164,15 +147,14 @@ namespace backend.Services.Tests
         public void FetchAndUpdateAktorsAsync_MissingApiConfiguration_ThrowsInvalidOperationException()
         {
             // Arrange
-            var emptyConfiguration = new ConfigurationBuilder().Build(); // No API URLs
+            var emptyConfiguration = new ConfigurationBuilder().Build();
 
             var fetchServiceWithBadConfig = new FetchService(
-                _context,
                 _httpService,
-                emptyConfiguration, // Use empty config
-                _aktorRepo,
-                _partyRepo,
-                _loggerFetchService
+                emptyConfiguration,
+                _aktorRepoMock,
+                _partyRepoMock,
+                _loggerFetchServiceMock
             );
 
             // Act & Assert
@@ -180,7 +162,7 @@ namespace backend.Services.Tests
                 await fetchServiceWithBadConfig.FetchAndUpdateAktorsAsync()
             );
             Assert.That(
-                ex.Message,
+                ex?.Message,
                 Does.Contain("API URL configuration for Aktor update is incomplete")
             );
         }
