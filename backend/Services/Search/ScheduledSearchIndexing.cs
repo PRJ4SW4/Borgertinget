@@ -1,18 +1,17 @@
-// Services/AutomationServices/ScheduledIndexService.cs
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using backend.Services; // Where SearchIndexingService lives
+using backend.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace backend.Services.Search // Adjust namespace if needed
+namespace backend.Services.Search
 {
     public class ScheduledIndexService : BackgroundService
     {
         private readonly ILogger<ScheduledIndexService> _logger;
-        private readonly IServiceScopeFactory _scopeFactory; // Factory to create scopes
+        private readonly IServiceScopeFactory _scopeFactory;
 
         public ScheduledIndexService(
             ILogger<ScheduledIndexService> logger,
@@ -32,27 +31,24 @@ namespace backend.Services.Search // Adjust namespace if needed
                 try
                 {
                     // --- Calculate Delay until next midnight Copenhagen time ---
-                    TimeZoneInfo copenhagenZone = FindTimeZone(); // Re-use helper
+                    TimeZoneInfo copenhagenZone = FindTimeZone();
                     DateTimeOffset nowUtc = DateTimeOffset.UtcNow;
                     DateTimeOffset nowCopenhagen = TimeZoneInfo.ConvertTime(nowUtc, copenhagenZone);
 
                     // Target time is midnight (start of the day)
-                    DateTime targetTimeToday = nowCopenhagen.Date; // Midnight today
-                    targetTimeToday.AddHours(4); // 4 a.m
-                    targetTimeToday.AddMinutes(5); // 4:05 a.m (letting altinget scraper finish it's scheduled service )
+                    DateTime targetTimeToday = nowCopenhagen.Date;
+                    targetTimeToday.AddHours(4);
+                    targetTimeToday.AddMinutes(5);
 
-                    // Determine the next run time (4 a.m tonight or  tomorrow)
+                    // Determine the next run time (4:05 a.m tonight or  tomorrow)
                     DateTime nextRunTimeLocal;
-                    if (nowCopenhagen.TimeOfDay >= TimeSpan.Zero) // If it's past midnight already today
+                    if (nowCopenhagen.TimeOfDay >= TimeSpan.Zero)
                     {
                         // Schedule for midnight tomorrow
                         nextRunTimeLocal = targetTimeToday.AddDays(1);
                     }
                     else
                     {
-                        // Should not happen if check is TimeOfDay >= TimeSpan.Zero
-                        // but logically, if it was before midnight, schedule for today's midnight
-                        // This case is technically covered by the AddDays(1) above
                         nextRunTimeLocal = targetTimeToday;
                     }
 
@@ -64,7 +60,7 @@ namespace backend.Services.Search // Adjust namespace if needed
 
                     TimeSpan delay = nextRunTimeZoned - nowUtc;
 
-                    // Ensure delay is non-negative (handles edge cases around DST changes near midnight)
+                    // Ensure delay is non-negative
                     if (delay < TimeSpan.Zero)
                     {
                         _logger.LogWarning(
@@ -87,7 +83,7 @@ namespace backend.Services.Search // Adjust namespace if needed
                     // --- Time to run the task ---
                     _logger.LogInformation("Running scheduled search indexing...");
 
-                    // Create a DI scope to resolve scoped services (DataContext, SearchIndexingService)
+                    // Create a DI scope to resolve scoped services
                     using (var scope = _scopeFactory.CreateScope())
                     {
                         var indexingService =
@@ -106,7 +102,6 @@ namespace backend.Services.Search // Adjust namespace if needed
                             _logger.LogInformation(
                                 "Search indexing task was cancelled during execution."
                             );
-                            // Allow the outer loop to break gracefully
                             throw;
                         }
                         catch (Exception ex)
@@ -115,12 +110,10 @@ namespace backend.Services.Search // Adjust namespace if needed
                                 ex,
                                 "Error occurred during the execution of SearchIndexingService.RunFullIndexAsync."
                             );
-                            // Logged the error, loop will continue for the next day
                         }
                     }
                     _logger.LogInformation("Finished current scheduled index run.");
 
-                    // Optional small delay to prevent tight loop if task finishes *exactly* at midnight
                     await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                 }
                 catch (TaskCanceledException)
@@ -128,7 +121,7 @@ namespace backend.Services.Search // Adjust namespace if needed
                     _logger.LogInformation(
                         "Scheduled Search Indexing Service is stopping (Task Canceled)."
                     );
-                    break; // Exit the loop
+                    break;
                 }
                 catch (TimeZoneNotFoundException tzEx)
                 {
@@ -136,7 +129,6 @@ namespace backend.Services.Search // Adjust namespace if needed
                         tzEx,
                         "CRITICAL ERROR: Copenhagen timezone not found. Indexing service cannot run."
                     );
-                    // Stop the service or wait longer
                     await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
                 }
                 catch (Exception ex)
@@ -144,12 +136,12 @@ namespace backend.Services.Search // Adjust namespace if needed
                     _logger.LogError(ex, "Unexpected error in Scheduled Index Service loop.");
                     await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken); // Wait before retrying
                 }
-            } // End while loop
+            }
 
             _logger.LogInformation("Scheduled Search Indexing Service has stopped.");
         }
 
-        // Helper to find the timezone reliably (copied from ScheduledAltingetScrapeService)
+        // Helper to find the timezone reliably
         private TimeZoneInfo FindTimeZone()
         {
             try
@@ -169,142 +161,6 @@ namespace backend.Services.Search // Adjust namespace if needed
                 );
                 throw; // Re-throw if neither is found
             }
-        }
-    }
-
-    public class TestScheduledIndexService : BackgroundService
-    {
-        private readonly ILogger<ScheduledIndexService> _logger;
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        public TestScheduledIndexService(
-            ILogger<ScheduledIndexService> logger,
-            IServiceScopeFactory scopeFactory
-        )
-        {
-            _logger = logger;
-            _scopeFactory = scopeFactory;
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            _logger.LogInformation(
-                "Scheduled Search Indexing Service is starting (TEST MODE - Running shortly after startup)."
-            );
-
-            // --- TEMPORARY: Give the app a few seconds to start up before the first run ---
-            // In a real scenario outside initial testing, you might remove this first delay
-            // if the logic inside the loop handles the first run correctly.
-            try
-            {
-                await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
-            }
-            catch (TaskCanceledException)
-            {
-                _logger.LogInformation(
-                    "Scheduled Search Indexing Service stopped during initial delay."
-                );
-                return; // Exit if stopped before first run
-            }
-            // --- END TEMPORARY ---
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                TimeSpan delay; // Declare delay variable
-
-                try
-                {
-                    // ==============================================================
-                    // --- MODIFICATION FOR TESTING: Run every ~30 seconds ---
-                    // ==============================================================
-                    // COMMENT OUT or REMOVE the original midnight calculation block:
-                    /*
-                    TimeZoneInfo copenhagenZone = FindTimeZone();
-                    DateTimeOffset nowUtc = DateTimeOffset.UtcNow;
-                    DateTimeOffset nowCopenhagen = TimeZoneInfo.ConvertTime(nowUtc, copenhagenZone);
-                    DateTime targetTimeToday = nowCopenhagen.Date;
-                    DateTime nextRunTimeLocal;
-                    if (nowCopenhagen.TimeOfDay >= TimeSpan.Zero) {
-                        nextRunTimeLocal = targetTimeToday.AddDays(1);
-                    } else {
-                        nextRunTimeLocal = targetTimeToday;
-                    }
-                    DateTimeOffset nextRunTimeZoned = new DateTimeOffset(nextRunTimeLocal, copenhagenZone.GetUtcOffset(nextRunTimeLocal));
-                    delay = nextRunTimeZoned - nowUtc;
-                    if (delay < TimeSpan.Zero) { delay = TimeSpan.Zero; }
-                    _logger.LogInformation("Next search index run scheduled for: {TargetRunTime} ...", ...);
-                    */
-
-                    // INSTEAD, use a short fixed delay for testing:
-                    delay = TimeSpan.FromSeconds(15); // Run approximately every 15 seconds
-                    _logger.LogInformation(
-                        "TEST MODE: Indexing will run after a {Delay} delay.",
-                        delay
-                    );
-                    // ==============================================================
-                    // --- END MODIFICATION ---
-                    // ==============================================================
-
-                    // Wait for the (short) delay
-                    await Task.Delay(delay, stoppingToken);
-
-                    // --- Time to run the task ---
-                    _logger.LogInformation("Running scheduled search indexing (TEST MODE)...");
-
-                    using (var scope = _scopeFactory.CreateScope())
-                    {
-                        var indexingService =
-                            scope.ServiceProvider.GetRequiredService<SearchIndexingService>();
-                        try
-                        {
-                            await indexingService.RunFullIndexAsync(stoppingToken);
-                            _logger.LogInformation(
-                                "Scheduled search indexing finished successfully (TEST MODE run)."
-                            );
-                        }
-                        // ... (keep existing inner catch blocks for OperationCanceledException and general Exception) ...
-                        catch (OperationCanceledException)
-                            when (stoppingToken.IsCancellationRequested)
-                        {
-                            _logger.LogInformation(
-                                "Search indexing task was cancelled during execution."
-                            );
-                            throw; // Re-throw to stop the loop
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(
-                                ex,
-                                "Error occurred during the execution of SearchIndexingService.RunFullIndexAsync."
-                            );
-                        }
-                    }
-                    _logger.LogInformation("Finished current scheduled index run (TEST MODE).");
-                }
-                // ... (keep existing outer catch blocks for TaskCanceledException, TimeZoneNotFoundException, Exception) ...
-                catch (TaskCanceledException)
-                {
-                    _logger.LogInformation(
-                        "Scheduled Search Indexing Service is stopping (Task Canceled)."
-                    );
-                    break; // Exit the loop
-                }
-                catch (TimeZoneNotFoundException tzEx) // Keep this in case you revert the change
-                {
-                    _logger.LogCritical(
-                        tzEx,
-                        "CRITICAL ERROR: Copenhagen timezone not found. Indexing service cannot run reliably."
-                    );
-                    await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Unexpected error in Scheduled Index Service loop.");
-                    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); // Shorter delay in test mode on error
-                }
-            } // End while loop
-
-            _logger.LogInformation("Scheduled Search Indexing Service has stopped.");
         }
     }
 }

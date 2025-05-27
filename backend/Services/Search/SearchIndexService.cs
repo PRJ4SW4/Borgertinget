@@ -1,4 +1,3 @@
-// backend/Services/Search/SearchIndexService.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -414,7 +413,6 @@ namespace backend.Services.Search
 
             var indexExistsResponse = await client.Indices.ExistsAsync(indexName);
 
-            // --- MODIFIED LOGIC TO HANDLE 404 CORRECTLY ---
             bool indexTrulyExists = false;
             if (indexExistsResponse.IsValid) // If the response is considered valid by the client
             {
@@ -437,7 +435,7 @@ namespace backend.Services.Search
                     indexExistsResponse.ServerError?.Error?.Reason ?? "N/A",
                     indexExistsResponse.DebugInformation
                 );
-                return; // Exit if we can't reliably determine existence
+                return;
             }
             // --- END OF MODIFIED LOGIC ---
 
@@ -447,9 +445,7 @@ namespace backend.Services.Search
                     "[SearchIndexSetup] Index '{IndexName}' already exists. Verifying 'suggest' field mapping...",
                     indexName
                 );
-                // You might want to add logic here to GET the current mapping and verify it.
-                // For now, we'll assume if it exists, we won't try to recreate or update mapping.
-                // If issues persist, you might need to delete and recreate the index if the mapping is wrong.
+
                 logger.LogInformation(
                     "[SearchIndexSetup] Index '{IndexName}' exists. If 'suggest' field is not working as expected, consider deleting the index manually and restarting the application to ensure the latest mapping is applied.",
                     indexName
@@ -537,7 +533,6 @@ namespace backend.Services.Search
                                         )
                                 )
                                 .Text(t => t.Name(p => p.pageContent))
-                                // --- CRUCIAL: Explicitly map the 'Suggest' field as Completion ---
                                 .Completion(cp =>
                                     cp.Name(p => p.Suggest) // This should map SearchDocument.Suggest
                                 )
