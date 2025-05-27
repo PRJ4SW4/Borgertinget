@@ -1,27 +1,26 @@
-using NUnit.Framework;
-using NSubstitute;
-using backend.Services.Authentication;
-using backend.Repositories.Authentication;
-using backend.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using backend.DTOs;
+using backend.Models;
+using backend.Repositories.Authentication;
+using backend.Services.Authentication;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions; // Tilføjet for NullLogger
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using System;
-using System.Linq;
-using Microsoft.AspNetCore.Identity.Data;
+using NSubstitute;
+using NUnit.Framework;
 
 namespace backend.Tests.Services
 {
     [TestFixture]
     public class UserAuthenticationServiceTests
     {
-        // Mocks for afhængigheder
         private IUserAuthenticationRepository _authenticationRepository;
         private UserManager<User> _userManager;
         private SignInManager<User> _signInManager;
@@ -35,14 +34,33 @@ namespace backend.Tests.Services
             _authenticationRepository = Substitute.For<IUserAuthenticationRepository>();
 
             var userStore = Substitute.For<IUserStore<User>>();
-            _userManager = Substitute.For<UserManager<User>>(userStore, null, null, null, null, null, null, null, null);
+            _userManager = Substitute.For<UserManager<User>>(
+                userStore,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
 
             var contextAccessor = Substitute.For<IHttpContextAccessor>();
             var claimsFactory = Substitute.For<IUserClaimsPrincipalFactory<User>>();
-            _signInManager = Substitute.For<SignInManager<User>>(_userManager, Substitute.For<IHttpContextAccessor>(), Substitute.For<IUserClaimsPrincipalFactory<User>>(), null, null, null, null);
+            _signInManager = Substitute.For<SignInManager<User>>(
+                _userManager,
+                Substitute.For<IHttpContextAccessor>(),
+                Substitute.For<IUserClaimsPrincipalFactory<User>>(),
+                null,
+                null,
+                null,
+                null
+            );
 
             _mockConfig = Substitute.For<IConfiguration>();
-            _mockConfig["Jwt:Key"].Returns("SuperSecretKeyThatIsAtLeast32BytesLongForTestingPurposes123");
+            _mockConfig["Jwt:Key"]
+                .Returns("SuperSecretKeyThatIsAtLeast32BytesLongForTestingPurposes123");
             _mockConfig["Jwt:Issuer"].Returns("TestIssuer");
             _mockConfig["Jwt:Audience"].Returns("TestAudience");
 
@@ -51,7 +69,7 @@ namespace backend.Tests.Services
                 _userManager,
                 _signInManager,
                 NullLogger<UserAuthenticationService>.Instance,
-                _mockConfig 
+                _mockConfig
             );
         }
 
@@ -66,7 +84,9 @@ namespace backend.Tests.Services
         {
             // Arrange
             var expectedUser = new User { Id = 1, UserName = "TestUser" };
-            _authenticationRepository.GetUserByIdAsync(1).Returns(Task.FromResult<User?>(expectedUser));
+            _authenticationRepository
+                .GetUserByIdAsync(1)
+                .Returns(Task.FromResult<User?>(expectedUser));
 
             // Act
             var result = await _uut.GetUserAsync(1);
@@ -95,7 +115,10 @@ namespace backend.Tests.Services
         // Justeret forventet output til at matche nuværende SanitizeReturnUrl-implementering
         [TestCase("/path\nwith\rbreaks", "/pathwith\rbreaks")]
         [TestCase(null, "/")]
-        public void SanitizeReturnUrl_VariousInputs_ReturnsSanitizedUrl(string? input, string expected)
+        public void SanitizeReturnUrl_VariousInputs_ReturnsSanitizedUrl(
+            string? input,
+            string expected
+        )
         {
             // Act
             var result = _uut.SanitizeReturnUrl(input);
@@ -108,8 +131,15 @@ namespace backend.Tests.Services
         public async Task CreateUserAsync_ValidDto_ReturnsSuccess()
         {
             // Arrange
-            var dto = new RegisterUserDto { Username = "newUser", Email = "new@test.com", Password = "Password123!" };
-            _userManager.CreateAsync(Arg.Any<User>(), dto.Password).Returns(Task.FromResult(IdentityResult.Success));
+            var dto = new RegisterUserDto
+            {
+                Username = "newUser",
+                Email = "new@test.com",
+                Password = "Password123!",
+            };
+            _userManager
+                .CreateAsync(Arg.Any<User>(), dto.Password)
+                .Returns(Task.FromResult(IdentityResult.Success));
 
             // Act
             var result = await _uut.CreateUserAsync(dto);
@@ -122,9 +152,16 @@ namespace backend.Tests.Services
         public async Task CreateUserAsync_CreationFails_ReturnsFailedResult()
         {
             // Arrange
-            var dto = new RegisterUserDto { Username = "newUser", Email = "new@test.com", Password = "Password123!" };
+            var dto = new RegisterUserDto
+            {
+                Username = "newUser",
+                Email = "new@test.com",
+                Password = "Password123!",
+            };
             var identityError = new IdentityError { Description = "Creation failed" };
-            _userManager.CreateAsync(Arg.Any<User>(), dto.Password).Returns(Task.FromResult(IdentityResult.Failed(identityError)));
+            _userManager
+                .CreateAsync(Arg.Any<User>(), dto.Password)
+                .Returns(Task.FromResult(IdentityResult.Failed(identityError)));
 
             // Act
             var result = await _uut.CreateUserAsync(dto);
@@ -138,8 +175,15 @@ namespace backend.Tests.Services
         public async Task CreateUserAsync_DtoWithoutPassword_CallsCorrectOverloadAndSucceeds()
         {
             // Arrange
-            var dto = new RegisterUserDto { Username = "externalUser", Email = "external@test.com", Password = null };
-            _userManager.CreateAsync(Arg.Is<User>(u => u.UserName == dto.Username)).Returns(Task.FromResult(IdentityResult.Success));
+            var dto = new RegisterUserDto
+            {
+                Username = "externalUser",
+                Email = "external@test.com",
+                Password = null,
+            };
+            _userManager
+                .CreateAsync(Arg.Is<User>(u => u.UserName == dto.Username))
+                .Returns(Task.FromResult(IdentityResult.Success));
 
             // Act
             var result = await _uut.CreateUserAsync(dto);
@@ -155,7 +199,9 @@ namespace backend.Tests.Services
             // Arrange
             var user = new User();
             var expectedToken = "confirm-token";
-            _userManager.GenerateEmailConfirmationTokenAsync(user).Returns(Task.FromResult(expectedToken));
+            _userManager
+                .GenerateEmailConfirmationTokenAsync(user)
+                .Returns(Task.FromResult(expectedToken));
 
             // Act
             var result = await _uut.GenerateEmailConfirmationTokenAsync(user);
@@ -169,7 +215,9 @@ namespace backend.Tests.Services
         {
             // Arrange
             var expectedUser = new User { UserName = "TestUser" };
-            _authenticationRepository.GetUserByNameAsync("TestUser").Returns(Task.FromResult<User?>(expectedUser));
+            _authenticationRepository
+                .GetUserByNameAsync("TestUser")
+                .Returns(Task.FromResult<User?>(expectedUser));
 
             // Act
             var result = await _uut.FindUserByNameAsync("TestUser");
@@ -183,7 +231,9 @@ namespace backend.Tests.Services
         public async Task FindUserByNameAsync_UserDoesNotExist_ReturnsNull()
         {
             // Arrange
-            _authenticationRepository.GetUserByNameAsync("NonExistentUser").Returns(Task.FromResult<User?>(null));
+            _authenticationRepository
+                .GetUserByNameAsync("NonExistentUser")
+                .Returns(Task.FromResult<User?>(null));
 
             // Act
             var result = await _uut.FindUserByNameAsync("NonExistentUser");
@@ -197,7 +247,9 @@ namespace backend.Tests.Services
         {
             // Arrange
             var user = new User();
-            _signInManager.CheckPasswordSignInAsync(user, "correct-password", false).Returns(Task.FromResult(SignInResult.Success));
+            _signInManager
+                .CheckPasswordSignInAsync(user, "correct-password", false)
+                .Returns(Task.FromResult(SignInResult.Success));
 
             // Act
             var result = await _uut.CheckPasswordSignInAsync(user, "correct-password", false);
@@ -211,7 +263,9 @@ namespace backend.Tests.Services
         {
             // Arrange
             var user = new User();
-            _signInManager.CheckPasswordSignInAsync(user, "wrong-password", false).Returns(Task.FromResult(SignInResult.Failed));
+            _signInManager
+                .CheckPasswordSignInAsync(user, "wrong-password", false)
+                .Returns(Task.FromResult(SignInResult.Failed));
 
             // Act
             var result = await _uut.CheckPasswordSignInAsync(user, "wrong-password", false);
@@ -224,7 +278,12 @@ namespace backend.Tests.Services
         public async Task GenerateJwtTokenAsync_ValidUser_ReturnsTokenString()
         {
             // Arrange
-            var user = new User { Id = 1, UserName = "tokenUser", Email = "token@test.com" };
+            var user = new User
+            {
+                Id = 1,
+                UserName = "tokenUser",
+                Email = "token@test.com",
+            };
 
             var mockConfigForValidToken = Substitute.For<IConfiguration>();
             mockConfigForValidToken["Jwt:Key"].Returns("ThisIsASecretKeyForTesting1234567890");
@@ -239,14 +298,16 @@ namespace backend.Tests.Services
                 mockConfigForValidToken
             );
 
-            _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(new List<string> { "Admin", "User" }));
+            _userManager
+                .GetRolesAsync(user)
+                .Returns(Task.FromResult<IList<string>>(new List<string> { "Admin", "User" }));
 
             // Act
             var token = await _uut.GenerateJwtTokenAsync(user);
 
             // Assert
             Assert.That(token, Is.Not.Null.And.Not.Empty);
-            Assert.That(token, Does.Contain("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9")); // Check for JWT header
+            Assert.That(token, Does.Contain("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9")); // Checker for JWT header
         }
 
         [Test]
@@ -255,10 +316,12 @@ namespace backend.Tests.Services
             // Arrange
             var user = new User();
 
-            _mockConfig["Jwt:Key"].Returns((string)null);
+            _mockConfig["Jwt:Key"].Returns((string?)null);
 
             // Act & Assert
-            Assert.ThrowsAsync<InvalidOperationException>(async () => await _uut.GenerateJwtTokenAsync(user));
+            Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _uut.GenerateJwtTokenAsync(user)
+            );
         }
 
         [Test]
@@ -280,7 +343,9 @@ namespace backend.Tests.Services
             // Arrange
             var user = new User();
             var role = "Admin";
-            _userManager.AddToRoleAsync(user, role).Returns(Task.FromResult(IdentityResult.Success));
+            _userManager
+                .AddToRoleAsync(user, role)
+                .Returns(Task.FromResult(IdentityResult.Success));
 
             // Act
             var result = await _uut.AddToRoleAsync(user, role);
@@ -295,7 +360,9 @@ namespace backend.Tests.Services
             // Arrange
             var user = new User();
             var role = "Admin";
-            _userManager.AddToRoleAsync(user, role).Returns(Task.FromResult(IdentityResult.Failed()));
+            _userManager
+                .AddToRoleAsync(user, role)
+                .Returns(Task.FromResult(IdentityResult.Failed()));
 
             // Act
             var result = await _uut.AddToRoleAsync(user, role);
@@ -303,13 +370,16 @@ namespace backend.Tests.Services
             // Assert
             Assert.That(result.Succeeded, Is.False);
         }
+
         [Test]
         public async Task ConfirmEmailAsync_UserManagerReturnsSuccess_ReturnsSuccess()
         {
             // Arrange
             var user = new User();
             var token = "valid-token";
-            _userManager.ConfirmEmailAsync(user, token).Returns(Task.FromResult(IdentityResult.Success));
+            _userManager
+                .ConfirmEmailAsync(user, token)
+                .Returns(Task.FromResult(IdentityResult.Success));
 
             // Act
             var result = await _uut.ConfirmEmailAsync(user, token);
@@ -325,7 +395,9 @@ namespace backend.Tests.Services
             var user = new User();
             var token = "invalid-token";
             var identityError = new IdentityError { Description = "Token validation failed" };
-            _userManager.ConfirmEmailAsync(user, token).Returns(Task.FromResult(IdentityResult.Failed(identityError)));
+            _userManager
+                .ConfirmEmailAsync(user, token)
+                .Returns(Task.FromResult(IdentityResult.Failed(identityError)));
 
             // Act
             var result = await _uut.ConfirmEmailAsync(user, token);
@@ -342,7 +414,9 @@ namespace backend.Tests.Services
             // Arrange
             var user = new User();
             var expectedToken = "reset-password-token";
-            _userManager.GeneratePasswordResetTokenAsync(user).Returns(Task.FromResult(expectedToken));
+            _userManager
+                .GeneratePasswordResetTokenAsync(user)
+                .Returns(Task.FromResult(expectedToken));
 
             // Act
             var result = await _uut.GeneratePasswordResetTokenAsync(user);
@@ -359,7 +433,9 @@ namespace backend.Tests.Services
             var user = new User();
             var token = "valid-reset-token";
             var newPassword = "NewPassword123!";
-            _userManager.ResetPasswordAsync(user, token, newPassword).Returns(Task.FromResult(IdentityResult.Success));
+            _userManager
+                .ResetPasswordAsync(user, token, newPassword)
+                .Returns(Task.FromResult(IdentityResult.Success));
 
             // Act
             var result = await _uut.ResetPasswordAsync(user, token, newPassword);
@@ -376,7 +452,9 @@ namespace backend.Tests.Services
             var token = "invalid-reset-token";
             var newPassword = "NewPassword123!";
             var identityError = new IdentityError { Description = "Password reset failed" };
-            _userManager.ResetPasswordAsync(user, token, newPassword).Returns(Task.FromResult(IdentityResult.Failed(identityError)));
+            _userManager
+                .ResetPasswordAsync(user, token, newPassword)
+                .Returns(Task.FromResult(IdentityResult.Failed(identityError)));
 
             // Act
             var result = await _uut.ResetPasswordAsync(user, token, newPassword);
@@ -393,7 +471,9 @@ namespace backend.Tests.Services
             // Arrange
             var email = "test@example.com";
             var expectedUser = new User { Email = email };
-            _authenticationRepository.GetUserByEmailAsync(email).Returns(Task.FromResult<User?>(expectedUser));
+            _authenticationRepository
+                .GetUserByEmailAsync(email)
+                .Returns(Task.FromResult<User?>(expectedUser));
 
             // Act
             var result = await _uut.FindUserByEmailAsync(email);
@@ -407,7 +487,9 @@ namespace backend.Tests.Services
         {
             // Arrange
             var email = "nonexistent@example.com";
-            _authenticationRepository.GetUserByEmailAsync(email).Returns(Task.FromResult<User?>(null));
+            _authenticationRepository
+                .GetUserByEmailAsync(email)
+                .Returns(Task.FromResult<User?>(null));
 
             // Act
             var result = await _uut.FindUserByEmailAsync(email);
@@ -437,7 +519,9 @@ namespace backend.Tests.Services
             // Arrange
             var user = new User();
             var identityError = new IdentityError { Description = "Deletion failed" };
-            _userManager.DeleteAsync(user).Returns(Task.FromResult(IdentityResult.Failed(identityError)));
+            _userManager
+                .DeleteAsync(user)
+                .Returns(Task.FromResult(IdentityResult.Failed(identityError)));
 
             // Act
             var result = await _uut.DeleteUserAsync(user);
@@ -447,14 +531,20 @@ namespace backend.Tests.Services
             Assert.That(result.Errors.Contains(identityError), Is.True);
         }
 
-
         // --- Tests for GetExternalLoginInfoAsync ---
         [Test]
         public async Task GetExternalLoginInfoAsync_SignInManagerReturnsInfo_ReturnsInfo()
         {
             // Arrange
-            var expectedLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "somekey", "Google");
-            _signInManager.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(expectedLoginInfo));
+            var expectedLoginInfo = new ExternalLoginInfo(
+                new ClaimsPrincipal(),
+                "Google",
+                "somekey",
+                "Google"
+            );
+            _signInManager
+                .GetExternalLoginInfoAsync()
+                .Returns(Task.FromResult<ExternalLoginInfo?>(expectedLoginInfo));
 
             // Act
             var result = await _uut.GetExternalLoginInfoAsync();
@@ -467,7 +557,9 @@ namespace backend.Tests.Services
         public async Task GetExternalLoginInfoAsync_SignInManagerReturnsNull_ReturnsNull()
         {
             // Arrange
-            _signInManager.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(null));
+            _signInManager
+                .GetExternalLoginInfoAsync()
+                .Returns(Task.FromResult<ExternalLoginInfo?>(null));
 
             // Act
             var result = await _uut.GetExternalLoginInfoAsync();
@@ -485,18 +577,32 @@ namespace backend.Tests.Services
             var providerKey = "somekey";
             var isPersistent = false;
             var bypassTwoFactor = true;
-            var expectedResult = SignInResult.Success; // Eller en anden SignInResult for at teste forskellige scenarier
+            var expectedResult = SignInResult.Success; 
 
-            _signInManager.ExternalLoginSignInAsync(loginProvider, providerKey, isPersistent, bypassTwoFactor)
+            _signInManager
+                .ExternalLoginSignInAsync(loginProvider, providerKey, isPersistent, bypassTwoFactor)
                 .Returns(Task.FromResult(expectedResult));
 
             // Act
-            var result = await _uut.ExternalLoginSignInAsync(loginProvider, providerKey, isPersistent, bypassTwoFactor);
+            var result = await _uut.ExternalLoginSignInAsync(
+                loginProvider,
+                providerKey,
+                isPersistent,
+                bypassTwoFactor
+            );
 
             // Assert
             Assert.That(result, Is.EqualTo(expectedResult));
-            await _signInManager.Received(1).ExternalLoginSignInAsync(loginProvider, providerKey, isPersistent, bypassTwoFactor);
+            await _signInManager
+                .Received(1)
+                .ExternalLoginSignInAsync(
+                    loginProvider,
+                    providerKey,
+                    isPersistent,
+                    bypassTwoFactor
+                );
         }
+
         #region ConfigureExternalAuthenticationProperties
 
         [Test]
@@ -506,32 +612,53 @@ namespace backend.Tests.Services
             var provider = "Google";
             var redirectUrl = "http://localhost/redirect";
             var expectedProperties = new AuthenticationProperties();
-            _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl).Returns(expectedProperties);
+            _signInManager
+                .ConfigureExternalAuthenticationProperties(provider, redirectUrl)
+                .Returns(expectedProperties);
 
             // Act
             var result = _uut.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
 
             // Assert
             Assert.That(result, Is.EqualTo(expectedProperties));
-            _signInManager.Received(1).ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            _signInManager
+                .Received(1)
+                .ConfigureExternalAuthenticationProperties(provider, redirectUrl);
         }
         #endregion
 
-        #region OAuth        
+        #region OAuth
         [Test]
         public async Task HandleGoogleLoginCallbackAsync_ExternalLoginSucceeds_ReturnsSuccessDto()
         {
             // Arrange
-            var claims = new List<Claim> { new Claim(ClaimTypes.Email, "test@example.com"), new Claim(ClaimTypes.Name, "Test User") };
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, "test@example.com"),
+                new Claim(ClaimTypes.Name, "Test User"),
+            };
             var claimsIdentity = new ClaimsIdentity(claims, "Google");
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-            var externalLoginInfo = new ExternalLoginInfo(claimsPrincipal, "Google", "providerKey", "Google");
+            var externalLoginInfo = new ExternalLoginInfo(
+                claimsPrincipal,
+                "Google",
+                "providerKey",
+                "Google"
+            );
 
-            var user = new User { Id = 1, UserName = "TestUser", Email = "test@example.com" };
+            var user = new User
+            {
+                Id = 1,
+                UserName = "TestUser",
+                Email = "test@example.com",
+            };
 
-            _signInManager.ExternalLoginSignInAsync("Google", "providerKey", false, true)
-                        .Returns(Task.FromResult(SignInResult.Success));
-            _userManager.FindByLoginAsync("Google", "providerKey").Returns(Task.FromResult<User?>(user));
+            _signInManager
+                .ExternalLoginSignInAsync("Google", "providerKey", false, true)
+                .Returns(Task.FromResult(SignInResult.Success));
+            _userManager
+                .FindByLoginAsync("Google", "providerKey")
+                .Returns(Task.FromResult<User?>(user));
 
             var mockConfig = Substitute.For<IConfiguration>();
             mockConfig["Jwt:Key"].Returns("SuperSecretTestKey12345678901234567890");
@@ -546,15 +673,16 @@ namespace backend.Tests.Services
                 mockConfig
             );
 
-            _userManager.GetRolesAsync(user).Returns(Task.FromResult<IList<string>>(new List<string>()));
-
+            _userManager
+                .GetRolesAsync(user)
+                .Returns(Task.FromResult<IList<string>>(new List<string>()));
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
 
             // Assert
             Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.Success));
-            Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty); // JWT token genereres nu
+            Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty); 
             Assert.That(result.AppUser, Is.EqualTo(user));
         }
 
@@ -563,26 +691,39 @@ namespace backend.Tests.Services
         {
             // Arrange
             var email = "newuser@example.com";
-            var userNameBase = "newuser"; // Forventet brugernavn før unik check
-            var claims = new List<Claim> { new Claim(ClaimTypes.Email, email), new Claim(ClaimTypes.Name, "new user") };
+            var userNameBase = "newuser"; 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Name, "new user"),
+            };
             var claimsIdentity = new ClaimsIdentity(claims, "Google");
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-            var externalLoginInfo = new ExternalLoginInfo(claimsPrincipal, "Google", "providerKey", "Google");
+            var externalLoginInfo = new ExternalLoginInfo(
+                claimsPrincipal,
+                "Google",
+                "providerKey",
+                "Google"
+            );
 
-            User? createdUser = null; // Bruges til at fange den bruger, der sendes til CreateAsync
+            User? createdUser = null; 
 
-            _signInManager.ExternalLoginSignInAsync("Google", "providerKey", false, true)
-                        .Returns(Task.FromResult(SignInResult.Failed)); // Eksternt login fejler -> ny bruger flow
-            _authenticationRepository.GetUserByEmailAsync(email).Returns(Task.FromResult<User?>(null)); // Ingen eksisterende bruger med denne email
+            _signInManager
+                .ExternalLoginSignInAsync("Google", "providerKey", false, true)
+                .Returns(Task.FromResult(SignInResult.Failed)); 
+            _authenticationRepository
+                .GetUserByEmailAsync(email)
+                .Returns(Task.FromResult<User?>(null)); 
 
-            // Mock for at fange den bruger, der oprettes, og for at sikre, at brugernavnet er unikt
-            _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u))
-                        .Returns(callInfo => Task.FromResult(IdentityResult.Success));
-            _userManager.FindByNameAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null)); // Antag at genererede brugernavne er unikke
+            _userManager
+                .CreateAsync(Arg.Do<User>(u => createdUser = u))
+                .Returns(callInfo => Task.FromResult(IdentityResult.Success));
+            _userManager.FindByNameAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null)); 
 
-            _userManager.AddLoginAsync(Arg.Any<User>(), Arg.Any<UserLoginInfo>()).Returns(Task.FromResult(IdentityResult.Success));
+            _userManager
+                .AddLoginAsync(Arg.Any<User>(), Arg.Any<UserLoginInfo>())
+                .Returns(Task.FromResult(IdentityResult.Success));
 
-            // Mock JWT-konfiguration
             var mockConfig = Substitute.For<IConfiguration>();
             mockConfig["Jwt:Key"].Returns("SuperSecretTestKey12345678901234567890");
             mockConfig["Jwt:Issuer"].Returns("TestIssuer");
@@ -596,7 +737,9 @@ namespace backend.Tests.Services
                 mockConfig
             );
 
-            _userManager.GetRolesAsync(Arg.Any<User>()).Returns(Task.FromResult<IList<string>>(new List<string>()));
+            _userManager
+                .GetRolesAsync(Arg.Any<User>())
+                .Returns(Task.FromResult<IList<string>>(new List<string>()));
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
@@ -606,25 +749,48 @@ namespace backend.Tests.Services
             Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
             Assert.That(result.AppUser, Is.Not.Null);
             Assert.That(result.AppUser?.Email, Is.EqualTo(email));
-            Assert.That(createdUser, Is.Not.Null, "UserManager.CreateAsync blev ikke kaldt med en bruger.");
-            Assert.That(createdUser?.UserName, Does.StartWith(userNameBase), "Brugernavn blev ikke genereret korrekt.");
-            await _userManager.Received(1).CreateAsync(Arg.Is<User>(u => u.Email == email && u.EmailConfirmed));
-            await _userManager.Received(1).AddLoginAsync(Arg.Is<User>(u => u.Email == email),
-                Arg.Is<UserLoginInfo>(uli => uli.LoginProvider == externalLoginInfo.LoginProvider && uli.ProviderKey == externalLoginInfo.ProviderKey && uli.ProviderDisplayName == externalLoginInfo.ProviderDisplayName));
+            Assert.That(
+                createdUser,
+                Is.Not.Null,
+                "UserManager.CreateAsync blev ikke kaldt med en bruger."
+            );
+            Assert.That(
+                createdUser?.UserName,
+                Does.StartWith(userNameBase),
+                "Brugernavn blev ikke genereret korrekt."
+            );
+            await _userManager
+                .Received(1)
+                .CreateAsync(Arg.Is<User>(u => u.Email == email && u.EmailConfirmed));
+            await _userManager
+                .Received(1)
+                .AddLoginAsync(
+                    Arg.Is<User>(u => u.Email == email),
+                    Arg.Is<UserLoginInfo>(uli =>
+                        uli.LoginProvider == externalLoginInfo.LoginProvider
+                        && uli.ProviderKey == externalLoginInfo.ProviderKey
+                        && uli.ProviderDisplayName == externalLoginInfo.ProviderDisplayName
+                    )
+                );
         }
 
         [Test]
         public async Task HandleGoogleLoginCallbackAsync_ExternalLoginFails_NoEmailClaim_ReturnsErrorNoEmailClaim()
         {
             // Arrange
-            // Opret ClaimsPrincipal uden Email claim
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, "No Email User") };
             var claimsIdentity = new ClaimsIdentity(claims, "Google");
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-            var externalLoginInfo = new ExternalLoginInfo(claimsPrincipal, "Google", "providerKey", "Google");
+            var externalLoginInfo = new ExternalLoginInfo(
+                claimsPrincipal,
+                "Google",
+                "providerKey",
+                "Google"
+            );
 
-            _signInManager.ExternalLoginSignInAsync("Google", "providerKey", false, true)
-                        .Returns(Task.FromResult(SignInResult.Failed));
+            _signInManager
+                .ExternalLoginSignInAsync("Google", "providerKey", false, true)
+                .Returns(Task.FromResult(SignInResult.Failed));
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
@@ -639,19 +805,32 @@ namespace backend.Tests.Services
         {
             // Arrange
             var email = "createfail@example.com";
-            var claims = new List<Claim> { new Claim(ClaimTypes.Email, email), new Claim(ClaimTypes.Name, "Create Fail User") };
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Name, "Create Fail User"),
+            };
             var claimsIdentity = new ClaimsIdentity(claims, "Google");
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-            var externalLoginInfo = new ExternalLoginInfo(claimsPrincipal, "Google", "providerKey", "Google");
+            var externalLoginInfo = new ExternalLoginInfo(
+                claimsPrincipal,
+                "Google",
+                "providerKey",
+                "Google"
+            );
 
-            _signInManager.ExternalLoginSignInAsync("Google", "providerKey", false, true)
-                        .Returns(Task.FromResult(SignInResult.Failed));
-            _authenticationRepository.GetUserByEmailAsync(email).Returns(Task.FromResult<User?>(null));
+            _signInManager
+                .ExternalLoginSignInAsync("Google", "providerKey", false, true)
+                .Returns(Task.FromResult(SignInResult.Failed));
+            _authenticationRepository
+                .GetUserByEmailAsync(email)
+                .Returns(Task.FromResult<User?>(null));
 
             var identityError = new IdentityError { Description = "Simuleret oprettelsesfejl" };
-            _userManager.CreateAsync(Arg.Any<User>()).Returns(Task.FromResult(IdentityResult.Failed(identityError)));
+            _userManager
+                .CreateAsync(Arg.Any<User>())
+                .Returns(Task.FromResult(IdentityResult.Failed(identityError)));
             _userManager.FindByNameAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null));
-
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
@@ -666,29 +845,45 @@ namespace backend.Tests.Services
         {
             // Arrange
             var email = "linkfail@example.com";
-            var claims = new List<Claim> { new Claim(ClaimTypes.Email, email), new Claim(ClaimTypes.Name, "Link Fail User") };
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Name, "Link Fail User"),
+            };
             var claimsIdentity = new ClaimsIdentity(claims, "Google");
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-            var externalLoginInfo = new ExternalLoginInfo(claimsPrincipal, "Google", "providerKey", "Google");
+            var externalLoginInfo = new ExternalLoginInfo(
+                claimsPrincipal,
+                "Google",
+                "providerKey",
+                "Google"
+            );
 
             User? createdUser = null;
 
-            _signInManager.ExternalLoginSignInAsync("Google", "providerKey", false, true)
-                        .Returns(Task.FromResult(SignInResult.Failed));
-            _authenticationRepository.GetUserByEmailAsync(email).Returns(Task.FromResult<User?>(null));
+            _signInManager
+                .ExternalLoginSignInAsync("Google", "providerKey", false, true)
+                .Returns(Task.FromResult(SignInResult.Failed));
+            _authenticationRepository
+                .GetUserByEmailAsync(email)
+                .Returns(Task.FromResult<User?>(null));
 
-            _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u)).Returns(Task.FromResult(IdentityResult.Success));
+            _userManager
+                .CreateAsync(Arg.Do<User>(u => createdUser = u))
+                .Returns(Task.FromResult(IdentityResult.Success));
             _userManager.FindByNameAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null));
 
             var identityError = new IdentityError { Description = "Simuleret linkfejl" };
-            _userManager.AddLoginAsync(Arg.Any<User>(), Arg.Any<UserLoginInfo>()).Returns(Task.FromResult(IdentityResult.Failed(identityError)));
+            _userManager
+                .AddLoginAsync(Arg.Any<User>(), Arg.Any<UserLoginInfo>())
+                .Returns(Task.FromResult(IdentityResult.Failed(identityError)));
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
 
             // Assert
             Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.ErrorLinkLoginFailed));
-            Assert.That(result.ErrorMessage, Is.EqualTo("Kunne ikke linke Google konto.")); // Matcher den faktiske fejlbesked i servicen
+            Assert.That(result.ErrorMessage, Is.EqualTo("Kunne ikke linke Google konto."));
         }
 
         [Test]
@@ -703,7 +898,7 @@ namespace backend.Tests.Services
                 Id = 1,
                 UserName = "ExistingUser",
                 Email = userEmail,
-                EmailConfirmed = false
+                EmailConfirmed = false,
             };
 
             var claims = new List<Claim>
@@ -711,25 +906,40 @@ namespace backend.Tests.Services
                 new Claim(ClaimTypes.Email, userEmail),
                 new Claim(ClaimTypes.Name, "Existing User"),
                 new Claim(ClaimTypes.GivenName, "Existing"),
-                new Claim(ClaimTypes.Surname, "User")
+                new Claim(ClaimTypes.Surname, "User"),
             };
 
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, provider));
-            var externalLoginInfo = new ExternalLoginInfo(principal, provider, providerKey, provider)
+            var externalLoginInfo = new ExternalLoginInfo(
+                principal,
+                provider,
+                providerKey,
+                provider
+            )
             {
-                ProviderDisplayName = provider
+                ProviderDisplayName = provider,
             };
 
-            _signInManager.ExternalLoginSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+            _signInManager
+                .ExternalLoginSignInAsync(
+                    Arg.Any<string>(),
+                    Arg.Any<string>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<bool>()
+                )
                 .Returns(SignInResult.Failed);
 
             _authenticationRepository.GetUserByEmailAsync(userEmail).Returns(existingUser);
 
-            _userManager.UpdateAsync(existingUser)
-                .Returns(Task.FromResult(IdentityResult.Success));
+            _userManager.UpdateAsync(existingUser).Returns(Task.FromResult(IdentityResult.Success));
 
-            _userManager.AddLoginAsync(existingUser, Arg.Is<UserLoginInfo>(
-                info => info.LoginProvider == provider && info.ProviderKey == providerKey))
+            _userManager
+                .AddLoginAsync(
+                    existingUser,
+                    Arg.Is<UserLoginInfo>(info =>
+                        info.LoginProvider == provider && info.ProviderKey == providerKey
+                    )
+                )
                 .Returns(IdentityResult.Success);
 
             // Act
@@ -738,7 +948,11 @@ namespace backend.Tests.Services
             // Assert
             Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.Success));
             Assert.That(result.AppUser, Is.EqualTo(existingUser));
-            Assert.That(result.AppUser.EmailConfirmed, Is.True, "Email should be confirmed after linking external login.");
+            Assert.That(
+                result.AppUser.EmailConfirmed,
+                Is.True,
+                "Email should be confirmed after linking external login."
+            );
             Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
         }
 
@@ -749,34 +963,53 @@ namespace backend.Tests.Services
             var userEmail = "test@example.com";
             var provider = "Google";
             var providerKey = "google-provider-key-123";
-            var existingUser = new User { Id = 1, UserName = "testuser", Email = userEmail, EmailConfirmed = false }; // Email is NOT confirmed
+            var existingUser = new User
+            {
+                Id = 1,
+                UserName = "testuser",
+                Email = userEmail,
+                EmailConfirmed = false,
+            }; // Email is NOT confirmed
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, userEmail),
                 new Claim(ClaimTypes.Name, "Test User"),
                 new Claim(ClaimTypes.GivenName, "Test"),
-                new Claim(ClaimTypes.Surname, "User")
+                new Claim(ClaimTypes.Surname, "User"),
             };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, provider));
-            var externalLoginInfo = new ExternalLoginInfo(principal, provider, providerKey, provider)
+            var externalLoginInfo = new ExternalLoginInfo(
+                principal,
+                provider,
+                providerKey,
+                provider
+            )
             {
-                ProviderDisplayName = provider
+                ProviderDisplayName = provider,
             };
 
-            // Mock behavior for repository and managers
-            _signInManager.ExternalLoginSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
-                .Returns(SignInResult.Failed); // Simulate that ExternalLoginSignInAsync fails (user not found via login)
+            _signInManager
+                .ExternalLoginSignInAsync(
+                    Arg.Any<string>(),
+                    Arg.Any<string>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<bool>()
+                )
+                .Returns(SignInResult.Failed); 
 
-            _authenticationRepository.GetUserByEmailAsync(userEmail)
-                .Returns(existingUser); // Simulate user found by email
+            _authenticationRepository.GetUserByEmailAsync(userEmail).Returns(existingUser); 
 
-            _userManager.UpdateAsync(existingUser)
-                .Returns(IdentityResult.Success); // Simulate successful email confirmation
+            _userManager.UpdateAsync(existingUser).Returns(IdentityResult.Success); 
 
-            _userManager.AddLoginAsync(existingUser, Arg.Is<UserLoginInfo>(
-                info => info.LoginProvider == provider && info.ProviderKey == providerKey))
-                .Returns(IdentityResult.Success); // Simulate successful linking of external login
+            _userManager
+                .AddLoginAsync(
+                    existingUser,
+                    Arg.Is<UserLoginInfo>(info =>
+                        info.LoginProvider == provider && info.ProviderKey == providerKey
+                    )
+                )
+                .Returns(IdentityResult.Success); 
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
@@ -784,7 +1017,7 @@ namespace backend.Tests.Services
             // Assert
             Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.Success));
             Assert.That(result.AppUser, Is.EqualTo(existingUser));
-            Assert.That(result.AppUser.EmailConfirmed, Is.True); // Verify email was confirmed
+            Assert.That(result.AppUser.EmailConfirmed, Is.True); 
             Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
         }
 
@@ -797,25 +1030,26 @@ namespace backend.Tests.Services
             var providerKey = "google-provider-key-123";
 
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Email, userEmail),
-            new Claim(ClaimTypes.Name, "Test User"),
-        };
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, provider));
-            var externalLoginInfo = new ExternalLoginInfo(principal, provider, providerKey, provider)
             {
-                ProviderDisplayName = provider
+                new Claim(ClaimTypes.Email, userEmail),
+                new Claim(ClaimTypes.Name, "Test User"),
             };
-
-            _signInManager.ExternalLoginSignInAsync(
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, provider));
+            var externalLoginInfo = new ExternalLoginInfo(
+                principal,
                 provider,
                 providerKey,
-                Arg.Any<bool>(),
-                Arg.Any<bool>()
-            ).Returns(SignInResult.Success);
+                provider
+            )
+            {
+                ProviderDisplayName = provider,
+            };
 
-            _userManager.FindByLoginAsync(provider, providerKey)
-                .Returns((User)null);
+            _signInManager
+                .ExternalLoginSignInAsync(provider, providerKey, Arg.Any<bool>(), Arg.Any<bool>())
+                .Returns(SignInResult.Success);
+
+            _userManager.FindByLoginAsync(provider, providerKey).Returns((User?)null);
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
@@ -823,8 +1057,8 @@ namespace backend.Tests.Services
             // Assert
             Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.ErrorUserNotFoundAfterSignIn));
             Assert.That(result.ErrorMessage, Is.EqualTo("Bruger konto problem."));
-            Assert.That(result.JwtToken, Is.Null); // No JWT should be generated
-            Assert.That(result.AppUser, Is.Null); // No user should be returned
+            Assert.That(result.JwtToken, Is.Null); 
+            Assert.That(result.AppUser, Is.Null); 
         }
 
         [Test]
@@ -844,25 +1078,39 @@ namespace backend.Tests.Services
                 new Claim(ClaimTypes.Name, "John Doe Full"),
             };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, provider));
-            var externalLoginInfo = new ExternalLoginInfo(principal, provider, providerKey, provider)
+            var externalLoginInfo = new ExternalLoginInfo(
+                principal,
+                provider,
+                providerKey,
+                provider
+            )
             {
-                ProviderDisplayName = provider
+                ProviderDisplayName = provider,
             };
 
-            _signInManager.ExternalLoginSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+            _signInManager
+                .ExternalLoginSignInAsync(
+                    Arg.Any<string>(),
+                    Arg.Any<string>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<bool>()
+                )
                 .Returns(SignInResult.Failed);
-            _authenticationRepository.GetUserByEmailAsync(userEmail)
-                .Returns((User)null); // Force new user creation
+            _authenticationRepository.GetUserByEmailAsync(userEmail).Returns((User?)null); 
 
-            _authenticationRepository.GetUserByNameAsync(expectedUserName)
-                .Returns((User)null);
+            _authenticationRepository.GetUserByNameAsync(expectedUserName).Returns((User?)null);
 
-            User createdUser = null;
+            User? createdUser = null;
 
-            _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u))
+            _userManager
+                .CreateAsync(Arg.Do<User>(u => createdUser = u))
                 .Returns(IdentityResult.Success);
 
-            _userManager.AddLoginAsync(Arg.Do<User>(u => Assert.That(u, Is.EqualTo(createdUser))), Arg.Any<UserLoginInfo>())
+            _userManager
+                .AddLoginAsync(
+                    Arg.Do<User>(u => Assert.That(u, Is.EqualTo(createdUser))),
+                    Arg.Any<UserLoginInfo>()
+                )
                 .Returns(IdentityResult.Success);
 
             // Act
@@ -872,7 +1120,7 @@ namespace backend.Tests.Services
             Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.Success));
             Assert.That(result.AppUser, Is.Not.Null);
             Assert.That(result.AppUser.UserName, Is.EqualTo(expectedUserName));
-            Assert.That(result.AppUser, Is.EqualTo(createdUser)); // Ensure the returned user is the one created
+            Assert.That(result.AppUser, Is.EqualTo(createdUser)); 
             Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
         }
 
@@ -883,39 +1131,46 @@ namespace backend.Tests.Services
             var userEmail = "testuser2@example.com";
             var provider = "Google";
             var providerKey = "google-key-only-name";
-            var expectedUserName = "FullNameExample"; // Define expected username
+            var expectedUserName = "FullNameExample"; 
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, userEmail),
-                new Claim(ClaimTypes.Name, expectedUserName), // Only Name claim present
+                new Claim(ClaimTypes.Name, expectedUserName), 
             };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, provider));
-            var externalLoginInfo = new ExternalLoginInfo(principal, provider, providerKey, provider)
+            var externalLoginInfo = new ExternalLoginInfo(
+                principal,
+                provider,
+                providerKey,
+                provider
+            )
             {
-                ProviderDisplayName = provider
+                ProviderDisplayName = provider,
             };
 
-            _signInManager.ExternalLoginSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+            _signInManager
+                .ExternalLoginSignInAsync(
+                    Arg.Any<string>(),
+                    Arg.Any<string>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<bool>()
+                )
                 .Returns(SignInResult.Failed);
-            _authenticationRepository.GetUserByEmailAsync(userEmail)
-                .Returns((User)null); // Force new user creation
+            _authenticationRepository.GetUserByEmailAsync(userEmail).Returns((User?)null); 
 
-            _authenticationRepository.GetUserByNameAsync(expectedUserName)
-                .Returns((User)null); // Ensure it's not found, no loop needed
+            _authenticationRepository.GetUserByNameAsync(expectedUserName).Returns((User?)null);
 
-            User createdUser = null; // This will hold the User instance created by the service
-            
-            // Mock CreateAsync to capture the user being created by the service AND return success
-            _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u))
-                        .Returns(IdentityResult.Success);
+            User? createdUser = null; 
 
-            // Mock AddLoginAsync for the *captured* user, ensuring it's the same instance
-            _userManager.AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>())
-                        .Returns(IdentityResult.Success);
-            
-            // Crucial: If the service relies on GetUserLoginInfoAsync or similar later, mock it too.
-            // For token generation, the service likely uses the 'createdUser' object directly.
+            _userManager
+                .CreateAsync(Arg.Do<User>(u => createdUser = u))
+                .Returns(IdentityResult.Success);
+
+            _userManager
+                .AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>())
+                .Returns(IdentityResult.Success);
+
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
@@ -923,13 +1178,18 @@ namespace backend.Tests.Services
             // Assert
             Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.Success));
             Assert.That(result.AppUser, Is.Not.Null);
-            Assert.That(result.AppUser.UserName, Is.EqualTo(expectedUserName)); // Verify username is derived from Name claim
-            Assert.That(result.AppUser, Is.EqualTo(createdUser)); // Assert that the returned user is the one captured
+            Assert.That(result.AppUser.UserName, Is.EqualTo(expectedUserName)); 
+            Assert.That(result.AppUser, Is.EqualTo(createdUser)); 
             Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
 
-            // Verify interactions (optional but good practice)
-            await _userManager.Received(1).CreateAsync(Arg.Is<User>(u => u.Email == userEmail && u.UserName == expectedUserName));
-            await _userManager.Received(1).AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>());
+            await _userManager
+                .Received(1)
+                .CreateAsync(
+                    Arg.Is<User>(u => u.Email == userEmail && u.UserName == expectedUserName)
+                );
+            await _userManager
+                .Received(1)
+                .AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>());
         }
 
         [Test]
@@ -939,35 +1199,44 @@ namespace backend.Tests.Services
             var userEmail = "emailprefix@example.com";
             var provider = "Google";
             var providerKey = "google-key-email-prefix";
-            var expectedUserName = "emailprefix"; // Define expected username
+            var expectedUserName = "emailprefix"; 
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, userEmail), // Only email claim
+                new Claim(ClaimTypes.Email, userEmail), 
             };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, provider));
-            var externalLoginInfo = new ExternalLoginInfo(principal, provider, providerKey, provider)
+            var externalLoginInfo = new ExternalLoginInfo(
+                principal,
+                provider,
+                providerKey,
+                provider
+            )
             {
-                ProviderDisplayName = provider
+                ProviderDisplayName = provider,
             };
 
-            _signInManager.ExternalLoginSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+            _signInManager
+                .ExternalLoginSignInAsync(
+                    Arg.Any<string>(),
+                    Arg.Any<string>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<bool>()
+                )
                 .Returns(SignInResult.Failed);
-            _authenticationRepository.GetUserByEmailAsync(userEmail)
-                .Returns((User)null); // Force new user creation
+            _authenticationRepository.GetUserByEmailAsync(userEmail).Returns((User?)null);
 
-            _authenticationRepository.GetUserByNameAsync(expectedUserName) // Expect this derived username
-                .Returns((User)null); // Ensure it's not found, no loop needed
+            _authenticationRepository.GetUserByNameAsync(expectedUserName).Returns((User?)null);
 
-            User createdUser = null; // This will hold the User instance created by the service
+            User? createdUser = null;
 
-            // Mock CreateAsync to capture the user being created by the service AND return success
-            _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u))
-                        .Returns(IdentityResult.Success);
+            _userManager
+                .CreateAsync(Arg.Do<User>(u => createdUser = u))
+                .Returns(IdentityResult.Success);
 
-            // Mock AddLoginAsync for the *captured* user
-            _userManager.AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>())
-                        .Returns(IdentityResult.Success);
+            _userManager
+                .AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>())
+                .Returns(IdentityResult.Success);
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
@@ -975,53 +1244,66 @@ namespace backend.Tests.Services
             // Assert
             Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.Success));
             Assert.That(result.AppUser, Is.Not.Null);
-            Assert.That(result.AppUser.UserName, Is.EqualTo(expectedUserName)); // Verify username is derived from email prefix
-            Assert.That(result.AppUser, Is.EqualTo(createdUser)); // Assert that the returned user is the one captured
+            Assert.That(result.AppUser.UserName, Is.EqualTo(expectedUserName));
+            Assert.That(result.AppUser, Is.EqualTo(createdUser));
             Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
 
-            // Verify interactions (optional but good practice)
-            await _userManager.Received(1).CreateAsync(Arg.Is<User>(u => u.Email == userEmail && u.UserName == expectedUserName));
-            await _userManager.Received(1).AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>());
+            await _userManager
+                .Received(1)
+                .CreateAsync(
+                    Arg.Is<User>(u => u.Email == userEmail && u.UserName == expectedUserName)
+                );
+            await _userManager
+                .Received(1)
+                .AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>());
         }
 
         [Test]
         public async Task HandleGoogleLoginCallbackAsync_SanitizedUserNameIsWhitespace_GeneratesGuidUserName()
         {
-            // Tests lines 207-210
             // Arrange
             var userEmail = "weirduser@example.com";
             var provider = "Google";
             var providerKey = "google-provider-key-789";
 
-            // Create a principal with a name that will result in an empty sanitizedUserName
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, userEmail),
-                new Claim(ClaimTypes.Name, "!@#$%^&*()"), // Name with only special characters
+                new Claim(ClaimTypes.Name, "!@#$%^&*()"),
                 new Claim(ClaimTypes.GivenName, "§!§!"),
-                new Claim(ClaimTypes.Surname, "---")
+                new Claim(ClaimTypes.Surname, "---"),
             };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, provider));
-            var externalLoginInfo = new ExternalLoginInfo(principal, provider, providerKey, provider)
+            var externalLoginInfo = new ExternalLoginInfo(
+                principal,
+                provider,
+                providerKey,
+                provider
+            )
             {
-                ProviderDisplayName = provider
+                ProviderDisplayName = provider,
             };
 
-            _signInManager.ExternalLoginSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+            _signInManager
+                .ExternalLoginSignInAsync(
+                    Arg.Any<string>(),
+                    Arg.Any<string>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<bool>()
+                )
                 .Returns(SignInResult.Failed);
 
-            _authenticationRepository.GetUserByEmailAsync(userEmail)
-                .Returns((User)null); // Ensure new user creation path
+            _authenticationRepository.GetUserByEmailAsync(userEmail).Returns((User?)null);
 
-            User createdUser = null; // This will hold the User instance created by the service
+            User? createdUser = null;
 
-            // Mock CreateAsync to capture the user being created by the service AND return success
-            _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u))
-                        .Returns(IdentityResult.Success);
+            _userManager
+                .CreateAsync(Arg.Do<User>(u => createdUser = u))
+                .Returns(IdentityResult.Success);
 
-            // Mock AddLoginAsync for the *captured* user
-            _userManager.AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>())
-                        .Returns(IdentityResult.Success);
+            _userManager
+                .AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>())
+                .Returns(IdentityResult.Success);
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
@@ -1031,23 +1313,31 @@ namespace backend.Tests.Services
             Assert.That(result.AppUser, Is.Not.Null);
             Assert.That(result.AppUser.Email, Is.EqualTo(userEmail));
             Assert.That(result.AppUser.EmailConfirmed, Is.True);
-            // Expect a GUID-based username (e.g., "user" followed by 8 hex chars)
             Assert.That(result.AppUser.UserName, Does.StartWith("user"));
-            Assert.That(result.AppUser.UserName.Length, Is.EqualTo("user".Length + 8)); // "user" + 8 chars from GUID
-            // Check if the GUID part is a valid hex string of length 8
-            Assert.That(System.Text.RegularExpressions.Regex.IsMatch(result.AppUser.UserName.Substring(4), "^[0-9a-fA-F]{8}$"), Is.True);
-            Assert.That(result.AppUser, Is.EqualTo(createdUser)); // Assert that the returned user is the one captured
+            Assert.That(result.AppUser.UserName.Length, Is.EqualTo("user".Length + 8));
+            Assert.That(
+                System.Text.RegularExpressions.Regex.IsMatch(
+                    result.AppUser.UserName.Substring(4),
+                    "^[0-9a-fA-F]{8}$"
+                ),
+                Is.True
+            );
+            Assert.That(result.AppUser, Is.EqualTo(createdUser));
             Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
 
-            // Verify interactions (optional but good practice)
-            await _userManager.Received(1).CreateAsync(Arg.Is<User>(u => u.Email == userEmail && u.UserName.StartsWith("user"))); // UserName will be dynamic
-            await _userManager.Received(1).AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>());
+            await _userManager
+                .Received(1)
+                .CreateAsync(
+                    Arg.Is<User>(u => u.Email == userEmail && u.UserName != null && u.UserName.StartsWith("user"))
+                ); 
+            await _userManager
+                .Received(1)
+                .AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>());
         }
 
         [Test]
         public async Task HandleGoogleLoginCallbackAsync_UserNameAlreadyExists_AppendsCountToUserName()
         {
-            // Tests lines 214-217
             // Arrange
             var userEmail = "existingname@example.com";
             var provider = "Google";
@@ -1061,36 +1351,42 @@ namespace backend.Tests.Services
                 new Claim(ClaimTypes.Name, initialUserName),
             };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, provider));
-            var externalLoginInfo = new ExternalLoginInfo(principal, provider, providerKey, provider)
+            var externalLoginInfo = new ExternalLoginInfo(
+                principal,
+                provider,
+                providerKey,
+                provider
+            )
             {
-                ProviderDisplayName = provider
+                ProviderDisplayName = provider,
             };
 
-            _signInManager.ExternalLoginSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+            _signInManager
+                .ExternalLoginSignInAsync(
+                    Arg.Any<string>(),
+                    Arg.Any<string>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<bool>()
+                )
                 .Returns(SignInResult.Failed);
 
-            _authenticationRepository.GetUserByEmailAsync(userEmail)
-                .Returns((User)null); // Force new user creation
+            _authenticationRepository.GetUserByEmailAsync(userEmail).Returns((User?)null);
 
-            // Mock GetUserByNameAsync to simulate username collision
-            // First call for "ExistingUser" returns a user
-            _authenticationRepository.GetUserByNameAsync(initialUserName)
+            _authenticationRepository
+                .GetUserByNameAsync(initialUserName)
                 .Returns(new User { UserName = initialUserName });
 
-            // Second call for "ExistingUser1" returns null, allowing it to be created
-            _authenticationRepository.GetUserByNameAsync(expectedUserName)
-                .Returns((User)null);
+            _authenticationRepository.GetUserByNameAsync(expectedUserName).Returns((User?)null);
 
-            User createdUser = null; // This will hold the User instance created by the service
+            User? createdUser = null; 
 
-            // Mock CreateAsync to capture the user being created by the service AND return success
-            // Ensure the mocked user has the *expected* final username
-            _userManager.CreateAsync(Arg.Do<User>(u => createdUser = u))
-                        .Returns(IdentityResult.Success);
+            _userManager
+                .CreateAsync(Arg.Do<User>(u => createdUser = u))
+                .Returns(IdentityResult.Success);
 
-            // Mock AddLoginAsync for the *captured* user
-            _userManager.AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>())
-                        .Returns(IdentityResult.Success);
+            _userManager
+                .AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>())
+                .Returns(IdentityResult.Success);
 
             // Act
             var result = await _uut.HandleGoogleLoginCallbackAsync(externalLoginInfo);
@@ -1099,14 +1395,19 @@ namespace backend.Tests.Services
             Assert.That(result.Status, Is.EqualTo(GoogleLoginStatus.Success));
             Assert.That(result.AppUser, Is.Not.Null);
             Assert.That(result.AppUser.Email, Is.EqualTo(userEmail));
-            Assert.That(result.AppUser.UserName, Is.EqualTo(expectedUserName)); // Expect the incremented username
-            Assert.That(result.AppUser, Is.EqualTo(createdUser)); // Assert that the returned user is the one captured
+            Assert.That(result.AppUser.UserName, Is.EqualTo(expectedUserName));
+            Assert.That(result.AppUser, Is.EqualTo(createdUser));
             Assert.That(result.JwtToken, Is.Not.Null.And.Not.Empty);
 
-            // Verify interactions (optional but good practice)
-            await _userManager.Received(1).CreateAsync(Arg.Is<User>(u => u.Email == userEmail && u.UserName == expectedUserName));
-            await _userManager.Received(1).AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>());
-        }       
+            await _userManager
+                .Received(1)
+                .CreateAsync(
+                    Arg.Is<User>(u => u.Email == userEmail && u.UserName == expectedUserName)
+                );
+            await _userManager
+                .Received(1)
+                .AddLoginAsync(Arg.Is<User>(u => u == createdUser), Arg.Any<UserLoginInfo>());
+        }
         #endregion
     }
 }

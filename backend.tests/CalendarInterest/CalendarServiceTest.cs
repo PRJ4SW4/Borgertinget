@@ -1,18 +1,16 @@
-using NUnit.Framework;
-using NSubstitute;
-using backend.Services.Calendar;
-using backend.Repositories.Calendar;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using backend.Models; 
-using backend.Models.Calendar;
-using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
-using NSubstitute.ExceptionExtensions; 
+using System.Threading.Tasks;
+using backend.Models;
+using backend.Models.Calendar;
+using backend.Repositories.Calendar;
+using backend.Services.Calendar;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
-
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+using NUnit.Framework;
 
 namespace backend.Tests.Services
 {
@@ -24,9 +22,9 @@ namespace backend.Tests.Services
         private UserManager<User> _userManager;
         private CalendarService _service;
 
-        #pragma warning disable NUnit1032 //fordi den brokkede sig for meget over at denne ikke blev disposed, selvom den gjorde
+#pragma warning disable NUnit1032 //fordi den brokkede sig for meget over at denne ikke blev disposed, selvom den gjorde
         private IUserStore<User> _mockUserStore;
-        #pragma warning restore NUnit1032 
+#pragma warning restore NUnit1032
 
         [SetUp]
         public void Setup()
@@ -35,13 +33,19 @@ namespace backend.Tests.Services
             _logger = Substitute.For<ILogger<CalendarService>>();
 
             _mockUserStore = Substitute.For<IUserStore<User>>();
-            _userManager = Substitute.For<UserManager<User>>(_mockUserStore, null, null, null, null, null, null, null, null);
-
-            _service = new CalendarService(
-                _calendarEventRepository,
-                _logger,
-                _userManager
+            _userManager = Substitute.For<UserManager<User>>(
+                _mockUserStore,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
             );
+
+            _service = new CalendarService(_calendarEventRepository, _logger, _userManager);
         }
 
         [TearDown]
@@ -50,6 +54,17 @@ namespace backend.Tests.Services
             _userManager?.Dispose();
             var disposableUserStore = _mockUserStore as IDisposable;
             disposableUserStore?.Dispose();
+        }
+
+        // hjælpemetode til warning handling
+        private bool LogMessageContains(object? logState, string expectedMessagePart)
+        {
+            if (logState == null)
+            {
+                return false;
+            }
+
+            return logState.ToString()?.Contains(expectedMessagePart) ?? false;
         }
 
         #region ToggleInterestAsync Tests
@@ -62,15 +77,24 @@ namespace backend.Tests.Services
             var userIdString = "123";
             var parsedUserId = 123;
             var user = new User { Id = parsedUserId, UserName = "TestUser" };
-            var calendarEvent = new CalendarEvent { Id = eventId, InterestedUsers = new List<EventInterest>() };
+            var calendarEvent = new CalendarEvent
+            {
+                Id = eventId,
+                InterestedUsers = new List<EventInterest>(),
+            };
             var expectedCountAfterAdd = 1;
 
             _userManager.FindByIdAsync(userIdString).Returns(Task.FromResult<User?>(user));
-            _calendarEventRepository.GetEventByIdAsync(eventId).Returns(Task.FromResult<CalendarEvent?>(calendarEvent));
-            _calendarEventRepository.RetrieveInterestPairsAsync(eventId, parsedUserId)
-                .Returns(Task.FromResult<EventInterest?>(null)); // Ikke interesseret endnu
-            _calendarEventRepository.GetInterestedUsersAsync(eventId).Returns(Task.FromResult(expectedCountAfterAdd));
-            _calendarEventRepository.SaveChangesAsync().Returns(Task.FromResult(1)); // Antag at 1 ændring gemmes
+            _calendarEventRepository
+                .GetEventByIdAsync(eventId)
+                .Returns(Task.FromResult<CalendarEvent?>(calendarEvent));
+            _calendarEventRepository
+                .RetrieveInterestPairsAsync(eventId, parsedUserId)
+                .Returns(Task.FromResult<EventInterest?>(null)); 
+            _calendarEventRepository
+                .GetInterestedUsersAsync(eventId)
+                .Returns(Task.FromResult(expectedCountAfterAdd));
+            _calendarEventRepository.SaveChangesAsync().Returns(Task.FromResult(1)); 
 
             // Act
             var result = await _service.ToggleInterestAsync(eventId, userIdString);
@@ -79,7 +103,13 @@ namespace backend.Tests.Services
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Value.IsInterested, Is.True);
             Assert.That(result.Value.InterestedCount, Is.EqualTo(expectedCountAfterAdd));
-            await _calendarEventRepository.Received(1).AddEventInterest(Arg.Is<EventInterest>(ei => ei.CalendarEventId == eventId && ei.UserId == parsedUserId));
+            await _calendarEventRepository
+                .Received(1)
+                .AddEventInterest(
+                    Arg.Is<EventInterest>(ei =>
+                        ei.CalendarEventId == eventId && ei.UserId == parsedUserId
+                    )
+                );
             await _calendarEventRepository.Received(1).SaveChangesAsync();
         }
 
@@ -91,15 +121,29 @@ namespace backend.Tests.Services
             var userIdString = "123";
             var parsedUserId = 123;
             var user = new User { Id = parsedUserId, UserName = "TestUser" };
-            var existingInterest = new EventInterest { CalendarEventId = eventId, UserId = parsedUserId, EventInterestId = 1 };
-            var calendarEvent = new CalendarEvent { Id = eventId, InterestedUsers = new List<EventInterest> { existingInterest } };
+            var existingInterest = new EventInterest
+            {
+                CalendarEventId = eventId,
+                UserId = parsedUserId,
+                EventInterestId = 1,
+            };
+            var calendarEvent = new CalendarEvent
+            {
+                Id = eventId,
+                InterestedUsers = new List<EventInterest> { existingInterest },
+            };
             var expectedCountAfterRemove = 0;
 
             _userManager.FindByIdAsync(userIdString).Returns(Task.FromResult<User?>(user));
-            _calendarEventRepository.GetEventByIdAsync(eventId).Returns(Task.FromResult<CalendarEvent?>(calendarEvent));
-            _calendarEventRepository.RetrieveInterestPairsAsync(eventId, parsedUserId)
-                .Returns(Task.FromResult<EventInterest?>(existingInterest)); 
-            _calendarEventRepository.GetInterestedUsersAsync(eventId).Returns(Task.FromResult(expectedCountAfterRemove));
+            _calendarEventRepository
+                .GetEventByIdAsync(eventId)
+                .Returns(Task.FromResult<CalendarEvent?>(calendarEvent));
+            _calendarEventRepository
+                .RetrieveInterestPairsAsync(eventId, parsedUserId)
+                .Returns(Task.FromResult<EventInterest?>(existingInterest));
+            _calendarEventRepository
+                .GetInterestedUsersAsync(eventId)
+                .Returns(Task.FromResult(expectedCountAfterRemove));
             _calendarEventRepository.SaveChangesAsync().Returns(Task.FromResult(1));
 
             // Act
@@ -125,12 +169,16 @@ namespace backend.Tests.Services
 
             // Assert
             Assert.That(result, Is.Null);
-            _logger.Received(1).Log(
-                LogLevel.Warning,
-                Arg.Any<EventId>(),
-                Arg.Is<object>(o => o.ToString().Contains($"ToggleInterestAsync: Ugyldigt userIdString format eller værdi: {invalidUserIdString}")),
-                null,
-                Arg.Any<Func<object, Exception, string>>());
+            _logger
+                .Received(1)
+                .Log(
+                    LogLevel.Warning,
+                    Arg.Any<EventId>(),
+                    Arg.Is<object>(o => LogMessageContains(o, $"ToggleInterestAsync: Ugyldigt userIdString format eller værdi: {invalidUserIdString}"
+                    )),
+                    null,
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
         }
 
         [Test]
@@ -141,7 +189,9 @@ namespace backend.Tests.Services
             var userIdString = "123";
 
             _userManager.FindByIdAsync(userIdString).Returns(Task.FromResult<User?>(null));
-            _calendarEventRepository.GetEventByIdAsync(eventId).Returns(Task.FromResult<CalendarEvent?>(new CalendarEvent { Id = eventId }));
+            _calendarEventRepository
+                .GetEventByIdAsync(eventId)
+                .Returns(Task.FromResult<CalendarEvent?>(new CalendarEvent { Id = eventId }));
 
             // Act
             var result = await _service.ToggleInterestAsync(eventId, userIdString);
@@ -160,7 +210,9 @@ namespace backend.Tests.Services
             var user = new User { Id = parsedUserId, UserName = "TestUser" };
 
             _userManager.FindByIdAsync(userIdString).Returns(Task.FromResult<User?>(user));
-            _calendarEventRepository.GetEventByIdAsync(eventId).Returns(Task.FromResult<CalendarEvent?>(null));
+            _calendarEventRepository
+                .GetEventByIdAsync(eventId)
+                .Returns(Task.FromResult<CalendarEvent?>(null));
 
             // Act
             var result = await _service.ToggleInterestAsync(eventId, userIdString);
@@ -177,27 +229,39 @@ namespace backend.Tests.Services
             var userIdString = "123";
             var parsedUserId = 123;
             var user = new User { Id = parsedUserId, UserName = "TestUser" };
-            var calendarEvent = new CalendarEvent { Id = eventId, InterestedUsers = new List<EventInterest>() };
+            var calendarEvent = new CalendarEvent
+            {
+                Id = eventId,
+                InterestedUsers = new List<EventInterest>(),
+            };
 
             _userManager.FindByIdAsync(userIdString).Returns(Task.FromResult<User?>(user));
-            _calendarEventRepository.GetEventByIdAsync(eventId).Returns(Task.FromResult<CalendarEvent?>(calendarEvent));
-            _calendarEventRepository.RetrieveInterestPairsAsync(eventId, parsedUserId)
+            _calendarEventRepository
+                .GetEventByIdAsync(eventId)
+                .Returns(Task.FromResult<CalendarEvent?>(calendarEvent));
+            _calendarEventRepository
+                .RetrieveInterestPairsAsync(eventId, parsedUserId)
                 .Returns(Task.FromResult<EventInterest?>(null));
-            _calendarEventRepository.SaveChangesAsync().ThrowsAsync(new DbUpdateException("Simulated DB error"));
+            _calendarEventRepository
+                .SaveChangesAsync()
+                .ThrowsAsync(new DbUpdateException("Simulated DB error"));
 
             // Act
             var result = await _service.ToggleInterestAsync(eventId, userIdString);
 
             // Assert
             Assert.That(result, Is.Null);
-            _logger.Received(1).Log(
-                LogLevel.Error,
-                Arg.Any<EventId>(),
-                Arg.Is<object>(o => o.ToString().Contains("Failed to save changes after toggling interest.")),
-                Arg.Any<DbUpdateException>(), // Forventer en DbUpdateException
-                Arg.Any<Func<object, Exception, string>>());
+            _logger
+                .Received(1)
+                .Log(
+                    LogLevel.Error,
+                    Arg.Any<EventId>(),
+                    Arg.Is<object>(o => LogMessageContains(o, "Failed to save changes after toggling interest.")
+                    ),
+                    Arg.Any<DbUpdateException>(), 
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
         }
-
 
         #endregion
 
@@ -210,7 +274,9 @@ namespace backend.Tests.Services
             var eventId = 1;
             var expectedCount = 10;
 
-            _calendarEventRepository.GetInterestedUsersAsync(eventId).Returns(Task.FromResult(expectedCount));
+            _calendarEventRepository
+                .GetInterestedUsersAsync(eventId)
+                .Returns(Task.FromResult(expectedCount));
 
             // Act
             var actualCount = await _service.GetAmountInterestedAsync(eventId);
@@ -229,7 +295,9 @@ namespace backend.Tests.Services
             _calendarEventRepository.GetInterestedUsersAsync(eventId).ThrowsAsync(exception);
 
             // Act & Assert
-            Assert.ThrowsAsync<InvalidOperationException>(async () => await _service.GetAmountInterestedAsync(eventId));
+            Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _service.GetAmountInterestedAsync(eventId)
+            );
             await _calendarEventRepository.Received(1).GetInterestedUsersAsync(eventId);
         }
 

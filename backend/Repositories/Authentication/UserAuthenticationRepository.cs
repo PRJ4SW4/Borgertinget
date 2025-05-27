@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Security.Claims;
 using System;
 
-// Implements repository operations for CalendarEvent entities using Entity Framework Core.
 public class UserAuthenticationRepository : IUserAuthenticationRepository
 {
     private readonly DataContext _context;

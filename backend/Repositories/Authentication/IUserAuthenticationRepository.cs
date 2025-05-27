@@ -8,7 +8,6 @@ using backend.Models.Calendar;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
-// Defines a contract for repository operations related to CalendarEvent entities.
 public interface IUserAuthenticationRepository
 {
     Task<User?> GetUserByIdAsync(int userId);

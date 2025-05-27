@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using backend.Controllers;
 using backend.DTO.UserAuthentication;
 using backend.DTOs;
@@ -16,10 +17,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using System.Web;
-using Microsoft.Extensions.DependencyInjection;
 using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 
@@ -66,25 +66,48 @@ namespace Tests.Controllers
             );
 
             var defaultHttpContext = new DefaultHttpContext() { User = user };
-            defaultHttpContext.Request.Scheme = "http"; 
+            defaultHttpContext.Request.Scheme = "http";
 
-            // Opsætning for HttpContext.SignOutAsync(IdentityConstants.ExternalScheme)
             var authServiceMock = Substitute.For<IAuthenticationService>();
             var services = new ServiceCollection();
-            services.AddSingleton(authServiceMock); // Gør IAuthenticationService tilgængelig
+            services.AddSingleton(authServiceMock); 
             defaultHttpContext.RequestServices = services.BuildServiceProvider();
 
             authServiceMock
-            .SignOutAsync(Arg.Any<HttpContext>(), IdentityConstants.ExternalScheme, Arg.Any<AuthenticationProperties>())
-            .Returns(Task.CompletedTask); // Sikrer at kaldet ikke fejler
+                .SignOutAsync(
+                    Arg.Any<HttpContext>(),
+                    IdentityConstants.ExternalScheme,
+                    Arg.Any<AuthenticationProperties>()
+                )
+                .Returns(Task.CompletedTask); 
 
-
-            _uut.ControllerContext = new ControllerContext()
-            {
-                HttpContext = defaultHttpContext,
-            };
+            _uut.ControllerContext = new ControllerContext() { HttpContext = defaultHttpContext };
             _uut.Url = _mockUrlHelper;
+        }
+
+        // Hjælpe metode til specifikke tests for at håndtere warnings vedørende null references
+        // De kunne ikke løses ved "!" og "?", da man ikke kan bruge den null-conditional operator (?.) der, fordi Arg.Is() forventer et Expression Tree
+        private bool DoesActionContextMatch(UrlActionContext uac, string? expectedReturnUrl)
+        {
+            if (uac.Action != nameof(UsersController.HandleGoogleCallback) ||
+                uac.Controller != "Users" ||
+                uac.Protocol != "http")
+            {
+                return false;
             }
+
+            if (uac.Values == null) return false;
+
+            var returnUrlProperty = uac.Values.GetType().GetProperty("returnUrl");
+            if (returnUrlProperty == null)
+            {
+                return false;
+            }
+
+            var urlValue = returnUrlProperty.GetValue(uac.Values, null);
+
+            return (string?)urlValue == expectedReturnUrl;
+        }
 
         [Test]
         public async Task CreateUser_ValidDto_ReturnsOkResult()
@@ -133,8 +156,7 @@ namespace Tests.Controllers
 
             _mockEmailService
                 .When(x => x.SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>()))
-                .Do(callInfo =>
-                { });
+                .Do(callInfo => { });
             _mockEmailService
                 .SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>())
                 .Returns(Task.CompletedTask);
@@ -147,19 +169,12 @@ namespace Tests.Controllers
             var okResult = result as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
             Assert.That(okResult.StatusCode, Is.EqualTo(200));
-            dynamic value = okResult.Value;
+            dynamic value = okResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("message").GetValue(value, null),
                 Does.Contain("Registrering succesfuld! Tjek din email for at bekræfte din konto.")
             );
 
-
-            // await _mockEmailService
-            //     .Received(1)
-            //     .SendEmailAsync(
-            //         registerDto.Email,
-            //         Arg.Is<EmailDataDto>(ed => ed.Subject == "Bekræft din e-mailadresse")
-            //     ); 
         }
 
         [Test]
@@ -189,7 +204,7 @@ namespace Tests.Controllers
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
             Assert.That(badRequestResult.StatusCode, Is.EqualTo(400));
-            dynamic value = badRequestResult.Value;
+            dynamic value = badRequestResult.Value!;
             Assert.That(value.GetType().GetProperty("errors").GetValue(value, null), Is.Not.Null);
         }
 
@@ -226,7 +241,7 @@ namespace Tests.Controllers
             var objectResult = result as ObjectResult;
             Assert.That(objectResult, Is.Not.Null);
             Assert.That(objectResult.StatusCode, Is.EqualTo(400));
-            dynamic value = objectResult.Value;
+            dynamic value = objectResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("error").GetValue(value, null),
                 Does.Contain("Bruger blev ikke oprettet.")
@@ -274,7 +289,7 @@ namespace Tests.Controllers
             var objectResult = result as ObjectResult;
             Assert.That(objectResult, Is.Not.Null);
             Assert.That(objectResult.StatusCode, Is.EqualTo(500));
-            dynamic value = objectResult.Value;
+            dynamic value = objectResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("message").GetValue(value, null),
                 Does.Contain(
@@ -326,7 +341,6 @@ namespace Tests.Controllers
                 .GenerateRegistrationEmailAsync(encodedToken, user)
                 .Returns(emailDataGenerated);
 
-            // Simulate email sending failure by throwing an exception
             _mockEmailService
                 .SendEmailAsync(Arg.Any<string>(), Arg.Any<EmailDataDto>())
                 .Throws(new Exception("Simulated email service error."));
@@ -338,9 +352,9 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<ObjectResult>());
             var objectResult = result as ObjectResult;
             Assert.That(objectResult, Is.Not.Null);
-            Assert.That(objectResult.StatusCode, Is.EqualTo(500)); // Expect 500 Internal Server Error
+            Assert.That(objectResult.StatusCode, Is.EqualTo(500)); 
 
-            dynamic value = objectResult.Value;
+            dynamic value = objectResult.Value!;
             var messageProperty = value.GetType().GetProperty("message");
             Assert.That(messageProperty, Is.Not.Null);
             Assert.That(
@@ -370,7 +384,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<OkObjectResult>());
             var okResult = result as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
-            dynamic value = okResult.Value;
+            dynamic value = okResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("message").GetValue(value, null),
                 Does.Contain("Din emailadresse er bekræftet.")
@@ -382,7 +396,7 @@ namespace Tests.Controllers
         {
             // Arrange
             var userId = 1;
-            var token = ""; // Invalid token
+            var token = ""; 
 
             // Act
             var result = await _uut.VerifyEmail(userId, token);
@@ -423,9 +437,17 @@ namespace Tests.Controllers
             _mockUserAuthService.GetUserAsync(userId).Returns(Task.FromResult<User?>(user));
             _mockUserAuthService
                 .ConfirmEmailAsync(user, decodedToken)
-                .Returns(Task.FromResult(IdentityResult.Failed(new IdentityError { Description = "Verification failed" })));
+                .Returns(
+                    Task.FromResult(
+                        IdentityResult.Failed(
+                            new IdentityError { Description = "Verification failed" }
+                        )
+                    )
+                );
 
-            var tokenForController = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(decodedToken));
+            var tokenForController = WebEncoders.Base64UrlEncode(
+                Encoding.UTF8.GetBytes(decodedToken)
+            );
 
             // Act
             var result = await _uut.VerifyEmail(userId, tokenForController);
@@ -454,7 +476,9 @@ namespace Tests.Controllers
                 .ConfirmEmailAsync(user, decodedToken)
                 .Throws(new Exception("Simulated email service error."));
 
-            var tokenForController = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(decodedToken));
+            var tokenForController = WebEncoders.Base64UrlEncode(
+                Encoding.UTF8.GetBytes(decodedToken)
+            );
 
             // Act
             var result = await _uut.VerifyEmail(userId, tokenForController);
@@ -464,7 +488,7 @@ namespace Tests.Controllers
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
             Assert.That(badRequestResult.StatusCode, Is.EqualTo(400));
-            dynamic value = badRequestResult.Value;
+            dynamic value = badRequestResult.Value!;
             var messageProperty = value.GetType().GetProperty("message");
             Assert.That(messageProperty, Is.Not.Null);
             Assert.That(
@@ -501,7 +525,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<OkObjectResult>());
             var okResult = result as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
-            dynamic value = okResult.Value;
+            dynamic value = okResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("token").GetValue(value, null),
                 Is.EqualTo(jwtToken)
@@ -512,11 +536,7 @@ namespace Tests.Controllers
         public async Task Login_ValidCredentialsWithUsername_ReturnsOkWithToken()
         {
             // Arrange
-            var loginDto = new LoginDto
-            {
-                EmailOrUsername = "testuser",
-                Password = "Password123!",
-            };
+            var loginDto = new LoginDto { EmailOrUsername = "testuser", Password = "Password123!" };
             var user = new User { UserName = "testuser", Email = "test@example.com" };
             var signInResult = Microsoft.AspNetCore.Identity.SignInResult.Success;
             var jwtToken = "dummyJwtToken";
@@ -536,7 +556,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<OkObjectResult>());
             var okResult = result as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
-            dynamic value = okResult.Value;
+            dynamic value = okResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("token").GetValue(value, null),
                 Is.EqualTo(jwtToken)
@@ -563,7 +583,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
-            dynamic value = badRequestResult.Value;
+            dynamic value = badRequestResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("error").GetValue(value, null),
                 Is.EqualTo("Bruger findes ikke")
@@ -596,7 +616,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
-            dynamic value = badRequestResult.Value;
+            dynamic value = badRequestResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("error").GetValue(value, null),
                 Does.Contain("Forkert adgangskode")
@@ -633,7 +653,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
-            dynamic value = badRequestResult.Value;
+            dynamic value = badRequestResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("error").GetValue(value, null),
                 Does.Contain("Din emailadresse er ikke blevet bekræftet.")
@@ -656,7 +676,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
-            dynamic value = badRequestResult.Value;
+            dynamic value = badRequestResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("error").GetValue(value, null),
                 Is.EqualTo("Bruger findes ikke.")
@@ -678,12 +698,14 @@ namespace Tests.Controllers
                 .Returns(Task.FromResult("dummyToken"));
             _mockEmailService
                 .GenerateResetPasswordEmailAsync("dummyToken", user)
-                .Returns(new EmailDataDto
-                {
-                    ToEmail = user.Email,
-                    Subject = "Nulstil din adgangskode",
-                    HtmlMessage = "some message",
-                });
+                .Returns(
+                    new EmailDataDto
+                    {
+                        ToEmail = user.Email,
+                        Subject = "Nulstil din adgangskode",
+                        HtmlMessage = "some message",
+                    }
+                );
             _mockEmailService
                 .SendEmailAsync(user.Email, Arg.Any<EmailDataDto>())
                 .Returns(Task.CompletedTask);
@@ -696,10 +718,12 @@ namespace Tests.Controllers
             var okResult = result as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
             Assert.That(okResult.StatusCode, Is.EqualTo(200));
-            dynamic value = okResult.Value;
+            dynamic value = okResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("message").GetValue(value, null),
-                Does.Contain("En mail med et link til at nulstille din adgangskode er blevet sendt.")
+                Does.Contain(
+                    "En mail med et link til at nulstille din adgangskode er blevet sendt."
+                )
             );
         }
 
@@ -718,12 +742,14 @@ namespace Tests.Controllers
                 .Returns(Task.FromResult("dummyToken"));
             _mockEmailService
                 .GenerateResetPasswordEmailAsync("dummyToken", user)
-                .Returns(new EmailDataDto
-                {
-                    ToEmail = user.Email,
-                    Subject = "Nulstil din adgangskode",
-                    HtmlMessage = "some message",
-                });
+                .Returns(
+                    new EmailDataDto
+                    {
+                        ToEmail = user.Email,
+                        Subject = "Nulstil din adgangskode",
+                        HtmlMessage = "some message",
+                    }
+                );
             _mockEmailService
                 .SendEmailAsync(user.Email, Arg.Any<EmailDataDto>())
                 .Throws(new Exception("Simulated email service error."));
@@ -736,7 +762,7 @@ namespace Tests.Controllers
             var objectResult = result as ObjectResult;
             Assert.That(objectResult, Is.Not.Null);
             Assert.That(objectResult.StatusCode, Is.EqualTo(500));
-            dynamic value = objectResult.Value;
+            dynamic value = objectResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("message").GetValue(value, null),
                 Does.Contain("Fejl ved afsendelse af nulstillingsmail. Prøv venligst igen senere.")
@@ -769,7 +795,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<OkObjectResult>());
             var okResult = result as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
-            dynamic value = okResult.Value;
+            dynamic value = okResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("message").GetValue(value, null),
                 Is.EqualTo("Adgangskoden er blevet ændret.")
@@ -796,7 +822,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
-            dynamic value = badRequestResult.Value;
+            dynamic value = badRequestResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("error").GetValue(value, null),
                 Is.EqualTo("Bruger findes ikke.")
@@ -824,7 +850,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
-            dynamic value = badRequestResult.Value;
+            dynamic value = badRequestResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("error").GetValue(value, null),
                 Is.EqualTo("Adgangskoderne skal matche.")
@@ -857,7 +883,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult, Is.Not.Null);
-            dynamic value = badRequestResult.Value;
+            dynamic value = badRequestResult.Value!;
             Assert.That(value.GetType().GetProperty("errors").GetValue(value, null), Is.Not.Null);
         }
 
@@ -888,12 +914,13 @@ namespace Tests.Controllers
             var objectResult = result as ObjectResult;
             Assert.That(objectResult, Is.Not.Null);
             Assert.That(objectResult.StatusCode, Is.EqualTo(400));
-            dynamic value = objectResult.Value;
+            dynamic value = objectResult.Value!;
             Assert.That(
                 (string)value.GetType().GetProperty("message").GetValue(value, null),
                 Does.Contain("Ugyldigt token format")
             );
         }
+
         #region OAuth del
         [Test]
         public void LoginWithGoogle_ValidCall_ReturnsChallengeResult()
@@ -909,16 +936,17 @@ namespace Tests.Controllers
 
             _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedReturnUrl);
 
-            _mockUrlHelper.Action(Arg.Is<UrlActionContext>(uac =>
-                uac.Action == nameof(UsersController.HandleGoogleCallback) &&
-                uac.Controller == "Users" &&
-                (string?)uac.Values.GetType().GetProperty("returnUrl").GetValue(uac.Values, null) == clientReturnUrl &&
-                uac.Protocol == "http" 
-            )).Returns(expectedPropertiesRedirectUri);
+            _mockUrlHelper
+                .Action(
+                    Arg.Is<UrlActionContext>(uac => DoesActionContextMatch(uac, clientReturnUrl))
+                )
+                .Returns(expectedPropertiesRedirectUri);
 
-            _mockUserAuthService.ConfigureExternalAuthenticationProperties(
-                GoogleDefaults.AuthenticationScheme,
-                expectedPropertiesRedirectUri)
+            _mockUserAuthService
+                .ConfigureExternalAuthenticationProperties(
+                    GoogleDefaults.AuthenticationScheme,
+                    expectedPropertiesRedirectUri
+                )
                 .Returns(authPropertiesReturnedByService);
 
             // Act
@@ -934,7 +962,7 @@ namespace Tests.Controllers
             );
             Assert.That(challengeResult.Properties, Is.EqualTo(authPropertiesReturnedByService));
         }
-        
+
         [Test]
         public void LoginWithGoogle_WhenUrlActionReturnsNull_ReturnsStatusCode500()
         {
@@ -942,7 +970,7 @@ namespace Tests.Controllers
             var clientReturnUrl = "/test-return";
             _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(clientReturnUrl);
 
-            _mockUrlHelper.Action(Arg.Any<UrlActionContext>()).Returns((string)null);
+            _mockUrlHelper.Action(Arg.Any<UrlActionContext>()).Returns((string?)null);
 
             // Act
             var result = _uut.LoginWithGoogle(clientReturnUrl);
@@ -950,8 +978,14 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.InstanceOf<ObjectResult>());
             var objectResult = result as ObjectResult;
-            Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
-            Assert.That(objectResult.Value, Is.EqualTo("Intern fejl: Kunne ikke starte Google login."));
+            Assert.That(
+                objectResult?.StatusCode,
+                Is.EqualTo(StatusCodes.Status500InternalServerError)
+            );
+            Assert.That(
+                objectResult.Value,
+                Is.EqualTo("Intern fejl: Kunne ikke starte Google login.")
+            );
         }
 
         [Test]
@@ -959,22 +993,26 @@ namespace Tests.Controllers
         {
             // Arrange
             string? clientReturnUrl = null;
-            var sanitizedReturnUrl = "/"; // Dette er hvad SanitizeReturnUrl forventes at returnere for null
-            var expectedPropertiesRedirectUri = "http://localhost/someaction"; // En gyldig URL
-            var authPropertiesReturnedByService = new AuthenticationProperties { RedirectUri = expectedPropertiesRedirectUri };
+            var sanitizedReturnUrl = "/"; 
+            var expectedPropertiesRedirectUri = "http://localhost/someaction";
+            var authPropertiesReturnedByService = new AuthenticationProperties
+            {
+                RedirectUri = expectedPropertiesRedirectUri,
+            };
 
             _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedReturnUrl);
 
-            _mockUrlHelper.Action(Arg.Is<UrlActionContext>(uac =>
-                uac.Action == nameof(UsersController.HandleGoogleCallback) &&
-                uac.Controller == "Users" &&
-                ((string?)uac.Values.GetType().GetProperty("returnUrl").GetValue(uac.Values, null)) == clientReturnUrl && // clientReturnUrl er null her
-                uac.Protocol == "http"
-            )).Returns(expectedPropertiesRedirectUri);
+            _mockUrlHelper
+                .Action(
+                    Arg.Is<UrlActionContext>(uac => DoesActionContextMatch(uac, clientReturnUrl))
+                )
+                .Returns(expectedPropertiesRedirectUri);
 
-            _mockUserAuthService.ConfigureExternalAuthenticationProperties(
-                GoogleDefaults.AuthenticationScheme,
-                expectedPropertiesRedirectUri)
+            _mockUserAuthService
+                .ConfigureExternalAuthenticationProperties(
+                    GoogleDefaults.AuthenticationScheme,
+                    expectedPropertiesRedirectUri
+                )
                 .Returns(authPropertiesReturnedByService);
 
             // Act
@@ -985,7 +1023,6 @@ namespace Tests.Controllers
             Assert.That(result, Is.InstanceOf<ChallengeResult>());
         }
 
-
         // --- Tests for HandleGoogleCallback ---
 
         [Test]
@@ -993,7 +1030,8 @@ namespace Tests.Controllers
         {
             // Arrange
             var remoteError = "google_auth_error";
-            var expectedRedirectUrl = $"http://localhost:5173/login?error={HttpUtility.UrlEncode(remoteError)}";
+            var expectedRedirectUrl =
+                $"http://localhost:5173/login?error={HttpUtility.UrlEncode(remoteError)}";
 
             // Act
             var result = await _uut.HandleGoogleCallback(null, remoteError);
@@ -1001,15 +1039,18 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.InstanceOf<RedirectResult>());
             var redirectResult = result as RedirectResult;
-            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+            Assert.That(redirectResult?.Url, Is.EqualTo(expectedRedirectUrl));
         }
 
         [Test]
         public async Task HandleGoogleCallback_GetExternalLoginInfoReturnsNull_RedirectsToLoginWithError()
         {
             // Arrange
-            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(null));
-            var expectedRedirectUrl = $"http://localhost:5173/login?error={HttpUtility.UrlEncode("Fejl ved eksternt login.")}";
+            _mockUserAuthService
+                .GetExternalLoginInfoAsync()
+                .Returns(Task.FromResult<ExternalLoginInfo?>(null));
+            var expectedRedirectUrl =
+                $"http://localhost:5173/login?error={HttpUtility.UrlEncode("Fejl ved eksternt login.")}";
 
             // Act
             var result = await _uut.HandleGoogleCallback(null, null);
@@ -1017,25 +1058,34 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.InstanceOf<RedirectResult>());
             var redirectResult = result as RedirectResult;
-            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+            Assert.That(redirectResult?.Url, Is.EqualTo(expectedRedirectUrl));
         }
 
         [Test]
         public async Task HandleGoogleCallback_ServiceReturnsError_RedirectsToLoginWithError()
         {
             // Arrange
-            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
-            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+            var externalLoginInfo = new ExternalLoginInfo(
+                new ClaimsPrincipal(),
+                "Google",
+                "providerKey",
+                "Google"
+            );
+            _mockUserAuthService
+                .GetExternalLoginInfoAsync()
+                .Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
 
             var serviceErrorResult = new GoogleLoginResultDto
             {
                 Status = GoogleLoginStatus.ErrorCreateUserFailed,
-                ErrorMessage = "Kunne ikke oprette bruger."
+                ErrorMessage = "Kunne ikke oprette bruger.",
             };
-            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
-                                .Returns(Task.FromResult(serviceErrorResult));
+            _mockUserAuthService
+                .HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                .Returns(Task.FromResult(serviceErrorResult));
 
-            var expectedRedirectUrl = $"http://localhost:5173/login?error={HttpUtility.UrlEncode(serviceErrorResult.ErrorMessage)}";
+            var expectedRedirectUrl =
+                $"http://localhost:5173/login?error={HttpUtility.UrlEncode(serviceErrorResult.ErrorMessage)}";
 
             // Act
             var result = await _uut.HandleGoogleCallback(null, null);
@@ -1043,25 +1093,34 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.InstanceOf<RedirectResult>());
             var redirectResult = result as RedirectResult;
-            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+            Assert.That(redirectResult?.Url, Is.EqualTo(expectedRedirectUrl));
         }
 
         [Test]
         public async Task HandleGoogleCallback_ServiceReturnsErrorWithoutMessage_RedirectsToLoginWithGenericError()
         {
             // Arrange
-            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
-            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+            var externalLoginInfo = new ExternalLoginInfo(
+                new ClaimsPrincipal(),
+                "Google",
+                "providerKey",
+                "Google"
+            );
+            _mockUserAuthService
+                .GetExternalLoginInfoAsync()
+                .Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
 
             var serviceErrorResult = new GoogleLoginResultDto
             {
-                Status = GoogleLoginStatus.ErrorNoLoginInfo, 
-                ErrorMessage = null 
+                Status = GoogleLoginStatus.ErrorNoLoginInfo,
+                ErrorMessage = null,
             };
-            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
-                                .Returns(Task.FromResult(serviceErrorResult));
+            _mockUserAuthService
+                .HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                .Returns(Task.FromResult(serviceErrorResult));
 
-            var expectedRedirectUrl = $"http://localhost:5173/login?error={HttpUtility.UrlEncode("Ukendt fejl ved Google login.")}";
+            var expectedRedirectUrl =
+                $"http://localhost:5173/login?error={HttpUtility.UrlEncode("Ukendt fejl ved Google login.")}";
 
             // Act
             var result = await _uut.HandleGoogleCallback(null, null);
@@ -1069,7 +1128,7 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.InstanceOf<RedirectResult>());
             var redirectResult = result as RedirectResult;
-            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+            Assert.That(redirectResult?.Url, Is.EqualTo(expectedRedirectUrl));
         }
 
         [Test]
@@ -1078,32 +1137,47 @@ namespace Tests.Controllers
             // Arrange
             var clientReturnUrl = "/original-path";
             var sanitizedClientReturnUrl = "/original-path";
-            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
+            var externalLoginInfo = new ExternalLoginInfo(
+                new ClaimsPrincipal(),
+                "Google",
+                "providerKey",
+                "Google"
+            );
             var appUser = new User { Id = 1, UserName = "googleuser" };
             var jwtToken = "generated.jwt.token";
 
-            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
-            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
-                                .Returns(Task.FromResult(new GoogleLoginResultDto
-                                {
-                                    Status = GoogleLoginStatus.Success,
-                                    JwtToken = jwtToken,
-                                    AppUser = appUser
-                                }));
-            _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedClientReturnUrl);
-            _mockUserAuthService.SignOutAsync().Returns(Task.CompletedTask); // Mock din service SignOut
+            _mockUserAuthService
+                .GetExternalLoginInfoAsync()
+                .Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+            _mockUserAuthService
+                .HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                .Returns(
+                    Task.FromResult(
+                        new GoogleLoginResultDto
+                        {
+                            Status = GoogleLoginStatus.Success,
+                            JwtToken = jwtToken,
+                            AppUser = appUser,
+                        }
+                    )
+                );
+            _mockUserAuthService
+                .SanitizeReturnUrl(clientReturnUrl)
+                .Returns(sanitizedClientReturnUrl);
+            _mockUserAuthService.SignOutAsync().Returns(Task.CompletedTask); 
 
-            var expectedRedirectUrl = $"http://localhost:5173/login-success?token={jwtToken}&originalReturnUrl={HttpUtility.UrlEncode(sanitizedClientReturnUrl).Replace("%2f", "%2F")}";
+            var expectedRedirectUrl =
+                $"http://localhost:5173/login-success?token={jwtToken}&originalReturnUrl={HttpUtility.UrlEncode(sanitizedClientReturnUrl).Replace("%2f", "%2F")}";
 
             // Act
             var result = await _uut.HandleGoogleCallback(clientReturnUrl, null);
 
             // Assert
-            await _mockUserAuthService.Received(1).SignOutAsync(); 
+            await _mockUserAuthService.Received(1).SignOutAsync();
 
             Assert.That(result, Is.InstanceOf<RedirectResult>());
             var redirectResult = result as RedirectResult;
-            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+            Assert.That(redirectResult?.Url, Is.EqualTo(expectedRedirectUrl));
         }
 
         [Test]
@@ -1112,22 +1186,37 @@ namespace Tests.Controllers
             // Arrange
             string? clientReturnUrl = null;
             var sanitizedClientReturnUrl = "/";
-            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
+            var externalLoginInfo = new ExternalLoginInfo(
+                new ClaimsPrincipal(),
+                "Google",
+                "providerKey",
+                "Google"
+            );
             var appUser = new User { Id = 1, UserName = "googleuser" };
             var jwtToken = "generated.jwt.token";
 
-            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
-            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
-                                .Returns(Task.FromResult(new GoogleLoginResultDto
-                                {
-                                    Status = GoogleLoginStatus.Success,
-                                    JwtToken = jwtToken,
-                                    AppUser = appUser
-                                }));
-            _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedClientReturnUrl);
+            _mockUserAuthService
+                .GetExternalLoginInfoAsync()
+                .Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+            _mockUserAuthService
+                .HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                .Returns(
+                    Task.FromResult(
+                        new GoogleLoginResultDto
+                        {
+                            Status = GoogleLoginStatus.Success,
+                            JwtToken = jwtToken,
+                            AppUser = appUser,
+                        }
+                    )
+                );
+            _mockUserAuthService
+                .SanitizeReturnUrl(clientReturnUrl)
+                .Returns(sanitizedClientReturnUrl);
             _mockUserAuthService.SignOutAsync().Returns(Task.CompletedTask);
 
-            var expectedRedirectUrl = $"http://localhost:5173/login-success?token={jwtToken}&originalReturnUrl=%2F";
+            var expectedRedirectUrl =
+                $"http://localhost:5173/login-success?token={jwtToken}&originalReturnUrl=%2F";
 
             // Act
             var result = await _uut.HandleGoogleCallback(clientReturnUrl, null);
@@ -1135,30 +1224,43 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.InstanceOf<RedirectResult>());
             var redirectResult = result as RedirectResult;
-            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+            Assert.That(redirectResult?.Url, Is.EqualTo(expectedRedirectUrl));
         }
 
         [Test]
         public async Task HandleGoogleCallback_Success_WhenReturnUrlIsInvalid_RedirectsToLoginSuccessWithTokenOnly()
         {
             // Arrange
-            var clientReturnUrl = "http://malicious.com/path"; // Ugyldig
-            var sanitizedClientReturnUrl = "http://malicious.com/path"; // Antager SanitizeReturnUrl ikke ændrer den, men controller-logik ignorerer den
-            var externalLoginInfo = new ExternalLoginInfo(new ClaimsPrincipal(), "Google", "providerKey", "Google");
+            var clientReturnUrl = "http://malicious.com/path"; 
+            var sanitizedClientReturnUrl = "http://malicious.com/path"; 
+            var externalLoginInfo = new ExternalLoginInfo(
+                new ClaimsPrincipal(),
+                "Google",
+                "providerKey",
+                "Google"
+            );
             var appUser = new User { Id = 1, UserName = "googleuser" };
             var jwtToken = "generated.jwt.token";
 
-            _mockUserAuthService.GetExternalLoginInfoAsync().Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
-            _mockUserAuthService.HandleGoogleLoginCallbackAsync(externalLoginInfo)
-                                .Returns(Task.FromResult(new GoogleLoginResultDto
-                                {
-                                    Status = GoogleLoginStatus.Success,
-                                    JwtToken = jwtToken,
-                                    AppUser = appUser
-                                }));
-            _mockUserAuthService.SanitizeReturnUrl(clientReturnUrl).Returns(sanitizedClientReturnUrl);
+            _mockUserAuthService
+                .GetExternalLoginInfoAsync()
+                .Returns(Task.FromResult<ExternalLoginInfo?>(externalLoginInfo));
+            _mockUserAuthService
+                .HandleGoogleLoginCallbackAsync(externalLoginInfo)
+                .Returns(
+                    Task.FromResult(
+                        new GoogleLoginResultDto
+                        {
+                            Status = GoogleLoginStatus.Success,
+                            JwtToken = jwtToken,
+                            AppUser = appUser,
+                        }
+                    )
+                );
+            _mockUserAuthService
+                .SanitizeReturnUrl(clientReturnUrl)
+                .Returns(sanitizedClientReturnUrl);
             _mockUserAuthService.SignOutAsync().Returns(Task.CompletedTask);
-
 
             var expectedRedirectUrl = $"http://localhost:5173/login-success?token={jwtToken}";
 
@@ -1168,9 +1270,9 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.InstanceOf<RedirectResult>());
             var redirectResult = result as RedirectResult;
-            Assert.That(redirectResult.Url, Is.EqualTo(expectedRedirectUrl));
+            Assert.That(redirectResult?.Url, Is.EqualTo(expectedRedirectUrl));
         }
-        
-#endregion
+
+        #endregion
     }
 }

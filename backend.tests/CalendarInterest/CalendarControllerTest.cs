@@ -1,14 +1,14 @@
-using NUnit.Framework;
-using NSubstitute;
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using backend.Controllers;
 using backend.Services.Calendar;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Mvc;
 using backend.Services.Calendar.Scraping;
-using System.Threading.Tasks;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using System; 
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using NUnit.Framework;
 
 namespace backend.Tests.Controllers
 {
@@ -18,28 +18,26 @@ namespace backend.Tests.Controllers
         private ICalendarService _calendarService;
         private ILogger<CalendarController> _logger;
         private CalendarController _controller;
-        private IScraperService _scraperService; 
+        private IScraperService _scraperService;
 
         [SetUp]
         public void Setup()
         {
-            _scraperService = Substitute.For<IScraperService>(); 
+            _scraperService = Substitute.For<IScraperService>();
             _calendarService = Substitute.For<ICalendarService>();
             _logger = Substitute.For<ILogger<CalendarController>>();
-            _controller = new CalendarController(
-                _scraperService, 
-                _calendarService,
-                _logger
-            );
+            _controller = new CalendarController(_scraperService, _calendarService, _logger);
 
-            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, "123") 
-            }, "mock"));
+            var user = new ClaimsPrincipal(
+                new ClaimsIdentity(
+                    new Claim[] { new Claim(ClaimTypes.NameIdentifier, "123") },
+                    "mock"
+                )
+            );
 
             _controller.ControllerContext = new ControllerContext()
             {
-                HttpContext = new DefaultHttpContext() { User = user }
+                HttpContext = new DefaultHttpContext() { User = user },
             };
         }
 
@@ -50,10 +48,11 @@ namespace backend.Tests.Controllers
         {
             // Arrange
             var eventId = 1;
-            var userId = "123"; 
+            var userId = "123";
             var serviceResult = (IsInterested: true, InterestedCount: 5);
 
-            _calendarService.ToggleInterestAsync(eventId, userId)
+            _calendarService
+                .ToggleInterestAsync(eventId, userId)
                 .Returns(Task.FromResult<(bool IsInterested, int InterestedCount)?>(serviceResult));
 
             // Act
@@ -63,7 +62,7 @@ namespace backend.Tests.Controllers
             Assert.That(actionResult, Is.InstanceOf<OkObjectResult>());
             var okResult = actionResult as OkObjectResult;
             Assert.That(okResult, Is.Not.Null);
-            
+
             var resultValue = okResult?.Value;
             Assert.That(resultValue, Is.Not.Null);
 
@@ -71,8 +70,16 @@ namespace backend.Tests.Controllers
             var isInterestedProperty = resultType?.GetProperty("isInterested");
             var interestedCountProperty = resultType?.GetProperty("interestedCount");
 
-            Assert.That(isInterestedProperty, Is.Not.Null, "Property 'isInterested' blev ikke fundet på det returnerede objekt.");
-            Assert.That(interestedCountProperty, Is.Not.Null, "Property 'interestedCount' blev ikke fundet på det returnerede objekt.");
+            Assert.That(
+                isInterestedProperty,
+                Is.Not.Null,
+                "Property 'isInterested' blev ikke fundet på det returnerede objekt."
+            );
+            Assert.That(
+                interestedCountProperty,
+                Is.Not.Null,
+                "Property 'interestedCount' blev ikke fundet på det returnerede objekt."
+            );
 
             var actualIsInterested = (bool?)isInterestedProperty?.GetValue(resultValue);
             var actualInterestedCount = (int?)interestedCountProperty?.GetValue(resultValue);
@@ -85,10 +92,11 @@ namespace backend.Tests.Controllers
         public async Task ToggleInterest_ServiceReturnsNull_ReturnsNotFound()
         {
             // Arrange
-            var eventId = 99; 
+            var eventId = 99;
             var userId = "123";
 
-            _calendarService.ToggleInterestAsync(eventId, userId)
+            _calendarService
+                .ToggleInterestAsync(eventId, userId)
                 .Returns(Task.FromResult<(bool IsInterested, int InterestedCount)?>(null));
 
             // Act
@@ -107,8 +115,13 @@ namespace backend.Tests.Controllers
             var eventId = 1;
             var userId = "123";
 
-            _calendarService.ToggleInterestAsync(eventId, userId)
-                .Returns(Task.FromException<(bool IsInterested, int InterestedCount)?>(new Exception("Test service exception")));
+            _calendarService
+                .ToggleInterestAsync(eventId, userId)
+                .Returns(
+                    Task.FromException<(bool IsInterested, int InterestedCount)?>(
+                        new Exception("Test service exception")
+                    )
+                );
 
             // Act
             var actionResult = await _controller.ToggleInterest(eventId);
@@ -117,7 +130,10 @@ namespace backend.Tests.Controllers
             Assert.That(actionResult, Is.InstanceOf<ObjectResult>());
             var objectResult = actionResult as ObjectResult;
             Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
-            Assert.That(objectResult?.Value, Is.EqualTo("An internal error occurred while toggling interest."));
+            Assert.That(
+                objectResult?.Value,
+                Is.EqualTo("An internal error occurred while toggling interest.")
+            );
         }
 
         #endregion
@@ -131,7 +147,8 @@ namespace backend.Tests.Controllers
             var eventId = 1;
             var expectedCount = 10;
 
-            _calendarService.GetAmountInterestedAsync(eventId)
+            _calendarService
+                .GetAmountInterestedAsync(eventId)
                 .Returns(Task.FromResult(expectedCount));
 
             // Act
@@ -150,7 +167,8 @@ namespace backend.Tests.Controllers
             // Arrange
             var eventId = 1;
 
-            _calendarService.GetAmountInterestedAsync(eventId)
+            _calendarService
+                .GetAmountInterestedAsync(eventId)
                 .Returns(Task.FromException<int>(new Exception("Test service exception")));
 
             // Act
@@ -160,7 +178,12 @@ namespace backend.Tests.Controllers
             Assert.That(actionResult.Result, Is.InstanceOf<ObjectResult>());
             var objectResult = actionResult.Result as ObjectResult;
             Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
-            Assert.That(objectResult?.Value, Is.EqualTo("An internal error occurred while fetching the number of interested users."));
+            Assert.That(
+                objectResult?.Value,
+                Is.EqualTo(
+                    "An internal error occurred while fetching the number of interested users."
+                )
+            );
         }
 
         #endregion
