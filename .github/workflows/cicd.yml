@@ -40,14 +40,14 @@ jobs:
 
       - name: Run Backend Tests with Coverage
         run: |
-          dotnet test backend.tests/Backend.Tests.csproj --collect:"XPlat Code Coverage" --results-directory coverage --settings coverage.runsettings
+          dotnet test backend.tests/Backend.Tests.csproj --collect:"XPlat Code Coverage" --results-directory coverage
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
       - name: Generate HTML Coverage Report
         run: |
-          reportgenerator -reports:coverage/**/coverage.cobertura.xml -targetdir:coverage/html -reporttypes:Html
+          reportgenerator -reports:coverage/**/coverage.cobertura.xml -targetdir:coverage/html -reporttypes:Html -filefilters:"+*/Controllers/**/*;+*/Services/**/*"
 
       - name: Upload HTML Coverage Report
         uses: actions/upload-artifact@v4.6.2
