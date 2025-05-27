@@ -229,7 +229,7 @@ namespace backend.tests.PolidleTest
         )
         {
             // Arrange
-            var referenceDate = DateOnly.Parse(refDateString);
+            var referenceDate = DateOnly.ParseExact(refDateString, "dd-MM-yyyy");
             _dateTimeProviderMock.TodayUtc.Returns(referenceDate); // Ensure provider is used if overload is tested
             var aktor = CreateTestAktor(born: dobString);
 
