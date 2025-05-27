@@ -5,7 +5,6 @@ using backend.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 
-// This interface defines a contract for a calendar service that provides methods to interact with calendar events.
 namespace backend.Services.Authentication
 {
     public interface IUserAuthenticationService
