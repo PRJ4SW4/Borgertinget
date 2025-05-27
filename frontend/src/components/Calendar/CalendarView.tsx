@@ -5,7 +5,6 @@ import { toZonedTime } from 'date-fns-tz';
 import { fetchCalendarEvents, toggleEventInterest } from '../../services/ApiService';
 import type { CalendarEventDto } from '../../types/calendarTypes';
 
-// Import CSS for this component
 import './CalendarView.css';
 
 // Timezone for Display
@@ -56,7 +55,7 @@ function CalendarView() {
             const utcDate = new Date(event.startDateTimeUtc);
             // Convert to Copenhagen time before formatting the date key
             const zonedDate = toZonedTime(utcDate, displayTimeZone);
-            // Format date for the key (e.g., "11. april 2025")
+            // Format date for the key
             const dateKey = format(zonedDate, 'd. MMMM yyyy', { locale: da });
 
             if (!groups[dateKey]) {

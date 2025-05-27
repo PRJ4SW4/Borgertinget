@@ -86,7 +86,6 @@ namespace Tests.Controllers
         }
 
         // Hjælpe metode til specifikke tests for at håndtere warnings vedørende null references
-        // De kunne ikke løses ved "!" og "?", da man ikke kan bruge den null-conditional operator (?.) der, fordi Arg.Is() forventer et Expression Tree
         private bool DoesActionContextMatch(UrlActionContext uac, string? expectedReturnUrl)
         {
             if (uac.Action != nameof(UsersController.HandleGoogleCallback) ||
