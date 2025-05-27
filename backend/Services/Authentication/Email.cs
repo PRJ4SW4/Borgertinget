@@ -31,7 +31,7 @@ namespace backend.Services.Authentication
 
             return new EmailDataDto
             {
-                ToEmail = user.Email!, // Antager at din IdentityUser har en Email property
+                ToEmail = user.Email!, 
                 Subject = subject,
                 HtmlMessage = message,
             };
@@ -74,7 +74,7 @@ namespace backend.Services.Authentication
 
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(fromName, fromEmail));
-            message.To.Add(new MailboxAddress("", toEmail)); // Modtagernavn kan være tomt
+            message.To.Add(new MailboxAddress("", toEmail)); 
             message.Subject = emailContent.Subject;
 
             var bodyBuilder = new BodyBuilder();

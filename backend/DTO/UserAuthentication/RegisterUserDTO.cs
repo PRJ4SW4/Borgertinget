@@ -12,6 +12,6 @@ namespace backend.DTOs
         public required string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password er påkrævet")]
-        public required string Password { get; set; }
+        public required string? Password { get; set; }
     }
 }

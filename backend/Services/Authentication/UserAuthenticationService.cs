@@ -285,22 +285,10 @@ namespace backend.Services.Authentication
                     {
                         appUser.EmailConfirmed = true;
                         var updateResult = await _userManager.UpdateAsync(appUser);
-                        if (!updateResult.Succeeded)
-                        {
-                            _logger.LogWarning(
-                                "Could not confirm email for existing user {UserName} during Google Sign In. Errors: {Errors}",
-                                appUser.UserName,
-                                string.Join(", ", updateResult.Errors.Select(e => e.Description))
-                            );
-                            // Fortsæt alligevel, da det primære formål er login/linking
-                        }
-                        else
-                        {
                             _logger.LogInformation(
                                 "Email confirmed for existing user {UserName} during Google Sign In.",
                                 appUser.UserName
                             );
-                        }
                     }
                 }
 
