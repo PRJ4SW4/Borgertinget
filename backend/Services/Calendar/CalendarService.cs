@@ -72,15 +72,15 @@ namespace backend.Services.Calendar
                 Title = calendarEventDto.Title,
                 StartDateTimeUtc = calendarEventDto.StartDateTimeUtc,
                 Location = calendarEventDto.Location,
-                SourceUrl = calendarEventDto.SourceUrl ?? string.Empty, 
+                SourceUrl = calendarEventDto.SourceUrl ?? string.Empty,
             };
 
-            await _calendarEventRepository.AddEventAsync(calendarEvent); 
+            await _calendarEventRepository.AddEventAsync(calendarEvent);
             await _calendarEventRepository.SaveChangesAsync();
 
             return new CalendarEventDTO
             {
-                Id = calendarEvent.Id, 
+                Id = calendarEvent.Id,
                 Title = calendarEvent.Title,
                 StartDateTimeUtc = calendarEvent.StartDateTimeUtc,
                 Location = calendarEvent.Location,
@@ -104,7 +104,7 @@ namespace backend.Services.Calendar
             calendarEvent.Title = calendarEventDto.Title;
             calendarEvent.StartDateTimeUtc = calendarEventDto.StartDateTimeUtc;
             calendarEvent.Location = calendarEventDto.Location;
-            calendarEvent.SourceUrl = calendarEventDto.SourceUrl ?? string.Empty; 
+            calendarEvent.SourceUrl = calendarEventDto.SourceUrl ?? string.Empty;
 
             _calendarEventRepository.UpdateEvent(calendarEvent);
             int changes = await _calendarEventRepository.SaveChangesAsync();
@@ -137,7 +137,7 @@ namespace backend.Services.Calendar
                 eventId,
                 userId
             );
-            if (!int.TryParse(userId, out int parsedUserIdAsInt) || parsedUserIdAsInt == 0) /
+            if (!int.TryParse(userId, out int parsedUserIdAsInt) || parsedUserIdAsInt == 0)
             {
                 _logger.LogWarning(
                     "ToggleInterestAsync: Ugyldigt userIdString format eller værdi: {UserIdString}",
@@ -165,7 +165,7 @@ namespace backend.Services.Calendar
 
             if (alreadyInterested != null)
             {
-                await _calendarEventRepository.RemoveEventInterest(alreadyInterested); 
+                await _calendarEventRepository.RemoveEventInterest(alreadyInterested);
                 isNowInterested = false;
             }
             else
@@ -176,7 +176,7 @@ namespace backend.Services.Calendar
                     UserId = user.Id,
                 };
 
-                await _calendarEventRepository.AddEventInterest(userInterest); .
+                await _calendarEventRepository.AddEventInterest(userInterest);
                 isNowInterested = true;
             }
 
