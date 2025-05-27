@@ -72,7 +72,7 @@ export const getFeed = async (
 };
 
 export const getSubscriptions = async (): Promise<PoliticianInfoDto[]> => {
-    const headers = getAuthHeaders(false); // GET request, no content-type needed
+    const headers = getAuthHeaders(false); 
     if (!headers.has('Authorization')) { return []; }
 
     try {
@@ -125,8 +125,7 @@ export const submitVote = async (pollId: number, optionId: number): Promise<void
 };
 
 export const subscribe = async (politicianId: number): Promise<void> => {
-  // Use getAuthHeaders for consistency!
-  const headers = getAuthHeaders(true); // Need content-type for POST with body
+  const headers = getAuthHeaders(true); 
   
   const response = await fetch(`${API_BASE_URL}/api/subscription`, { 
     method: 'POST',
@@ -141,10 +140,9 @@ export const subscribe = async (politicianId: number): Promise<void> => {
 };
 
 export const unsubscribe = async (politicianId: number): Promise<void> => {
-  // Use getAuthHeaders for consistency!
-  const headers = getAuthHeaders(false); // DELETE request, no content-type needed
+  const headers = getAuthHeaders(false); 
   
-  const response = await fetch(`${API_BASE_URL}/api/subscription/${politicianId}`, { // Make plural consistent
+  const response = await fetch(`${API_BASE_URL}/api/subscription/${politicianId}`, { 
     method: 'DELETE',
     headers: headers
   });
