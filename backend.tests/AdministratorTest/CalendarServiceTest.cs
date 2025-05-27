@@ -1,7 +1,9 @@
 using backend.DTO.Calendar;
+using backend.Models;
 using backend.Models.Calendar;
 using backend.Repositories.Calendar;
 using backend.Services.Calendar;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
@@ -15,12 +17,33 @@ public class CalendarServiceTest
     private ICalendarEventRepository _repository;
     private ILogger<CalendarService> _logger;
 
+    private UserManager<User> _mockUserManager;
+
     [SetUp]
     public void SetUp()
     {
         _repository = Substitute.For<ICalendarEventRepository>();
         _logger = Substitute.For<ILogger<CalendarService>>();
-        _uut = new CalendarService(_repository, _logger, null);
+        // Mock UserManager
+        var store = Substitute.For<IUserStore<User>>();
+        _mockUserManager = Substitute.For<UserManager<User>>(
+            store,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+        _uut = new CalendarService(_repository, _logger, _mockUserManager);
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _mockUserManager.Dispose();
     }
 
     #region CreateEventAsync Tests
