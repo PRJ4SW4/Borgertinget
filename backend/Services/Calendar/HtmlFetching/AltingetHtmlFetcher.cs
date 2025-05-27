@@ -13,7 +13,6 @@ public class AltingetHtmlFetcher : IHtmlFetcher
     private const string CustomUserAgent =
         "MyBorgertingetCalendarBot/1.0 (+http://borgertinget/botinfo)"; // Custom User-Agent string for HTTP requests.
 
-    // Constructor: Takes injected dependencies for HTTP requests and logging.
     public AltingetHtmlFetcher(
         IHttpClientFactory httpClientFactory,
         ILogger<AltingetHtmlFetcher> logger
@@ -27,8 +26,8 @@ public class AltingetHtmlFetcher : IHtmlFetcher
     // Asynchronously fetches HTML content from the given URL.
     public async Task<string?> FetchHtmlAsync(string url)
     {
-        var httpClient = _httpClientFactory.CreateClient("AltingetFetcherClient"); // Create/get a named or default HTTP client.
-        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(CustomUserAgent); // Set a custom User-Agent header.
+        var httpClient = _httpClientFactory.CreateClient("AltingetFetcherClient"); // Create an HTTP client using the factory.
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(CustomUserAgent); // Set the custom User-Agent header. Lets Altinget block us if we are doing harm.
         string? htmlContent = null; // Variable to store the HTML content.
 
         try

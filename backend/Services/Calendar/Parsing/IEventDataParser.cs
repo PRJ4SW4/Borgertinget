@@ -1,7 +1,7 @@
 namespace backend.Services.Calendar.Parsing;
 
 using System.Collections.Generic;
-using backend.Models.Calendar; // For ScrapedEventData
+using backend.Models.Calendar;
 
 // Defines a contract for services that can parse HTML content into a list of ScrapedEventData objects.
 public interface IEventDataParser

@@ -1,7 +1,6 @@
-// /backend/Models/LearningEnvironment/FlashcardCollection.cs
 namespace backend.Models.Flashcards;
 
-using System.Collections.Generic; // Required for ICollection
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 public class FlashcardCollection

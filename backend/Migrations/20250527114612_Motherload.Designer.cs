@@ -13,7 +13,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250523111739_Motherload")]
+    [Migration("20250527114612_Motherload")]
     partial class Motherload
     {
         /// <inheritdoc />

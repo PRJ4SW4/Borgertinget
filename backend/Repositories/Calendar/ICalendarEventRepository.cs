@@ -3,7 +3,6 @@ namespace backend.Repositories.Calendar;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using backend.Models;
 using backend.Models.Calendar;
 
 // Defines a contract for repository operations related to CalendarEvent entities.
@@ -48,8 +47,6 @@ public interface ICalendarEventRepository
     Task AddEventInterest(EventInterest eventInterest);
 
     Task RemoveEventInterest(EventInterest eventInterest);
-
-    //Task<User?> GetUserModelByIdStringAsync(string userId);
 
     Task<int> GetInterestedUsersAsync(int eventId);
 }
