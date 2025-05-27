@@ -9,10 +9,8 @@ namespace backend.Controllers;
 [ApiController]
 public class PagesController : ControllerBase
 {
-    // A private readonly field to hold the ILearningPageService instance.
     private readonly ILearningPageService _pageService;
 
-    // Constructor for the PagesController, injecting the ILearningPageService.
     public PagesController(ILearningPageService pageService)
     {
         _pageService = pageService;
@@ -47,8 +45,6 @@ public class PagesController : ControllerBase
         return Ok(pageDetail);
     }
 
-    // Defines an HTTP GET endpoint at "api/pages/{id}/sectionorder"
-    // to retrieve the ordered list of page IDs within the same section as the given page.
     [HttpGet("{id}/sectionorder")]
     [Authorize]
     public async Task<ActionResult<List<int>>> GetSectionPageOrder(int id)

@@ -1,12 +1,10 @@
-// /backend/Models/Calendar/CalendarEvent.cs
 namespace backend.Models.Calendar;
 
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 public class CalendarEvent
 {
-    [Key] // Primary Key for database table
+    [Key]
     public int Id { get; set; }
 
     [Required]

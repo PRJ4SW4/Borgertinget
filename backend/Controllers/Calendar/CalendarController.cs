@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 [ApiController]
-// Defines the route for this controller, setting the base URL segment to "api/calendar".
 [Route("api/[controller]")]
 public class CalendarController : ControllerBase
 {

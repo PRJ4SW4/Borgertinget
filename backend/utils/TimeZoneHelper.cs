@@ -4,7 +4,6 @@ public class TimeZoneHelper : ITimeZoneHelper
 {
     private readonly ILogger<TimeZoneHelper> _logger;
 
-    // Constructor to inject ILogger
     public TimeZoneHelper(ILogger<TimeZoneHelper> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -25,11 +24,11 @@ public class TimeZoneHelper : ITimeZoneHelper
         }
         catch (TimeZoneNotFoundException ex)
         {
-            _logger.LogCritical( // Using the injected logger
+            _logger.LogCritical(
                 ex,
                 "Could not find Copenhagen timezone using either IANA ('Europe/Copenhagen') or Windows ('Central European Standard Time') ID."
             ); // Log a critical error if the Copenhagen timezone is not found using either IANA or Windows ID.
-            throw; // Re-throw if neither is found, as this is critical for operation.
+            throw; // Re-throw if neither is found, as this is critical for the system and will break alot of functionality.
         }
     }
 }

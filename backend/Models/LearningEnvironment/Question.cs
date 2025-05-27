@@ -1,4 +1,3 @@
-// /backend/Models/LearningEnvironment/Question.cs
 namespace backend.Models.LearningEnvironment;
 
 using System.ComponentModel.DataAnnotations;
@@ -12,13 +11,11 @@ public class Question
     [Required]
     public string QuestionText { get; set; } = string.Empty;
 
-    // Foreign Key to Page
     [Required]
     public int PageId { get; set; }
 
     [ForeignKey("PageId")]
-    public virtual Page Page { get; set; } = null!; // Navigation property back to Page
+    public virtual Page Page { get; set; } = null!;
 
-    // Navigation property to AnswerOptions
     public virtual ICollection<AnswerOption> AnswerOptions { get; set; } = new List<AnswerOption>();
 }
