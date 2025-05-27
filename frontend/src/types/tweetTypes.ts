@@ -1,18 +1,17 @@
-// src/types/tweet.ts 
 export interface TweetDto {
   twitterTweetId: string;
   text: string;
-  imageUrl?: string; // '?' for valgfri
+  imageUrl?: string;
   likes: number;
   retweets: number;
   replies: number;
-  createdAt: string; 
+  createdAt: string;
   authorName: string;
   authorHandle: string;
 }
 
 export interface PoliticianInfoDto {
-  id: number; 
+  id: number;
   name: string;
 }
 
@@ -26,9 +25,9 @@ export interface PollOptionDto {
 export interface PollDetailsDto {
   id: number;
   question: string;
-  createdAt: string; 
-  endedAt?: string | null; 
-  isActive: boolean; 
+  createdAt: string;
+  endedAt?: string | null;
+  isActive: boolean;
 
   politicianId: number;
   politicianName: string;
@@ -55,7 +54,7 @@ export const isPoll = (item: FeedItem): item is PollDetailsDto => {
 
 
 export interface PaginatedFeedResponse {
-  feedItems: FeedItem[]; 
+  feedItems: FeedItem[];
   hasMore: boolean;
 }
 

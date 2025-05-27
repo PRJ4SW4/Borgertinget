@@ -1,4 +1,3 @@
-// src/components/TweetSide.tsx
 import React from 'react';
 import { TweetDto } from '../../types/tweetTypes'; 
 import './TweetSide.css'; 
