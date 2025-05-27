@@ -74,10 +74,10 @@ namespace backend.Services.Tests
         public async Task FetchAndUpdateAktorsAsync_WhenApisAreResponsive_InteractsWithRepositoriesCorrectly()
         {
             // Arrange
-            string knownPoliticianName = "Mette Frederiksen"; // Example
+            string knownPoliticianName = "Mette Frederiksen";
             var twitterIdEntry = new PoliticianTwitterId
             {
-                Id = 138, // Give it an ID for consistency if needed by mocks
+                Id = 138,
                 Name = knownPoliticianName,
                 TwitterUserId = "twitterUserMette",
                 TwitterHandle = "metteHandle",
@@ -99,7 +99,6 @@ namespace backend.Services.Tests
             var (totalAdded, totalUpdated, totalDeleted) = await _uut.FetchAndUpdateAktorsAsync();
 
             // Assert
-            // Verify logging
             _loggerFetchServiceMock
                 .Received()
                 .LogInformation(Arg.Is<string>(s => s.Contains("Starting Aktor update process")));
@@ -130,7 +129,7 @@ namespace backend.Services.Tests
 
             await _aktorRepoMock.Received().GetPoliticianTwitterIdByNameAsync(knownPoliticianName);
 
-            if (twitterIdEntry.AktorId.HasValue) // Check if AktorId was set on our object
+            if (twitterIdEntry.AktorId.HasValue)
             {
                 _loggerFetchServiceMock
                     .Received()
@@ -148,11 +147,11 @@ namespace backend.Services.Tests
         public void FetchAndUpdateAktorsAsync_MissingApiConfiguration_ThrowsInvalidOperationException()
         {
             // Arrange
-            var emptyConfiguration = new ConfigurationBuilder().Build(); // No API URLs
+            var emptyConfiguration = new ConfigurationBuilder().Build();
 
             var fetchServiceWithBadConfig = new FetchService(
                 _httpService,
-                emptyConfiguration, // Use empty config
+                emptyConfiguration,
                 _aktorRepoMock,
                 _partyRepoMock,
                 _loggerFetchServiceMock
