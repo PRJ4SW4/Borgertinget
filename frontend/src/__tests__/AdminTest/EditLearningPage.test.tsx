@@ -239,4 +239,140 @@ describe("EditLearningPage", () => {
     expect(window.alert).toHaveBeenCalledWith("Opdatering fejlede.");
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it("can add and remove a question", async () => {
+    render(
+      <BrowserRouter>
+        <EditLearningPage />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /vælg side/i }), { target: { value: "1" } });
+    await waitFor(() => expect(screen.getByText("Tilføj Spørgsmål")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Tilføj Spørgsmål"));
+    expect(screen.getByPlaceholderText("Indtast spørgsmål")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Fjern Spørgsmål"));
+    expect(screen.queryByPlaceholderText("Indtast spørgsmål")).not.toBeInTheDocument();
+  });
+
+  it("can change the question text", async () => {
+    render(
+      <BrowserRouter>
+        <EditLearningPage />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /vælg side/i }), { target: { value: "1" } });
+    fireEvent.click(screen.getByText("Tilføj Spørgsmål"));
+    const questionTextarea = screen.getByPlaceholderText("Indtast spørgsmål");
+    fireEvent.change(questionTextarea, { target: { value: "Hvad er 2+2?" } });
+    expect(questionTextarea).toHaveValue("Hvad er 2+2?");
+  });
+
+  it("can add and remove answer options for a question", async () => {
+    render(
+      <BrowserRouter>
+        <EditLearningPage />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /vælg side/i }), { target: { value: "1" } });
+    fireEvent.click(screen.getByText("Tilføj Spørgsmål"));
+    expect(screen.getAllByPlaceholderText("Svarsmulighed").length).toBe(2);
+    fireEvent.click(screen.getByText("Tilføj Svarsmulighed"));
+    expect(screen.getAllByPlaceholderText("Svarsmulighed").length).toBe(3);
+    fireEvent.click(screen.getByText("Fjern Sidste Svar"));
+    expect(screen.getAllByPlaceholderText("Svarsmulighed").length).toBe(2);
+  });
+
+  it("can change the answer option text", async () => {
+    render(
+      <BrowserRouter>
+        <EditLearningPage />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /vælg side/i }), { target: { value: "1" } });
+    fireEvent.click(screen.getByText("Tilføj Spørgsmål"));
+    const optionInputs = screen.getAllByPlaceholderText("Svarsmulighed");
+    fireEvent.change(optionInputs[0], { target: { value: "4" } });
+    expect(optionInputs[0]).toHaveValue("4");
+  });
+
+  it("can mark an answer option as correct", async () => {
+    render(
+      <BrowserRouter>
+        <EditLearningPage />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /vælg side/i }), { target: { value: "1" } });
+    fireEvent.click(screen.getByText("Tilføj Spørgsmål"));
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes[0]).not.toBeChecked();
+    fireEvent.click(checkboxes[0]);
+    expect(checkboxes[0]).toBeChecked();
+  });
+
+  it("shows alert if trying to remove option when none exist", async () => {
+    render(
+      <BrowserRouter>
+        <EditLearningPage />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /vælg side/i }), { target: { value: "1" } });
+    fireEvent.click(screen.getByText("Tilføj Spørgsmål"));
+    // Remove all options
+    const removeOptionBtn = screen.getByText("Fjern Sidste Svar");
+    fireEvent.click(removeOptionBtn);
+    fireEvent.click(removeOptionBtn);
+    // Now try to remove again, should alert
+    fireEvent.click(removeOptionBtn);
+    expect(window.alert).toHaveBeenCalledWith("Der er ingen svarmuligheder at fjerne.");
+  });
+
+  it("can change the display order", async () => {
+    render(
+      <BrowserRouter>
+        <EditLearningPage />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /vælg side/i }), { target: { value: "1" } });
+    await waitFor(() => expect(screen.getByPlaceholderText("Titel")).toBeInTheDocument());
+    const displayOrderInput = screen.getByLabelText("Visningsrækkefølge") as HTMLInputElement;
+    fireEvent.change(displayOrderInput, { target: { value: "42" } });
+    expect(displayOrderInput.value).toBe("42");
+  });
+
+  it("can set parent page to null when selecting empty option", async () => {
+    render(
+      <BrowserRouter>
+        <EditLearningPage />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "Page 1" })).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /vælg side/i }), { target: { value: "1" } });
+    await waitFor(() => expect(screen.getByLabelText("Overordnet side")).toBeInTheDocument());
+    const parentSelect = screen.getByLabelText("Overordnet side") as HTMLSelectElement;
+    fireEvent.change(parentSelect, { target: { value: "" } });
+    expect(parentSelect.value).toBe("");
+  });
 });

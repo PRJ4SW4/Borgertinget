@@ -1,11 +1,9 @@
-// src/components/SubscribeButton.tsx
 import React, { useState, useEffect } from 'react';
 import { subscribe, unsubscribe } from '../../services/tweetService';
 
-// Definer hvilke props komponenten skal modtage
 interface SubscribeButtonProps {
-  politicianTwitterId: number | null; // Det ID, som subscribe/unsubscribe API'et bruger (IKKE Aktor ID)
-  initialIsSubscribed: boolean;       // Er brugeren subscribed, når komponenten vises?
+  politicianTwitterId: number | null; // Det ID, som subscribe/unsubscribe API'et bruger, altså hvilken politiker der abonneres på
+  initialIsSubscribed: boolean;       // Er brugeren subscribed, når komponenten vises
   // Valgfri funktion der kaldes EFTER et succesfuldt subscribe/unsubscribe API-kald
   onSubscriptionChange?: (newStatus: boolean) => void;
 }
@@ -15,10 +13,10 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
   initialIsSubscribed,
   onSubscriptionChange
 }) => {
-  // Lokal state til at styre knappens udseende og deaktivering
+  // Lokal state til at styre knappens udseende og deaktivering når der er subscribet/unsubscribed
   const [isSubscribed, setIsSubscribed] = useState<boolean>(initialIsSubscribed);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false); // Bruges til loading/disabled state
-  const [error, setError] = useState<string | null>(null);         // Til at vise fejl under knappen
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false); 
+  const [error, setError] = useState<string | null>(null);         
 
   useEffect(() => {
     setIsSubscribed(initialIsSubscribed);

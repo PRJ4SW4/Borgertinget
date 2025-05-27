@@ -1,4 +1,4 @@
-/* src/components/PollCard.css */
+
 .poll-card {
  
 
@@ -7,7 +7,7 @@
     border-radius: 8px;
     margin-bottom: 15px;
     padding: 15px;
-    max-width: 1000px; /* Maksimal bredde for kortet */
+    max-width: 1000px; 
     font-family: 'Arial', sans-serif;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     margin-left: auto;
@@ -47,7 +47,7 @@
     padding: 10px 12px;
     display: flex;
     align-items: center;
-    gap: 10px; /* Afstand mellem elementer i option */
+    gap: 10px; 
     position: relative; 
     overflow: hidden;
   }

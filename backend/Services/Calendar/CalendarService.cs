@@ -137,7 +137,7 @@ namespace backend.Services.Calendar
                 eventId,
                 userId
             );
-            if (!int.TryParse(userId, out int parsedUserIdAsInt) || parsedUserIdAsInt == 0) // userId for databasen
+            if (!int.TryParse(userId, out int parsedUserIdAsInt) || parsedUserIdAsInt == 0)
             {
                 _logger.LogWarning(
                     "ToggleInterestAsync: Ugyldigt userIdString format eller værdi: {UserIdString}",
@@ -165,7 +165,7 @@ namespace backend.Services.Calendar
 
             if (alreadyInterested != null)
             {
-                await _calendarEventRepository.RemoveEventInterest(alreadyInterested); // Remove interest.
+                await _calendarEventRepository.RemoveEventInterest(alreadyInterested);
                 isNowInterested = false;
             }
             else
@@ -176,7 +176,7 @@ namespace backend.Services.Calendar
                     UserId = user.Id,
                 };
 
-                await _calendarEventRepository.AddEventInterest(userInterest); // Add interest.
+                await _calendarEventRepository.AddEventInterest(userInterest);
                 isNowInterested = true;
             }
 

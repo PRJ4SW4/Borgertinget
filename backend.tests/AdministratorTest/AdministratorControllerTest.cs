@@ -1,3 +1,4 @@
+using backend.Controllers;
 using backend.Data;
 using backend.DTO.Flashcards;
 using backend.DTOs;
@@ -15,16 +16,16 @@ namespace Tests.Controllers
     [TestFixture]
     public class AdministratorControllerTests
     {
-        private AdministratorController _controller;
-        private IAdministratorService _service;
+        private AdministratorController _uut;
+        private IAdministratorService _mockService;
         private ILogger<AdministratorController> _mockLogger;
 
         [SetUp]
         public void Setup()
         {
-            _service = Substitute.For<IAdministratorService>();
+            _mockService = Substitute.For<IAdministratorService>();
             _mockLogger = Substitute.For<ILogger<AdministratorController>>();
-            _controller = new AdministratorController(_service, _mockLogger);
+            _uut = new AdministratorController(_mockService, _mockLogger);
         }
 
         #region Flashcard Collection POST
@@ -33,9 +34,9 @@ namespace Tests.Controllers
         public async Task PostFlashCardCollection_ValidDto_ReturnsOk()
         {
             var dto = new FlashcardCollectionDetailDTO { Title = "Test" };
-            _service.CreateCollectionAsync(dto).Returns(42);
+            _mockService.CreateCollectionAsync(dto).Returns(42);
 
-            var result = await _controller.PostFlashCardCollection(dto);
+            var result = await _uut.PostFlashCardCollection(dto);
 
             Assert.That(result, Is.TypeOf<OkObjectResult>());
             var okResult = result as OkObjectResult;
@@ -45,11 +46,32 @@ namespace Tests.Controllers
         [Test]
         public async Task PostFlashCardCollection_NullDto_ReturnsBadRequest()
         {
-            var result = await _controller.PostFlashCardCollection(null!);
+            var result = await _uut.PostFlashCardCollection(null!);
 
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var badRequest = result as BadRequestObjectResult;
             Assert.That(badRequest?.Value, Is.EqualTo("No Collection to create from"));
+        }
+
+        [Test]
+        public async Task PostFlashCardCollection_ExceptionThrown_ReturnsInternalServerError()
+        {
+            // Arrange
+            var dto = new FlashcardCollectionDetailDTO { Title = "Test" };
+            _mockService.CreateCollectionAsync(dto).Throws(new Exception("Unexpected error"));
+
+            // Act
+            var result = await _uut.PostFlashCardCollection(dto);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value,
+                Does.Contain("An error occurred while creating the collection: Unexpected error")
+            );
         }
 
         [Test]
@@ -67,7 +89,7 @@ namespace Tests.Controllers
                 .Returns(Task.CompletedTask);
 
             // Call controller method
-            var result = await _controller.UploadImage(fileMock);
+            var result = await _uut.UploadImage(fileMock);
 
             // Assert expected result
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -78,11 +100,38 @@ namespace Tests.Controllers
         [Test]
         public async Task UploadImage_NullFile_ReturnsBadRequest()
         {
-            var result = await _controller.UploadImage(null!);
+            var result = await _uut.UploadImage(null!);
 
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var bad = result as BadRequestObjectResult;
             Assert.That(bad?.Value, Is.EqualTo("No file uploaded"));
+        }
+
+        [Test]
+        public async Task UploadImage_ExceptionThrown_ReturnsInternalServerError()
+        {
+            // Arrange
+            var fileMock = Substitute.For<IFormFile>();
+            fileMock.Length.Returns(1024);
+            fileMock.FileName.Returns("andersfogh.png");
+
+            // Simulate exception during file upload
+            fileMock
+                .When(f => f.CopyToAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()))
+                .Do(x => throw new Exception("Unexpected error"));
+
+            // Act
+            var result = await _uut.UploadImage(fileMock);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value,
+                Does.Contain("An error occurred while uploading the file: Unexpected error")
+            );
         }
 
         #endregion
@@ -95,10 +144,10 @@ namespace Tests.Controllers
         {
             // Arrange list of titles
             var titles = new List<string> { "Politikerer", "Partier" };
-            _service.GetAllFlashcardCollectionTitlesAsync().Returns(titles);
+            _mockService.GetAllFlashcardCollectionTitlesAsync().Returns(titles);
 
             // Act on the service call
-            var result = await _controller.GetFlashCardCollectionTitles();
+            var result = await _uut.GetFlashCardCollectionTitles();
 
             // Assert the right return statement
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -107,14 +156,36 @@ namespace Tests.Controllers
         }
 
         [Test]
+        public async Task GetAllFlashcardCollectionTitles_ExceptionThrown_ReturnsInternalServerError()
+        {
+            // Arrange
+            _mockService
+                .GetAllFlashcardCollectionTitlesAsync()
+                .Throws(new Exception("Unexpected error"));
+
+            // Act
+            var result = await _uut.GetFlashCardCollectionTitles();
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value?.ToString(),
+                Does.Contain("Error Fetching Flashcard Collection titles: Unexpected error")
+            );
+        }
+
+        [Test]
         public async Task GetFlashcardCollectionByTitle_ReturnsMatchingDto()
         {
             // Arrange
             var dto = new FlashcardCollectionDetailDTO { Title = "Blå partier" };
-            _service.GetFlashCardCollectionByTitle("Blå partier").Returns(dto);
+            _mockService.GetFlashCardCollectionByTitle("Blå partier").Returns(dto);
 
             // Act
-            var result = await _controller.GetFlashCardCollectionByTitle("Blå partier");
+            var result = await _uut.GetFlashCardCollectionByTitle("Blå partier");
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -126,18 +197,22 @@ namespace Tests.Controllers
         public async Task GetFlashcardCollectionByTitle_ServiceThrows_ReturnsInternalServerError()
         {
             // Arrange
-            _service
+            _mockService
                 .GetFlashCardCollectionByTitle("Statsministerer")
-                .Throws(new System.Exception("Something went wrong"));
+                .Throws(new Exception("Something went wrong"));
 
             // Act
-            var result = await _controller.GetFlashCardCollectionByTitle("Statsministerer");
+            var result = await _uut.GetFlashCardCollectionByTitle("Statsministerer");
 
             // Assert
             Assert.That(result, Is.TypeOf<ObjectResult>());
             var objectResult = result as ObjectResult;
-            Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
-            Assert.That(objectResult?.Value?.ToString(), Does.Contain("Something went wrong"));
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value?.ToString(),
+                Does.Contain("Error finding Flashcard Collection by title: Something went wrong")
+            );
         }
 
         #endregion
@@ -148,7 +223,7 @@ namespace Tests.Controllers
         public async Task DeleteFlashcardCollection_ValidId_ReturnsSuccessMessage()
         {
             // Act
-            var result = await _controller.DeleteFlashcardCollection(10);
+            var result = await _uut.DeleteFlashcardCollection(10);
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -160,12 +235,36 @@ namespace Tests.Controllers
         public async Task DeleteFlashcardCollection_InvalidId_ReturnsBadRequest()
         {
             // Act
-            var result = await _controller.DeleteFlashcardCollection(0);
+            var result = await _uut.DeleteFlashcardCollection(0);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var bad = result as BadRequestObjectResult;
             Assert.That(bad?.Value, Is.EqualTo("Enter a valid ID"));
+        }
+
+        [Test]
+        public async Task DeleteFlashcardCollection_ExceptionThrown_ReturnsInternalServerError()
+        {
+            // Arrange
+            _mockService
+                .DeleteFlashcardCollectionAsync(10)
+                .ThrowsAsync(new Exception("Unexpected error"));
+
+            // Act
+            var result = await _uut.DeleteFlashcardCollection(10);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value,
+                Does.Contain(
+                    "An error occurred while deleting the Flashcard collection: Unexpected error"
+                )
+            );
         }
 
         #endregion
@@ -184,9 +283,9 @@ namespace Tests.Controllers
             };
 
             // Act
-            var result = await _controller.UpdateFlashcardCollection(1, dto);
+            var result = await _uut.UpdateFlashcardCollection(1, dto);
 
-            await _service.Received(1).UpdateCollectionInfoAsync(1, dto);
+            await _mockService.Received(1).UpdateCollectionInfoAsync(1, dto);
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -198,12 +297,40 @@ namespace Tests.Controllers
         public async Task UpdateFlashcardCollection_NullDto_ReturnsBadRequest()
         {
             // Act
-            var result = await _controller.UpdateFlashcardCollection(1, null!);
+            var result = await _uut.UpdateFlashcardCollection(1, null!);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var bad = result as BadRequestObjectResult;
             Assert.That(bad?.Value, Is.EqualTo("No collection data provided"));
+        }
+
+        [Test]
+        public async Task UpdateFlashcardCollection_ExceptionThrown_ReturnsInternalServerError()
+        {
+            // Arrange
+            var dto = new FlashcardCollectionDetailDTO
+            {
+                Title = "Test Collection",
+                Flashcards = new List<FlashcardDTO>(),
+            };
+
+            _mockService
+                .UpdateCollectionInfoAsync(1, dto)
+                .ThrowsAsync(new Exception("Unexpected error"));
+
+            // Act
+            var result = await _uut.UpdateFlashcardCollection(1, dto);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value,
+                Does.Contain("An error occurred while updating the collection: Unexpected error")
+            );
         }
 
         #endregion
@@ -215,10 +342,10 @@ namespace Tests.Controllers
         {
             // Arrange
             var userId = new UserIdDTO { UserId = 88 };
-            _service.GetUserIdByUsernameAsync("hellethorning").Returns(userId);
+            _mockService.GetUserIdByUsernameAsync("hellethorning").Returns(userId);
 
             // Act
-            var result = await _controller.GetUsernameID("hellethorning");
+            var result = await _uut.GetUsernameID("hellethorning");
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -230,12 +357,30 @@ namespace Tests.Controllers
         public async Task GetUsernameID_NullUsername_ReturnsBadRequest()
         {
             // Act
-            var result = await _controller.GetUsernameID(null!);
+            var result = await _uut.GetUsernameID(null!);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var bad = result as BadRequestObjectResult;
             Assert.That(bad?.Value, Is.EqualTo("Enter valid username"));
+        }
+
+        [Test]
+        public async Task GetUsernameID_ServiceFails_ReturnsInternalServerError()
+        {
+            // Arrange
+            _mockService
+                .GetUserIdByUsernameAsync("invaliduser")
+                .Throws(new Exception("Database error"));
+
+            // Act
+            var result = await _uut.GetUsernameID("invaliduser");
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
         }
 
         #endregion
@@ -249,9 +394,9 @@ namespace Tests.Controllers
             var dto = new UpdateUserNameDto { UserName = "larslykke" };
 
             // Act
-            var result = await _controller.PutNewUserName(5, dto);
+            var result = await _uut.PutNewUserName(5, dto);
 
-            await _service.Received(1).UpdateUserNameAsync(5, dto);
+            await _mockService.Received(1).UpdateUserNameAsync(5, dto);
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -263,12 +408,29 @@ namespace Tests.Controllers
         public async Task PutNewUserName_NullDto_ReturnsBadRequest()
         {
             // Act
-            var result = await _controller.PutNewUserName(5, null!);
+            var result = await _uut.PutNewUserName(5, null!);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var bad = result as BadRequestObjectResult;
             Assert.That(bad?.Value, Is.EqualTo("No new username found"));
+        }
+
+        [Test]
+        public async Task PutNewUserName_ServiceFails_ReturnsInternalServerError()
+        {
+            // Arrange
+            var dto = new UpdateUserNameDto { UserName = "newusername" };
+            _mockService.UpdateUserNameAsync(5, dto).Throws(new Exception("Update failed"));
+
+            // Act
+            var result = await _uut.PutNewUserName(5, dto);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
         }
 
         #endregion
@@ -283,10 +445,10 @@ namespace Tests.Controllers
             {
                 new EditQuoteDTO { QuoteId = 1, QuoteText = "Statsministeren siger ja" },
             };
-            _service.GetAllQuotesAsync().Returns(quotes);
+            _mockService.GetAllQuotesAsync().Returns(quotes);
 
             // Act
-            var result = await _controller.GetAllQuotes();
+            var result = await _uut.GetAllQuotes();
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -298,10 +460,10 @@ namespace Tests.Controllers
         public async Task GetAllQuotes_ServiceFails_Returns500()
         {
             // Arrange
-            _service.GetAllQuotesAsync().Throws(new Exception("db unavailable"));
+            _mockService.GetAllQuotesAsync().Throws(new Exception("db unavailable"));
 
             // Act
-            var result = await _controller.GetAllQuotes();
+            var result = await _uut.GetAllQuotes();
 
             // Assert
             Assert.That(result, Is.TypeOf<ObjectResult>());
@@ -319,10 +481,10 @@ namespace Tests.Controllers
                 QuoteId = 2,
                 QuoteText = "Vi lukker ikke flere minkfarme",
             };
-            _service.GetQuoteByIdAsync(2).Returns(quote);
+            _mockService.GetQuoteByIdAsync(2).Returns(quote);
 
             // Act
-            var result = await _controller.GetQuoteById(2);
+            var result = await _uut.GetQuoteById(2);
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -335,10 +497,10 @@ namespace Tests.Controllers
         {
             // Arrange
             var quoteId = 99;
-            _service.GetQuoteByIdAsync(quoteId).Throws(new Exception("not found"));
+            _mockService.GetQuoteByIdAsync(quoteId).Throws(new Exception("not found"));
 
             // Act
-            var result = await _controller.GetQuoteById(quoteId);
+            var result = await _uut.GetQuoteById(quoteId);
 
             // Assert
             Assert.That(result, Is.TypeOf<ObjectResult>());
@@ -358,9 +520,9 @@ namespace Tests.Controllers
         public async Task EditQuote_ValidInput_ReturnsOk()
         {
             var dto = new EditQuoteDTO { QuoteId = 3, QuoteText = "Vi må stå sammen" };
-            var result = await _controller.EditQuote(dto);
+            var result = await _uut.EditQuote(dto);
 
-            await _service.Received(1).EditQuoteAsync(3, "Vi må stå sammen");
+            await _mockService.Received(1).EditQuoteAsync(3, "Vi må stå sammen");
 
             Assert.That(result, Is.TypeOf<OkObjectResult>());
             var ok = result as OkObjectResult;
@@ -370,15 +532,23 @@ namespace Tests.Controllers
         [Test]
         public async Task EditQuote_ServiceFails_Returns500()
         {
-            _service.EditQuoteAsync(4, "Fejl i citat").Throws(new Exception("database error"));
+            // Arrange
+            _mockService.EditQuoteAsync(4, "Fejl i citat").Throws(new Exception("database error"));
 
-            var dto = new EditQuoteDTO { QuoteId = 3, QuoteText = "Fejl i citat" };
-            var result = await _controller.EditQuote(dto);
+            var dto = new EditQuoteDTO { QuoteId = 4, QuoteText = "Fejl i citat" };
 
-            Assert.That(result, Is.TypeOf<OkObjectResult>());
-            var obj = result as ObjectResult;
-            Assert.That(obj?.StatusCode, Is.EqualTo(200));
-            Assert.That(obj?.Value?.ToString(), Does.Contain("Quote edited"));
+            // Act
+            var result = await _uut.EditQuote(dto);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value?.ToString(),
+                Is.EqualTo("An error occurred while getting quote: database error")
+            );
         }
 
         #endregion
@@ -391,10 +561,10 @@ namespace Tests.Controllers
             // Arrange
             var twitterId = 123;
             var expectedAktorId = 456;
-            _service.GetAktorIdByTwitterIdAsync(twitterId).Returns(expectedAktorId);
+            _mockService.GetAktorIdByTwitterIdAsync(twitterId).Returns(expectedAktorId);
 
             // Act
-            var result = await _controller.GetAktorIdByTwitterId(twitterId);
+            var result = await _uut.GetAktorIdByTwitterId(twitterId);
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -414,10 +584,10 @@ namespace Tests.Controllers
         {
             // Arrange
             var twitterId = 789;
-            _service.GetAktorIdByTwitterIdAsync(twitterId).Returns((int?)null);
+            _mockService.GetAktorIdByTwitterIdAsync(twitterId).Returns((int?)null);
 
             // Act
-            var result = await _controller.GetAktorIdByTwitterId(twitterId);
+            var result = await _uut.GetAktorIdByTwitterId(twitterId);
 
             // Assert
             Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
@@ -435,12 +605,35 @@ namespace Tests.Controllers
             var invalidTwitterId = -1;
 
             // Act
-            var result = await _controller.GetAktorIdByTwitterId(invalidTwitterId);
+            var result = await _uut.GetAktorIdByTwitterId(invalidTwitterId);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
             Assert.That(badRequestResult?.Value, Is.EqualTo("Invalid Twitter ID."));
+        }
+
+        [Test]
+        public async Task GetAktorIdByTwitterId_ServiceFails_ReturnsInternalServerError()
+        {
+            // Arrange
+            var twitterId = 123;
+            _mockService
+                .GetAktorIdByTwitterIdAsync(twitterId)
+                .Throws(new Exception("Lookup failed"));
+
+            // Act
+            var result = await _uut.GetAktorIdByTwitterId(twitterId);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value?.ToString(),
+                Is.EqualTo("An error occurred while looking up AktorId: Lookup failed")
+            );
         }
 
         #endregion

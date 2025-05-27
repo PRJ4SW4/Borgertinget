@@ -17,7 +17,7 @@
 }
 
 .add-poll-form {
-  background-color: #c99b9b; /* Light pink background */
+  background-color: #c99b9b; 
   padding: 2rem;
   border-radius: 0.5rem;
   display: flex;
@@ -58,7 +58,7 @@
 .add-poll-add-btn,
 .add-poll-remove-btn,
 .add-poll-submit-btn {
-  background-color: #950018e5; /* Dark red */
+  background-color: #950018e5;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;

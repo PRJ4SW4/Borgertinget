@@ -9,9 +9,6 @@ using Microsoft.Extensions.Logging;
 
 namespace backend.Repositories
 {
-    /// <summary>
-    /// Repository that performs data‑access operations for administrator related operations
-    /// </summary>
     public class AdministratorRepository : IAdministratorRepository
     {
         private readonly DataContext _context;

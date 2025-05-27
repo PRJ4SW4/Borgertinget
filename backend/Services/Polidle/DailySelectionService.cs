@@ -93,7 +93,7 @@ namespace backend.Services
             return dtos;
         }
 
-        public async Task<QuoteDto> GetQuoteOfTheDayAsync()
+        public async Task<QuoteDto?> GetQuoteOfTheDayAsync()
         {
             _logger.LogDebug("Getting quote of the day.");
             DateOnly today = _dateTimeProvider.TodayUtc;
@@ -114,7 +114,7 @@ namespace backend.Services
             return new QuoteDto { QuoteText = selection.SelectedQuoteText };
         }
 
-        public async Task<PhotoDto> GetPhotoOfTheDayAsync()
+        public async Task<PhotoDto?> GetPhotoOfTheDayAsync()
         {
             _logger.LogDebug("Getting photo of the day.");
             DateOnly today = _dateTimeProvider.TodayUtc;
@@ -149,7 +149,7 @@ namespace backend.Services
             return new PhotoDto { PhotoUrl = selection.SelectedPolitiker.PictureMiRes };
         }
 
-        public async Task<DailyPoliticianDto> GetClassicDetailsOfTheDayAsync()
+        public async Task<DailyPoliticianDto?> GetClassicDetailsOfTheDayAsync()
         {
             _logger.LogDebug("Getting classic details of the day.");
             DateOnly today = _dateTimeProvider.TodayUtc;
@@ -176,7 +176,7 @@ namespace backend.Services
             return _mapper.MapToDetailsDto(selection.SelectedPolitiker); // Mapper klarer alder etc.
         }
 
-        public async Task<GuessResultDto> ProcessGuessAsync(GuessRequestDto guessDto)
+        public async Task<GuessResultDto?> ProcessGuessAsync(GuessRequestDto guessDto)
         {
             _logger.LogInformation(
                 "Processing guess for GameMode {GameMode}, GuessedId {GuessedId}",

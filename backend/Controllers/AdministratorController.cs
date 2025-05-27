@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+namespace backend.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
@@ -107,7 +109,7 @@ public class AdministratorController : ControllerBase
         {
             _logger.LogError(ex, "Failed to get all Flashcard Collection titles");
 
-            return StatusCode(500, $"Error Fetching Flashcard Collection titles: {ex}");
+            return StatusCode(500, $"Error Fetching Flashcard Collection titles: {ex.Message}");
         }
     }
 
@@ -125,7 +127,7 @@ public class AdministratorController : ControllerBase
         {
             _logger.LogError(ex, "Failed to get Flashcard Collection by title");
 
-            return StatusCode(500, $"Error finding Flashcard Collection by title: {ex}");
+            return StatusCode(500, $"Error finding Flashcard Collection by title: {ex.Message}");
         }
     }
 

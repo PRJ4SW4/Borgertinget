@@ -17,13 +17,13 @@ namespace Tests.Services
     public class AdministratorServiceTests
     {
         private IAdministratorRepository _repository;
-        private AdministratorService _service;
+        private AdministratorService _uut;
 
         [SetUp]
         public void Setup()
         {
             _repository = Substitute.For<IAdministratorRepository>();
-            _service = new AdministratorService(_repository);
+            _uut = new AdministratorService(_repository);
         }
 
         #region Flashcard POST
@@ -51,7 +51,7 @@ namespace Tests.Services
                 .When(r => r.AddFlashcardCollectionAsync(Arg.Any<FlashcardCollection>()))
                 .Do(ci => ci.Arg<FlashcardCollection>().CollectionId = 42);
 
-            var id = await _service.CreateCollectionAsync(dto);
+            var id = await _uut.CreateCollectionAsync(dto);
             Assert.That(id, Is.EqualTo(42));
         }
 
@@ -86,7 +86,7 @@ namespace Tests.Services
                 .When(r => r.AddFlashcardCollectionAsync(Arg.Any<FlashcardCollection>()))
                 .Do(ci => captured = ci.Arg<FlashcardCollection>());
 
-            await _service.CreateCollectionAsync(dto);
+            await _uut.CreateCollectionAsync(dto);
             Assert.That(captured, Is.Not.Null);
             Assert.That(captured.Flashcards.Count, Is.EqualTo(2));
         }
@@ -101,7 +101,7 @@ namespace Tests.Services
             var titles = new List<string> { "LA", "NB" };
             _repository.GetAllFlashcardCollectionTitlesAsync().Returns(titles);
 
-            var result = await _service.GetAllFlashcardCollectionTitlesAsync();
+            var result = await _uut.GetAllFlashcardCollectionTitlesAsync();
             Assert.That(result, Is.EquivalentTo(titles));
         }
 
@@ -110,7 +110,7 @@ namespace Tests.Services
         {
             _repository.GetAllFlashcardCollectionTitlesAsync().Returns(new List<string>());
             Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _service.GetAllFlashcardCollectionTitlesAsync()
+                _uut.GetAllFlashcardCollectionTitlesAsync()
             );
         }
 
@@ -135,7 +135,7 @@ namespace Tests.Services
             };
             _repository.GetFlashcardCollectionByTitleAsync("DF").Returns(entity);
 
-            var dto = await _service.GetFlashCardCollectionByTitle("DF");
+            var dto = await _uut.GetFlashCardCollectionByTitle("DF");
             Assert.That(dto.Title, Is.EqualTo("DF"));
             Assert.That(dto.Flashcards.Count, Is.EqualTo(1));
         }
@@ -147,7 +147,7 @@ namespace Tests.Services
                 .GetFlashcardCollectionByTitleAsync("Ukendt")
                 .Returns((FlashcardCollection)null!);
             Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _service.GetFlashCardCollectionByTitle("Ukendt")
+                _uut.GetFlashCardCollectionByTitle("Ukendt")
             );
         }
 
@@ -183,7 +183,7 @@ namespace Tests.Services
                 },
             };
 
-            await _service.UpdateCollectionInfoAsync(1, dto);
+            await _uut.UpdateCollectionInfoAsync(1, dto);
             await _repository.Received(1).UpdateFlashcardCollectionAsync(existing);
             Assert.That(existing.Title, Is.EqualTo("New"));
             Assert.That(existing.Flashcards.Count, Is.EqualTo(1));
@@ -199,9 +199,7 @@ namespace Tests.Services
                 Description = "x",
                 Flashcards = new List<FlashcardDTO>(),
             };
-            Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _service.UpdateCollectionInfoAsync(7, dto)
-            );
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _uut.UpdateCollectionInfoAsync(7, dto));
         }
 
         #endregion
@@ -214,7 +212,7 @@ namespace Tests.Services
             var coll = new FlashcardCollection { CollectionId = 9 };
             _repository.GetFlashcardCollectionByIdAsync(9).Returns(coll);
 
-            await _service.DeleteFlashcardCollectionAsync(9);
+            await _uut.DeleteFlashcardCollectionAsync(9);
             await _repository.Received(1).DeleteFlashcardCollectionAsync(coll);
         }
 
@@ -222,9 +220,7 @@ namespace Tests.Services
         public void DeleteFlashcardCollectionAsync_InvalidId_Throws()
         {
             _repository.GetFlashcardCollectionByIdAsync(-9).Returns((FlashcardCollection)null!);
-            Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _service.DeleteFlashcardCollectionAsync(-9)
-            );
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _uut.DeleteFlashcardCollectionAsync(-9));
         }
 
         #endregion
@@ -236,7 +232,7 @@ namespace Tests.Services
         {
             var user = new User { Id = 1, UserName = "helle" };
             _repository.GetUserByUsernameAsync("helle").Returns(user);
-            var res = await _service.GetUserIdByUsernameAsync("helle");
+            var res = await _uut.GetUserIdByUsernameAsync("helle");
             Assert.That(res.UserId, Is.EqualTo(user.Id));
         }
 
@@ -244,9 +240,7 @@ namespace Tests.Services
         public void GetUserByUsernameAsync_NotFound_Throws()
         {
             _repository.GetUserByUsernameAsync("ghost").Returns((User)null!);
-            Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _service.GetUserIdByUsernameAsync("ghost")
-            );
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _uut.GetUserIdByUsernameAsync("ghost"));
         }
 
         [Test]
@@ -254,7 +248,7 @@ namespace Tests.Services
         {
             var user = new User { Id = 5, UserName = "old" };
             _repository.GetUserByIdAsync(5).Returns(user);
-            await _service.UpdateUserNameAsync(5, new UpdateUserNameDto { UserName = "new" });
+            await _uut.UpdateUserNameAsync(5, new UpdateUserNameDto { UserName = "new" });
             Assert.That(user.UserName, Is.EqualTo("new"));
             await _repository.Received(1).UpdateUserAsync(user);
         }
@@ -264,7 +258,7 @@ namespace Tests.Services
         {
             _repository.GetUserByIdAsync(99).Returns((User)null!);
             Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _service.UpdateUserNameAsync(99, new UpdateUserNameDto { UserName = "x" })
+                _uut.UpdateUserNameAsync(99, new UpdateUserNameDto { UserName = "x" })
             );
         }
 
@@ -280,7 +274,7 @@ namespace Tests.Services
                 new PoliticianQuote { QuoteId = 1, QuoteText = "Q" },
             };
             _repository.GetAllQuotesAsync().Returns(list);
-            var res = await _service.GetAllQuotesAsync();
+            var res = await _uut.GetAllQuotesAsync();
             Assert.That(res.Count, Is.EqualTo(1));
         }
 
@@ -288,7 +282,7 @@ namespace Tests.Services
         public void GetAllQuotesAsync_None_Throws()
         {
             _repository.GetAllQuotesAsync().Returns(new List<PoliticianQuote>());
-            Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetAllQuotesAsync());
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _uut.GetAllQuotesAsync());
         }
 
         [Test]
@@ -296,7 +290,7 @@ namespace Tests.Services
         {
             var quote = new PoliticianQuote { QuoteId = 7, QuoteText = "text" };
             _repository.GetQuoteByIdAsync(7).Returns(quote);
-            var dto = await _service.GetQuoteByIdAsync(7);
+            var dto = await _uut.GetQuoteByIdAsync(7);
             Assert.That(dto.QuoteText, Is.EqualTo("text"));
         }
 
@@ -304,7 +298,7 @@ namespace Tests.Services
         public void GetQuoteByIdAsync_InvalidId_Throws()
         {
             _repository.GetQuoteByIdAsync(999).Returns((PoliticianQuote)null!);
-            Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetQuoteByIdAsync(999));
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _uut.GetQuoteByIdAsync(999));
         }
 
         [Test]
@@ -313,7 +307,7 @@ namespace Tests.Services
             var quote = new PoliticianQuote { QuoteId = 3, QuoteText = "Old" };
             _repository.GetQuoteByIdAsync(3).Returns(quote);
 
-            await _service.EditQuoteAsync(3, "New");
+            await _uut.EditQuoteAsync(3, "New");
 
             Assert.That(quote.QuoteText, Is.EqualTo("New"));
             await _repository.Received(1).UpdateQuoteAsync(quote);
@@ -323,7 +317,7 @@ namespace Tests.Services
         public void EditQuoteAsync_InvalidId_Throws()
         {
             _repository.GetQuoteByIdAsync(404).Returns((PoliticianQuote)null!);
-            Assert.ThrowsAsync<KeyNotFoundException>(() => _service.EditQuoteAsync(404, "text"));
+            Assert.ThrowsAsync<KeyNotFoundException>(() => _uut.EditQuoteAsync(404, "text"));
         }
 
         #endregion
@@ -335,7 +329,7 @@ namespace Tests.Services
         {
             _repository.GetAktorIdByTwitterIdAsync(321).Returns(654);
 
-            var result = await _service.GetAktorIdByTwitterIdAsync(321);
+            var result = await _uut.GetAktorIdByTwitterIdAsync(321);
 
             Assert.That(result, Is.EqualTo(654));
         }
@@ -345,7 +339,7 @@ namespace Tests.Services
         {
             _repository.GetAktorIdByTwitterIdAsync(999).Returns((int?)null);
 
-            var result = await _service.GetAktorIdByTwitterIdAsync(999);
+            var result = await _uut.GetAktorIdByTwitterIdAsync(999);
 
             Assert.That(result, Is.Null);
         }
@@ -355,7 +349,7 @@ namespace Tests.Services
         {
             Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
             {
-                await _service.GetAktorIdByTwitterIdAsync(0);
+                await _uut.GetAktorIdByTwitterIdAsync(0);
             });
         }
 

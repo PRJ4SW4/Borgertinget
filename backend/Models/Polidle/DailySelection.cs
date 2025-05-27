@@ -31,6 +31,6 @@ namespace backend.Models
 
         // --- Navigation Property til Aktor ---
         [ForeignKey(nameof(SelectedPolitikerID))] // Linker til FK property ovenfor
-        public virtual Aktor SelectedPolitiker { get; set; } = null!; // Giver adgang til Aktor-objektet
+        public virtual Aktor? SelectedPolitiker { get; set; } = null!; // Giver adgang til Aktor-objektet
     }
 }

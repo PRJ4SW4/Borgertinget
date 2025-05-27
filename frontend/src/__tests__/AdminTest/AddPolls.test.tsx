@@ -66,33 +66,6 @@ describe("AddPolls", () => {
     expect(option1Input.value).toBe("Option Yes");
   });
 
-  // it("fetches twitterId when a politician is selected", async () => {
-  //   render(
-  //     <BrowserRouter>
-  //       <AddPolls />
-  //     </BrowserRouter>
-  //   );
-  //   await waitFor(() =>
-  //     expect(screen.getByText(mockPoliticians[0].navn)).toBeInTheDocument()
-  //   );
-
-  //   const politicianSelect = screen.getByLabelText(
-  //     "Vælg Politiker *"
-  //   ) as HTMLSelectElement;
-  //   fireEvent.change(politicianSelect, {
-  //     target: { value: mockPoliticians[0].id },
-  //   });
-
-  //   await waitFor(() => {
-  //     expect(mockedAxios.get).toHaveBeenCalledWith(
-  //       `/api/subscription/lookup/politicianTwitterId?aktorId=${mockPoliticians[0].id}`,
-  //       {
-  //         headers: { Authorization: "Bearer fake-jwt-token" },
-  //       }
-  //     );
-  //   });
-  // });
-
   it("adds and removes options", async () => {
     render(
       <BrowserRouter>
@@ -227,5 +200,72 @@ describe("AddPolls", () => {
       expect(window.alert).toHaveBeenCalledWith("Failed to create poll. Please try again.");
     });
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("alerts if not logged in when fetching politicians", async () => {
+    mockGetItem.mockReturnValueOnce(null); // No token
+    const alertSpy = vi.spyOn(window, "alert");
+    render(
+      <BrowserRouter>
+        <AddPolls />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith("Du er ikke logget ind.");
+    });
+    alertSpy.mockRestore();
+  });
+
+  it("logs error if fetching politicians fails", async () => {
+    mockGetItem.mockReturnValue("fake-jwt-token");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (mockedAxios.get as Mock).mockImplementationOnce(() => Promise.reject(new Error("fail")));
+    render(
+      <BrowserRouter>
+        <AddPolls />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith("Failed to fetch politicians", expect.any(Error));
+    });
+    errorSpy.mockRestore();
+  });
+
+  it("does not fetch twitterId if no politician is selected", async () => {
+    mockGetItem.mockReturnValue("fake-jwt-token");
+    render(
+      <BrowserRouter>
+        <AddPolls />
+      </BrowserRouter>
+    );
+    // Should not call axios.get for twitterId
+    expect(mockedAxios.get).not.toHaveBeenCalledWith(expect.stringContaining("/api/subscription/lookup/politicianTwitterId"), expect.anything());
+  });
+
+  it("sets twitterId to null and logs error if fetchTwitterId fails", async () => {
+    mockGetItem.mockReturnValue("fake-jwt-token");
+    (mockedAxios.get as Mock).mockImplementation((url: string) => {
+      if (url === "/api/aktor/all") {
+        return Promise.resolve({ data: mockPoliticians });
+      }
+      if (url.startsWith("/api/subscription/lookup/politicianTwitterId")) {
+        return Promise.reject(new Error("twitterId fail"));
+      }
+      return Promise.reject(new Error(`Unknown GET URL: ${url}`));
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <BrowserRouter>
+        <AddPolls />
+      </BrowserRouter>
+    );
+    await waitFor(() => expect(screen.getByText("Politician Alpha")).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText("Vælg Politiker *"), {
+      target: { value: mockPoliticians[0].id },
+    });
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith("Could not fetch politicianTwitterId", expect.any(Error));
+    });
+    errorSpy.mockRestore();
   });
 });
