@@ -14,7 +14,7 @@ namespace Tests.Services
     [TestFixture]
     public class PagesServiceTest
     {
-        private LearningPageService _service;
+        private LearningPageService _uut;
         private ILearningPageRepository _repository;
         private ILogger<LearningPageService> _logger;
 
@@ -23,7 +23,7 @@ namespace Tests.Services
         {
             _repository = Substitute.For<ILearningPageRepository>();
             _logger = Substitute.For<ILogger<LearningPageService>>();
-            _service = new LearningPageService(_repository, _logger);
+            _uut = new LearningPageService(_repository, _logger);
         }
 
         [Test]
@@ -96,7 +96,7 @@ namespace Tests.Services
             _repository.GetChildPagesOrderedAsync(Arg.Any<int?>()).Returns(allPages);
 
             // Act
-            var result = await _service.CreatePageAsync(createRequest);
+            var result = await _uut.CreatePageAsync(createRequest);
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -204,7 +204,7 @@ namespace Tests.Services
             _repository.When(x => x.UpdatePage(Arg.Any<Page>())).Do(_ => { }); // Mock UpdatePage
 
             // Act
-            var result = await _service.UpdatePageAsync(1, updateRequest);
+            var result = await _uut.UpdatePageAsync(1, updateRequest);
 
             // Assert
             Assert.That(result, Is.True);
@@ -226,7 +226,7 @@ namespace Tests.Services
             _repository.GetPageByIdAsync(1).Returns((Page?)null);
 
             // Act
-            var result = await _service.UpdatePageAsync(1, updateRequest);
+            var result = await _uut.UpdatePageAsync(1, updateRequest);
 
             // Assert
             Assert.That(result, Is.False);
@@ -277,7 +277,7 @@ namespace Tests.Services
             _repository.When(x => x.RemovePage(Arg.Any<Page>()));
 
             // Act
-            var result = await _service.DeletePageAsync(1);
+            var result = await _uut.DeletePageAsync(1);
 
             // Assert
             Assert.That(result, Is.True);
@@ -290,7 +290,7 @@ namespace Tests.Services
             _repository.GetPageByIdAsync(1).Returns((Page?)null);
 
             // Act
-            var result = await _service.DeletePageAsync(1);
+            var result = await _uut.DeletePageAsync(1);
 
             // Assert
             Assert.That(result, Is.False);

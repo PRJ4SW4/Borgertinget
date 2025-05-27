@@ -15,14 +15,14 @@ namespace Tests.Controllers
     [TestFixture]
     public class PagesControllerAdminTests
     {
-        private PagesController _controller;
+        private PagesController _uut;
         private ILearningPageService _pageService;
 
         [SetUp]
         public void SetUp()
         {
             _pageService = Substitute.For<ILearningPageService>();
-            _controller = new PagesController(_pageService);
+            _uut = new PagesController(_pageService);
         }
 
         #region Learningenvironment POST
@@ -42,7 +42,7 @@ namespace Tests.Controllers
             _pageService.CreatePageAsync(createRequest).Returns(createdPage);
 
             // Act
-            var result = await _controller.CreatePage(createRequest);
+            var result = await _uut.CreatePage(createRequest);
 
             // Assert
             Assert.That(result.Result, Is.TypeOf<CreatedAtActionResult>());
@@ -66,7 +66,7 @@ namespace Tests.Controllers
             _pageService.UpdatePageAsync(updateRequest.Id, updateRequest).Returns(true);
 
             // Act
-            var result = await _controller.UpdatePage(updateRequest.Id, updateRequest);
+            var result = await _uut.UpdatePage(updateRequest.Id, updateRequest);
 
             // Assert
             Assert.That(result, Is.TypeOf<NoContentResult>());
@@ -83,7 +83,7 @@ namespace Tests.Controllers
             };
 
             // Act
-            var result = await _controller.UpdatePage(2, updateRequest);
+            var result = await _uut.UpdatePage(2, updateRequest);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
@@ -101,7 +101,7 @@ namespace Tests.Controllers
             _pageService.UpdatePageAsync(updateRequest.Id, updateRequest).Returns(false);
 
             // Act
-            var result = await _controller.UpdatePage(updateRequest.Id, updateRequest);
+            var result = await _uut.UpdatePage(updateRequest.Id, updateRequest);
 
             // Assert
             Assert.That(result, Is.TypeOf<NotFoundResult>());
@@ -119,7 +119,7 @@ namespace Tests.Controllers
             _pageService.DeletePageAsync(pageId).Returns(true);
 
             // Act
-            var result = await _controller.DeletePage(pageId);
+            var result = await _uut.DeletePage(pageId);
 
             // Assert
             Assert.That(result, Is.TypeOf<NoContentResult>());
@@ -133,7 +133,7 @@ namespace Tests.Controllers
             _pageService.DeletePageAsync(pageId).Returns(false);
 
             // Act
-            var result = await _controller.DeletePage(pageId);
+            var result = await _uut.DeletePage(pageId);
 
             // Assert
             Assert.That(result, Is.TypeOf<NotFoundResult>());

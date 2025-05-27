@@ -11,7 +11,7 @@ namespace Tests.Controllers;
 [TestFixture]
 public class PartyControllerTests
 {
-    private PartyController _controller;
+    private PartyController _uut;
     private IPartyService _service;
 
     [SetUp]
@@ -19,7 +19,7 @@ public class PartyControllerTests
     {
         _service = Substitute.For<IPartyService>();
         var logger = Substitute.For<ILogger<PartyController>>();
-        _controller = new PartyController(_service, logger);
+        _uut = new PartyController(_service, logger);
     }
 
     [Test]
@@ -37,7 +37,7 @@ public class PartyControllerTests
         _service.UpdateDetails(partyId, updateDto).Returns(true);
 
         // Act
-        var result = await _controller.UpdatePartyDetails(partyId, updateDto);
+        var result = await _uut.UpdatePartyDetails(partyId, updateDto);
 
         // Assert
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
@@ -52,7 +52,7 @@ public class PartyControllerTests
         var partyId = 1;
 
         // Act
-        var result = await _controller.UpdatePartyDetails(partyId, null);
+        var result = await _uut.UpdatePartyDetails(partyId, null);
 
         // Assert
         Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
@@ -74,7 +74,7 @@ public class PartyControllerTests
         };
 
         // Act
-        var result = await _controller.UpdatePartyDetails(partyId, updateDto);
+        var result = await _uut.UpdatePartyDetails(partyId, updateDto);
 
         // Assert
         Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
@@ -99,7 +99,7 @@ public class PartyControllerTests
             .Returns(Task.FromException<bool>(new Exception("Unexpected error")));
 
         // Act
-        var result = await _controller.UpdatePartyDetails(partyId, updateDto);
+        var result = await _uut.UpdatePartyDetails(partyId, updateDto);
 
         // Assert
         Assert.That(result.Result, Is.TypeOf<ObjectResult>());

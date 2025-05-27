@@ -11,7 +11,7 @@ namespace Tests.Services;
 [TestFixture]
 public class PartyServiceTest
 {
-    private PartyService _service;
+    private PartyService _uut;
     private IPartyRepository _repository;
     private ILogger<PartyService> _logger;
 
@@ -20,7 +20,7 @@ public class PartyServiceTest
     {
         _repository = Substitute.For<IPartyRepository>();
         _logger = Substitute.For<ILogger<PartyService>>();
-        _service = new PartyService(_repository, _logger);
+        _uut = new PartyService(_repository, _logger);
     }
 
     [Test]
@@ -41,7 +41,7 @@ public class PartyServiceTest
         _repository.SaveChangesAsync().Returns(1);
 
         // Act
-        var result = await _service.UpdateDetails(partyId, updateDto);
+        var result = await _uut.UpdateDetails(partyId, updateDto);
 
         // Assert
         Assert.That(result, Is.True);
@@ -66,7 +66,7 @@ public class PartyServiceTest
         _repository.GetById(partyId).Returns((Party?)null);
 
         // Act
-        var result = await _service.UpdateDetails(partyId, updateDto);
+        var result = await _uut.UpdateDetails(partyId, updateDto);
 
         // Assert
         Assert.That(result, Is.False);

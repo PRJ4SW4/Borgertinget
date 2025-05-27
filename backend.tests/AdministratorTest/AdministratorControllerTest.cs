@@ -17,15 +17,15 @@ namespace Tests.Controllers
     public class AdministratorControllerTests
     {
         private AdministratorController _controller;
-        private IAdministratorService _service;
+        private IAdministratorService _uut;
         private ILogger<AdministratorController> _mockLogger;
 
         [SetUp]
         public void Setup()
         {
-            _service = Substitute.For<IAdministratorService>();
+            _uut = Substitute.For<IAdministratorService>();
             _mockLogger = Substitute.For<ILogger<AdministratorController>>();
-            _controller = new AdministratorController(_service, _mockLogger);
+            _controller = new AdministratorController(_uut, _mockLogger);
         }
 
         #region Flashcard Collection POST
@@ -34,7 +34,7 @@ namespace Tests.Controllers
         public async Task PostFlashCardCollection_ValidDto_ReturnsOk()
         {
             var dto = new FlashcardCollectionDetailDTO { Title = "Test" };
-            _service.CreateCollectionAsync(dto).Returns(42);
+            _uut.CreateCollectionAsync(dto).Returns(42);
 
             var result = await _controller.PostFlashCardCollection(dto);
 
@@ -96,7 +96,7 @@ namespace Tests.Controllers
         {
             // Arrange list of titles
             var titles = new List<string> { "Politikerer", "Partier" };
-            _service.GetAllFlashcardCollectionTitlesAsync().Returns(titles);
+            _uut.GetAllFlashcardCollectionTitlesAsync().Returns(titles);
 
             // Act on the service call
             var result = await _controller.GetFlashCardCollectionTitles();
@@ -112,7 +112,7 @@ namespace Tests.Controllers
         {
             // Arrange
             var dto = new FlashcardCollectionDetailDTO { Title = "Blå partier" };
-            _service.GetFlashCardCollectionByTitle("Blå partier").Returns(dto);
+            _uut.GetFlashCardCollectionByTitle("Blå partier").Returns(dto);
 
             // Act
             var result = await _controller.GetFlashCardCollectionByTitle("Blå partier");
@@ -127,8 +127,7 @@ namespace Tests.Controllers
         public async Task GetFlashcardCollectionByTitle_ServiceThrows_ReturnsInternalServerError()
         {
             // Arrange
-            _service
-                .GetFlashCardCollectionByTitle("Statsministerer")
+            _uut.GetFlashCardCollectionByTitle("Statsministerer")
                 .Throws(new System.Exception("Something went wrong"));
 
             // Act
@@ -187,7 +186,7 @@ namespace Tests.Controllers
             // Act
             var result = await _controller.UpdateFlashcardCollection(1, dto);
 
-            await _service.Received(1).UpdateCollectionInfoAsync(1, dto);
+            await _uut.Received(1).UpdateCollectionInfoAsync(1, dto);
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -216,7 +215,7 @@ namespace Tests.Controllers
         {
             // Arrange
             var userId = new UserIdDTO { UserId = 88 };
-            _service.GetUserIdByUsernameAsync("hellethorning").Returns(userId);
+            _uut.GetUserIdByUsernameAsync("hellethorning").Returns(userId);
 
             // Act
             var result = await _controller.GetUsernameID("hellethorning");
@@ -252,7 +251,7 @@ namespace Tests.Controllers
             // Act
             var result = await _controller.PutNewUserName(5, dto);
 
-            await _service.Received(1).UpdateUserNameAsync(5, dto);
+            await _uut.Received(1).UpdateUserNameAsync(5, dto);
 
             // Assert
             Assert.That(result, Is.TypeOf<OkObjectResult>());
@@ -284,7 +283,7 @@ namespace Tests.Controllers
             {
                 new EditQuoteDTO { QuoteId = 1, QuoteText = "Statsministeren siger ja" },
             };
-            _service.GetAllQuotesAsync().Returns(quotes);
+            _uut.GetAllQuotesAsync().Returns(quotes);
 
             // Act
             var result = await _controller.GetAllQuotes();
@@ -299,7 +298,7 @@ namespace Tests.Controllers
         public async Task GetAllQuotes_ServiceFails_Returns500()
         {
             // Arrange
-            _service.GetAllQuotesAsync().Throws(new Exception("db unavailable"));
+            _uut.GetAllQuotesAsync().Throws(new Exception("db unavailable"));
 
             // Act
             var result = await _controller.GetAllQuotes();
@@ -320,7 +319,7 @@ namespace Tests.Controllers
                 QuoteId = 2,
                 QuoteText = "Vi lukker ikke flere minkfarme",
             };
-            _service.GetQuoteByIdAsync(2).Returns(quote);
+            _uut.GetQuoteByIdAsync(2).Returns(quote);
 
             // Act
             var result = await _controller.GetQuoteById(2);
@@ -336,7 +335,7 @@ namespace Tests.Controllers
         {
             // Arrange
             var quoteId = 99;
-            _service.GetQuoteByIdAsync(quoteId).Throws(new Exception("not found"));
+            _uut.GetQuoteByIdAsync(quoteId).Throws(new Exception("not found"));
 
             // Act
             var result = await _controller.GetQuoteById(quoteId);
@@ -361,7 +360,7 @@ namespace Tests.Controllers
             var dto = new EditQuoteDTO { QuoteId = 3, QuoteText = "Vi må stå sammen" };
             var result = await _controller.EditQuote(dto);
 
-            await _service.Received(1).EditQuoteAsync(3, "Vi må stå sammen");
+            await _uut.Received(1).EditQuoteAsync(3, "Vi må stå sammen");
 
             Assert.That(result, Is.TypeOf<OkObjectResult>());
             var ok = result as OkObjectResult;
@@ -371,7 +370,7 @@ namespace Tests.Controllers
         [Test]
         public async Task EditQuote_ServiceFails_Returns500()
         {
-            _service.EditQuoteAsync(4, "Fejl i citat").Throws(new Exception("database error"));
+            _uut.EditQuoteAsync(4, "Fejl i citat").Throws(new Exception("database error"));
 
             var dto = new EditQuoteDTO { QuoteId = 3, QuoteText = "Fejl i citat" };
             var result = await _controller.EditQuote(dto);
@@ -392,7 +391,7 @@ namespace Tests.Controllers
             // Arrange
             var twitterId = 123;
             var expectedAktorId = 456;
-            _service.GetAktorIdByTwitterIdAsync(twitterId).Returns(expectedAktorId);
+            _uut.GetAktorIdByTwitterIdAsync(twitterId).Returns(expectedAktorId);
 
             // Act
             var result = await _controller.GetAktorIdByTwitterId(twitterId);
@@ -415,7 +414,7 @@ namespace Tests.Controllers
         {
             // Arrange
             var twitterId = 789;
-            _service.GetAktorIdByTwitterIdAsync(twitterId).Returns((int?)null);
+            _uut.GetAktorIdByTwitterIdAsync(twitterId).Returns((int?)null);
 
             // Act
             var result = await _controller.GetAktorIdByTwitterId(twitterId);

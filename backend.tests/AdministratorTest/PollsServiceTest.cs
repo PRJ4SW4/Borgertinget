@@ -11,16 +11,14 @@ namespace Tests.Services;
 [TestFixture]
 public class PollsServiceTest
 {
-    private PollsService _service;
+    private PollsService _uut;
     private IPollsRepository _repository;
-    private ILogger<PollsService> _logger;
 
     [SetUp]
     public void SetUp()
     {
         _repository = Substitute.For<IPollsRepository>();
-        _logger = Substitute.For<ILogger<PollsService>>();
-        _service = new PollsService(_repository);
+        _uut = new PollsService(_repository);
     }
 
     #region CreatePollAsync Tests
@@ -58,7 +56,7 @@ public class PollsServiceTest
         _repository.GetPoliticianByIdAsync(createDto.PoliticianTwitterId).Returns(politician);
 
         // Act
-        var result = await _service.CreatePollAsync(createDto);
+        var result = await _uut.CreatePollAsync(createDto);
 
         // Assert
         Assert.That(result, Is.Not.Null);
@@ -93,7 +91,7 @@ public class PollsServiceTest
         _repository.SaveChangesAsync().Returns(1);
 
         // Act
-        var result = await _service.UpdatePollAsync(pollId, updateDto);
+        var result = await _uut.UpdatePollAsync(pollId, updateDto);
 
         // Assert
         Assert.That(result, Is.True);
@@ -116,7 +114,7 @@ public class PollsServiceTest
         _repository.GetPollByIdAsync(pollId).Returns((Poll?)null);
 
         // Act
-        var result = await _service.UpdatePollAsync(pollId, updateDto);
+        var result = await _uut.UpdatePollAsync(pollId, updateDto);
 
         // Assert
         Assert.That(result, Is.False);
@@ -137,7 +135,7 @@ public class PollsServiceTest
         _repository.SaveChangesAsync().Returns(1);
 
         // Act
-        var result = await _service.DeletePollAsync(pollId);
+        var result = await _uut.DeletePollAsync(pollId);
 
         // Assert
         Assert.That(result, Is.True);
@@ -152,7 +150,7 @@ public class PollsServiceTest
         _repository.GetPollByIdAsync(pollId).Returns((Poll?)null);
 
         // Act
-        var result = await _service.DeletePollAsync(pollId);
+        var result = await _uut.DeletePollAsync(pollId);
 
         // Assert
         Assert.That(result, Is.False);

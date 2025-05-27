@@ -11,7 +11,7 @@ namespace Tests.Services;
 [TestFixture]
 public class CalendarServiceTest
 {
-    private CalendarService _service;
+    private CalendarService _uut;
     private ICalendarEventRepository _repository;
     private ILogger<CalendarService> _logger;
 
@@ -20,7 +20,7 @@ public class CalendarServiceTest
     {
         _repository = Substitute.For<ICalendarEventRepository>();
         _logger = Substitute.For<ILogger<CalendarService>>();
-        _service = new CalendarService(_repository, _logger, null);
+        _uut = new CalendarService(_repository, _logger, null);
     }
 
     #region CreateEventAsync Tests
@@ -36,7 +36,7 @@ public class CalendarServiceTest
         _repository.SaveChangesAsync().Returns(1).AndDoes(_ => calendarEvent.Id = eventDto.Id);
 
         // Act
-        var result = await _service.CreateEventAsync(eventDto);
+        var result = await _uut.CreateEventAsync(eventDto);
 
         // Assert
         Assert.That(result.Id, Is.EqualTo(eventDto.Id));
@@ -62,7 +62,7 @@ public class CalendarServiceTest
         _repository.SaveChangesAsync().Returns(1);
 
         // Act
-        var result = await _service.UpdateEventAsync(eventId, eventDto);
+        var result = await _uut.UpdateEventAsync(eventId, eventDto);
 
         // Assert
         Assert.That(result, Is.True);
@@ -79,7 +79,7 @@ public class CalendarServiceTest
         _repository.GetEventByIdAsync(eventId).Returns((CalendarEvent?)null);
 
         // Act
-        var result = await _service.UpdateEventAsync(eventId, eventDto);
+        var result = await _uut.UpdateEventAsync(eventId, eventDto);
 
         // Assert
         Assert.That(result, Is.False);
@@ -100,7 +100,7 @@ public class CalendarServiceTest
         _repository.SaveChangesAsync().Returns(1);
 
         // Act
-        var result = await _service.DeleteEventAsync(eventId);
+        var result = await _uut.DeleteEventAsync(eventId);
 
         // Assert
         Assert.That(result, Is.True);
@@ -115,7 +115,7 @@ public class CalendarServiceTest
         _repository.GetEventByIdAsync(eventId).Returns((CalendarEvent?)null);
 
         // Act
-        var result = await _service.DeleteEventAsync(eventId);
+        var result = await _uut.DeleteEventAsync(eventId);
 
         // Assert
         Assert.That(result, Is.False);
