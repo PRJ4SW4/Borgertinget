@@ -1,7 +1,6 @@
 import React from 'react';
 import './PartyInfoCard.css';
 
-// Define the properties the component expects
 interface PartyInfoCardProps {
   partyName: string;
   slogan?: string;
@@ -11,7 +10,7 @@ interface PartyInfoCardProps {
   secretaryName?: string | null; // Partisekretær
   politicalSpokespersonName?: string | null; // Politisk ordfører
   groupLeaderName?: string | null; // Gruppeformand
-  deputyChairmanName2?: string | null; // Second "Næstformand" shown in the design
+  deputyChairmanName2?: string | null; // Næstformand
   defaultLogo: string;
 }
 
@@ -25,7 +24,7 @@ const PartyInfoCard: React.FC<PartyInfoCardProps> = ({
   politicalSpokespersonName,
   groupLeaderName,
   deputyChairmanName2,
-  defaultLogo, // Use the passed-in default logo
+  defaultLogo,
 }) => {
 
   // Helper function to render role information cleanly
@@ -47,8 +46,6 @@ const PartyInfoCard: React.FC<PartyInfoCardProps> = ({
       target.src = defaultLogo; // Attempt to load default logo
     } else {
       console.error(`Failed to load default party logo: ${defaultLogo}`);
-      // Optional: Hide the image element completely if default also fails
-      // target.style.display = 'none';
     }
   };
 

@@ -1,46 +1,32 @@
 .search-component-container {
   position: relative;
-  /* Crucial for positioning suggestions */
   width: 100%;
-  /* Or a specific width as needed */
   max-width: 600px;
-  /* Example max-width */
   margin: 0 auto;
-  /* Center it if it has a max-width */
 }
 
 .search-input {
   width: 100%;
   padding: 12px 20px;
   font-size: 1rem;
-  /* Responsive font size */
   border: 1px solid #ccc;
-  /* Softer border */
   border-radius: 25px;
-  /* Pill shape */
   box-sizing: border-box;
-  /* Include padding and border in the element's total width and height */
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   outline: none;
-  /* Remove default focus outline */
   background-color: #f8f9fa;
-  /* Light background */
   color: #495057;
-  /* Darker text for contrast */
 }
 
 .search-input:focus {
   border-color: #007bff;
-  /* Highlight color on focus */
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  /* Subtle glow */
 }
 
 .search-suggestions-list {
   list-style-type: none;
   padding: 0;
   margin: 5px 0 0 0;
-  /* Add some margin at the top */
   position: absolute;
   top: 100%;
   left: 0;
@@ -81,13 +67,10 @@
 
 }
 
-/* Container for main search results or feedback messages */
 .search-results-feedback-container {
   margin-top: 15px;
-  /* Space below the search/suggestions box */
   width: 100%;
   text-align: left;
-  /* Or center, depending on your design */
 }
 
 .search-loading,
@@ -134,14 +117,11 @@
 
 .search-result-link {
   display: flex;
-  /* Use flex for better alignment */
   align-items: center;
-  /* Vertically align items */
   padding: 15px;
   text-decoration: none;
   color: #333;
   display: block;
-  /* Or flex, depending on inner content */
 }
 
 .result-type-badge {
@@ -151,7 +131,6 @@
   font-weight: bold;
   border-radius: 4px;
   margin-right: 10px;
-  /* Space between badge and title */
   color: #fff;
   text-transform: capitalize;
 }
@@ -177,8 +156,6 @@
 .type-default {
   background-color: #6c757d;
 }
-
-/* Fallback */
 
 
 .result-title {

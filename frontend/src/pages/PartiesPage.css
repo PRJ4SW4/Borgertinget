@@ -1,87 +1,83 @@
-.parties-page{
-    padding: 1rem; /* Add some overall padding */
+.parties-page {
+  padding: 1rem;
 }
-/* Updated navigation link styling */
+
 .parties-page nav {
-  width: 100%; /* Make the nav take full width */
-  margin-bottom: 20px; /* Existing margin-bottom */
-  /* order: 0; /* Not strictly necessary here unless party-page becomes a flex container like politician-page */
+  width: 100%;
+  margin-bottom: 20px;
 }
 
 .parties-page nav a {
-  display: inline-block; /* Allows padding and other block-level properties */
+  display: inline-block;
   text-decoration: none;
-  background-color: #950018; /* Borgertinget primary red from Navbar.css */
-  color: #FFFFFF; /* White text from Navbar.css */
-  padding: 0.5rem 1rem; /* Padding from Navbar.css */
-  border-radius: 20px; /* Pill-shaped corners from Navbar.css */
-  transition: background-color 0.2s ease, color 0.2s ease; /* Smooths color changes on hover */
-  font-weight: 500; /* Medium font weight from Navbar.css */
-  font-size: 0.95rem; /* Font size from Navbar.css */
-  white-space: nowrap; /* Prevents link text from wrapping */
+  background-color: #950018;
+  color: #FFFFFF;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-weight: 500;
+  font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .parties-page nav a:hover {
-  background-color: #f0f0f0; /* Light grey background on hover from Navbar.css */
-  color: #8B0000; /* Dark red text on hover from Navbar.css */
-  text-decoration: none; /* Remove underline on hover to match navbar style */
+  background-color: #f0f0f0;
+  color: #8B0000;
+  text-decoration: none;
 }
 
 /* Grid container for the parties */
 .parties-grid-list {
-    list-style: none;
-    padding: 0;
-    margin: 20px 0;
-    display: grid;
-    /* Adjust minmax width based on logo/text size */
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1.5rem; /* Adjust gap as needed */
-  }
-  
-  /* Link style within each grid cell */
-  .party-grid-link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    color: inherit;
-    padding: 15px;
-    border-radius: 8px;
-    background-color: #f8f9fa; /* Light background for each cell */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    height: 100%; /* Fill the grid cell height */
-    box-sizing: border-box;
-    text-align: center;
-  }
-  
-  .party-grid-link:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Logo style within grid cell */
-  .party-grid-logo {
-    width: 80px;  /* Adjust logo size */
-    height: 80px; /* Adjust logo size */
-    object-fit: contain; /* Use contain to show whole logo */
-    margin-bottom: 10px;
-  }
-  
-  /* Party name style within grid cell */
-  .party-grid-name {
-    font-weight: 500;
-    font-size: 1rem;
-     word-break: break-word; /* Handle longer names */
-  }
-  
-  /* Hide broken images */
-  .party-grid-logo[style*="display: none"] {
-      display: none !important;
-      /* Optional: Placeholder */
-      /* content: ''; display: block; width: 80px; height: 80px; background: #eee; border-radius: 4px; margin-bottom: 10px; */
-  }
-  
-  /* You might need to adjust other styles (.parties-page, nav, h2) */
-  .parties-page h2 {
-      margin-bottom: 1.5rem;
-  }
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  /* Adjust gap as needed */
+}
+
+/* Link style within each grid cell */
+.party-grid-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.party-grid-link:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo style within grid cell */
+.party-grid-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+
+/* Party name style within grid cell */
+.party-grid-name {
+  font-weight: 500;
+  font-size: 1rem;
+  word-break: break-word;
+}
+
+/* Hide broken images */
+.party-grid-logo[style*="display: none"] {
+  display: none !important;
+}
+
+.parties-page h2 {
+  margin-bottom: 1.5rem;
+}

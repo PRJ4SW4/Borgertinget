@@ -175,16 +175,14 @@ const SearchBar: React.FC = () => {
     if (event.key === "Enter") {
       const trimmedQuery = searchQuery.trim();
       if (trimmedQuery) {
-        setIsFullSearchActive(true); // Signal that a full search is being initiated
-        setShowSuggestions(false); // Hide suggestions immediately
+        setIsFullSearchActive(true);
+        setShowSuggestions(false);
         executeSearch(trimmedQuery);
       }
     }
   };
 
   const onInputFocus = () => {
-    // Only show suggestions on focus if there's a query, suggestions exist,
-    // and we are not in the middle of a full search action that just completed.
     if (searchQuery.trim() && !isFullSearchActive && searchSuggestions.length > 0) {
       setShowSuggestions(true);
     }

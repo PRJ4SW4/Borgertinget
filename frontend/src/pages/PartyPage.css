@@ -1,78 +1,55 @@
 .party-page {
   padding: 15px;
   max-width: 1200px;
-  /* Max width for the entire page content */
   margin: 0 auto;
-  /* Center the page content */
 }
 
 .party-page-nav {
   width: 100%;
-  /* Make the nav take full width */
   margin-bottom: 20px;
-  /* Existing margin-bottom */
 }
 
 .party-page-nav a {
   display: inline-block;
-  /* Allows padding and other block-level properties */
   text-decoration: none;
   background-color: #950018;
   color: #FFFFFF;
-  /* White text from Navbar.css */
   padding: 0.5rem 1rem;
-  /* Padding from Navbar.css */
   border-radius: 20px;
-  /* Pill-shaped corners from Navbar.css */
   transition: background-color 0.2s ease, color 0.2s ease;
-  /* Smooths color changes on hover */
   font-weight: 500;
-  /* Medium font weight from Navbar.css */
   font-size: 0.95rem;
-  /* Font size from Navbar.css */
   white-space: nowrap;
-  /* Prevents link text from wrapping */
 }
 
 .party-page-nav a:hover {
   background-color: #f0f0f0;
-  /* Light grey background on hover from Navbar.css */
   color: #8B0000;
-  /* Dark red text on hover from Navbar.css */
   text-decoration: none;
-  /* Remove underline on hover to match navbar style */
 }
 
 
 .party-main-content {
   display: flex;
   flex-wrap: wrap;
-  /* Allow columns to stack on smaller screens */
   gap: 30px;
-  /* Increased space between columns */
   margin-bottom: 30px;
-  /* Space before the members list */
 }
 
 .party-details-column {
   flex: 3;
   min-width: 300px;
-  /* Minimum width before wrapping */
   order: 1;
-  /* Appears first visually */
 }
 
 .party-infobox-column {
   flex: 1;
   min-width: fit-content;
-  /* Minimum width */
   order: 2;
-  /* Appears second visually */
 }
 
 .party-infobox-column .party-info-card {
   margin-top: 0;
-  /* Align card to the top of the column */
   margin-left: 0;
   margin-right: 0;
   width: 100%;
@@ -83,9 +60,7 @@
 .party-details-section {
   background-color: #ffffff;
   padding: 20px 25px;
-  /* Slightly more padding */
   margin-bottom: 25px;
-  /* More space between sections */
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid #e8e8e8;
@@ -93,22 +68,17 @@
 
 .party-details-section h3 {
   color: #800000;
-  /* Maroon color */
   margin-top: 0;
   margin-bottom: 15px;
   padding-bottom: 8px;
   border-bottom: 1px solid #eee;
   font-size: 1.4em;
-  /* Slightly larger heading */
 }
 
 .party-details-content {
   color: #333;
-  /* Darker text */
   line-height: 1.65;
-  /* More line spacing */
   white-space: pre-wrap;
-  /* Respect line breaks */
   font-size: 1em;
 }
 
@@ -117,7 +87,6 @@
   margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid #ddd;
-  /* Separator line above members */
 }
 
 .party-members-section h3 {
@@ -133,7 +102,6 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  /* Responsive grid */
   gap: 20px;
 }
 
@@ -206,8 +174,6 @@
 
   .party-infobox-column .party-info-card {
     margin: 0 auto 20px auto;
-    /* Center the card when stacked, add bottom margin */
     max-width: 350px;
-    /* Restore a reasonable max-width */
   }
 }
