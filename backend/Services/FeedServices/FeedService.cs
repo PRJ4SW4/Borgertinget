@@ -43,7 +43,6 @@ namespace backend.Services.Feed
         {
             try
             {
-                // Normalize pagination parameters
                 if (page < 1)
                     page = 1;
                 if (pageSize < 1)
