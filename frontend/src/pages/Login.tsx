@@ -32,13 +32,13 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     const userId = params.get("userId");
     const token = params.get("token");
 
-    if (userId && token) {
+    if (userId && token) { // Dette er et reset password link
       setStatusHeader("Nulstil adgangskode");
       setStatusMessage("");
       setShowResetPassword(true);
     }
 
-    if (message && status) {
+    if (message && status) { // Dette er fra et verificeringslink
       setStatusMessage(message);
       setStatusHeader(status === "success" ? "Succes" : "Fejl");
       setShowPopup(true);
@@ -48,7 +48,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
 
   useEffect(() => {
     handleLink();
-  }, [handleLink]); // Call it in the useEffect
+  }, [handleLink]); // Når loginsiden indlæses, tjekkes URL'en for parametre
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -95,20 +95,20 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
     catch (error) {
       if (axios.isAxiosError(error)) {
           const responseData = error.response?.data;
-          console.log("Response Data:", responseData); // Log responseData
-          console.log("Error:", error); // Log error
-          if (responseData?.error) {
-            setStatusMessage(responseData.error); // Fanger backend-fejlbesked
+          console.log("Response Data:", responseData); 
+          console.log("Error:", error);
+          if (responseData?.error) { // Axios error - ikke noget med brugerens input at gøre
+            setStatusMessage(responseData.error);
             setShowPopup(true);
-          } else if (responseData?.errors) {
+          } else if (responseData?.errors) { // IdentityErrors, som er en liste af fejlmeddelelser
             if (Array.isArray(responseData.errors)) {
-              setStatusMessage(responseData.errors[0]); // Fanger den første fejlmeddelelse
+              setStatusMessage(responseData.errors[0]); // Viser kun den første fejlmeddelelse
               setShowPopup(true);
             } else if (typeof responseData.errors === "object") {
               const firstKey = Object.keys(responseData.errors)[0];
-              const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
+              const firstError = responseData.errors[firstKey][0]; 
 
-              setStatusMessage(firstError); // Fanger backend-fejlbesked
+              setStatusMessage(firstError);
               setShowPopup(true);
             } else {
             console.log("Unexpected Axios error shape:", error.response?.data);
@@ -163,22 +163,22 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
       setShowPopup(true);
       setShowResetPassword(false);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
+      if (axios.isAxiosError(error)) { 
           const responseData = error.response?.data;
-          console.log("Response Data:", responseData); // Log responseData
-          console.log("Error:", error); // Log error
-          if (responseData?.error) {
-            setStatusMessage(responseData.error); // Fanger backend-fejlbesked
+          console.log("Response Data:", responseData);
+          console.log("Error:", error);
+          if (responseData?.error) { // Axios error - ikke noget med brugerens input at gøre 
+            setStatusMessage(responseData.error);
             setShowPopup(true);
-          } else if (responseData?.errors) {
+          } else if (responseData?.errors) { // IdentityErrors, som er en liste af fejlmeddelelser
             if (Array.isArray(responseData.errors)) {
-              setStatusMessage(responseData.errors[0]); // Fanger den første fejlmeddelelse
+              setStatusMessage(responseData.errors[0]); // Viser kun den første fejlmeddelelse
               setShowPopup(true);
             } else if (typeof responseData.errors === "object") {
               const firstKey = Object.keys(responseData.errors)[0];
-              const firstError = responseData.errors[firstKey][0]; // Fanger den første fejlmeddelelse
+              const firstError = responseData.errors[firstKey][0];
 
-              setStatusMessage(firstError); // Fanger backend-fejlbesked
+              setStatusMessage(firstError); 
               setShowPopup(true);
             } else {
             console.log("Unexpected Axios error shape:", error.response?.data);

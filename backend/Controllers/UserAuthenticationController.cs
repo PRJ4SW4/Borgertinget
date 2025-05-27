@@ -60,6 +60,7 @@ namespace backend.Controllers
 
             if (result.Succeeded)
             {
+                // Leder efter den oprettede bruger for at tildele en rolle
                 var user = await _userAuthenticationService.FindUserByEmailAsync(dto.Email);
                 if (user == null)
                 {
@@ -84,7 +85,7 @@ namespace backend.Controllers
                         }
                     );
                 }
-
+                // EmailService genererer en bekræftelsesmail med et token.
                 var token = await _userAuthenticationService.GenerateEmailConfirmationTokenAsync(
                     user
                 );
@@ -94,6 +95,7 @@ namespace backend.Controllers
 
                 try
                 {
+                    // Afsender bekræftelsesmailen med SMTP.
                     await _emailService.SendEmailAsync(dto.Email, emailContent);
                 }
                 catch (Exception ex)
@@ -132,7 +134,7 @@ namespace backend.Controllers
                 _logger.LogError("Token mangler.");
                 return BadRequest("Token mangler.");
             }
-
+            // Service leder efter en bruger med det angivne ID.
             var user = await _userAuthenticationService.GetUserAsync(userId);
             if (user == null)
             {
@@ -141,6 +143,7 @@ namespace backend.Controllers
 
             try
             {
+                // Token fra URL dekodes
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
                 var result = await _userAuthenticationService.ConfirmEmailAsync(user, decodedToken);
@@ -222,6 +225,7 @@ namespace backend.Controllers
                 return BadRequest(new { error = "Bruger findes ikke." });
             }
 
+            // Token genereres for at nulstille adgangskoden.
             var token = await _userAuthenticationService.GeneratePasswordResetTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
@@ -229,6 +233,7 @@ namespace backend.Controllers
 
             try
             {
+                // Afsender nulstillingsmailen med SMTP.
                 await _emailService.SendEmailAsync(dto.Email, emailContent);
                 return Ok(
                     new
@@ -258,6 +263,7 @@ namespace backend.Controllers
             [FromQuery] string token
         )
         {
+            // Leder efter en bruger med det angivne ID.
             var user = await _userAuthenticationService.GetUserAsync(userId);
             if (user == null)
             {
@@ -271,6 +277,7 @@ namespace backend.Controllers
 
             try
             {
+                // Token fra URL dekodes
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
 

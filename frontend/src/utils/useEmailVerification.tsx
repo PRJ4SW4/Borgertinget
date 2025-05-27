@@ -22,8 +22,8 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ onVerified, onErr
         .then((res) => {
           if (res.status === 200 && res.data?.message) {
             setVerificationStatus('success');
-            onVerified(); // Notify parent component
-            // Navigate to login with message
+            onVerified();
+            // Hvis bruger verificeres, naviger til login med succesmeddelelse
             navigate(`/login?message=${encodeURIComponent(res.data.message)}&status=success`);
           } else {
             setVerificationStatus('error');
@@ -40,7 +40,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ onVerified, onErr
           }
         })
         .finally(() => {
-          // Remove token from URL
+          // Fjerne token fra URL'en
           window.history.replaceState({}, document.title, window.location.pathname);
         });
     } else {
@@ -54,7 +54,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ onVerified, onErr
   }
 
   if (verificationStatus === 'error') {
-    return null; //The error is already handled by the Login component and shown in a popup.
+    return null; 
   }
 
   return null;
