@@ -64,13 +64,13 @@ const isTokenExpired = (token: string | null): boolean => {
   }
 };
 
- // --- Protected Route Component ---
-  // Wraps routes that require user authentication.
-  // Renders the child component if a token exists, otherwise redirects to /login.
+// --- Protected Route Component ---
+// Wraps routes that require user authentication.
+// Renders the child component if a token exists, otherwise redirects to /login.
 
-  // ProtectedRoute HAS TO BE outside the App component
-  // Else this will cause pages to be re-rendered on every render of App, which is not good
-  // for things like SideNav, which depend on only being mounted once
+// ProtectedRoute HAS TO BE outside the App component
+// Else this will cause pages to be re-rendered on every render of App, which is not good
+// for things like SideNav, which depend on only being mounted once
 const ProtectedRoute: React.FC<{ token: string | null; children: JSX.Element }> = ({ token, children }) => {
   return token ? children : <Navigate to="/login" />;
 };
@@ -79,15 +79,26 @@ function App() {
   // State hook for the JWT authentication token.
   // Initializes state from localStorage to persist login status.
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
-// useCallback is used to memoize the function, which means the function reference will remain the same
-  // across renders unless its inputs change. 
+  const [isAdmin, setIsAdmin] = useState<boolean>(false); // State for admin role
+
+  // useCallback is used to memoize the function, which means the function reference will remain the same
+  // across renders unless its inputs change.
   // This makes certain things that require to only be mounted once don't get re-mounteed
   const memoizedHandleSetToken = useCallback((newToken: string | null) => {
     setToken(newToken);
     if (newToken) {
       localStorage.setItem("jwt", newToken);
+      try {
+        const payload = JSON.parse(atob(newToken.split(".")[1]));
+        const roles = payload["role"];
+        setIsAdmin(Array.isArray(roles) ? roles.includes("Admin") : roles === "Admin");
+      } catch (err) {
+        console.error("Invalid token", err);
+        setIsAdmin(false);
+      }
     } else {
       localStorage.removeItem("jwt");
+      setIsAdmin(false);
     }
   }, []); // setToken from useState is stable, so empty dependency array here, because we DONT
   // need to re-create the function on every render, that previously broke my SideNav ;(
@@ -95,9 +106,22 @@ function App() {
   // Effect hook to synchronize token state with localStorage changes across tabs/windows.
   useEffect(() => {
     const handleStorageChange = () => {
-      // Updates the component's token state when localStorage changes.
-      setToken(localStorage.getItem("jwt"));
+      const storedToken = localStorage.getItem("jwt");
+      setToken(storedToken);
+      if (storedToken) {
+        try {
+          const payload = JSON.parse(atob(storedToken.split(".")[1]));
+          const roles = payload["role"];
+          setIsAdmin(Array.isArray(roles) ? roles.includes("Admin") : roles === "Admin");
+        } catch (err) {
+          console.error("Invalid token", err);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
     };
+
     // Adds the event listener on component mount.
     window.addEventListener("storage", handleStorageChange);
     // Removes the event listener on component unmount to prevent memory leaks.
@@ -116,7 +140,6 @@ function App() {
       alert("Din session er udløbet. Log ind igen for at fortsætte."); // Alert user about session expiration
     }
   }, [token, location, memoizedHandleSetToken, navigate]); // Run effects on token or route change
-
 
   // --- Routing Setup ---
   // Defines the application's routes using the Routes component.
@@ -187,25 +210,25 @@ function App() {
         <Route path="/CitatMode" element={<QuoteMode />} /> <Route path="/FotoBlurMode" element={<FotoBlurMode />} />{" "}
         {/* --- END: Polidle Routes --- */}
         {/* Admin routes */}
-        <Route path="/admin/*" element={token ? <AdminPage /> : <Navigate to="/home" />} />
-        <Route path="/admin/Bruger" element={token ? <AdminBruger /> : <Navigate to="/home" />} />
-        <Route path="/admin/Indhold" element={token ? <AdminIndhold /> : <Navigate to="/home" />} />
-        <Route path="/admin/Indhold/redigerIndhold" element={token ? <RedigerIndhold /> : <Navigate to="/home" />} />
-        <Route path="/admin/Indhold/tilføjBegivenhed" element={token ? <AddEvent /> : <Navigate to="/home" />} />
-        <Route path="/admin/Indhold/redigerBegivenhed" element={token ? <EditEvent /> : <Navigate to="/home" />} />
-        <Route path="/admin/Indhold/sletBegivenhed" element={token ? <DeleteEvent /> : <Navigate to="/home" />} />
-        <Route path="/admin/Laering" element={token ? <AdminLearing /> : <Navigate to="/home" />} />
-        <Route path="/admin/Polls" element={token ? <AdminPolls /> : <Navigate to="/home" />} />
-        <Route path="/admin/Polls/addPoll" element={token ? <AddPoll /> : <Navigate to="/home" />} />
-        <Route path="/admin/Polls/editPoll" element={token ? <EditPoll /> : <Navigate to="/home" />} />
-        <Route path="/admin/Polls/deletePoll" element={token ? <DeletePoll /> : <Navigate to="/home" />} />
-        <Route path="/admin/Laering/addflashcardcollection" element={token ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
-        <Route path="/admin/Laering/editflashcardcollection" element={token ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
-        <Route path="/admin/Laering/editcitatmode" element={token ? <EditQuotes /> : <Navigate to="/home" />} />
-        <Route path="/admin/Laering/deleteFlashcardCollection" element={token ? <DeleteFlashcardCollection /> : <Navigate to="/home" />} />
-        <Route path="/admin/Laering/addLearningPage" element={token ? <AddLearningPage /> : <Navigate to="/home" />} />
-        <Route path="/admin/Laering/editLearningPage" element={token ? <EditLearningPage /> : <Navigate to="/home" />} />
-        <Route path="/admin/Laering/deleteLearningPage" element={token ? <DeleteLearningPage /> : <Navigate to="/home" />} />{" "}
+        <Route path="/admin/*" element={token && isAdmin ? <AdminPage /> : <Navigate to="/home" />} />
+        <Route path="/admin/Bruger" element={token && isAdmin ? <AdminBruger /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold" element={token && isAdmin ? <AdminIndhold /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/redigerIndhold" element={token && isAdmin ? <RedigerIndhold /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/tilføjBegivenhed" element={token && isAdmin ? <AddEvent /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/redigerBegivenhed" element={token && isAdmin ? <EditEvent /> : <Navigate to="/home" />} />
+        <Route path="/admin/Indhold/sletBegivenhed" element={token && isAdmin ? <DeleteEvent /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering" element={token && isAdmin ? <AdminLearing /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls" element={token && isAdmin ? <AdminPolls /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls/addPoll" element={token && isAdmin ? <AddPoll /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls/editPoll" element={token && isAdmin ? <EditPoll /> : <Navigate to="/home" />} />
+        <Route path="/admin/Polls/deletePoll" element={token && isAdmin ? <DeletePoll /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/addflashcardcollection" element={token && isAdmin ? <CreateFlashcardCollection /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/editflashcardcollection" element={token && isAdmin ? <EditFlashcardCollection /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/editcitatmode" element={token && isAdmin ? <EditQuotes /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/deleteFlashcardCollection" element={token && isAdmin ? <DeleteFlashcardCollection /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/addLearningPage" element={token && isAdmin ? <AddLearningPage /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/editLearningPage" element={token && isAdmin ? <EditLearningPage /> : <Navigate to="/home" />} />
+        <Route path="/admin/Laering/deleteLearningPage" element={token && isAdmin ? <DeleteLearningPage /> : <Navigate to="/home" />} />{" "}
       </Route>{" "}
       {/* End of Protected MainLayout routes */}
       {/* Matches any URL not previously defined. */}

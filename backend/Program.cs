@@ -178,14 +178,13 @@ builder
             },
             OnMessageReceived = context =>
             {
-                // Tjek om tokenet findes i 'access_token' query parameteren
                 var accessToken = context.Request.Query["access_token"];
 
                 // Tjek om requesten er til din SignalR Hub sti
                 var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/feedHub"))) // <-- Match din Hub URL
+                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/feedHub")))
                 {
-                    Console.WriteLine("SIGNALR DEBUG: Setting token from query string."); // <-- ADD LOG
+                    Console.WriteLine("SIGNALR DEBUG: Setting token from query string.");
                     context.Token = accessToken;
                 }
                 return Task.CompletedTask;
@@ -307,7 +306,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // --- EKSISTERENDE SERVICES ---
-builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<HttpService>();
 builder.Services.AddScoped<IFetchService, FetchService>();
 

@@ -18,14 +18,13 @@ namespace backend.Data
             : base(options) { }
 
         // --- DbSets ---
+
         // --- Learning Environment Setup ---
         public DbSet<Page> Pages { get; set; } = null!;
         public DbSet<Question> Questions { get; set; } = null!;
         public DbSet<AnswerOption> AnswerOptions { get; set; } = null!;
         public DbSet<Flashcard> Flashcards { get; set; } = null!;
         public DbSet<FlashcardCollection> FlashcardCollections { get; set; } = null!;
-
-        // --- /Learning Environment Setup ---
 
         // --- Twitter Setup ---
         public DbSet<Tweet> Tweets { get; set; } = null!;
@@ -35,17 +34,15 @@ namespace backend.Data
         public DbSet<PollOption> PollOptions { get; set; } = null!;
         public DbSet<UserVote> UserVotes { get; set; } = null!;
 
-        // --- /Twitter Setup ---
-
         // --- Calendar Setup ---
         public DbSet<CalendarEvent> CalendarEvents { get; set; }
-
-        public DbSet<Party> Party { get; set; } = null!;
 
         public DbSet<EventInterest> EventInterests { get; set; }
 
         // --- Core Political Data ---
         public DbSet<Aktor> Aktor { get; set; } = null!; // Navn er 'Aktor', men repræsenterer politikere osv.
+
+        public DbSet<Party> Party { get; set; } = null!;
 
         // --- Polidle Setup Start ---
         public DbSet<PoliticianQuote> PoliticianQuotes { get; set; } = null!;
@@ -79,8 +76,6 @@ namespace backend.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // --- /Calendar Setup ---
-
             // --- Learning Environment Setup ---
 
             // Configure the self-referencing relationship
@@ -106,8 +101,6 @@ namespace backend.Data
                 .WithOne(o => o.Question)
                 .HasForeignKey(o => o.QuestionId);
 
-            // --- /Learning Environment Setup ---
-
             // --- Flashcards Setup ---
             // Configure FlashcardCollection <-> Flashcard relationship
             modelBuilder
@@ -115,7 +108,8 @@ namespace backend.Data
                 .HasMany(c => c.Flashcards)
                 .WithOne(f => f.FlashcardCollection)
                 .HasForeignKey(f => f.CollectionId);
-            // --- /Flashcards Setup ---
+
+            // --- /Politicians/Party Setup ---
 
             // Configure Constituencies
             modelBuilder
@@ -155,7 +149,6 @@ namespace backend.Data
                     )
                 );
 
-            // Add similar .HasConversion calls for Educations and Occupations
             modelBuilder
                 .Entity<Aktor>()
                 .Property(a => a.Educations)
@@ -254,7 +247,6 @@ namespace backend.Data
                             ) ?? new List<string>()
                     );
 
-                // *** Add Configuration for memberIds List ***
                 entity
                     .Property(p => p.memberIds) // Use PascalCase property name
                     .HasConversion(
@@ -284,9 +276,9 @@ namespace backend.Data
                         )
                     )
                     .HasColumnType("text"); // Use jsonb for efficient querying in PostgreSQL if needed, or "text"
-                // *** End Configuration for memberIds List ***
             });
 
+            // --- /Feed Setup ---
             modelBuilder.Entity<PoliticianTwitterId>(entity =>
             {
                 entity.HasIndex(p => p.TwitterUserId).IsUnique();
@@ -348,6 +340,22 @@ namespace backend.Data
                 entity.Property(t => t.Text).IsRequired();
             });
 
+            modelBuilder.Entity<Subscription>(entity =>
+            {
+                entity.HasIndex(s => s.UserId);
+                entity.HasIndex(s => s.PoliticianTwitterId);
+            });
+            modelBuilder.Entity<Poll>(entityPoll =>
+            {
+                entityPoll
+                    .HasOne(poll => poll.Politician)
+                    .WithMany(politician => politician.Polls)
+                    .HasForeignKey(poll => poll.PoliticianTwitterId);
+            });
+            modelBuilder.Entity<UserVote>().HasIndex(uv => new { uv.UserId, uv.PollId }).IsUnique();
+
+            // --- User Setup ---
+
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
             modelBuilder
@@ -397,21 +405,6 @@ namespace backend.Data
                     new IdentityUserRole<int> { UserId = superUserId, RoleId = 2 } // User Role
                 );
             // --- END SEED SUPERUSER ---
-
-            modelBuilder.Entity<Subscription>(entity =>
-            {
-                entity.HasIndex(s => s.UserId);
-                entity.HasIndex(s => s.PoliticianTwitterId);
-            });
-            modelBuilder.Entity<Poll>(entityPoll =>
-            {
-                entityPoll
-                    .HasOne(poll => poll.Politician)
-                    .WithMany(politician => politician.Polls)
-                    .HasForeignKey(poll => poll.PoliticianTwitterId);
-            });
-            modelBuilder.Entity<UserVote>().HasIndex(uv => new { uv.UserId, uv.PollId }).IsUnique();
-            // --- /Twitter Setup ---
 
             // ***************************************************
             // *** Polidle Configuration START              ***
@@ -472,37 +465,6 @@ namespace backend.Data
             // --- SEED DATA ---
             SeedLearningEnvironmentData(modelBuilder);
             SeedPollData(modelBuilder);
-            ////QuoteSeeder.SeedQuotes(modelBuilder); // Kald din QuoteSeeder
-        }
-
-        // Helper method til JSON konvertering for at undgå gentagelse
-        private void ConfigureStringListToJsonConversion<TEntity>(
-            ModelBuilder modelBuilder,
-            System.Linq.Expressions.Expression<Func<TEntity, List<string>?>> propertyExpression
-        )
-            where TEntity : class
-        {
-            modelBuilder
-                .Entity<TEntity>()
-                .Property(propertyExpression)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v =>
-                        JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null)
-                        ?? new List<string>()
-                )
-                .Metadata.SetValueComparer(
-                    new ValueComparer<List<string>>(
-                        (c1, c2) =>
-                            (c1 == null && c2 == null)
-                            || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
-                        c =>
-                            c == null
-                                ? 0
-                                : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                        c => c == null ? new List<string>() : c.ToList()
-                    )
-                );
         }
 
         // Helper method til Seeding (Gør OnModelCreating kortere)
@@ -765,7 +727,7 @@ namespace backend.Data
                 );
         }
 
-        // --- /FLASHCARDS ---
+        // --- /Poll ---
         private void SeedPollData(ModelBuilder modelBuilder)
         {
             const int SeedPoliticianId = 3;
@@ -845,9 +807,6 @@ namespace backend.Data
                         Votes = 8,
                     }
                 );
-            // --- /Learning Environment Seeding ---
-
-            // --- /SEED DATA ---
         }
     }
 }

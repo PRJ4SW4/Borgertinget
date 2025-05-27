@@ -1,4 +1,3 @@
-// /backend/DTO/Flashcards/FlashcardCollectionDetailDTO.cs
 namespace backend.DTO.Flashcards;
 
 public class FlashcardCollectionDetailDTO

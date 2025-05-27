@@ -18,7 +18,7 @@ namespace backend.Services.Politicians
             {
                 return titles;
             }
-            var regex = new Regex(@"»(.*?)«");
+            var regex = new Regex(@"»(.*?)«"); //This is straight magic, but it captures text within >> <<
             MatchCollection matches = regex.Matches(publicationsText);
             foreach (Match match in matches.Where(m => m.Success && m.Groups.Count > 1))
             {
@@ -49,11 +49,7 @@ namespace backend.Services.Politicians
 
                 if (memberElement == null || memberElement.Name != "member")
                 {
-                    // Optionally log or handle cases where the root is not <member>
-                    Console.WriteLine(
-                        "Warning: Biography XML root element is not <member> or is null."
-                    );
-                    return extractedData; // Return empty if structure is unexpected
+                    return extractedData;
                 }
 
                 // --- Direct Elements ---
@@ -106,7 +102,7 @@ namespace backend.Services.Politicians
                         .Where(s => !string.IsNullOrEmpty(s))
                         .ToList() ?? new List<string>();
 
-                // Parliamentary Positions Of Trust (List) - Fixed Parsing
+                // Parliamentary Positions Of Trust
                 extractedData["ParliamentaryPositionsOfTrust"] =
                     career
                         ?.Element("parliamentaryPositionsOfTrust")
@@ -141,7 +137,7 @@ namespace backend.Services.Politicians
                         .Where(s => !string.IsNullOrEmpty(s))
                         .ToList() ?? new List<string>();
 
-                // Positions Of Trust (Single Text Field - might contain HTML)
+                // Positions Of Trust
                 extractedData["PositionsOfTrust"] =
                     memberElement.Element("positionsOfTrust")?.Element("editorFormattedText")?.Value
                     ?? memberElement.Element("positionsOfTrust")?.Element("positionOfTrust")?.Value
@@ -154,7 +150,7 @@ namespace backend.Services.Politicians
                     ?.Value;
                 extractedData["PublicationTitles"] = ExtractPublicationTitles(publicationsText);
 
-                // Add Spokesmen if needed
+                // Add Spokesmen
                 extractedData["Spokesmen"] =
                     memberElement
                         .Element("spokesmen")
@@ -166,9 +162,8 @@ namespace backend.Services.Politicians
             catch (System.Xml.XmlException ex)
             {
                 Console.WriteLine($"Error parsing biography XML: {ex.Message}");
-                // Consider logging the error more formally
             }
-            catch (Exception ex) // Catch other potential errors during parsing
+            catch (Exception ex)
             {
                 Console.WriteLine(
                     $"An unexpected error occurred during biography parsing: {ex.Message}"

@@ -31,16 +31,16 @@ namespace backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : ControllerBase // Corrected class name based on common practice and constructor
+    public class UsersController : ControllerBase 
     {
         private readonly IConfiguration _config;
-        private readonly EmailService _emailService;
-        private readonly ILogger<UsersController> _logger; // Corrected logger type to match class name
+        private readonly IEmailService _emailService;
+        private readonly ILogger<UsersController> _logger; 
         private readonly IUserAuthenticationService _userAuthenticationService;
 
         public UsersController(
             IConfiguration config,
-            EmailService emailService,
+            IEmailService emailService,
             ILogger<UsersController> logger,
             IUserAuthenticationService userAuthenticationService
         )
@@ -173,7 +173,7 @@ namespace backend.Controllers
             string loginInput = dto.EmailOrUsername.ToLower();
             User? user;
 
-            // Find bruger ud fra E-mail eller brugernavn
+            // Finder bruger ud fra E-mail eller brugernavn
             if (loginInput.Contains('@'))
             {
                 user = await _userAuthenticationService.FindUserByEmailAsync(loginInput);
@@ -375,7 +375,6 @@ namespace backend.Controllers
                 );
             }
 
-            // Kald service til at håndtere resten af logikken
             var loginResult = await _userAuthenticationService.HandleGoogleLoginCallbackAsync(info);
 
             if (
@@ -389,7 +388,7 @@ namespace backend.Controllers
                 );
             }
 
-            // Ryd den midlertidige eksterne cookie
+            // Ryd den midlertidige eksterne cookie, samt cookie oprettet via. identity
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             await _userAuthenticationService.SignOutAsync();
 

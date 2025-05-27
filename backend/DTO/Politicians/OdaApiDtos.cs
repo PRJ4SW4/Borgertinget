@@ -54,7 +54,7 @@ namespace backend.DTO.FT
         public string? Email { get; set; }
         public string? Ministertitel { get; set; }
 
-        // Collections (assuming these are stored as strings or lists in your Aktor model) bliver serialized fra list<string> til string i db, og deserialized når vi henter fra db
+        // Collections
         // Kan ses i Data/DataContext.cs under onModelCreate
         public List<string>? Ministers { get; set; }
         public List<string>? Spokesmen { get; set; }
@@ -108,13 +108,12 @@ namespace backend.DTO.FT
         public string? GruppenavnKort { get; set; } // Short name of the title
     }
 
-    // DTO for fetching Minister Relationships (AktørAktør with rolleid=8)
     public class MinisterRelationshipDto
     {
         [JsonPropertyName("fraaktørid")]
         public int FraAktorId { get; set; } // The Person's ID
 
         [JsonPropertyName("tilaktørid")]
-        public int TilAktorId { get; set; } // The Title's ID (Aktør ID with typeid=2)
+        public int TilAktorId { get; set; } // The Title's ID
     }
 }
