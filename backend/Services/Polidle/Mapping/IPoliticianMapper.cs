@@ -7,9 +7,9 @@ namespace backend.Interfaces.Services
 {
     public interface IPoliticianMapper
     {
-        DailyPoliticianDto MapToDetailsDto(Aktor aktor, DateOnly referenceDate);
-        List<SearchListDto> MapToSummaryDtoList(IEnumerable<Aktor> aktors);
-        SearchListDto MapToSummaryDto(Aktor aktor);
+        DailyPoliticianDto MapToDetailsDto(Aktor? aktor, DateOnly referenceDate);
+        List<SearchListDto> MapToSummaryDtoList(IEnumerable<Aktor>? aktors);
+        SearchListDto MapToSummaryDto(Aktor? aktor);
         DailyPoliticianDto MapToDetailsDto(Aktor aktor);
     }
 }

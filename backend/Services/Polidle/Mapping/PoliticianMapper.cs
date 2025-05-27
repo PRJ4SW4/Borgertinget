@@ -26,7 +26,7 @@ namespace backend.Services.Mapping
             _dateTimeProvider = dateTimeProvider;
         }
 
-        public DailyPoliticianDto MapToDetailsDto(Aktor aktor, DateOnly referenceDate) // ReferenceDate kan evt. fjernes hvis IDateTimeProvider altid bruges
+        public DailyPoliticianDto MapToDetailsDto(Aktor? aktor, DateOnly referenceDate) // ReferenceDate kan evt. fjernes hvis IDateTimeProvider altid bruges
         {
             if (aktor == null)
                 throw new ArgumentNullException(nameof(aktor));
@@ -62,14 +62,14 @@ namespace backend.Services.Mapping
         public DailyPoliticianDto MapToDetailsDto(Aktor aktor) =>
             MapToDetailsDto(aktor, _dateTimeProvider.TodayUtc);
 
-        public List<SearchListDto> MapToSummaryDtoList(IEnumerable<Aktor> aktors)
+        public List<SearchListDto> MapToSummaryDtoList(IEnumerable<Aktor>? aktors)
         {
             if (aktors == null)
                 return new List<SearchListDto>();
             return aktors.Select(MapToSummaryDto).ToList();
         }
 
-        public SearchListDto MapToSummaryDto(Aktor aktor)
+        public SearchListDto MapToSummaryDto(Aktor? aktor)
         {
             if (aktor == null)
                 throw new ArgumentNullException(nameof(aktor));
@@ -93,10 +93,11 @@ namespace backend.Services.Mapping
             try
             {
                 if (
-                    DateTime.TryParse(
+                    DateTime.TryParseExact(
                         dateOfBirthString,
+                        "dd-MM-yyyy",
                         CultureInfo.InvariantCulture,
-                        DateTimeStyles.AssumeUniversal | DateTimeStyles.AllowWhiteSpaces,
+                        DateTimeStyles.None,
                         out var dobDateTime
                     )
                 )
@@ -105,7 +106,7 @@ namespace backend.Services.Mapping
 
                     int age = referenceDate.Year - dateOfBirth.Year;
 
-                    if (referenceDate.Year < dateOfBirth.DayOfYear)
+                    if (referenceDate.DayOfYear < dateOfBirth.DayOfYear)
                     {
                         --age;
                     }
