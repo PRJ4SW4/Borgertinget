@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { IAktor } from "../types/Aktor";
 import "./PoliticianPage.css";
-// Consider adding a default image import if you need one for onError
 //Af Jakob, dette er til subscribe knappen
 import SubscribeButton from "../components/FeedComponents/SubscribeButton";
 import { getSubscriptions } from "../services/tweetService";
@@ -60,7 +59,7 @@ const PoliticianPage: React.FC = () => {
         console.error("Fetch error:", err);
         let message = `Kunne ikke hente data for politiker ${id}`;
         if (err instanceof Error) {
-          message = err.message; // Use message property if it's an Error
+          message = err.message;
         } else if (typeof err === "string") {
           message = err; // Use the error directly if it's a string
         }
@@ -127,7 +126,7 @@ const PoliticianPage: React.FC = () => {
   return (
     <div className="politician-page">
       <nav>
-        {}
+        { }
         {politician.party ? (
           <Link to={`/party/${encodeURIComponent(politician.party)}`}>← Tilbage til {politician.party}</Link>
         ) : (
@@ -136,15 +135,15 @@ const PoliticianPage: React.FC = () => {
       </nav>
       {/* Gray Information Box */}
       <div className="info-box">
-        {politician.pictureMiRes ? ( // Use ternary for cleaner conditional rendering
+        {politician.pictureMiRes ? (
           <img
             src={politician.pictureMiRes}
-            alt={`Portræt af ${politician.navn || "Politiker"}`} // Danish alt text
+            alt={`Portræt af ${politician.navn || "Politiker"}`}
             className="info-box-photo"
             onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
               const imgElement = e.target as HTMLImageElement;
-              console.error(`Kunne ikke loade billede: ${politician.pictureMiRes}`); // Danish
-              imgElement.style.display = "none"; // Simple hide on error
+              console.error(`Kunne ikke loade billede: ${politician.pictureMiRes}`);
+              imgElement.style.display = "none";
             }}
           />
         ) : (
@@ -169,7 +168,7 @@ const PoliticianPage: React.FC = () => {
           {politician.party ? (
             <Link to={`/party/${encodeURIComponent(politician.party)}`}>{politician.party}</Link>
           ) : (
-            politician.partyShortname || "Partiløs/Ukendt" // Show shortname or indicate independent/unknown
+            politician.partyShortname || "Partiløs/Ukendt"
           )}
         </p>
         <h4>Email</h4>
