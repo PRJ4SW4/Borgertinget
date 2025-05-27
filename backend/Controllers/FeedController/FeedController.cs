@@ -30,15 +30,8 @@ namespace backend.Controllers
         [HttpGet("subscriptions")]
         public async Task<ActionResult<List<PoliticianInfoDto>>> GetMySubscriptions()
         {
-            var userIdString =
-                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
-            }
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdString, out int currentUserId);
 
             try
             {
@@ -67,15 +60,8 @@ namespace backend.Controllers
         )
         {
             // først findes brugeren user id fra jwt fra token, samme stil, som før i "GetMySubscriptions" endpointet
-            var userIdString =
-                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren korrekt fra token.");
-            }
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdString, out int currentUserId);
 
             try
             {

@@ -176,7 +176,7 @@ public class AdministratorController : ControllerBase
             _logger.LogError(ex, "Failed to delete Flashcard Collection with id");
             return StatusCode(
                 500,
-                $"An error occured while deleting the Flashcard collection: {ex.Message}"
+                $"An error occurred while deleting the Flashcard collection: {ex.Message}"
             );
         }
     }
@@ -203,7 +203,7 @@ public class AdministratorController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get username id with username");
-            return StatusCode(500, $"An error occured while getting the user: {ex.Message}");
+            return StatusCode(500, $"An error occurred while getting the user: {ex.Message}");
         }
     }
 
@@ -248,7 +248,7 @@ public class AdministratorController : ControllerBase
             _logger.LogError(ex, "Failed to get all politician quotes");
             return StatusCode(
                 500,
-                $"An error occured while getting all politician quotes: {ex.Message}"
+                $"An error occurred while getting all politician quotes: {ex.Message}"
             );
         }
     }
@@ -266,7 +266,7 @@ public class AdministratorController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get politician quote by id");
-            return StatusCode(500, $"An error occured while getting quote: {ex.Message}");
+            return StatusCode(500, $"An error occurred while getting quote: {ex.Message}");
         }
     }
 
@@ -283,7 +283,7 @@ public class AdministratorController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to edit quote");
-            return StatusCode(500, $"An error occured while editing quote: {ex.Message}");
+            return StatusCode(500, $"An error occurred while getting quote: {ex.Message}");
         }
     }
 

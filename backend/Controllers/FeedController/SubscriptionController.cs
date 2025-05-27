@@ -31,15 +31,8 @@ namespace backend.Controllers
         [Authorize]
         public async Task<IActionResult> Subscribe([FromBody] SubscribeDto subscribeDto)
         {
-            var userIdString =
-                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
-            }
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdString, out int currentUserId);
 
             try
             {
@@ -71,15 +64,8 @@ namespace backend.Controllers
         [Authorize]
         public async Task<IActionResult> Unsubscribe(int politicianTwitterId)
         {
-            var userIdString =
-                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
-            }
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdString, out int currentUserId);
 
             try
             {
@@ -102,7 +88,7 @@ namespace backend.Controllers
 
         [HttpGet("lookup/politicianTwitterId")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<object>> GetPoliticianTwitterIdByAktorId(
+        public async Task<ActionResult<PoliticianInfoDto>> GetPoliticianTwitterIdByAktorId(
             [FromQuery] int aktorId
         )
         {
@@ -114,12 +100,11 @@ namespace backend.Controllers
 
             try
             {
-                var (success, result, message) = await _subscriptionService.LookupPoliticianAsync(
-                    aktorId
-                );
-
-                if (!success)
-                    return NotFound(message);
+                var result = await _subscriptionService.LookupPoliticianAsync(aktorId);
+                if (result == null)
+                {
+                    return NotFound("Politiker ikke fundet.");
+                }
 
                 return Ok(result);
             }

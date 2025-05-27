@@ -1,4 +1,4 @@
-import { useState, useEffect, JSX } from "react";
+import { useState, useEffect, JSX, useCallback } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 
 // Layout Components: Provide consistent page structure.
@@ -64,18 +64,34 @@ const isTokenExpired = (token: string | null): boolean => {
   }
 };
 
+ // --- Protected Route Component ---
+  // Wraps routes that require user authentication.
+  // Renders the child component if a token exists, otherwise redirects to /login.
+
+  // ProtectedRoute HAS TO BE outside the App component
+  // Else this will cause pages to be re-rendered on every render of App, which is not good
+  // for things like SideNav, which depend on only being mounted once
+const ProtectedRoute: React.FC<{ token: string | null; children: JSX.Element }> = ({ token, children }) => {
+  return token ? children : <Navigate to="/login" />;
+};
+
 function App() {
   // State hook for the JWT authentication token.
   // Initializes state from localStorage to persist login status.
   const [token, setToken] = useState<string | null>(localStorage.getItem("jwt"));
-  const handleSetToken = (newToken: string | null) => {
+// useCallback is used to memoize the function, which means the function reference will remain the same
+  // across renders unless its inputs change. 
+  // This makes certain things that require to only be mounted once don't get re-mounteed
+  const memoizedHandleSetToken = useCallback((newToken: string | null) => {
     setToken(newToken);
     if (newToken) {
       localStorage.setItem("jwt", newToken);
     } else {
       localStorage.removeItem("jwt");
     }
-  };
+  }, []); // setToken from useState is stable, so empty dependency array here, because we DONT
+  // need to re-create the function on every render, that previously broke my SideNav ;(
+
   // Effect hook to synchronize token state with localStorage changes across tabs/windows.
   useEffect(() => {
     const handleStorageChange = () => {
@@ -95,18 +111,12 @@ function App() {
     // Check token expiration on route change or token change
     if (token && isTokenExpired(token)) {
       console.log("Token expired. Logging out...");
-      handleSetToken(null); // Clear token state and localStorage
+      memoizedHandleSetToken(null); // Clear token state and localStorage
       navigate("/login", { replace: true }); // Redirect to login page without adding to history
       alert("Din session er udløbet. Log ind igen for at fortsætte."); // Alert user about session expiration
     }
-  }, [token, location]); // Run effect on token or route change
+  }, [token, location, memoizedHandleSetToken, navigate]); // Run effects on token or route change
 
-  // --- Protected Route Component ---
-  // Wraps routes that require user authentication.
-  // Renders the child component if a token exists, otherwise redirects to /login.
-  const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
-    return token ? children : <Navigate to="/login" />;
-  };
 
   // --- Routing Setup ---
   // Defines the application's routes using the Routes component.
@@ -120,9 +130,9 @@ function App() {
       {/* <<< Closed </Route> here */}
       {/* --- Public Routes (No MainLayout, No login required) --- */}
       {/* Login page route. */}
-      <Route path="/login" element={<Login setToken={handleSetToken} />} />
+      <Route path="/login" element={<Login setToken={memoizedHandleSetToken} />} />
       {/* Post-login success/callback route. */}
-      <Route path="/login-success" element={<LoginSuccessPage setToken={handleSetToken} />} />
+      <Route path="/login-success" element={<LoginSuccessPage setToken={memoizedHandleSetToken} />} />
       <Route
         path="/verify"
         element={
@@ -140,8 +150,8 @@ function App() {
       {/* All nested routes inherit the layout and protection. */}
       <Route
         element={
-          <ProtectedRoute>
-            <MainLayout />
+          <ProtectedRoute token={token}>
+            <MainLayout setToken={memoizedHandleSetToken} />
           </ProtectedRoute>
         }>
         {/* Root path ("/") route, shows HomePage for logged-in users. */}

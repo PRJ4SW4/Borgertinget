@@ -307,7 +307,7 @@ namespace Tests.Controllers
             Assert.That(result, Is.TypeOf<ObjectResult>());
             var obj = result as ObjectResult;
             Assert.That(obj?.StatusCode, Is.EqualTo(500));
-            Assert.That(obj?.Value?.ToString(), Does.Contain("An error occured"));
+            Assert.That(obj?.Value?.ToString(), Does.Contain("An error occurred"));
         }
 
         [Test]
@@ -334,14 +334,20 @@ namespace Tests.Controllers
         public async Task GetQuoteById_ServiceFails_Returns500()
         {
             // Arrange
-            _service.GetQuoteByIdAsync(99).Throws(new Exception("not found"));
+            var quoteId = 99;
+            _service.GetQuoteByIdAsync(quoteId).Throws(new Exception("not found"));
 
-            var result = await _controller.GetQuoteById(99);
+            // Act
+            var result = await _controller.GetQuoteById(quoteId);
 
+            // Assert
             Assert.That(result, Is.TypeOf<ObjectResult>());
             var obj = result as ObjectResult;
             Assert.That(obj?.StatusCode, Is.EqualTo(500));
-            Assert.That(obj?.Value?.ToString(), Does.Contain("99"));
+            Assert.That(
+                obj?.Value?.ToString(),
+                Is.EqualTo("An error occurred while getting quote: not found")
+            );
         }
 
         #endregion
@@ -416,11 +422,9 @@ namespace Tests.Controllers
             // Assert
             Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
             var notFoundResult = result as NotFoundObjectResult;
-            Assert.That(notFoundResult, Is.Not.Null);
-            Assert.That(notFoundResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
             Assert.That(
-                notFoundResult.Value,
-                Is.EqualTo($"Ingen AktorId fundet for Twitter ID {twitterId}")
+                notFoundResult?.Value,
+                Is.EqualTo($"No AktorId found for Twitter ID: {twitterId}")
             );
         }
 
@@ -428,17 +432,15 @@ namespace Tests.Controllers
         public async Task GetAktorIdByTwitterId_InvalidId_ReturnsBadRequest()
         {
             // Arrange
-            var twitterId = 0;
+            var invalidTwitterId = -1;
 
             // Act
-            var result = await _controller.GetAktorIdByTwitterId(twitterId);
+            var result = await _controller.GetAktorIdByTwitterId(invalidTwitterId);
 
             // Assert
             Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
-            Assert.That(badRequestResult, Is.Not.Null);
-            Assert.That(badRequestResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
-            Assert.That(badRequestResult.Value, Is.EqualTo("Ugyldigt Twitter ID."));
+            Assert.That(badRequestResult?.Value, Is.EqualTo("Invalid Twitter ID."));
         }
 
         #endregion

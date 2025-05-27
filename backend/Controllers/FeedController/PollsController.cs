@@ -30,27 +30,34 @@ namespace backend.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<PollDetailsDto>> CreatePoll(CreatePollDto createPollDto)
+        public async Task<ActionResult<PollDetailsDto>> CreatePoll(PollDto createPollDto)
         {
-            var isValid = await _pollsService.ValidatePoll(createPollDto);
-            if (!isValid)
+            if (createPollDto == null)
             {
-                var politician = await _pollsService.GetPolitician(
-                    createPollDto.PoliticianTwitterId
+                return BadRequest(
+                    new ValidationProblemDetails
+                    {
+                        Title = "Invalid input",
+                        Detail = "Poll data is required.",
+                    }
                 );
-                if (politician == null)
-                {
-                    ModelState.AddModelError(
-                        nameof(createPollDto.PoliticianTwitterId),
-                        "Den angivne politiker findes ikke."
-                    );
-                }
-                return ValidationProblem(ModelState);
             }
 
             try
             {
                 var createdPollDto = await _pollsService.CreatePollAsync(createPollDto);
+
+                if (createdPollDto == null)
+                {
+                    return NotFound(
+                        new ValidationProblemDetails
+                        {
+                            Title = "Creation failed",
+                            Detail = "Failed to create poll.",
+                        }
+                    );
+                }
+
                 return CreatedAtAction(
                     nameof(GetPollById),
                     new { id = createdPollDto.Id },
@@ -59,8 +66,15 @@ namespace backend.Controllers
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Fejl ved gemning af ny poll");
-                return StatusCode(500, "Intern fejl ved oprettelse af poll.");
+                _logger.LogError(ex, "Error saving new poll");
+                return StatusCode(
+                    500,
+                    new ValidationProblemDetails
+                    {
+                        Title = "Internal Server Error",
+                        Detail = "An error occurred while creating the poll.",
+                    }
+                );
             }
         }
 
@@ -84,15 +98,8 @@ namespace backend.Controllers
         [Authorize]
         public async Task<ActionResult<PollDetailsDto>> GetPollById(int id)
         {
-            var userIdString =
-                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
-            }
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdString, out int currentUserId);
 
             try
             {
@@ -111,45 +118,11 @@ namespace backend.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdatePoll(int id, UpdatePollDto updateDto)
+        public async Task<IActionResult> UpdatePoll(int id, PollDto updateDto)
         {
-            var poll = await _pollsService.GetPollAsync(id);
-            if (poll == null)
-                return NotFound();
-
-            if (!await _pollsService.ValidateUpdatePoll(updateDto))
-            {
-                var politician = await _pollsService.GetPolitician(updateDto.PoliticianTwitterId);
-                if (politician == null)
-                {
-                    ModelState.AddModelError(
-                        nameof(updateDto.PoliticianTwitterId),
-                        "Politikeren findes ikke."
-                    );
-                }
-
-                if (updateDto.Options.Any(string.IsNullOrWhiteSpace))
-                {
-                    ModelState.AddModelError(
-                        nameof(updateDto.Options),
-                        "Svarmuligheder må ikke være tomme."
-                    );
-                }
-
-                if (
-                    updateDto.Options.Select(o => o.Trim().ToLowerInvariant()).Distinct().Count()
-                    != updateDto.Options.Count
-                )
-                {
-                    ModelState.AddModelError(
-                        nameof(updateDto.Options),
-                        "Svarmuligheder må ikke være ens."
-                    );
-                }
-                return ValidationProblem(ModelState);
-            }
-
-            await _pollsService.UpdatePollAsync(id, updateDto);
+            var result = await _pollsService.UpdatePollAsync(id, updateDto);
+            if (result == false)
+                return NotFound("Poll blev ikke fundet.");
             return NoContent();
         }
 
@@ -157,15 +130,8 @@ namespace backend.Controllers
         [Authorize]
         public async Task<IActionResult> Vote(int pollId, VoteDto voteDto)
         {
-            var userIdString =
-                User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            if (
-                string.IsNullOrEmpty(userIdString)
-                || !int.TryParse(userIdString, out int currentUserId)
-            )
-            {
-                return Unauthorized("Kunne ikke identificere brugeren.");
-            }
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdString, out int currentUserId);
 
             var poll = await _pollsService.GetPollAsync(pollId);
             if (poll == null)

@@ -20,11 +20,11 @@ namespace backend.Controllers
     {
         private readonly IOpenSearchClient _openSearchClient;
         private readonly ILogger<SearchController> _logger;
-        private readonly SearchIndexingService _searchIndexingService; // Injected SearchIndexingService
+        private readonly SearchIndexingService _searchIndexingService;
         private readonly IServiceProvider _serviceProvider;
         private const string IndexName = "borgertinget-search";
         private const int TopNResults = 5;
-        private const string SuggestionName = "search-suggester"; // Name for our suggester
+        private const string SuggestionName = "search-suggester";
 
         public SearchController(
             IOpenSearchClient openSearchClient,
@@ -89,7 +89,7 @@ namespace backend.Controllers
                                             .Field(sd => sd.pageContent)
                                             .Field(sd => sd.Title)
                                     )
-                                    .Type(TextQueryType.BestFields) // Or MostFields, CrossFields depending on needs
+                                    .Type(TextQueryType.BestFields)
                                     .Fuzziness(Fuzziness.Auto) // Allows for some typos
                                     .PrefixLength(1) // How many characters must match at the beginning
                             )
@@ -203,7 +203,7 @@ namespace backend.Controllers
             _logger.LogInformation("Ensure and Reindex endpoint called.");
             try
             {
-                // Step 1 & 2: Ensure the index is created, if not run EnsureIndexExistsWithMapping
+                // Ensure the index is created, if not run EnsureIndexExistsWithMapping
                 _logger.LogInformation(
                     "Ensuring OpenSearch index '{IndexName}' exists with mapping.",
                     IndexName
@@ -214,7 +214,7 @@ namespace backend.Controllers
                     IndexName
                 );
 
-                // Step 3: Run a full indexing
+                //Run a full indexing
                 _logger.LogInformation(
                     "Triggering full background indexing task for '{IndexName}'.",
                     IndexName
