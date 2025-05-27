@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { IParty } from "../types/Party"; // Import the IParty interface
+import { IParty } from "../types/Party";
 import "./PartiesPage.css";
 
-// --- Import Logos (keep this section as is) ---
+// --- Import Logos ---
 import socialdemokratietLogo from "../images/PartyLogos/socialdemokratiet.webp";
 import venstreLogo from "../images/PartyLogos/Venstre.png";
 import moderaterneLogo from "../images/PartyLogos/Moderaterne.png";
@@ -24,14 +24,13 @@ import sambands from "../images/PartyLogos/sambandspartiet.png";
 import SF from "../images/PartyLogos/SocialistiskeFolkeparti.png";
 // --- End Logo Imports ---
 
-// --- Logo Map (keep this section as is, ensuring keys match partyName from API) ---
 const partyLogoMap: { [key: string]: string } = {
   Socialdemokratiet: socialdemokratietLogo,
   Venstre: venstreLogo,
   Moderaterne: moderaterneLogo,
   Alternativet: alternativetLogo,
-  "Borgernes Parti": borgernesLogo, // Check if this name exists in your DB
-  "Centrum-Demokraterne": centrumLogo, // Check if this name exists
+  "Borgernes Parti": borgernesLogo,
+  "Centrum-Demokraterne": centrumLogo,
   Danmarksdemokraterne: danmarksLogo,
   "Dansk Folkeparti": DFLogo,
   "Det Konservative Folkeparti": konsvertiveLogo,
@@ -48,7 +47,6 @@ const partyLogoMap: { [key: string]: string } = {
 // --- End Logo Map ---
 
 const PartiesPage: React.FC = () => {
-  // *** Change state to hold IParty objects ***
   const [parties, setParties] = useState<IParty[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,9 +58,8 @@ const PartiesPage: React.FC = () => {
       setParties([]);
 
       try {
-        // *** Change API endpoint ***
-        const apiUrl = `http://localhost:5218/api/Party/Parties`; // Use the new Party endpoint
-        console.log(`Workspaceing parties from: ${apiUrl}`); // Debug log
+        const apiUrl = `http://localhost:5218/api/Party/Parties`;
+        console.log(`Workspaceing parties from: ${apiUrl}`);
         const response = await fetch(apiUrl, {
           method: "GET",
           headers: {
@@ -82,9 +79,7 @@ const PartiesPage: React.FC = () => {
           throw new Error(errorMsg);
         }
 
-        // *** Change data type ***
         const data: IParty[] = await response.json();
-        // Filter out any parties without a name, just in case
         setParties(data.filter((p) => p.partyName));
         console.log("Parties fetched:", data); // Debug log
       } catch (err: unknown) {
@@ -102,9 +97,8 @@ const PartiesPage: React.FC = () => {
     };
 
     fetchParties();
-  }, []); // Empty dependency array, fetch only once on mount
+  }, []);
 
-  // --- Loading and Error states remain the same ---
   if (loading) {
     return <div className="loading-message">Henter partier...</div>;
   }
@@ -116,7 +110,6 @@ const PartiesPage: React.FC = () => {
     );
   }
 
-  // --- Update Render Logic ---
   return (
     <div className="parties-page">
       <nav>
@@ -126,7 +119,6 @@ const PartiesPage: React.FC = () => {
 
       {parties.length > 0 ? (
         <ul className="parties-grid-list">
-          {/* *** Update map function *** */}
           {parties.map((party) => {
             // Ensure partyName is not null before using it
             const partyName = party.partyName || "Ukendt Parti";
@@ -135,16 +127,14 @@ const PartiesPage: React.FC = () => {
             // Handle cases where partyName might be null for the link
             if (!party.partyName) {
               console.warn(`Party with ID ${party.partyId} has a null name.`);
-              return null; // Skip rendering this party if name is essential
+              return null;
             }
 
             return (
-              // *** Use partyId for the key ***
               <li key={party.partyId}>
-                {/* *** Link still uses partyName for the route param *** */}
                 <Link to={`/party/${encodeURIComponent(party.partyName)}`} className="party-grid-link">
                   <img
-                    src={logoSrc} // Use looked-up logo
+                    src={logoSrc}
                     alt={`${partyName} logo`}
                     className="party-grid-logo"
                     onError={(e) => {

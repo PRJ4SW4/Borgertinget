@@ -1,9 +1,8 @@
 import React, { useState, ChangeEvent, KeyboardEvent, useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { SearchDocument } from "../types/searchResult";
-import "./Searchbar.css"; // Ensure this CSS file exists and is styled
+import "./Searchbar.css";
 
-// Placeholder for SearchDocument type
 
 const SearchBar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -26,7 +25,7 @@ const SearchBar: React.FC = () => {
       setSearchResults([]);
       setError(null);
       setIsLoading(false);
-      setIsFullSearchActive(false); // Reset if query is empty
+      setIsFullSearchActive(false);
       return;
     }
 
@@ -63,7 +62,7 @@ const SearchBar: React.FC = () => {
     async (query: string) => {
       if (isFullSearchActive) {
         // If a full search is active, don't fetch suggestions.
-        setShowSuggestions(false); // Ensure suggestions are hidden.
+        setShowSuggestions(false);
         return;
       }
 
@@ -106,7 +105,7 @@ const SearchBar: React.FC = () => {
       }
     },
     [isFullSearchActive]
-  ); // isFullSearchActive is a key dependency
+  );
 
   useEffect(() => {
     const trimmedQuery = searchQuery.trim();
@@ -122,9 +121,6 @@ const SearchBar: React.FC = () => {
       return;
     }
 
-    // If a full search is active (likely because searchQuery was just set by a suggestion click or Enter),
-    // don't immediately re-fetch suggestions for the exact same term.
-    // The isFullSearchActive flag will be reset by executeSearch's finally block.
     if (isFullSearchActive) {
       return;
     }
@@ -181,7 +177,6 @@ const SearchBar: React.FC = () => {
       if (trimmedQuery) {
         setIsFullSearchActive(true); // Signal that a full search is being initiated
         setShowSuggestions(false); // Hide suggestions immediately
-        // setSearchQuery is already up-to-date
         executeSearch(trimmedQuery);
       }
     }
@@ -272,7 +267,7 @@ const SearchBar: React.FC = () => {
                     className="search-result-link"
                     onClick={() => {
                       setShowSuggestions(false);
-                      setIsFullSearchActive(true); // Indicate that clicking a result is like a "full search" action
+                      setIsFullSearchActive(true);
                     }}>
                     <span className={`result-type-badge type-${getDataTypeDisplayName(result.dataType).toLowerCase().replace(/\s+/g, "-")}`}>
                       {getDataTypeDisplayName(result.dataType)}

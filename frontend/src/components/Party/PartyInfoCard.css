@@ -1,87 +1,88 @@
 .party-info-card {
-    background-color: #f8f8f8; 
-    padding: 20px;
-    border-radius: 8px;
-    width: fit-content; 
-    min-width: fit-content; 
-    margin: 20px auto; /* Center the card within its column if column is wider */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    color: #333; /* Default text color */
-  }
-  
-  .party-info-name {
-    color: #800000; /* Maroon color */
-    font-size: 1.8em;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 5px;/* Prevents the party name itself from wrapping if fit-content is used */
-                         /* Or use 'normal' if you want the name to wrap and the box to expand accordingly */
-  }
-  
-  .party-info-slogan {
-    color: #800000; /* Maroon color */
-    font-size: 0.9em;
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-style: italic;
-  }
-  
-  .party-info-logo-container {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .party-info-logo {
-    max-width: 150px; /* Adjust logo size */
-    max-height: 100px;
-    object-fit: contain;
-    border: 1px solid #ccc; /* Add border like placeholder */
-    padding: 5px;
-    background-color: #fff; /* White background behind logo */
-  }
-  
-  .party-info-section-title {
-    color: #800000; /* Maroon color */
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-top: 20px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #eee; /* Light separator */
-    padding-bottom: 5px;
-  }
-  
-  .party-info-roles {
-    margin-bottom: 15px;
-  }
-  
-  .party-role {
-    display: flex;
-    justify-content: space-between; /* Pushes label and name apart */
-    align-items: baseline;
-    margin-bottom: 6px;
-    font-size: 0.95em;
-    line-height: 1.4;
-  }
-  
-  .party-role-label {
-    font-weight: bold;
-    margin-right: 10px; /* Space between label and name */
-    flex-shrink: 0; /* Prevent label from shrinking */
-  }
-  
-  .party-role-name {
-    text-align: right;
-    color: #555;
-    /* Allow name to wrap if long */
-     word-break: break-word;
-     overflow-wrap: break-word;
-     hyphens: auto;
-  }
-  
-  .party-info-divider {
-    border: none;
-    border-top: 2px solid #800000; /* Maroon divider */
-    margin-top: 20px;
-  }
+  background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 8px;
+  width: fit-content;
+  min-width: fit-content;
+  margin: 20px auto;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.party-info-name {
+  color: #800000;
+  /* Maroon color */
+  font-size: 1.8em;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.party-info-slogan {
+  color: #800000;
+  /* Maroon color */
+  font-size: 0.9em;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-style: italic;
+}
+
+.party-info-logo-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.party-info-logo {
+  max-width: 150px;
+  /* Adjust logo size */
+  max-height: 100px;
+  object-fit: contain;
+  border: 1px solid #ccc;
+  padding: 5px;
+  background-color: #fff;
+}
+
+.party-info-section-title {
+  color: #800000;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.party-info-roles {
+  margin-bottom: 15px;
+}
+
+.party-role {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.party-role-label {
+  font-weight: bold;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.party-role-name {
+  text-align: right;
+  color: #555;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.party-info-divider {
+  border: none;
+  border-top: 2px solid #800000;
+  margin-top: 20px;
+}

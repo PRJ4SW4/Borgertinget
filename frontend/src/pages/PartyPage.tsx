@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { IAktor } from "../types/Aktor";
 import { IParty } from "../types/Party";
 import PartyInfoCard from "../components/Party/PartyInfoCard";
-import "./PartyPage.css"; // Ensure this CSS file is imported
+import "./PartyPage.css";
 import DefaultPic from "../images/defaultPic.jpg";
 // --- Logo Map ---
 import socialdemokratietLogo from "../images/PartyLogos/socialdemokratiet.webp";
@@ -54,7 +54,7 @@ const PartyPage: React.FC = () => {
   const [partyDetails, setPartyDetails] = useState<IParty | null>(null);
   const [members, setMembers] = useState<IAktor[]>([]);
   const [loadingParty, setLoadingParty] = useState<boolean>(true);
-  const [loadingMembers, setLoadingMembers] = useState<boolean>(false); // Still useful for the members fetch
+  const [loadingMembers, setLoadingMembers] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // --- State for role holders ---
@@ -67,7 +67,7 @@ const PartyPage: React.FC = () => {
   const displayPartyName = partyName ? decodeURIComponent(partyName) : "Ukendt Parti";
   const defaultPoliticianImageUrl = DefaultPic;
 
-  // --- Helper function to fetch Aktor details by ID (still needed for role holders) ---
+  // --- Helper function to fetch Aktor details by ID ---
   const fetchAktorById = async (id: number | null): Promise<IAktor | null> => {
     if (!id) return null;
     try {
@@ -98,9 +98,8 @@ const PartyPage: React.FC = () => {
         return;
       }
 
-      // Reset states
       setLoadingParty(true);
-      setLoadingMembers(true); // Set loading members to true initially
+      setLoadingMembers(true);
       setError(null);
       setPartyDetails(null);
       setMembers([]);
@@ -130,23 +129,21 @@ const PartyPage: React.FC = () => {
               const errorBody = await partyResponse.json();
               errorMsg = errorBody.message || errorBody.title || errorMsg;
             } catch {
-              /* Ignore */
             }
             throw new Error(errorMsg);
           }
         }
         const fetchedPartyData: IParty = await partyResponse.json();
         setPartyDetails(fetchedPartyData);
-        setLoadingParty(false); // Party details loaded
+        setLoadingParty(false);
 
-        // --- Step 2: Fetch Role Holder Details (concurrently) ---
+        // --- Step 2: Fetch Role Holder Details ---
         if (fetchedPartyData) {
           const rolePromises = [
             fetchAktorById(fetchedPartyData.chairmanId),
             fetchAktorById(fetchedPartyData.viceChairmanId),
             fetchAktorById(fetchedPartyData.secretaryId),
             fetchAktorById(fetchedPartyData.spokesmanId),
-            // Add fetches for group leader etc. if IDs become available in IParty
           ];
 
           const [fetchedChairman, fetchedViceChairman, fetchedSecretary, fetchedSpokesperson] = await Promise.all(rolePromises);
@@ -157,8 +154,7 @@ const PartyPage: React.FC = () => {
           setSpokesperson(fetchedSpokesperson);
         }
 
-        // --- Step 3: Fetch Party Members using the new endpoint ---
-        // This runs after party details are fetched and set.
+        // --- Step 3: Fetch Party Members ---
         const membersApiUrl = `http://localhost:5218/api/Aktor/GetParty/${encodeURIComponent(partyName)}`;
         const membersResponse = await fetch(membersApiUrl, {
           method: "GET",
@@ -169,7 +165,6 @@ const PartyPage: React.FC = () => {
         });
         if (!membersResponse.ok) {
           console.error(`Failed to fetch members for party ${displayPartyName}: ${membersResponse.status}`);
-          // Set an error or leave members array empty, depending on desired behavior
           throw new Error(`Kunne ikke hente medlemmer for ${displayPartyName}. Status: ${membersResponse.status}`);
         }
         const fetchedMembers: IAktor[] = await membersResponse.json();
@@ -180,10 +175,8 @@ const PartyPage: React.FC = () => {
         if (err instanceof Error) message = err.message;
         else if (typeof err === "string") message = err;
         setError(message);
-        // Ensure loading states are false on error
         setLoadingParty(false);
       } finally {
-        // This will now primarily signal the end of member fetching
         setLoadingMembers(false);
       }
     };
@@ -191,9 +184,7 @@ const PartyPage: React.FC = () => {
     fetchPartyData();
   }, [partyName, displayPartyName]); // Rerun if partyName changes
 
-  // --- Render Logic ---
-  // isLoading can now primarily reflect partyDetails loading,
-  // while loadingMembers handles the member list specifically.
+
   if (loadingParty) return <div className="loading-message">Henter partiinformation for {displayPartyName}...</div>;
   if (error && !partyDetails)
     return (
@@ -201,12 +192,11 @@ const PartyPage: React.FC = () => {
         Fejl: {error} <Link to="/parties">Tilbage til partioversigt</Link>
       </div>
     );
-  // If partyDetails loaded but members failed, we might still want to show party info.
-  // The error related to members can be shown near the members list.
+
 
   if (!partyDetails) return <div className="info-message">Kunne ikke finde partiinformation.</div>;
 
-  // Helper to get logo URL
+
   const getLogoUrl = (name: string | null): string | undefined => {
     return name ? partyLogoMap[name] : undefined;
   };
@@ -246,7 +236,6 @@ const PartyPage: React.FC = () => {
         <div className="party-infobox-column">
           <PartyInfoCard
             partyName={partyDetails.partyName || displayPartyName}
-            slogan={undefined}
             logoUrl={getLogoUrl(partyDetails.partyName)}
             defaultLogo={DefaultPic}
             chairmanName={chairman?.navn}
@@ -265,7 +254,7 @@ const PartyPage: React.FC = () => {
         <h3>Medlemmer</h3>
         {loadingMembers ? (
           <div className="loading-message">Henter medlemmer...</div>
-        ) : error && members.length === 0 ? ( // Show error if member fetch failed and no members are loaded
+        ) : error && members.length === 0 ? (
           <div className="error-message">Fejl ved hentning af medlemmer: {error}</div>
         ) : members.length > 0 ? (
           <ul className="party-member-list">

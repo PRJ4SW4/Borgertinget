@@ -1,23 +1,21 @@
 import React from 'react';
-import './PartyInfoCard.css'; // We'll create this CSS file next
+import './PartyInfoCard.css';
 
 // Define the properties the component expects
 interface PartyInfoCardProps {
   partyName: string;
-  slogan?: string; // Slogan is optional as it's not in the current backend model
-  logoUrl?: string; // URL for the party logo, resolved by the parent
+  logoUrl?: string; // URL for the party logo
   chairmanName?: string | null; // Partiformand
-  viceChairmanName?: string | null; // Næstformand (Party Deputy)
+  viceChairmanName?: string | null; // Næstformand
   secretaryName?: string | null; // Partisekretær
   politicalSpokespersonName?: string | null; // Politisk ordfører
   groupLeaderName?: string | null; // Gruppeformand
   deputyChairmanName2?: string | null; // Second "Næstformand" shown in the design
-  defaultLogo: string; // Fallback logo path (import this in the parent)
+  defaultLogo: string;
 }
 
 const PartyInfoCard: React.FC<PartyInfoCardProps> = ({
   partyName,
-  slogan,
   logoUrl,
   chairmanName,
   viceChairmanName,
@@ -57,16 +55,13 @@ const PartyInfoCard: React.FC<PartyInfoCardProps> = ({
       {/* Party Name */}
       <h1 className="party-info-name">{partyName}</h1>
 
-      {/* Slogan (Optional) */}
-      {slogan && <p className="party-info-slogan">{slogan}</p>}
-
       {/* Logo */}
       <div className="party-info-logo-container">
         <img
-          src={logoUrl || defaultLogo} // Use provided logo or fallback to default
+          src={logoUrl || defaultLogo}
           alt={`${partyName} Logo`}
           className="party-info-logo"
-          onError={handleImageError} // Use the error handler
+          onError={handleImageError}
         />
       </div>
 
@@ -78,7 +73,6 @@ const PartyInfoCard: React.FC<PartyInfoCardProps> = ({
         {renderRole('Partisekretær', secretaryName)}
         {renderRole('Politisk ordfører', politicalSpokespersonName)}
         {renderRole('Gruppeformand', groupLeaderName)}
-        {/* Render the second "Næstformand" as shown in the design */}
         {renderRole('Næstformand', deputyChairmanName2)}
       </div>
 
