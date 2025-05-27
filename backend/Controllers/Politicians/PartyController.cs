@@ -73,7 +73,7 @@ public class PartyController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<bool>> UpdatePartyDetails(
         int partyId,
-        [FromBody] UpdatePartyDto updateDto
+        [FromBody] UpdatePartyDto? updateDto
     )
     {
         // --- Input Validation ---

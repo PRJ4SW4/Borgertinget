@@ -34,8 +34,7 @@ namespace Tests.Controllers
             _uut = new CalendarController(_mockScraperService, _mockCalendarService, _mockLogger);
         }
 
-        [TearDown]
-        public void TearDown() { }
+        #region CreateEventAsync Tests
 
         [Test]
         public async Task CreateEvent_ValidEvent_ReturnsCreatedAtActionResult()
@@ -105,6 +104,40 @@ namespace Tests.Controllers
                 .DidNotReceive()
                 .CreateEventAsync(Arg.Any<CalendarEventDTO>());
         }
+
+        [Test]
+        public async Task CreateEvent_ExceptionThrown_ReturnsInternalServerError()
+        {
+            // Arrange
+            var newEventDto = new CalendarEventDTO
+            {
+                Title = "Test Event",
+                StartDateTimeUtc = DateTimeOffset.UtcNow.AddDays(1),
+                Location = "Test Location",
+                SourceUrl = "/test-event-url",
+            };
+
+            _mockCalendarService
+                .CreateEventAsync(newEventDto)
+                .Throws(new Exception("Unexpected error"));
+
+            // Act
+            var result = await _uut.CreateEvent(newEventDto);
+
+            // Assert
+            Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+            var objectResult = result.Result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(
+                objectResult!.Value,
+                Is.EqualTo("An internal error occurred while creating the event.")
+            );
+            Assert.That(objectResult.StatusCode, Is.EqualTo(500));
+        }
+
+        #endregion
+
+        #region UpdateEventAsync Tests
 
         [Test]
         public async Task UpdateEvent_ValidEvent_ReturnsNoContentResult()
@@ -180,6 +213,66 @@ namespace Tests.Controllers
         }
 
         [Test]
+        public async Task UpdateEvent_DbUpdateConcurrencyException_ReturnsInternalServerError()
+        {
+            // Arrange
+            var eventId = 1;
+            var eventDto = new CalendarEventDTO
+            {
+                Id = eventId,
+                Title = "Test Event",
+                SourceUrl = "/test-event-url",
+            };
+
+            _mockCalendarService
+                .UpdateEventAsync(eventId, eventDto)
+                .Throws(new DbUpdateConcurrencyException("Concurrency error"));
+
+            // Act
+            var result = await _uut.UpdateEvent(eventId, eventDto);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value,
+                Is.EqualTo("A concurrency error occurred while updating the event.")
+            );
+        }
+
+        [Test]
+        public async Task UpdateEvent_ExceptionThrown_ReturnsInternalServerError()
+        {
+            // Arrange
+            var eventId = 1;
+            var eventDto = new CalendarEventDTO
+            {
+                Id = eventId,
+                Title = "Test Event",
+                SourceUrl = "/test-event-url",
+            };
+
+            _mockCalendarService
+                .UpdateEventAsync(eventId, eventDto)
+                .Throws(new Exception("Unexpected error"));
+
+            // Act
+            var result = await _uut.UpdateEvent(eventId, eventDto);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(
+                objectResult.Value,
+                Is.EqualTo("An internal error occurred while updating the event.")
+            );
+        }
+
+        [Test]
         public async Task UpdateEvent_EventNotFound_ReturnsNotFoundResult()
         {
             var nonExistentEventId = 999;
@@ -200,6 +293,10 @@ namespace Tests.Controllers
             // No value to assert on NotFoundResult
             await _mockCalendarService.Received(1).UpdateEventAsync(nonExistentEventId, eventDto);
         }
+
+        #endregion
+
+        #region DeleteEventAsync Tests
 
         [Test]
         public async Task DeleteEvent_ExistingEvent_ReturnsNoContentResult()
@@ -229,5 +326,31 @@ namespace Tests.Controllers
             // No value to assert on NotFoundResult
             await _mockCalendarService.Received(1).DeleteEventAsync(nonExistentEventId);
         }
+
+        [Test]
+        public async Task DeleteEvent_ExceptionThrown_ReturnsInternalServerError()
+        {
+            // Arrange
+            var eventId = 1;
+
+            _mockCalendarService
+                .DeleteEventAsync(eventId)
+                .Throws(new Exception("Unexpected error"));
+
+            // Act
+            var result = await _uut.DeleteEvent(eventId);
+
+            // Assert
+            Assert.That(result, Is.TypeOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(
+                objectResult!.Value,
+                Is.EqualTo("An internal error occurred while deleting the event.")
+            );
+            Assert.That(objectResult.StatusCode, Is.EqualTo(500));
+        }
+
+        #endregion
     }
 }

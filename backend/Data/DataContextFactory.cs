@@ -11,7 +11,7 @@ namespace backend.Data
         public DataContext CreateDbContext(string[] args)
         {
             var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-            DotNetEnv.Env.Load(envPath); // Prøv evt. bare Env.Load() hvis .env er i samme mappe som .csproj
+            DotNetEnv.Env.Load(envPath);
 
             // Bygger konfigurationen ud fra appsettings.json
             IConfigurationRoot config = new ConfigurationBuilder()

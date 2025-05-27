@@ -221,4 +221,208 @@ describe("EditPoll", () => {
     // Ensure navigation did not occur
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it("alerts if not logged in when fetching polls", async () => {
+    mockGetItem.mockReturnValueOnce(null); // No token
+    const alertSpy = vi.spyOn(window, "alert");
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith("Du er ikke logget ind.");
+    });
+    alertSpy.mockRestore();
+  });
+
+  it("logs error if fetching polls fails", async () => {
+    mockGetItem.mockReturnValue("fake-jwt-token");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (mockedAxios.get as Mock).mockImplementationOnce(() => Promise.reject(new Error("fail")));
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith("Failed to fetch polls", expect.any(Error));
+    });
+    errorSpy.mockRestore();
+  });
+
+  it("alerts if not logged in when fetching politicians", async () => {
+    mockGetItem.mockReturnValueOnce(null); // No token
+    const alertSpy = vi.spyOn(window, "alert");
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith("Du er ikke logget ind.");
+    });
+    alertSpy.mockRestore();
+  });
+
+  it("logs error if fetching politicians fails", async () => {
+    mockGetItem.mockReturnValue("fake-jwt-token");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (mockedAxios.get as Mock).mockImplementation((url: string) => {
+      if (url === "/api/polls") return Promise.resolve({ data: mockPollsSummaryList });
+      if (url === "/api/aktor/all") return Promise.reject(new Error("fail"));
+      // Provide a default for poll details to avoid unhandled
+      if (url === `/api/polls/${mockSelectedPollDetails.id}`) return Promise.resolve({ data: mockSelectedPollDetails });
+      return Promise.reject(new Error("unhandled"));
+    });
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith("Failed to fetch politicians", expect.any(Error));
+    });
+    errorSpy.mockRestore();
+  });
+
+  it("does not fetch twitterId if no politician is selected", async () => {
+    mockGetItem.mockReturnValue("fake-jwt-token");
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    // Should not call axios.get for twitterId
+    expect(mockedAxios.get).not.toHaveBeenCalledWith(expect.stringContaining("/api/subscription/lookup/politicianTwitterId"), expect.anything());
+  });
+
+  it("sets twitterId to null and logs error if fetchTwitterId fails", async () => {
+    mockGetItem.mockReturnValue("fake-jwt-token");
+    (mockedAxios.get as Mock).mockImplementation((url: string) => {
+      if (url === "/api/polls") return Promise.resolve({ data: mockPollsSummaryList });
+      if (url === "/api/aktor/all") return Promise.resolve({ data: mockPoliticiansList });
+      if (url === `/api/polls/${mockSelectedPollDetails.id}`) return Promise.resolve({ data: mockSelectedPollDetails });
+      if (url.startsWith("/api/subscription/lookup/politicianTwitterId")) return Promise.reject(new Error("twitterId fail"));
+      if (url.startsWith("/api/administrator/lookup/aktorId")) return Promise.resolve({ data: { aktorId: "aktor1" } });
+      return Promise.reject(new Error("unhandled"));
+    });
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText("Vælg Poll"), {
+      target: { value: String(mockSelectedPollDetails.id) },
+    });
+    await waitFor(() => expect(screen.getByLabelText("Vælg Politiker *")).toBeInTheDocument());
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    fireEvent.change(screen.getByLabelText("Vælg Politiker *"), {
+      target: { value: mockPoliticiansList[0].id },
+    });
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith("Could not fetch politicianTwitterId", expect.any(Error));
+    });
+    errorSpy.mockRestore();
+  });
+
+  it("logs error if fetchPollDetails fails", async () => {
+    mockGetItem.mockReturnValue("fake-jwt-token");
+    (mockedAxios.get as Mock).mockImplementation((url: string) => {
+      if (url === "/api/polls") return Promise.resolve({ data: mockPollsSummaryList });
+      if (url === "/api/aktor/all") return Promise.resolve({ data: mockPoliticiansList });
+      if (url === `/api/polls/${mockSelectedPollDetails.id}`) return Promise.reject(new Error("fetchPollDetails fail"));
+      return Promise.reject(new Error("unhandled"));
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText("Vælg Poll"), {
+      target: { value: String(mockSelectedPollDetails.id) },
+    });
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith("Failed to fetch poll details", expect.any(Error));
+    });
+    errorSpy.mockRestore();
+  });
+
+  it("logs error and sets selectedPoliticianId to null if aktorId lookup fails in fetchPollDetails", async () => {
+    mockGetItem.mockReturnValue("fake-jwt-token");
+    (mockedAxios.get as Mock).mockImplementation((url: string) => {
+      if (url === "/api/polls") return Promise.resolve({ data: mockPollsSummaryList });
+      if (url === "/api/aktor/all") return Promise.resolve({ data: mockPoliticiansList });
+      if (url === `/api/polls/${mockSelectedPollDetails.id}`) return Promise.resolve({ data: mockSelectedPollDetails });
+      if (url.startsWith("/api/administrator/lookup/aktorId")) return Promise.reject(new Error("aktorId fail"));
+      return Promise.reject(new Error("unhandled"));
+    });
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    fireEvent.change(screen.getByLabelText("Vælg Poll"), {
+      target: { value: String(mockSelectedPollDetails.id) },
+    });
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith("Could not resolve aktorId from twitterId", expect.any(Error));
+    });
+    errorSpy.mockRestore();
+  });
+
+  it("can add and remove answer options", async () => {
+    // Ensure all mocks are set up for this test
+    (mockedAxios.get as Mock).mockImplementation((url: string) => {
+      if (url === "/api/polls") return Promise.resolve({ data: mockPollsSummaryList });
+      if (url === "/api/aktor/all") return Promise.resolve({ data: mockPoliticiansList });
+      if (url === `/api/polls/${mockSelectedPollDetails.id}`) return Promise.resolve({ data: mockSelectedPollDetails });
+      if (url.startsWith("/api/subscription/lookup/politicianTwitterId")) return Promise.resolve({ data: { politicianTwitterId: 12345 } });
+      if (url.startsWith("/api/administrator/lookup/aktorId")) return Promise.resolve({ data: { aktorId: "aktor1" } });
+      return Promise.reject(new Error("unhandled"));
+    });
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText("Vælg Poll"), {
+      target: { value: String(mockSelectedPollDetails.id) },
+    });
+    await waitFor(() => expect(screen.getByPlaceholderText("Svarmulighed 1")).toBeInTheDocument());
+    const addOptionBtn = screen.getByText("Tilføj Svarmulighed");
+    fireEvent.click(addOptionBtn);
+    expect(screen.getAllByPlaceholderText(/Svarmulighed/).length).toBe(3);
+    fireEvent.click(addOptionBtn);
+    expect(screen.getAllByPlaceholderText(/Svarmulighed/).length).toBe(4);
+    expect(addOptionBtn).toBeDisabled();
+    const removeOptionBtn = screen.getByText("Fjern Svarmulighed");
+    fireEvent.click(removeOptionBtn);
+    expect(screen.getAllByPlaceholderText(/Svarmulighed/).length).toBe(3);
+    fireEvent.click(removeOptionBtn);
+    expect(screen.getAllByPlaceholderText(/Svarmulighed/).length).toBe(2);
+    expect(removeOptionBtn).toBeDisabled();
+  });
+
+  it("can change the end date", async () => {
+    render(
+      <BrowserRouter>
+        <EditPoll />
+      </BrowserRouter>
+    );
+    await waitFor(() => expect(screen.getByText(mockPollsSummaryList[0].question)).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText("Vælg Poll"), {
+      target: { value: String(mockSelectedPollDetails.id) },
+    });
+    await waitFor(() => expect(screen.getByLabelText("Slutdato (valgfri)")).toBeInTheDocument());
+    const endDateInput = screen.getByLabelText("Slutdato (valgfri)") as HTMLInputElement;
+    fireEvent.change(endDateInput, { target: { value: "2025-05-25" } });
+    expect(endDateInput.value).toBe("2025-05-25");
+  });
 });

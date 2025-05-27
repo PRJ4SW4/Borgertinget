@@ -65,7 +65,7 @@ public class PagesController : ControllerBase
     {
         // Calls the service to create a page.
         var newPageDto = await _pageService.CreatePageAsync(createRequest);
-        // Assuming CreatePageAsync now correctly returns PageDetailDTO and handles all logic
+
         return CreatedAtAction(nameof(GetPage), new { id = newPageDto.Id }, newPageDto);
     }
 
@@ -83,11 +83,6 @@ public class PagesController : ControllerBase
 
         if (!success)
         {
-            // Consider if UpdatePageAsync should distinguish between "not found" and "other error"
-            // For now, assuming false means something went wrong, potentially "not found" or concurrency.
-            // The service layer should log specifics. Here, we might return NotFound or a generic error.
-            // If the service specifically indicates "not found" (e.g., by throwing a specific exception or returning a more detailed result object),
-            // we could return NotFound(). For now, NoContent() if successful, or a problem if not.
             return NotFound();
         }
 
@@ -104,7 +99,7 @@ public class PagesController : ControllerBase
 
         if (!success)
         {
-            // Similar to PUT, service should log. Controller returns NotFound if deletion failed (likely due to item not existing).
+            // Controller returns NotFound if deletion failed.
             return NotFound();
         }
 
