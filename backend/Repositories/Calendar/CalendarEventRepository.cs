@@ -3,24 +3,19 @@ namespace backend.Repositories.Calendar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims; // For ClaimsPrincipal
 using System.Threading.Tasks;
-using backend.Data; // For DataContext
-using backend.Models; // For User
-using backend.Models.Calendar; // For CalendarEvent
-using backend.Utils; // For LogSanitizer
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity; // For UserManager
+using backend.Data;
+using backend.Models.Calendar;
+using backend.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 // Implements repository operations for CalendarEvent entities using Entity Framework Core.
 public class CalendarEventRepository : ICalendarEventRepository
 {
-    private readonly DataContext _context; // Database context for data operations.
-    private readonly ILogger<CalendarEventRepository> _logger; // Logger for recording repository activity.
+    private readonly DataContext _context;
+    private readonly ILogger<CalendarEventRepository> _logger;
 
-    // Constructor: Takes injected DataContext and logger.
     public CalendarEventRepository(DataContext context, ILogger<CalendarEventRepository> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));

@@ -7,18 +7,14 @@ using backend.Services.Flashcards;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-// Specifies the route for this controller, defining the base URL segment for its endpoints.
 [Route("api/[controller]")]
 [ApiController]
 public class FlashcardsController : ControllerBase
 {
-    // A private readonly field to hold the IFlashcardService instance.
     private readonly IFlashcardService _flashcardService;
 
-    // Constructor for the FlashcardsController, injecting the IFlashcardService.
     public FlashcardsController(IFlashcardService flashcardService)
     {
-        // Assigns the injected IFlashcardService instance to the private field.
         _flashcardService = flashcardService;
     }
 

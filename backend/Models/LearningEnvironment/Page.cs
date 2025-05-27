@@ -1,8 +1,7 @@
-// /backend/Models/LearningEnvironment/Page.cs
 namespace backend.Models.LearningEnvironment;
 
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema; // Required for ForeignKey attribute
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class Page
 {

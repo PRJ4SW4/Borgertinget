@@ -1,4 +1,3 @@
-// /backend/Models/LearningEnvironment/Flashcard.cs
 namespace backend.Models.Flashcards;
 
 using System.ComponentModel.DataAnnotations;
@@ -6,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 public enum FlashcardContentType
 {
-    Text = 0, // Default
+    Text = 0,
     Image = 1,
 }
 
@@ -16,7 +15,7 @@ public class Flashcard
     public int FlashcardId { get; set; }
 
     [Required]
-    public int CollectionId { get; set; } // FK
+    public int CollectionId { get; set; }
 
     [ForeignKey("CollectionId")]
     public virtual FlashcardCollection FlashcardCollection { get; set; } = null!;

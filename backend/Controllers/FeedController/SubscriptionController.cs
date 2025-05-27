@@ -87,7 +87,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("lookup/politicianTwitterId")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<ActionResult<PoliticianInfoDto>> GetPoliticianTwitterIdByAktorId(
             [FromQuery] int aktorId
         )

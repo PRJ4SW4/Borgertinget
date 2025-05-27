@@ -1,9 +1,6 @@
 namespace backend.Models.Calendar;
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 // This class is used to store the scraped event data before it is processed and saved to the database.
 public class ScrapedEventData
