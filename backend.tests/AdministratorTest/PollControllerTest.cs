@@ -1,4 +1,4 @@
-/*using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -126,6 +126,56 @@ namespace Tests.Controllers
             Assert.That(actionResult, Is.Not.Null);
             Assert.That(actionResult.StatusCode, Is.EqualTo(201));
             Assert.That(actionResult.Value, Is.EqualTo(pollDetailsDto));
+        }
+
+        [Test]
+        public async Task CreatePoll_NullDto_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _uut.CreatePoll(null!);
+
+            // Assert
+            Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.That(badRequestResult, Is.Not.Null);
+            Assert.That(badRequestResult!.Value, Is.InstanceOf<ValidationProblemDetails>());
+            var validationDetails = badRequestResult.Value as ValidationProblemDetails;
+            Assert.That(validationDetails, Is.Not.Null);
+            Assert.That(validationDetails!.Title, Is.EqualTo("Invalid input"));
+            Assert.That(validationDetails.Detail, Is.EqualTo("Poll data is required."));
+        }
+
+        [Test]
+        public async Task CreatePoll_DbUpdateException_ReturnsInternalServerError()
+        {
+            // Arrange
+            var createPollDto = new PollDto
+            {
+                Question = "Test Question",
+                Options = new List<string> { "Option1", "Option2" },
+                PoliticianTwitterId = 1,
+            };
+
+            _mockPollsService
+                .When(x => x.CreatePollAsync(createPollDto))
+                .Do(x => throw new DbUpdateException("Database error"));
+
+            // Act
+            var result = await _uut.CreatePoll(createPollDto);
+
+            // Assert
+            Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
+            var objectResult = result.Result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
+            var validationDetails = objectResult.Value as ValidationProblemDetails;
+            Assert.That(validationDetails, Is.Not.Null);
+            Assert.That(validationDetails!.Title, Is.EqualTo("Internal Server Error"));
+            Assert.That(
+                validationDetails.Detail,
+                Is.EqualTo("An error occurred while creating the poll.")
+            );
         }
 
         [Test]
@@ -267,44 +317,6 @@ namespace Tests.Controllers
             Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
         }
 
-        // [Test]
-        // public async Task UpdatePoll_DuplicateOptions_ReturnsValidationProblem()
-        // {
-        //     // Arrange
-        //     var politician = await SeedPolitician(205);
-        //     var poll = new PollDto
-        //     {
-        //         Question = "Q",
-        //         Options = new List<string> { "Opt1", "Opt1" },
-        //         PoliticianTwitterId = politician.Id,
-        //     };
-        //     _mockPollsService.CreatePollAsync(Arg.Any<PollDto>()).Returns(poll);
-
-        //     var updateDto = new PollDto
-        //     {
-        //         Question = "Updated Q",
-        //         Options = new List<string> { "Opt1", "Opt1" }, // Duplicate options
-        //         PoliticianTwitterId = politician.Id,
-        //     };
-
-        //     // Act
-        //     var result = await _uut.UpdatePoll(poll.Id, updateDto);
-
-        //     // Assert
-        //     Assert.That(result, Is.InstanceOf<ObjectResult>());
-        //     var objectResult = result as ObjectResult;
-        //     Assert.That(objectResult, Is.Not.Null);
-
-        //     Assert.That(objectResult.Value, Is.InstanceOf<ValidationProblemDetails>());
-        //     var validationProblemDetails = objectResult.Value as ValidationProblemDetails;
-        //     Assert.That(validationProblemDetails, Is.Not.Null);
-
-        //     Assert.That(
-        //         validationProblemDetails.Errors.ContainsKey(nameof(PollDto.Options)),
-        //         Is.True
-        //     );
-        // }
-
         #endregion
 
         #region DeletePoll Tests
@@ -378,7 +390,26 @@ namespace Tests.Controllers
                 );
         }
 
+        [Test]
+        public async Task DeletePoll_Exception_ReturnsInternalServerError()
+        {
+            // Arrange
+            var pollId = 1;
+            _mockPollsService
+                .When(x => x.DeletePollAsync(pollId))
+                .Do(x => throw new Exception("Unexpected error"));
+
+            // Act
+            var result = await _uut.DeletePoll(pollId);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<ObjectResult>());
+            var objectResult = result as ObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+            Assert.That(objectResult.Value, Is.EqualTo("Intern fejl ved sletning af poll."));
+        }
+
         #endregion
     }
 }
-*/
