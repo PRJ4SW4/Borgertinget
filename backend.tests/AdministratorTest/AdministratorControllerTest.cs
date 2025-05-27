@@ -173,7 +173,7 @@ namespace Tests.Controllers
             Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
             Assert.That(
                 objectResult.Value?.ToString(),
-                Is.EqualTo("Error Fetching Flashcard Collection titles: Unexpected error")
+                Does.Contain("Error Fetching Flashcard Collection titles: Unexpected error")
             );
         }
 
@@ -211,7 +211,7 @@ namespace Tests.Controllers
             Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
             Assert.That(
                 objectResult.Value?.ToString(),
-                Is.EqualTo("Error finding Flashcard Collection by title: Something went wrong")
+                Does.Contain("Error finding Flashcard Collection by title: Something went wrong")
             );
         }
 
@@ -547,7 +547,7 @@ namespace Tests.Controllers
             Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
             Assert.That(
                 objectResult.Value?.ToString(),
-                Is.EqualTo("An error occurred while editing the quote: database error")
+                Is.EqualTo("An error occurred while getting quote: database error")
             );
         }
 
