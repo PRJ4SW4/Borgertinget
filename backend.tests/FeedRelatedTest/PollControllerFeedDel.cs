@@ -17,7 +17,7 @@ using NUnit.Framework;
 namespace Tests.Controllers
 {
     [TestFixture]
-    public class PollControllerAdminTests
+    public class PollControllerTests
     {
         private PollsController _uut;
         private IHubContext<FeedHub> _mockHubContext;
