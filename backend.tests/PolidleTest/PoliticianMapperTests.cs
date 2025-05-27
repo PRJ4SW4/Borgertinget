@@ -58,7 +58,7 @@ namespace backend.tests.PolidleTest
             // Arrange
             var referenceDate = new DateOnly(2023, 1, 1);
             var aktor = CreateTestAktor(
-                born: "1990-01-01",
+                born: "01-01-1990",
                 partyShortname: "S",
                 party: "Socialdemokratiet",
                 constituencies: new List<string> { "København" },
@@ -87,7 +87,7 @@ namespace backend.tests.PolidleTest
             // Arrange
             var today = new DateOnly(2024, 5, 25);
             _dateTimeProviderMock.TodayUtc.Returns(today);
-            var aktor = CreateTestAktor(born: "1980-05-20"); // Age should be 44
+            var aktor = CreateTestAktor(born: "20-05-1980"); // Age should be 44
 
             // Act
             var result = _mapper.MapToDetailsDto(aktor);
@@ -213,12 +213,12 @@ namespace backend.tests.PolidleTest
 
         private static IEnumerable<TestCaseData> CalculateAgeTestCases()
         {
-            yield return new TestCaseData("1990-01-01", "2023-01-01", 33); // Birthday passed
-            yield return new TestCaseData("1990-05-25", "2024-05-25", 34); // Born today (relative to year)
-            yield return new TestCaseData("2023-01-01", "2023-01-01", 0); // Born on reference date
-            yield return new TestCaseData(null, "2023-01-01", 0);
-            yield return new TestCaseData("", "2023-01-01", 0);
-            yield return new TestCaseData("invalid-date", "2023-01-01", 0);
+            yield return new TestCaseData("01-01-1990", "01-01-2023", 33); // Birthday passed
+            yield return new TestCaseData("25-05-1990", "25-05-2024", 34); // Born today (relative to year)
+            yield return new TestCaseData("01-01-2023", "01-01-2023", 0); // Born on reference date
+            yield return new TestCaseData(null, "01-01-2023", 0);
+            yield return new TestCaseData("", "01-01-2023", 0);
+            yield return new TestCaseData("invalid-date", "01-01-2023", 0);
         }
 
         [Test, TestCaseSource(nameof(CalculateAgeTestCases))]
