@@ -11,11 +11,6 @@ using Microsoft.Extensions.Logging;
 
 namespace backend.Services
 {
-    /// <summary>
-    /// Business‑logic layer for administrator actions.
-    /// This service handles validation and mapping between DTOs and EF Core entities.
-    /// And includes helper functions for easier mapping
-    /// </summary>
     public class AdministratorService : IAdministratorService
     {
         private readonly IAdministratorRepository _repository;
@@ -212,7 +207,7 @@ namespace backend.Services
         /// Convert a single FlashcardDTO to its entity counterpart
         private static Flashcard MapFlashcardDtoToEntity(FlashcardDTO fc)
         {
-            // Convert string values ("Text", "Image") into their corresponding flashcard type
+            // Convert string values ("Text", "Image") into their flashcard type
             Enum.TryParse(fc.FrontContentType, out FlashcardContentType frontType);
             Enum.TryParse(fc.BackContentType, out FlashcardContentType backType);
 

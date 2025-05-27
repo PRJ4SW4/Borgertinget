@@ -145,7 +145,7 @@ button:disabled,
 .question-admin-block.read-only {
   background-color: #e9ecef;
   border: 1px solid #ced4da;
-  color: #343a40; /* Darker text for better readability on light background */
+  color: #343a40;
 }
 
 .question-admin-block.read-only .page-label strong {

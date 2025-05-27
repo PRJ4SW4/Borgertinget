@@ -25,7 +25,6 @@ const getAuthHeaders = (includeContentType = true): Headers => {
     }
     
     if (token) {
-        // Remove any quotes that might be wrapping the token
         const cleanToken = token.replace(/^["'](.*)["']$/, '$1');
         headers.set('Authorization', `Bearer ${cleanToken}`);
     } else {
@@ -39,7 +38,6 @@ export const getFeed = async (
     pageSize: number = 5,
     politicianId: number | null = null
 ): Promise<PaginatedFeedResponse> => {
-  // For GET requests, we don't need Content-Type
   const headers = getAuthHeaders(false);
 
   try {

@@ -24,12 +24,12 @@ const PollCard: React.FC<PollCardProps> = ({ poll, onVoteSubmit }) => {
     try {
       // Kald funktionen fra FeedPage, som kalder API'et
       await onVoteSubmit(poll.id, optionId);
-      // UI opdatering sker via SignalR eller den lokale opdatering i FeedPage
+      // UI opdatering sker via SignalR, efter brugern har stemt
     } catch (error) {
-      // Fejl håndteres og vises i FeedPage
+      // hvis fejl håndteres det, og vises i FeedPage
       console.error("Vote submission failed (handled in FeedPage)", error);
     } finally {
-      setIsVoting(false); // Stop loading state (uanset succes/fejl)
+      setIsVoting(false); // Stop loading state uanset succes/fejl
     }
   };
 
@@ -63,8 +63,8 @@ const PollCard: React.FC<PollCardProps> = ({ poll, onVoteSubmit }) => {
               key={option.id}
               className={`poll-option ${isUsersVote ? 'voted-option' : ''}`}
             >
-              {/* Vis stemmeknap hvis aktiv OG bruger IKKE har stemt */}
-              {poll.isActive /*&& poll.currentUserVoteOptionId === null && */ &&
+              {/* Vis stemmeknap hvis aktiv og bruger IKKE har stemt */}
+              {poll.isActive /*&& poll.currentUserVoteOptionId === null && */ && // lavet om, da man skulle kunne ændre sin stemme igen
                   <button
                       className="vote-button"
                       onClick={() => handleVoteClick(option.id)}

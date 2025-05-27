@@ -172,6 +172,7 @@ namespace backend.Services.Authentication
                 info.LoginProvider
             );
 
+            // Her prøver vi at logge brugeren ind direkte, hvis vi kender deres Google-konto i forvejen
             var signInResult = await ExternalLoginSignInAsync(
                 info.LoginProvider,
                 info.ProviderKey,
@@ -182,8 +183,9 @@ namespace backend.Services.Authentication
             User? appUser;
             if (signInResult.Succeeded)
             {
+                // Success, brugeren er kendt og findes. Her henter vi deres profil fra databasen
                 appUser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-                if (appUser == null)
+                if (appUser == null) // hvis brugeren da ikke findes i databasen
                 {
                     _logger.LogError(
                         "User not found with FindByLoginAsync after successful ExternalLoginSignInAsync for {LoginProvider} - {ProviderKey}.",
@@ -204,6 +206,8 @@ namespace backend.Services.Authentication
             }
             else
             {
+                // Her er brugeren ny eller har endnu ikke koblet sin konto til Google.
+                // Så henter vi emailen fra den info, vi fik fra Google.
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
                 if (string.IsNullOrEmpty(email))
                 {
@@ -218,9 +222,11 @@ namespace backend.Services.Authentication
                     };
                 }
 
+                // Her tjekker vi om en bruger med den email allerede findes i databasen.
                 appUser = await _authenticationRepository.GetUserByEmailAsync(email);
-                if (appUser == null) // Opret ny lokal bruger
+                if (appUser == null) // Email findes ikke: Opret ny lokal bruger
                 {
+                    // Her henter vi info fra Google, gennem deres supplerede JWT.
                     var nameFromGoogle = info.Principal.FindFirstValue(ClaimTypes.Name);
                     var givenName = info.Principal.FindFirstValue(ClaimTypes.GivenName);
                     var surname = info.Principal.FindFirstValue(ClaimTypes.Surname);
@@ -247,6 +253,7 @@ namespace backend.Services.Authentication
                         sanitizedUserName = $"user{Guid.NewGuid().ToString("N").Substring(0, 8)}";
                     }
 
+                    // hvis brugernavnet findes, gør vi det unikt med en counter
                     var tempUserName = sanitizedUserName;
                     int count = 1;
                     while (await _authenticationRepository.GetUserByNameAsync(tempUserName) != null)
@@ -263,7 +270,7 @@ namespace backend.Services.Authentication
                     {
                         UserName = sanitizedUserName,
                         Email = email,
-                        EmailConfirmed = true,
+                        EmailConfirmed = true, // email bekræftet gennem googel
                     };
 
                     var createUserResult = await _userManager.CreateAsync(appUser);
@@ -279,7 +286,7 @@ namespace backend.Services.Authentication
                         };
                     }
                 }
-                else // Bruger fundet via email
+                else // Bruger fundet via email, men ikke koblet til google
                 {
                     if (!appUser.EmailConfirmed)
                     {
@@ -292,6 +299,7 @@ namespace backend.Services.Authentication
                     }
                 }
 
+                // her kobler vi den lokale konto til google loginet til næste gang
                 var addLoginResult = await _userManager.AddLoginAsync(
                     appUser,
                     new UserLoginInfo(

@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging.Abstractions; // Tilføjet for NullLogger
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -112,7 +112,6 @@ namespace backend.Tests.Services
         [Test]
         [TestCase("/dashboard", "/dashboard")]
         [TestCase("/path?query=malicious", "/pathquery=malicious")]
-        // Justeret forventet output til at matche nuværende SanitizeReturnUrl-implementering
         [TestCase("/path\nwith\rbreaks", "/pathwith\rbreaks")]
         [TestCase(null, "/")]
         public void SanitizeReturnUrl_VariousInputs_ReturnsSanitizedUrl(
@@ -328,7 +327,6 @@ namespace backend.Tests.Services
         public async Task SignOutAsync_WhenCalled_CallsSignInManagerSignOut()
         {
             // Arrange
-            // (Ingen specifik arrange nødvendig)
 
             // Act
             await _uut.SignOutAsync();

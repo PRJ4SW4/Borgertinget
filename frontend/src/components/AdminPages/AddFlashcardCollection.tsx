@@ -7,7 +7,7 @@ import {
 } from "../../types/flashcardTypes";
 import "./AddFlashcardCollection.css";
 import BorgertingetIcon from "../../images/BorgertingetIcon.png";
-import BackButton from "../Button/backbutton"; // Import BackButton
+import BackButton from "../Button/backbutton"; 
 
 
 // Allows an admin to create a new flashcard collection.
@@ -45,7 +45,6 @@ export default function CreateFlashcardCollection() {
     };
 
     // create a new array that includes all the items in an existing list plus one (or more) new items
-    // safe for react's immutability model
     setFlashcards([...flashcards, newCard]);
   };
 

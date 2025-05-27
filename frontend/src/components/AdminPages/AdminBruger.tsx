@@ -17,7 +17,7 @@ export default function AdminBruger() {
   const editUsername = async () => {
     if (!oldUsername.trim() || !newUsername.trim()) {
       alert("Udfyld både det gamle og det nye brugernavn.");
-      return; // stop right here
+      return; 
     }
 
     try {

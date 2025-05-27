@@ -60,6 +60,7 @@ namespace backend.Controllers
 
             if (result.Succeeded)
             {
+                // Leder efter den oprettede bruger for at tildele en rolle
                 var user = await _userAuthenticationService.FindUserByEmailAsync(dto.Email);
                 if (user == null)
                 {
@@ -84,7 +85,7 @@ namespace backend.Controllers
                         }
                     );
                 }
-
+                // EmailService genererer en bekræftelsesmail med et token.
                 var token = await _userAuthenticationService.GenerateEmailConfirmationTokenAsync(
                     user
                 );
@@ -94,6 +95,7 @@ namespace backend.Controllers
 
                 try
                 {
+                    // Afsender bekræftelsesmailen med SMTP.
                     await _emailService.SendEmailAsync(dto.Email, emailContent);
                 }
                 catch (Exception ex)
@@ -132,7 +134,7 @@ namespace backend.Controllers
                 _logger.LogError("Token mangler.");
                 return BadRequest("Token mangler.");
             }
-
+            // Service leder efter en bruger med det angivne ID.
             var user = await _userAuthenticationService.GetUserAsync(userId);
             if (user == null)
             {
@@ -141,6 +143,7 @@ namespace backend.Controllers
 
             try
             {
+                // Token fra URL dekodes
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
                 var result = await _userAuthenticationService.ConfirmEmailAsync(user, decodedToken);
@@ -222,6 +225,7 @@ namespace backend.Controllers
                 return BadRequest(new { error = "Bruger findes ikke." });
             }
 
+            // Token genereres for at nulstille adgangskoden.
             var token = await _userAuthenticationService.GeneratePasswordResetTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
@@ -229,6 +233,7 @@ namespace backend.Controllers
 
             try
             {
+                // Afsender nulstillingsmailen med SMTP.
                 await _emailService.SendEmailAsync(dto.Email, emailContent);
                 return Ok(
                     new
@@ -258,6 +263,7 @@ namespace backend.Controllers
             [FromQuery] string token
         )
         {
+            // Leder efter en bruger med det angivne ID.
             var user = await _userAuthenticationService.GetUserAsync(userId);
             if (user == null)
             {
@@ -271,6 +277,7 @@ namespace backend.Controllers
 
             try
             {
+                // Token fra URL dekodes
                 var decodedTokenBytes = WebEncoders.Base64UrlDecode(token);
                 var decodedToken = Encoding.UTF8.GetString(decodedTokenBytes);
 
@@ -309,8 +316,8 @@ namespace backend.Controllers
                 sanitizedClientReturnUrl
             );
 
-            // Den URL, som SignInManager gemmer i AuthenticationProperties, for at vide hvor OnTicketReceived skal sende os hen.
-            // Denne URL (vores HandleGoogleCallback) vil så modtage den oprindelige clientReturnUrl som et query parameter.
+            // Her bygger vi den URL, som Google skal sende brugeren tilbage til.
+            // Den peger på vores egen HandleGoogleCallback metode 
             var propertiesRedirectUri = Url.Action(
                 action: nameof(HandleGoogleCallback),
                 controller: "Users",
@@ -333,13 +340,15 @@ namespace backend.Controllers
                 "Intern redirect URI for ConfigureExternalAuthenticationProperties (til HandleGoogleCallback): {PropertiesRedirectUri}",
                 propertiesRedirectUri
             );
-
+            // Her bygger vi en pakke med instrukser, som ASP.NET Identity skal bruge til at håndtere login-processen
+            // Den indeholder vigtigdt vores 'RedirectUri', 
+            // så Google ved, at de skal sende brugeren tilbage til vores HandleGoogleCallback-metode
             var authenticationProperties =
                 _userAuthenticationService.ConfigureExternalAuthenticationProperties(
                     GoogleDefaults.AuthenticationScheme,
-                    propertiesRedirectUri // Denne URL peger på vores HandleGoogleCallback med den oprindelige clientReturnUrl
+                    propertiesRedirectUri 
                 );
-
+            // Her sender vi brugeren afsted til Google for at logge ind.
             return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
         }
 
@@ -366,6 +375,7 @@ namespace backend.Controllers
                 );
             }
 
+            // Her pakker vi bruger-informationen ud som vi fik fra Google
             var info = await _userAuthenticationService.GetExternalLoginInfoAsync();
             if (info == null)
             {
@@ -388,13 +398,14 @@ namespace backend.Controllers
                 );
             }
 
-            // Ryd den midlertidige eksterne cookie, samt cookie oprettet via. identity
+            // Her rydder vi op ved at slette de midlertidige cookies fra login-processen
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             await _userAuthenticationService.SignOutAsync();
 
             string frontendBaseUrl = _config["FrontendBaseUrl"] ?? "http://localhost:5173";
             string loginSuccessPathOnFrontend = "/login-success";
 
+            // Her samler vi de ting, der skal med i URL'en, f.eks. det nye token
             var queryParams = new Dictionary<string, string?> { { "token", loginResult.JwtToken } };
 
             var sanitizedReturnUrl = _userAuthenticationService.SanitizeReturnUrl(returnUrl);
@@ -411,6 +422,7 @@ namespace backend.Controllers
                 );
             }
 
+            // Her bygger vi den endelige URL til vores frontend
             string urlForLoginSuccessPage = QueryHelpers.AddQueryString(
                 $"{frontendBaseUrl}{loginSuccessPathOnFrontend}",
                 queryParams

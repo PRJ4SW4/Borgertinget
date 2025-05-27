@@ -1,4 +1,3 @@
-// src/components/Sidebar.tsx
 import React from 'react';
 import { PoliticianInfoDto } from '../../types/tweetTypes';
 import './Sidebar.css';
