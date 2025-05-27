@@ -24,7 +24,6 @@ public class CalendarServiceTest
     {
         _repository = Substitute.For<ICalendarEventRepository>();
         _logger = Substitute.For<ILogger<CalendarService>>();
-        // Mock UserManager
         var store = Substitute.For<IUserStore<User>>();
         _mockUserManager = Substitute.For<UserManager<User>>(
             store,
