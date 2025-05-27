@@ -15,6 +15,9 @@ public class AltingetEventDataParser : IEventDataParser
     private readonly CultureInfo _dkCulture = new("da-DK"); // CultureInfo for Danish (Denmark) specific parsing.
 
     // XPath expressions to locate specific elements in the Altinget HTML structure.
+    // You can get these expressions by inspecting the HTML structure of the Altinget calendar page using Chromium DevTools
+    // You can actually just right click the element in DevTools and select "Copy XPath" to get the XPath expression,
+    // which would have saved me alot of time had i known at the start ;(
     private const string DayGroupXPath =
         "//div[@class='mb-6' and .//div[contains(@class, 'list-title-s')]]";
     private const string DateXPath =
@@ -25,7 +28,7 @@ public class AltingetEventDataParser : IEventDataParser
     private const string TitleXPath = "(.//div[contains(@class, 'list-title-xs')])[2]";
     private const string LocationXPath = ".//div[contains(@class, 'list-label')]//span";
 
-    // Constructor: Takes an injected logger.
+    // Constructor
     public AltingetEventDataParser(ILogger<AltingetEventDataParser> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

@@ -9,13 +9,10 @@ namespace backend.Controllers;
 [ApiController]
 public class AnswersController : ControllerBase
 {
-    // A private readonly field to hold the IAnswerService instance.
     private readonly IAnswerService _answerService;
 
-    // Constructor for the AnswersController, injecting the IAnswerService via dependency injection.
     public AnswersController(IAnswerService answerService)
     {
-        // Assigns the injected IAnswerService instance to the private field.
         _answerService = answerService;
     }
 

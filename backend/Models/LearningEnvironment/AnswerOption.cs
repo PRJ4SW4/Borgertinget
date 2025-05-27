@@ -1,4 +1,3 @@
-// /backend/Models/LearningEnvironment/AnswerOption.cs
 namespace backend.Models.LearningEnvironment;
 
 using System.ComponentModel.DataAnnotations;
@@ -17,10 +16,9 @@ public class AnswerOption
 
     public int DisplayOrder { get; set; } = 0; // Ordering
 
-    // Foreign Key to Question
     [Required]
     public int QuestionId { get; set; }
 
     [ForeignKey("QuestionId")]
-    public virtual Question Question { get; set; } = null!; // Navigation property back to Question
+    public virtual Question Question { get; set; } = null!;
 }
