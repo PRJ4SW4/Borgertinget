@@ -4,6 +4,7 @@ import './PartyInfoCard.css';
 // Define the properties the component expects
 interface PartyInfoCardProps {
   partyName: string;
+  slogan?: string;
   logoUrl?: string; // URL for the party logo
   chairmanName?: string | null; // Partiformand
   viceChairmanName?: string | null; // Næstformand
@@ -16,6 +17,7 @@ interface PartyInfoCardProps {
 
 const PartyInfoCard: React.FC<PartyInfoCardProps> = ({
   partyName,
+  slogan,
   logoUrl,
   chairmanName,
   viceChairmanName,
@@ -54,6 +56,12 @@ const PartyInfoCard: React.FC<PartyInfoCardProps> = ({
     <div className="party-info-card">
       {/* Party Name */}
       <h1 className="party-info-name">{partyName}</h1>
+
+
+      {/* Slogan (Not implemented) */}
+
+
+      {slogan && <p className="party-info-slogan">{slogan}</p>}
 
       {/* Logo */}
       <div className="party-info-logo-container">

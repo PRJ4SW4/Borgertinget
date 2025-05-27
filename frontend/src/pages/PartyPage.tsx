@@ -98,8 +98,9 @@ const PartyPage: React.FC = () => {
         return;
       }
 
+      // Reset states
       setLoadingParty(true);
-      setLoadingMembers(true);
+      setLoadingMembers(true); // Set loading members to true initially
       setError(null);
       setPartyDetails(null);
       setMembers([]);
@@ -129,15 +130,16 @@ const PartyPage: React.FC = () => {
               const errorBody = await partyResponse.json();
               errorMsg = errorBody.message || errorBody.title || errorMsg;
             } catch {
+              /* Ignore */
             }
             throw new Error(errorMsg);
           }
         }
         const fetchedPartyData: IParty = await partyResponse.json();
         setPartyDetails(fetchedPartyData);
-        setLoadingParty(false);
+        setLoadingParty(false); // Party details loaded
 
-        // --- Step 2: Fetch Role Holder Details ---
+        // --- Step 2: Fetch Role Holder Details (concurrently) ---
         if (fetchedPartyData) {
           const rolePromises = [
             fetchAktorById(fetchedPartyData.chairmanId),
@@ -182,7 +184,7 @@ const PartyPage: React.FC = () => {
     };
 
     fetchPartyData();
-  }, [partyName, displayPartyName]); // Rerun if partyName changes
+  }, [partyName, displayPartyName]);
 
 
   if (loadingParty) return <div className="loading-message">Henter partiinformation for {displayPartyName}...</div>;
@@ -193,10 +195,9 @@ const PartyPage: React.FC = () => {
       </div>
     );
 
-
   if (!partyDetails) return <div className="info-message">Kunne ikke finde partiinformation.</div>;
 
-
+  // Helper to get logo URL
   const getLogoUrl = (name: string | null): string | undefined => {
     return name ? partyLogoMap[name] : undefined;
   };
@@ -236,6 +237,7 @@ const PartyPage: React.FC = () => {
         <div className="party-infobox-column">
           <PartyInfoCard
             partyName={partyDetails.partyName || displayPartyName}
+            slogan={undefined}
             logoUrl={getLogoUrl(partyDetails.partyName)}
             defaultLogo={DefaultPic}
             chairmanName={chairman?.navn}
