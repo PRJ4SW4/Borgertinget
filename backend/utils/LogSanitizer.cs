@@ -1,4 +1,5 @@
-namespace backend.Utils
+// Fil: backend/Utils/LogSanitizer.cs (eller et passende namespace)
+namespace backend.Utils // Tilpas namespace
 {
     public static class LogSanitizer
     {

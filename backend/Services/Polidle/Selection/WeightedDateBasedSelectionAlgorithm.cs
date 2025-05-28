@@ -1,8 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using backend.Enums;
+using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility;
 using backend.Models;
 using backend.Models.Politicians;
+using Microsoft.Extensions.Logging;
 
 namespace backend.Services.Selection
 {
@@ -94,6 +99,7 @@ namespace backend.Services.Selection
                 }
             }
 
+            // Fallback (bør sjældent rammes)
             _logger.LogError(
                 "Weighted random selection failed unexpectedly for {GameMode} on {Date}. Returning last valid candidate.",
                 gameMode,

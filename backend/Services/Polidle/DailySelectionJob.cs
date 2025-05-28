@@ -1,14 +1,23 @@
+// Fil: Jobs/DailySelectionJob.cs
+using System;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
+using backend.Enums;
 using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace backend.Jobs
 {
-    public class DailySelectionJobSettings
+    public class DailySelectionJobSettings 
     {
-        public string RunTimeUtc { get; set; } = "04:00";
-        public double RunCheckIntervalMinutes { get; set; } = 60;
+        public string RunTimeUtc { get; set; } = "00:03";
+        public double RunCheckIntervalMinutes { get; set; } = 5;
     }
 
     public class DailySelectionJob : IHostedService, IDisposable
@@ -17,7 +26,7 @@ namespace backend.Jobs
         private Timer? _timer = null;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly DailySelectionJobSettings _settings;
+        private readonly DailySelectionJobSettings _settings; 
         private readonly TimeSpan _checkInterval;
 
         private volatile bool _isExecuting = false;
@@ -26,7 +35,7 @@ namespace backend.Jobs
         public DailySelectionJob(
             ILogger<DailySelectionJob> logger,
             IServiceScopeFactory scopeFactory,
-            IDateTimeProvider dateTimeProvider,
+            IDateTimeProvider dateTimeProvider, 
             IConfiguration configuration
         )
         {
@@ -49,7 +58,7 @@ namespace backend.Jobs
             );
 
             //* Start timer med det samme, men kørsel sker kun på det rigtige tidspunkt
-            _timer = new Timer(DoWorkWrapper, null, TimeSpan.FromSeconds(15), _checkInterval); // Start efter 15 sek, tjek hvert 60 minut
+            _timer = new Timer(DoWorkWrapper, null, TimeSpan.FromSeconds(15), _checkInterval); // Start efter 15 sek, tjek hvert X minut
 
             return Task.CompletedTask;
         }
@@ -100,7 +109,7 @@ namespace backend.Jobs
                 var now = _dateTimeProvider.UtcNow;
                 var today = _dateTimeProvider.TodayUtc;
 
-                // Tjek om tidspunktet er passeret, OG om vi allerede HAR kørt i dag
+                // Skal vi køre i dag? Tjek om tidspunktet er passeret, OG om vi allerede HAR kørt i dag
                 bool alreadyRunToday = await CheckIfRunTodayAsync(today);
 
                 if (now.TimeOfDay >= targetTime && !alreadyRunToday)

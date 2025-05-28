@@ -1,9 +1,12 @@
+using System;
+using System.Threading.Tasks;
 using backend.Data;
 using backend.Enums;
 using backend.Interfaces.Repositories;
 using backend.Models;
 using backend.Models.Politicians;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace backend.Repositories.PolidleTracker
 {
@@ -58,6 +61,7 @@ namespace backend.Repositories.PolidleTracker
 
             if (existingTracker != null)
             {
+                // Opdater
                 existingTracker.LastSelectedDate = selectionDate;
                 existingTracker.AlgoWeight = null;
                 Update(existingTracker);
@@ -70,6 +74,7 @@ namespace backend.Repositories.PolidleTracker
             }
             else
             {
+                // Opret ny
                 var newTracker = new GamemodeTracker
                 {
                     PolitikerId = aktor.Id,

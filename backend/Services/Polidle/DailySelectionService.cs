@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO;
 using backend.Enums;
@@ -8,6 +12,7 @@ using backend.Models;
 using backend.Models.Politicians;
 using backend.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace backend.Services
 {
@@ -69,7 +74,7 @@ namespace backend.Services
             string? search = null
         )
         {
-            string sanitizedSearchForLog = LogSanitizer.Sanitize(search);
+            string sanitizedSearchForLog = LogSanitizer.Sanitize(search); // Rens til logning
 
             _logger.LogInformation(
                 "Fetching politicians for guessing. Search: '{SearchTerm}'",
@@ -93,6 +98,7 @@ namespace backend.Services
                 today,
                 GamemodeTypes.Citat
             );
+
             if (selection == null)
                 throw new KeyNotFoundException(
                     $"Ingen DailySelection fundet for Citat d. {today}."
@@ -494,6 +500,7 @@ namespace backend.Services
             }
         }
 
+        //*FIXED: Implement method for seeding Quotes to Aktors
         private static readonly List<string> GenericQuotesForSeeding = new List<string>
         {
             "Fremtiden kræver modige beslutninger og fælles ansvar.",
