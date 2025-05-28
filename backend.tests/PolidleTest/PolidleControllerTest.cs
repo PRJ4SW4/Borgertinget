@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using backend.Controllers;
-using backend.DTO; // Korrekt namespace til DTOs
-using backend.Enums; // Korrekt namespace til PolidleGamemode
+using backend.DTO; 
+using backend.Enums;
 using backend.Interfaces.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NSubstitute; // Bruges i stedet for Moq for konsistens med tidligere eksempler
+using NSubstitute;
 using NUnit.Framework;
 
-namespace backend.tests.PolidleTest // Eller backend.tests.Polidle.Controllers
+namespace backend.tests.PolidleTest
 {
     [TestFixture]
     public class PolidleControllerTests
@@ -29,6 +29,7 @@ namespace backend.tests.PolidleTest // Eller backend.tests.Polidle.Controllers
         }
 
         // --- Tests for GetAllPoliticiansForGuessing ---
+        #region GetAllPoliticiansForGuessing
         [Test]
         public async Task GetAllPoliticiansForGuessing_ReturnsOkWithListOfSearchListDto()
         {
@@ -82,7 +83,8 @@ namespace backend.tests.PolidleTest // Eller backend.tests.Polidle.Controllers
             var actualPoliticians = okResult.Value as IEnumerable<SearchListDto>;
             Assert.That(actualPoliticians, Is.Not.Null);
         }
-
+        #endregion
+        #region GetClassicDetailsOfTheDay
         // --- Tests for GetClassicDetailsOfTheDay ---
         [Test]
         public async Task GetClassicDetailsOfTheDay_ReturnsOkWithDetails_WhenExists()
@@ -122,7 +124,8 @@ namespace backend.tests.PolidleTest // Eller backend.tests.Polidle.Controllers
             // Assert
             Assert.That(actionResult.Result, Is.InstanceOf<OkObjectResult>());
         }
-
+        #endregion
+        #region GetQuoteOfTheDay
         // --- Tests for GetQuoteOfTheDay ---
         [Test]
         public async Task GetQuoteOfTheDay_ReturnsOkWithQuote_WhenExists()
@@ -153,7 +156,8 @@ namespace backend.tests.PolidleTest // Eller backend.tests.Polidle.Controllers
             // Assert
             Assert.That(actionResult.Result, Is.InstanceOf<OkObjectResult>());
         }
-
+        #endregion
+        #region GetPhotoOfTheDay
         // --- Tests for GetPhotoOfTheDay ---
         [Test]
         public async Task GetPhotoOfTheDay_ReturnsOkWithPhoto_WhenExists()
@@ -184,7 +188,8 @@ namespace backend.tests.PolidleTest // Eller backend.tests.Polidle.Controllers
             // Assert
             Assert.That(actionResult.Result, Is.InstanceOf<OkObjectResult>());
         }
-
+        #endregion
+        #region ProcessGuess
         // --- Tests for ProcessGuess ---
         [Test]
         public async Task ProcessGuess_ValidRequest_ReturnsOkWithGuessResult()
@@ -233,4 +238,5 @@ namespace backend.tests.PolidleTest // Eller backend.tests.Polidle.Controllers
             Assert.That(actionResult.Result, Is.InstanceOf<OkObjectResult>());
         }
     }
+    #endregion
 }

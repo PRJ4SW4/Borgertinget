@@ -69,10 +69,6 @@ export const useClassicPolidleGame = (): UseClassicPolidleGameReturn => {
     setGuessResults([]);
     setGuessError(null);
     setIsGameWon(false); // <<< NULSTIL SPILVUNDET STATUS
-    // Skal "dagens politiker" for Classic Mode genhentes? Formentlig ikke,
-    // da den er "dagens". Hvis en ny runde på samme dag skulle starte med en
-    // *ny* politiker, skulle logikken for at hente den også være her.
-    // Men for nu nulstiller vi bare gæt og vundet-status.
     console.log("Classic Mode game reset.");
   }, []);
 

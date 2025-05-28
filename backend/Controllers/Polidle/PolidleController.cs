@@ -1,9 +1,9 @@
-using System; // For DateOnly
-using System.Collections.Generic; // For List og KeyNotFoundException
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using backend.DTO;
 using backend.Interfaces.Services;
-using backend.Models; // For PoliticianSummaryDto (hvis den ligger her)
+using backend.Models;
 using backend.Services;
 using backend.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -43,17 +43,14 @@ namespace backend.Controllers
             [FromQuery] string? search = null
         )
         {
-            // Rens 'search' før logning og før den sendes videre, HVIS den kun bruges til logning i service
-            // Hvis service bruger den til DB query, skal den originale bruges dér, og servicen selv sanitize før logning.
             string sanitizedSearchForLog = LogSanitizer.Sanitize(search); // Rens kun til logning
 
             _logger.LogInformation(
                 "Request received for politician summaries with search: '{SearchTerm}'.",
                 sanitizedSearchForLog
-            ); // <<< RETTET HER
+            );
             try
             {
-                // Send den *originale* 'search' streng til servicen, da den skal bruges til at query databasen
                 var politicians = await _selectionService.GetAllPoliticiansForGuessingAsync(search);
                 return Ok(politicians);
             }
@@ -63,7 +60,7 @@ namespace backend.Controllers
                     ex,
                     "Error fetching politicians with search term '{SearchTerm}'",
                     sanitizedSearchForLog
-                ); // <<< RETTET HER
+                );
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
                     "An internal server error occurred while fetching politicians."
@@ -76,8 +73,8 @@ namespace backend.Controllers
         /// <returns>Et QuoteDto objekt med dagens citat.</returns>
         [HttpGet("quote/today")]
         [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)] // Hvis ingen selection findes for i dag
-        [ProducesResponseType(StatusCodes.Status400BadRequest)] // Hvis data er inkonsistent (f.eks. manglende citat)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<QuoteDto>> GetQuote()
         {
@@ -93,7 +90,6 @@ namespace backend.Controllers
                     "Could not find today's quote selection: {Message}",
                     knfex.Message
                 );
-                // Returner en mere generel besked evt.
                 return NotFound("Today's quote selection could not be found.");
             }
             catch (InvalidOperationException ioex)
@@ -102,7 +98,6 @@ namespace backend.Controllers
                     "Could not retrieve quote due to invalid state: {Message}",
                     ioex.Message
                 );
-                // Returner en mere generel besked evt.
                 return BadRequest("Could not retrieve today's quote due to inconsistent data.");
             }
             catch (Exception ex)
@@ -120,8 +115,8 @@ namespace backend.Controllers
         /// <returns>Et PhotoDto objekt med URL til dagens billede.</returns>
         [HttpGet("photo/today")]
         [ProducesResponseType(typeof(PhotoDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)] // Hvis ingen selection findes for i dag
-        [ProducesResponseType(StatusCodes.Status400BadRequest)] // Hvis data er inkonsistent (f.eks. manglende billede-URL)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<PhotoDto>> GetPhoto()
         {
@@ -171,7 +166,6 @@ namespace backend.Controllers
             _logger.LogInformation("Request received for today's classic mode politician details.");
             try
             {
-                // Antager at du tilføjer denne metode til IDailySelectionService
                 var detailsDto = await _selectionService.GetClassicDetailsOfTheDayAsync();
                 return Ok(detailsDto);
             }
@@ -183,7 +177,7 @@ namespace backend.Controllers
                 );
                 return NotFound("Today's classic politician selection could not be found.");
             }
-            catch (InvalidOperationException ioex) // F.eks. hvis Aktor.Born ikke kunne parses til Alder
+            catch (InvalidOperationException ioex)
             {
                 _logger.LogWarning(
                     "Could not retrieve classic details due to invalid state: {Message}",
@@ -209,18 +203,17 @@ namespace backend.Controllers
         /// <returns>Et GuessResultDto objekt med feedback på gættet.</returns>
         [HttpPost("guess")]
         [ProducesResponseType(typeof(GuessResultDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)] // Ved ugyldigt input eller inkonsistent data
-        [ProducesResponseType(StatusCodes.Status404NotFound)] // Hvis dagens valg eller gættet politiker ikke findes
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<GuessResultDto>> PostGuess(
             [FromBody] GuessRequestDto guessDto
         )
         {
-            // Input validering (fra DTO attributter)
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid guess request received: {ModelState}", ModelState);
-                return BadRequest(ModelState); // Returnerer valideringsfejl
+                return BadRequest(ModelState);
             }
 
             _logger.LogInformation(
@@ -234,15 +227,15 @@ namespace backend.Controllers
                 var result = await _selectionService.ProcessGuessAsync(guessDto);
                 return Ok(result);
             }
-            catch (KeyNotFoundException knfex) // Kastet fra service hvis f.eks. GuessedPoliticianId eller DailySelection ikke findes
+            catch (KeyNotFoundException knfex)
             {
                 _logger.LogWarning(knfex, "Could not process guess due to missing entity.");
-                return NotFound(knfex.Message); // Sender service-lagets besked (overvej om den er passende for klienten)
+                return NotFound(knfex.Message);
             }
-            catch (InvalidOperationException ioex) // Kastet fra service hvis data er inkonsistent
+            catch (InvalidOperationException ioex)
             {
                 _logger.LogWarning(ioex, "Could not process guess due to invalid state.");
-                return BadRequest(ioex.Message); // Sender service-lagets besked (overvej om den er passende)
+                return BadRequest(ioex.Message);
             }
             catch (Exception ex)
             {
@@ -255,7 +248,7 @@ namespace backend.Controllers
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
                     "An internal server error occurred while processing your guess."
-                ); // Generisk besked
+                );
             }
         }
     }

@@ -2,24 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using backend.Data; // For DataContext
+using backend.Data;
 using backend.DTO;
 using backend.Enums;
 using backend.Interfaces.Repositories;
-using backend.Interfaces.Services; // For ISelectionAlgorithm, IPoliticianMapper
-using backend.Interfaces.Utility; // For IDateTimeProvider, IRandomProvider
+using backend.Interfaces.Services;
+using backend.Interfaces.Utility;
 using backend.Models;
 using backend.Models.Politicians;
-using backend.Services; // Namespace for DailySelectionService
-using Microsoft.EntityFrameworkCore; // For DbContextOptions, DatabaseFacade, IDbContextTransaction
-using Microsoft.EntityFrameworkCore.Infrastructure; // For DatabaseFacade
-using Microsoft.EntityFrameworkCore.Query; // For IAsyncQueryProvider
-using Microsoft.EntityFrameworkCore.Storage; // For IDbContextTransaction
+using backend.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
 
-namespace backend.tests.Services // Eller et mere specifikt namespace som backend.tests.Polidle.Services
+namespace backend.tests.Services
 {
     [TestFixture]
     public class DailySelectionServiceTests
@@ -52,6 +52,7 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             _dbContextTransactionMock?.Dispose();
         }
 
+        #region SetUp
         [SetUp]
         public void Setup()
         {
@@ -68,63 +69,16 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             var options = new DbContextOptionsBuilder<DataContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Brug In-Memory for enkelhed, eller mock helt
                 .Options;
-            // _contextMock = Substitute.For<DataContext>(options); // Kan ikke mocke klasser uden parameterless constructor eller virtuelle metoder nemt
-            // Alternativt, mock DataContext's Database property og SaveChangesAsync hvis de er virtuelle.
-            // Hvis DataContext ikke har virtuelle metoder, er det svært at mocke direkte med NSubstitute/Moq.
-            // I stedet mocker vi DatabaseFacade og transaktionen.
             _databaseFacadeMock = Substitute.For<DatabaseFacade>(new MockDbContext()); // MockDbContext er en dummy for at tilfredsstille DatabaseFacade constructor
             _dbContextTransactionMock = Substitute.For<IDbContextTransaction>();
             _databaseFacadeMock
                 .BeginTransactionAsync(Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult(_dbContextTransactionMock));
 
-            // Vi kan ikke direkte mocke DataContext, hvis den ikke er designet til det (f.eks. mangler interface eller virtuelle metoder).
-            // En måde at håndtere dette på for unit tests er at bruge en in-memory database for den faktiske DataContext,
-            // eller at omstrukturere DataContext brugen til et Unit of Work pattern med et interface.
-            // For nu antager vi, at vi kan give en DataContext instans og mocke dens adfærd, hvor det er muligt,
-            // eller at vi primært tester logikken, der ikke direkte afhænger af komplekse EF Core operationer.
-            // I dette tilfælde vil vi give en ægte (men tom eller in-memory) DataContext,
-            // men stadig mocke repositories, der interagerer med den.
-            // Transaktionen mockes via DatabaseFacade.
             _contextMock = new DataContext(options); // Brug en rigtig in-memory for SaveChangesAsync
-            // Vi skal dog stadig kunne mocke _context.Database.BeginTransactionAsync()
-            // Dette er svært uden at ændre DataContext. En bedre tilgang er at wrappe DataContext i et UnitOfWork interface.
-            // For nu, vil vi "snyde" lidt ved at mocke SaveChangesAsync på _contextMock, hvis det er muligt (hvis virtuelt)
-            // Hvis SaveChangesAsync ikke er virtuel, kan vi ikke mocke den på denne måde.
-            // NSubstitute kan mocke klasser, men kun hvis metoder/properties er virtuelle.
-            // Hvis _context.Database ikke er virtuel, kan vi ikke mocke BeginTransactionAsync på den.
-
-            // --- Mere robust DataContext Mocking (hvis du har et IDbContextFactory eller lignende) ---
-            // Hvis du bruger IDbContextFactory:
-            // var dbContextFactoryMock = Substitute.For<IDbContextFactory<DataContext>>();
-            // dbContextFactoryMock.CreateDbContextAsync().Returns(Task.FromResult(_contextMock));
-            // Og injecter dbContextFactoryMock i stedet for DataContext direkte.
-
-            // --- Simpel mock af DatabaseFacade (hvis DataContext.Database er virtuel) ---
-            // For at gøre dette testbart, skal DataContext.Database være virtuel, eller vi skal have en måde at
-            // injicere en mock DatabaseFacade.
-            // Lad os antage, at DataContext er oprettet, og vi vil forsøge at mocke SaveChangesAsync (hvis det er virtuelt).
-            // DataContext.SaveChangesAsync() er virtuel i EF Core, så vi KAN mocke den på en rigtig instance.
-            // Men BeginTransactionAsync er på DatabaseFacade, som er sværere at mocke uden at ændre DataContext.
-
-            // ---- NY STRATEGI FOR DATACONTEXT ----
-            // 1. Brug en rigtig In-Memory DataContext.
-            // 2. For transaktioner, test dem i integrationstests. I unit tests antager vi, at transaktionen virker,
-            //    eller vi mocker selve BeginTransactionAsync, CommitAsync, RollbackAsync, hvis vi kan få fat i en mockbar DatabaseFacade.
-            //    For `_context.Database.BeginTransactionAsync()`, vil vi antage, at den del ikke fejler i unit testen
-            //    og vi vil ikke direkte verificere den her, men fokusere på, at service-logikken kalder de rigtige repo-metoder.
-            //    SaveChangesAsync kan stadig mockes, hvis vi bruger en spy/partial mock på en rigtig DataContext,
-            //    eller hvis vi bruger et UnitOfWork interface.
-
-            // For dette eksempel vil vi bruge en rigtig in-memory DataContext og fokusere på de andre mocks.
-            // Vi mock'er ikke selve _context.Database.BeginTransactionAsync(), men antager, det fungerer.
-            // Vi mock'er _context.SaveChangesAsync() ved at bruge NSubstitute's evne til at mocke non-sealed klasser med virtuelle metoder.
-            // Dog, for at dette skal virke, skal DataContext have en parameterløs constructor eller en constructor, vi kan opfylde.
-            // Det har den (options).
 
             _contextMock = Substitute.ForPartsOf<DataContext>(options); // Tillader at mocke virtuelle metoder som SaveChangesAsync
             _contextMock.Database.Returns(_databaseFacadeMock); // Hvis Database property er virtuel, ellers virker dette ikke.
-            // Hvis ikke virtuel, er det svært.
 
             _service = new DailySelectionService(
                 _aktorRepositoryMock,
@@ -206,7 +160,8 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             }
             return aktor;
         }
-
+        #endregion
+        #region GetAllPoliticiansForGuessingAsync
         // --- Tests for GetAllPoliticiansForGuessingAsync ---
         [Test]
         public async Task GetAllPoliticiansForGuessingAsync_WithSearchTerm_CallsRepositoryAndMapper()
@@ -234,7 +189,8 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             // Verificer logning - eksempel (kræver at ILogger mock kan opsættes til at fange argumenter)
             _loggerMock.ReceivedWithAnyArgs(2).LogInformation(default); // Tjekker at LogInformation blev kaldt (her 2 gange)
         }
-
+        #endregion
+        #region GetQuoteOfTheDayAsync
         // --- Tests for GetQuoteOfTheDayAsync ---
         [Test]
         public async Task GetQuoteOfTheDayAsync_SelectionAndQuoteExists_ReturnsQuoteDto()
@@ -290,7 +246,8 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                 Does.Contain($"Citat-tekst mangler i DailySelection for {_today}")
             );
         }
-
+        #endregion
+        #region GetPhotoOfTheDayAsync
         // --- Tests for GetPhotoOfTheDayAsync ---
         [Test]
         public async Task GetPhotoOfTheDayAsync_SelectionAndPhotoExists_ReturnsPhotoDto()
@@ -381,7 +338,8 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                 Does.Contain($"Billede URL (PictureMiRes) mangler for den valgte politiker")
             );
         }
-
+        #endregion
+        #region GetClassicDetailsOfTheDayAsync
         // --- Tests for GetClassicDetailsOfTheDayAsync ---
         [Test]
         public async Task GetClassicDetailsOfTheDayAsync_SelectionAndAktorExist_ReturnsMappedDto()
@@ -403,7 +361,7 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             _dailySelectionRepositoryMock
                 .GetByDateAndModeAsync(_today, GamemodeTypes.Klassisk, true)
                 .Returns(Task.FromResult<DailySelection?>(dailySelection));
-            _mapperMock.MapToDetailsDto(classicAktor).Returns(expectedDto); // Antager din mapper har denne overload
+            _mapperMock.MapToDetailsDto(classicAktor).Returns(expectedDto);
 
             // Act
             var result = await _service.GetClassicDetailsOfTheDayAsync();
@@ -431,7 +389,8 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                 Does.Contain($"Ingen DailySelection fundet for Classic d. {_today}.")
             );
         }
-
+        #endregion
+        #region ProcessGuessAsync
         // --- Tests for ProcessGuessAsync ---
         [Test]
         public async Task ProcessGuessAsync_Classic_CorrectGuess_ReturnsCorrectFeedback()
@@ -455,9 +414,8 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
 
             _aktorRepositoryMock
                 .GetByIdAsync(guessDto.GuessedPoliticianId, true)
-                .Returns(Task.FromResult<Aktor?>(correctAktor)); // Gættet er den korrekte
+                .Returns(Task.FromResult<Aktor?>(correctAktor));
 
-            // Opsæt mapper til at returnere DTO'er for både den korrekte og den gættede (som er den samme her)
             var mappedDto = new DailyPoliticianDto
             {
                 Id = 1,
@@ -585,7 +543,8 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                 )
             );
         }
-
+        #endregion
+        #region SelectAndSaveDailyPoliticiansAsync
         // --- Tests for SelectAndSaveDailyPoliticiansAsync ---
         [Test]
         public async Task SelectAndSaveDailyPoliticiansAsync_NewSelections_CreatesAndTracksSuccessfully()
@@ -594,14 +553,13 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             var dateToSelect = new DateOnly(2024, 5, 26);
             _dailySelectionRepositoryMock
                 .ExistsForDateAsync(dateToSelect)
-                .Returns(Task.FromResult(false)); // Ingen eksisterende
+                .Returns(Task.FromResult(false));
 
             var allAktors = new List<Aktor> { _defaultAktor1, _defaultAktor2, _defaultAktor3 };
             _aktorRepositoryMock
                 .GetAllWithDetailsForSelectionAsync()
                 .Returns(Task.FromResult(allAktors));
 
-            // Mock selection algorithm - antag den vælger _defaultAktor1, _defaultAktor2, _defaultAktor3 for hhv. Classic, Citat, Foto
             _selectionAlgorithmMock
                 .SelectWeightedRandomCandidate(
                     Arg.Any<List<CandidateData>>(),
@@ -615,7 +573,7 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                     dateToSelect,
                     GamemodeTypes.Citat
                 )
-                .Returns(_defaultAktor2); // Antager _defaultAktor2 har citater
+                .Returns(_defaultAktor2);
             _selectionAlgorithmMock
                 .SelectWeightedRandomCandidate(
                     Arg.Any<List<CandidateData>>(),
@@ -626,7 +584,6 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
 
             _randomProviderMock.Next(Arg.Any<int>()).Returns(0); // For at vælge første citat, hvis der er flere
 
-            // Capture DailySelection added
             var addedSelections = new List<DailySelection>();
             await _dailySelectionRepositoryMock.AddManyAsync(
                 Arg.Do<List<DailySelection>>(list => addedSelections.AddRange(list))
@@ -702,7 +659,7 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                 .Received(1)
                 .UpdateOrCreateForAktorAsync(_defaultAktor3, GamemodeTypes.Foto, dateToSelect);
 
-            // 4. Tjek transaktion og save (svært at unit teste dybt uden et fuldt UoW mock)
+            // 4. Tjek transaktion og save
             // Vi verificerer at SaveChangesAsync blev kaldt
             await _contextMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
             await _dbContextTransactionMock.Received(1).CommitAsync(Arg.Any<CancellationToken>()); // Verificer at Commit blev kaldt på den mockede transaktion
@@ -715,13 +672,12 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             var dateToSelect = new DateOnly(2024, 5, 26);
             _dailySelectionRepositoryMock
                 .ExistsForDateAsync(dateToSelect)
-                .Returns(Task.FromResult(true)); // Eksisterer allerede
+                .Returns(Task.FromResult(true));
 
             // Act
-            await _service.SelectAndSaveDailyPoliticiansAsync(dateToSelect, false); // Overwrite er false
+            await _service.SelectAndSaveDailyPoliticiansAsync(dateToSelect, false);
 
             // Assert
-            // Verificer at ingen selection/tracking sker
             _selectionAlgorithmMock
                 .DidNotReceiveWithAnyArgs()
                 .SelectWeightedRandomCandidate(default!, default, default);
@@ -730,7 +686,7 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                 .DidNotReceiveWithAnyArgs()
                 .UpdateOrCreateForAktorAsync(default!, default, default);
             await _contextMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
-            await _dbContextTransactionMock.Received(1).RollbackAsync(Arg.Any<CancellationToken>()); // Tjek Rollback
+            await _dbContextTransactionMock.Received(1).RollbackAsync(Arg.Any<CancellationToken>());
         }
 
         [Test]
@@ -740,7 +696,7 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             var dateToSelect = new DateOnly(2024, 5, 26);
             _dailySelectionRepositoryMock
                 .ExistsForDateAsync(dateToSelect)
-                .Returns(Task.FromResult(true)); // Eksisterer
+                .Returns(Task.FromResult(true));
 
             var allAktors = new List<Aktor> { _defaultAktor1 };
             _aktorRepositoryMock
@@ -752,15 +708,14 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                     dateToSelect,
                     Arg.Any<GamemodeTypes>()
                 )
-                .Returns(_defaultAktor1); // Bare returner noget for at komme videre
+                .Returns(_defaultAktor1);
             _randomProviderMock.Next(Arg.Any<int>()).Returns(0);
 
             // Act
-            await _service.SelectAndSaveDailyPoliticiansAsync(dateToSelect, true); // Overwrite er true
+            await _service.SelectAndSaveDailyPoliticiansAsync(dateToSelect, true);
 
             // Assert
-            await _dailySelectionRepositoryMock.Received(1).DeleteByDateAsync(dateToSelect); // Verificer sletning
-            // ... (verificer at resten af processen kører, lignende NewSelections testen) ...
+            await _dailySelectionRepositoryMock.Received(1).DeleteByDateAsync(dateToSelect);
             await _dailySelectionRepositoryMock
                 .Received(1)
                 .AddManyAsync(Arg.Any<List<DailySelection>>());
@@ -786,23 +741,12 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             );
             Assert.That(ex.Message, Does.Contain($"No politicians in DB for {dateToSelect}"));
         }
-
+        #endregion
+        #region SeedQuotesForAllAktorsAsync
         // --- Tests for SeedQuotesForAllAktorsAsync ---
         [Test]
         public void SeedQuotesForAllAktorsAsync_NoGenericQuotes_ReturnsError()
         {
-            // Din service har en static liste GenericQuotesForSeeding.
-            // For at teste dette scenarie, skal vi midlertidigt "tømme" den.
-            // Dette er svært med static lister. Det er bedre hvis GenericQuotesForSeeding var en
-            // konfigurerbar afhængighed eller hentet fra en anden service/config.
-            // Alternativt kan du have en test-specifik version af servicen eller bruge reflection (ikke anbefalet for unit tests).
-            // For nu antager vi, at vi ikke kan ændre den static liste i testen. Denne test er derfor svær at skrive meningsfuldt.
-            // Hvis du kan ændre designet til at injecte citatlisten, bliver det nemmere.
-
-            // For at simulere, kan vi ændre adgangsmodifier til internal og bruge [InternalsVisibleTo]
-            // eller reflektere for at ændre den, men det er grimt.
-
-            // Vi springer denne test over for nu pga. static listen.
             Assert.Pass(
                 "Skipping test for no generic quotes due to static list. Consider refactoring for testability."
             );
@@ -845,7 +789,7 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                 Id = 4,
                 navn = "Test Aktor 4",
                 typeid = 3,
-            }; // Forkert typeid, skal ignoreres
+            };
 
             var aktorsInDb = new List<Aktor> { aktor1, aktor2, aktor3, aktor4 };
             var mockAktorDbSet = MockDbSetHelper.CreateMockDbSet(aktorsInDb.AsQueryable());
@@ -869,17 +813,17 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             Assert.That(addedQuotesCapture.Count(q => q.AktorId == aktor2.Id), Is.EqualTo(0));
         }
     }
-
-    // Helper klasser til at mocke IAsyncEnumerable og DbSet (kan lægges i en separat test utility fil)
+    #endregion
+    #region Helpers
     public class MockDbContext : DbContext
     {
-        public MockDbContext() { } // Nødvendig for DatabaseFacade mock
+        public MockDbContext() { }
 
         public MockDbContext(DbContextOptions options)
             : base(options) { }
 
-        public virtual DbSet<Aktor> Aktor { get; set; } // Gør den virtuel
-        public virtual DbSet<PoliticianQuote> PoliticianQuotes { get; set; } // Gør den virtuel
+        public virtual DbSet<Aktor> Aktor { get; set; }
+        public virtual DbSet<PoliticianQuote> PoliticianQuotes { get; set; }
     }
 
     internal static class MockDbSetHelper
@@ -898,14 +842,10 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
                 .GetAsyncEnumerator(Arg.Any<CancellationToken>())
                 .Returns(new TestAsyncEnumerator<T>(data.GetEnumerator()));
 
-            // Hvis du bruger AddRange direkte på DbSet i din service (f.eks. _context.PoliticianQuotes.AddRange(...))
-            // Du kan mocke AddRange her, hvis nødvendigt, eller verificere det på _contextMock hvis det er en partiel mock.
             mockSet
                 .When(x => x.AddRange(Arg.Any<IEnumerable<T>>()))
                 .Do(ci =>
                 {
-                    // Du kan evt. tilføje logik her for at fange de tilføjede entiteter,
-                    // hvis du ikke vil gøre det på _contextMock.
                 });
 
             return mockSet;
@@ -949,8 +889,6 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             CancellationToken cancellationToken = default
         )
         {
-            // Dette er en simpel implementering. For fuld understøttelse af ToListAsync etc.,
-            // kan du have brug for at køre synkront eller bruge en mere avanceret mock.
             var resultType = typeof(TResult).GetGenericArguments()[0];
             var executionResult = typeof(IQueryProvider)
                 .GetMethods()
@@ -1003,4 +941,5 @@ namespace backend.tests.Services // Eller et mere specifikt namespace som backen
             return new ValueTask<bool>(_inner.MoveNext());
         }
     }
+    #endregion
 }

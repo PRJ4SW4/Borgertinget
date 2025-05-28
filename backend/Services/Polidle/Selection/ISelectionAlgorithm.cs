@@ -5,7 +5,6 @@ using backend.Models.Politicians;
 
 namespace backend.Interfaces.Services
 {
-    // Input til algoritmen: Politiker og evt. dens tracker for den relevante gamemode
     public record CandidateData(Aktor Politician, GamemodeTracker? Tracker);
 
     public interface ISelectionAlgorithm
