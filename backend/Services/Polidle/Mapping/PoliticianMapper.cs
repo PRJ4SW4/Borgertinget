@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using backend.DTO;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility;
-using backend.Models;
 using backend.Models.Politicians;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Services.Mapping
 {

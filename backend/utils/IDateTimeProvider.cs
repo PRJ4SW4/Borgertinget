@@ -1,5 +1,3 @@
-using System;
-
 namespace backend.Interfaces.Utility
 {
     public interface IDateTimeProvider

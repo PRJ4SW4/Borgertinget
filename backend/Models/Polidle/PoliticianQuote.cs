@@ -7,9 +7,9 @@ namespace backend.Models
     public class PoliticianQuote
     {
         [Key]
-        public int QuoteId { get; set; } // Primærnøgle for selve citatet
+        public int QuoteId { get; set; }
 
-        [Required] // Gør selve citatteksten påkrævet
+        [Required]
         public string QuoteText { get; set; } = string.Empty;
 
         // --- Relation til Aktor ---

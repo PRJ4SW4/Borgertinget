@@ -416,7 +416,7 @@ namespace backend.Data
                 entity.Property(e => e.QuoteId).ValueGeneratedOnAdd();
                 entity
                     .HasOne(pq => pq.Politician)
-                    .WithMany(a => a.Quotes) // Sørg for Aktor.Quotes er defineret
+                    .WithMany(a => a.Quotes) 
                     .HasForeignKey(pq => pq.AktorId);
             });
 
