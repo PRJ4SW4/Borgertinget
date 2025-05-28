@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using backend.DTOs;
 using backend.Models;
 using backend.Repositories.Polls;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Services.Polls
 {

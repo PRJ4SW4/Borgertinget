@@ -1,15 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
-using backend.Data;
 using backend.DTO.FT;
-using backend.Models.Politicians;
 using backend.Services.Politicians;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace backend.Controllers;
 

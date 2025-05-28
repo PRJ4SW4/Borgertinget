@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using backend.Controllers;
-using backend.DTO; 
+using backend.DTO;
 using backend.Enums;
 using backend.Interfaces.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace backend.tests.PolidleTest
 {

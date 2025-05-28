@@ -1,7 +1,3 @@
-// Fil: Data/SeedData/QuoteSeeder.cs
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
 

@@ -10,8 +10,5 @@ namespace backend.DTO
         [Required(ErrorMessage = "Spiltype mangler.")]
         [EnumDataType(typeof(GamemodeTypes), ErrorMessage = "Ugyldig spiltype angivet.")]
         public GamemodeTypes GameMode { get; set; }
-
-        //TODO: Evt. Tilføj UserId senere, hvis gæt skal knyttes til en bruger
-        //* public string? UserId { get; set; }
     }
 }

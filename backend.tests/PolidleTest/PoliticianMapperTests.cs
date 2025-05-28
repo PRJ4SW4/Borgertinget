@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using backend.DTO;
 using backend.Interfaces.Utility;
 using backend.Models.Politicians;
 using backend.Services.Mapping;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace backend.tests.PolidleTest
 {

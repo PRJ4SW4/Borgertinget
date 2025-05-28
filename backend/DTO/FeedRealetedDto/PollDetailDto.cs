@@ -1,7 +1,3 @@
-// backend.DTOs/PollDetailsDto.cs
-using System;
-using System.Collections.Generic;
-
 namespace backend.DTOs
 {
     public class PollDetailsDto

@@ -1,15 +1,7 @@
-// backend/Controllers/SearchController.cs
-using System;
-using System.Collections.Generic;
-using System.Collections.Generic;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using backend.Models; // Assuming your SearchDocument is here
+using backend.Models;
 using backend.Services.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using OpenSearch.Client;
 
 namespace backend.Controllers

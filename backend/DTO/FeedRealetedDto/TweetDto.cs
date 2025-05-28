@@ -1,6 +1,3 @@
-// Placeres f.eks. i backend.DTOs/TweetDto.cs
-using System;
-
 namespace backend.DTOs
 {
     public class TweetDto

@@ -4,7 +4,6 @@ using backend.Services.Politicians;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace Tests.Controllers;
 

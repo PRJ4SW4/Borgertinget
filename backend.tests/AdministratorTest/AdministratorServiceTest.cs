@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using backend.DTO.Flashcards;
 using backend.DTOs;
 using backend.Models;
 using backend.Models.Flashcards;
-using backend.Repositories;
 using backend.Services;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace Tests.Services
 {

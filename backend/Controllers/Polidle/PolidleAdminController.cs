@@ -1,14 +1,9 @@
-using System;
 using System.Globalization;
-using System.Threading.Tasks;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility;
-using backend.Services;
-using backend.Services.Utility;
 using backend.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Controllers
 {

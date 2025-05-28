@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using backend.Data;
 using backend.DTO;
 using backend.Enums;
@@ -17,7 +13,6 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace backend.tests.Services
 {
@@ -488,7 +483,7 @@ namespace backend.tests.Services
                 Køn = "Kvinde",
                 Region = "Syd",
                 Uddannelse = "Cand.Guessed",
-            }; // Antag forskellige værdier
+            };
 
             _mapperMock.MapToDetailsDto(correctAktor).Returns(correctDto);
             _mapperMock.MapToDetailsDto(guessedAktor).Returns(guessedDto);
