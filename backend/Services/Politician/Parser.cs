@@ -8,9 +8,8 @@ namespace backend.Services.Politicians
 {
     public static class BioParser
     {
-        /// <summary>
-        /// Extracts publication titles enclosed in »...« from a text block.
-        /// </summary>
+        //Helper til at udtrække bog titler politikere har udgivet. skal udviddes for fuld coverage af alle partiers politikere
+        //Virker ikke på alle politikere, da struktur er forskellige, men nogle bruger '>> titel <<>> titel2 <<', virker på dem
         private static List<string> ExtractPublicationTitles(string? publicationsText)
         {
             var titles = new List<string>();
@@ -18,22 +17,20 @@ namespace backend.Services.Politicians
             {
                 return titles;
             }
-            var regex = new Regex(@"»(.*?)«"); //This is straight magic, but it captures text within >> <<
-            MatchCollection matches = regex.Matches(publicationsText);
+            var regex = new Regex(@"»(.*?)«"); //bedste forsøg
+            MatchCollection matches = regex.Matches(publicationsText); // match regex på streng
             foreach (Match match in matches.Where(m => m.Success && m.Groups.Count > 1))
             {
-                string title = match.Groups[1].Value.Trim();
+                string title = match.Groups[1].Value.Trim(); //trim trailing white space
                 if (!string.IsNullOrEmpty(title))
                 {
-                    titles.Add(title);
+                    titles.Add(title); //tilføj titler
                 }
             }
             return titles;
         }
 
-        /// <summary>
-        /// Parses an XML string representing member biography data.
-        /// </summary>
+        //Biografi parser, opretter en dictionare af streng(datapunkt) og værdi
         public static Dictionary<string, object> ParseBiografiXml(string? biografiXml)
         {
             var extractedData = new Dictionary<string, object>();
@@ -43,7 +40,7 @@ namespace backend.Services.Politicians
             }
 
             try
-            {
+            { //anvend system xml linq
                 XDocument doc = XDocument.Parse(biografiXml);
                 XElement? memberElement = doc.Root;
 
@@ -52,7 +49,7 @@ namespace backend.Services.Politicians
                     return extractedData;
                 }
 
-                // --- Direct Elements ---
+                // --- Direkte Elementer ---
                 extractedData["Status"] = memberElement.Element("status")?.Value ?? "";
                 extractedData["Sex"] = memberElement.Element("sex")?.Value ?? "";
                 extractedData["EducationStatistic"] =
@@ -66,7 +63,7 @@ namespace backend.Services.Politicians
                     memberElement.Element("firstname")?.Value ?? "";
                 extractedData["lastname_from_bio"] = memberElement.Element("lastname")?.Value ?? "";
 
-                // --- Nested Elements ---
+                // --- Nested Elementer ---
 
                 // Email (Single)
                 extractedData["Email"] =

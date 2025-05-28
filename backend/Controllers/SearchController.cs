@@ -1,11 +1,8 @@
-// backend/Controllers/SearchController.cs
 using System;
-using System.Collections.Generic;
-using System.Collections.Generic;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using backend.Models; // Assuming your SearchDocument is here
+using backend.Models; //adgang til alle modeller
 using backend.Services.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,12 +36,7 @@ namespace backend.Controllers
             _serviceProvider = serviceProvider;
         }
 
-        /// <summary>
-        /// Searches documents in the OpenSearch index based on a query string.
-        /// Performs a multi-match query across several fields.
-        /// </summary>
-        /// <param name="query">The search term.</param>
-        /// <returns>A list of search documents matching the query.</returns>
+        //Multimatch query
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<SearchDocument>), 200)]
         [ProducesResponseType(400)]
@@ -63,7 +55,7 @@ namespace backend.Controllers
             );
 
             try
-            {
+            { //opensearch query
                 var searchResponse = await _openSearchClient.SearchAsync<SearchDocument>(s =>
                     s.Index(IndexName)
                         .Size(TopNResults)
@@ -96,7 +88,7 @@ namespace backend.Controllers
                         )
                 );
 
-                if (!searchResponse.IsValid)
+                if (!searchResponse.IsValid) //not valid
                 {
                     _logger.LogError(
                         "OpenSearch query failed: {ErrorReason}. DebugInfo: {DebugInfo}",
@@ -111,7 +103,7 @@ namespace backend.Controllers
                     searchResponse.Documents.Count,
                     searchResponse.Total
                 );
-                return Ok(searchResponse.Documents);
+                return Ok(searchResponse.Documents); //return response from opensearch
             }
             catch (Exception ex)
             {
@@ -120,11 +112,7 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// Provides search suggestions based on the input text using a completion suggester.
-        /// </summary>
-        /// <param name="prefix">The text prefix to get suggestions for.</param>
-        /// <returns>A list of suggestion strings.</returns>
+        //returns the suggestion field from query
         [HttpGet("suggest")]
         [ProducesResponseType(typeof(IEnumerable<string>), 200)]
         [ProducesResponseType(400)]
@@ -149,14 +137,14 @@ namespace backend.Controllers
                                 cs =>
                                     cs.Field(f => f.Suggest)
                                         .Prefix(prefix)
-                                        .Fuzzy(f => f.Fuzziness(Fuzziness.Auto))
+                                        .Fuzzy(f => f.Fuzziness(Fuzziness.Auto)) //fuzzy, allows misspelling
                                         .Size(5) // Number of suggestions to return
                             )
                         )
                         .Source(false)
                 );
 
-                if (!suggestResponse.IsValid)
+                if (!suggestResponse.IsValid) //error in query
                 {
                     _logger.LogError(
                         "OpenSearch suggest query failed: {ErrorReason}. DebugInfo: {DebugInfo}",
@@ -166,7 +154,7 @@ namespace backend.Controllers
                     return StatusCode(500, "An error occurred while fetching suggestions.");
                 }
 
-                var suggestions = new List<string>();
+                var suggestions = new List<string>(); //list til suggestions
                 var completionSuggest = suggestResponse.Suggest[SuggestionName];
                 if (completionSuggest != null)
                 {
@@ -176,13 +164,13 @@ namespace backend.Controllers
                     }
                 }
 
-                var distinctSuggestions = suggestions.Distinct().ToList();
+                var distinctSuggestions = suggestions.Distinct().ToList(); //unikke suggestions
 
                 _logger.LogInformation(
                     "Suggestion query successful. Returning {Count} distinct suggestions:'",
                     distinctSuggestions.Count
                 );
-                return Ok(distinctSuggestions);
+                return Ok(distinctSuggestions); //return suggestions
             }
             catch (Exception ex)
             {
@@ -194,6 +182,7 @@ namespace backend.Controllers
             }
         }
 
+        //Til indexering, indeholder logik til at oprette index struktur, hvis index ikke ekstistere, ADMIN
         [HttpPost("ensure-and-reindex")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
