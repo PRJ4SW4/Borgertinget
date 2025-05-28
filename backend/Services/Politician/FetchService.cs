@@ -62,7 +62,7 @@ namespace backend.Services.Politicians
                 );
             }
 
-            var ministerTitlesMap = new Dictionary<int, string>();
+            var ministerTitlesMap = new Dictionary<int, string>(); //minister id til titel
             var ministerRelationshipsMap = new Dictionary<int, int>(); // Person ID -> Title ID
 
             try
@@ -70,8 +70,8 @@ namespace backend.Services.Politicians
                 // --- STEP 1: Fetch Ministerial Titles ---
                 _logger.LogInformation("[AktorUpdateService] Fetching ministerial titles...");
                 string? nextTitlesLink = ministerTitlesApiUrl + "&$format=json";
-                while (!string.IsNullOrEmpty(nextTitlesLink))
-                {
+                while (!string.IsNullOrEmpty(nextTitlesLink)) // tjek alle sider af json response
+                { //Henter response fra service
                     var titleResponse = await _httpService.GetJsonAsync<
                         ODataResponse<MinisterialTitleDto>
                     >(nextTitlesLink);
@@ -81,7 +81,7 @@ namespace backend.Services.Politicians
                         {
                             if (!string.IsNullOrEmpty(title.GruppenavnKort))
                             {
-                                ministerTitlesMap[title.Id] = title.GruppenavnKort;
+                                ministerTitlesMap[title.Id] = title.GruppenavnKort; // map ministertitel id til titelnavn
                             }
                         }
                         _logger.LogInformation(
@@ -89,7 +89,7 @@ namespace backend.Services.Politicians
                             titleResponse.Value.Count,
                             nextTitlesLink
                         );
-                        nextTitlesLink = titleResponse.NextLink;
+                        nextTitlesLink = titleResponse.NextLink; //update link til næste side
                     }
                     else
                     {
@@ -107,26 +107,26 @@ namespace backend.Services.Politicians
 
                 // --- STEP 2: Fetch Current Minister Relationships ---
                 _logger.LogInformation("[AktorUpdateService] Fetching minister relationships...");
-                string? nextRelationsLink = ministerRelationsApiUrl + "&$format=json";
-                while (!string.IsNullOrEmpty(nextRelationsLink))
-                {
+                string? nextRelationsLink = ministerRelationsApiUrl + "&$format=json"; // fraAktør(politiker id) tilAktør (ministerId)
+                while (!string.IsNullOrEmpty(nextRelationsLink)) //tjekker alle relatioenr
+                { //hent data via service
                     var relationResponse = await _httpService.GetJsonAsync<
                         ODataResponse<MinisterRelationshipDto>
                     >(nextRelationsLink);
-                    if (relationResponse?.Value != null)
+                    if (relationResponse?.Value != null) //vi har en value liste
                     {
                         foreach (var relation in relationResponse.Value)
                         {
-                            ministerRelationshipsMap[relation.FraAktorId] = relation.TilAktorId;
+                            ministerRelationshipsMap[relation.FraAktorId] = relation.TilAktorId; //map politiker id'er(key) til minister id (value)
                         }
                         _logger.LogInformation(
                             "[AktorUpdateService] Fetched {Count} relationships from page: {Url}",
                             relationResponse.Value.Count,
                             nextRelationsLink
                         );
-                        nextRelationsLink = relationResponse.NextLink;
+                        nextRelationsLink = relationResponse.NextLink; //update link
                     }
-                    else
+                    else //no list
                     {
                         _logger.LogWarning(
                             "[AktorUpdateService] Received null or invalid response for relationships from {Url}",
@@ -174,13 +174,13 @@ namespace backend.Services.Politicians
                         && responseJson.TryGetProperty("value", out var valueProperty)
                         && valueProperty.ValueKind == JsonValueKind.Array
                     )
-                    {
+                    { //Opret object med brug af dto
                         var externalAktors = JsonSerializer.Deserialize<List<CreateAktor>>(
                             valueProperty.GetRawText(),
                             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                         );
 
-                        if (externalAktors != null)
+                        if (externalAktors != null) //hvis vi har politikere at processere
                         {
                             int pageAdded = 0,
                                 pageUpdated = 0,
@@ -188,39 +188,39 @@ namespace backend.Services.Politicians
 
                             foreach (var aktorDto in externalAktors)
                             {
-                                var bioDetails = BioParser.ParseBiografiXml(aktorDto.biografi);
-                                string? apiStatus =
-                                    bioDetails.GetValueOrDefault("Status") as string;
+                                var bioDetails = BioParser.ParseBiografiXml(aktorDto.biografi); //dictionary med biografi<string, object>
+                                string? activityStatus =
+                                    bioDetails.GetValueOrDefault("Status") as string; //status = 1 = aktiv politiker
                                 string? partyNameFromBio =
-                                    bioDetails.GetValueOrDefault("Party") as string;
+                                    bioDetails.GetValueOrDefault("Party") as string; //party
                                 string? partyShortnameFromBio =
-                                    bioDetails.GetValueOrDefault("PartyShortname") as string;
+                                    bioDetails.GetValueOrDefault("PartyShortname") as string; //shortname
 
-                                var existingAktor = await _aktorRepo.GetAktorByIdAsync(aktorDto.Id);
+                                var existingAktor = await _aktorRepo.GetAktorByIdAsync(aktorDto.Id); // hent fra database
 
-                                Aktor currentAktor;
+                                Aktor currentAktor; //opret objekt at arbejde med
 
-                                if (apiStatus == "1") // Active Politician
+                                if (activityStatus == "1") // Active Politician
                                 {
-                                    string? ministerTitle = null;
+                                    string? ministerTitle = null; //minister title at arbejde med
                                     if (
-                                        ministerRelationshipsMap.TryGetValue(
+                                        ministerRelationshipsMap.TryGetValue( //tjek om politiker id findes i relations map
                                             aktorDto.Id,
                                             out int titleId
                                         )
                                     )
                                     {
-                                        ministerTitlesMap.TryGetValue(titleId, out ministerTitle);
+                                        ministerTitlesMap.TryGetValue(titleId, out ministerTitle); //hent titel
                                     }
 
-                                    if (existingAktor == null)
+                                    if (existingAktor == null) //hvis politiker ikke findes i db
                                     {
-                                        currentAktor = MapAktor(
+                                        currentAktor = MapAktor( //map
                                             aktorDto,
                                             bioDetails,
                                             ministerTitle
                                         );
-                                        await _aktorRepo.AddAktor(currentAktor);
+                                        await _aktorRepo.AddAktor(currentAktor); // tilføj politiker til db
                                         pageAdded++;
                                         _logger.LogDebug(
                                             "[AktorUpdateService] Adding Aktor ID: {Id}, Name: {Name}, Title: {Title}",
@@ -229,7 +229,7 @@ namespace backend.Services.Politicians
                                             currentAktor.MinisterTitel
                                         );
                                     }
-                                    else
+                                    else //ellers updater eksisterende politiekr
                                     {
                                         currentAktor = MapAktor(
                                             aktorDto,
@@ -276,9 +276,9 @@ namespace backend.Services.Politicians
                                         }
                                     }
 
-                                    if (!string.IsNullOrWhiteSpace(partyNameFromBio))
+                                    if (!string.IsNullOrWhiteSpace(partyNameFromBio)) // til at oprette partier
                                     {
-                                        Party? partyEnt;
+                                        Party? partyEnt; // opret party entity
                                         if (
                                             !processedParties.TryGetValue(
                                                 partyNameFromBio,
@@ -286,21 +286,21 @@ namespace backend.Services.Politicians
                                             )
                                         )
                                         {
-                                            partyEnt = await _partyRepo.GetByName(partyNameFromBio);
-                                            if (partyEnt == null)
+                                            partyEnt = await _partyRepo.GetByName(partyNameFromBio); // hent parti med matchende navn
+                                            if (partyEnt == null) //vi har ikke partiet
                                             {
-                                                partyEnt = new Party
+                                                partyEnt = new Party //nyt party
                                                 {
                                                     partyName = partyNameFromBio,
                                                     partyShortName = partyShortnameFromBio,
                                                     memberIds = new List<int>(),
                                                 };
-                                                await _partyRepo.AddParty(partyEnt);
+                                                await _partyRepo.AddParty(partyEnt); // tilføj parti til database
                                             }
                                             partyEnt.memberIds ??= new List<int>(); // Ensure list is initialized
-                                            processedParties[partyNameFromBio] = partyEnt;
+                                            processedParties[partyNameFromBio] = partyEnt; //logging
                                         }
-                                        if (!partyEnt.memberIds!.Contains(currentAktor!.Id))
+                                        if (!partyEnt.memberIds!.Contains(currentAktor!.Id)) //tjek om politiker allerede findes i partiet, hvis ikke tilføj id
                                         {
                                             partyEnt.memberIds.Add(currentAktor.Id);
                                         }
@@ -315,16 +315,16 @@ namespace backend.Services.Politicians
                                 }
                                 else // Inactive Politician
                                 {
-                                    if (existingAktor != null)
+                                    if (existingAktor != null) //vi skal slette medlem
                                     {
                                         var partiesContainingAktor =
                                             await _partyRepo.GetPartyByMemberId(existingAktor.Id);
 
-                                        foreach (var party in partiesContainingAktor)
+                                        foreach (var party in partiesContainingAktor) //redundant tjek om politiker af en eller anden grund skulle findes i flere partier
                                         {
-                                            await _partyRepo.RemoveMember(party, existingAktor.Id);
+                                            await _partyRepo.RemoveMember(party, existingAktor.Id); //slet politiker id fra alle partiers medlems liste
                                         }
-                                        await _aktorRepo.DeleteAktor(existingAktor);
+                                        await _aktorRepo.DeleteAktor(existingAktor); //slet politiker fra db
                                         pageDeleted++;
                                         _logger.LogDebug(
                                             "[AktorUpdateService] Deleting Aktor ID: {Id}, Name: {Name}",
@@ -390,7 +390,7 @@ namespace backend.Services.Politicians
                     nextPolitikerLink = null;
                 }
             }
-            await _aktorRepo.SaveChangesAsync(); // Save all accumulated changes
+            await _aktorRepo.SaveChangesAsync(); //gem alle ændringer
             _logger.LogInformation(
                 "[AktorUpdateService] Aktor update process finished. Total Added: {Added}, Total Updated: {Updated}, Total Deleted: {Deleted}",
                 totalAddedCount,
