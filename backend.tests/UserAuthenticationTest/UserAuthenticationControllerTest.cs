@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using backend.Controllers;
 using backend.DTO.UserAuthentication;
@@ -21,7 +18,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using NUnit.Framework;
 
 namespace Tests.Controllers
 {

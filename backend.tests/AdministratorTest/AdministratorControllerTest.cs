@@ -1,12 +1,9 @@
 using backend.Controllers;
-using backend.Data;
 using backend.DTO.Flashcards;
 using backend.DTOs;
-using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

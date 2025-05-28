@@ -9,6 +9,6 @@ namespace backend.Interfaces.Repositories
     {
         Task<Aktor?> GetByIdAsync(int id, bool includeParty = false);
         Task<List<Aktor>> GetAllForSummaryAsync(string? search = null, int maxResults = 15);
-        Task<List<Aktor>> GetAllWithDetailsForSelectionAsync(); // Henter alle med nødvendige includes for daglig valg
+        Task<List<Aktor>> GetAllWithDetailsForSelectionAsync(); 
     }
 }

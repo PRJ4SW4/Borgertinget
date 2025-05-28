@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using backend.utils; // Add this namespace for the custom validation attribute
+using backend.utils;
 
 namespace backend.DTOs
 {

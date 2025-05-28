@@ -1,15 +1,11 @@
-/* src/pages/Polidle/FotoBlurMode.module.css */
-
 .pageContainer {
   /* Kan arve eller have unikke ting her */
 }
 
-/* Styles specifikt for Foto visning */
 .photoDisplayContainer {
-  /* Omdøbt fra polidleStyles.photoContainer for specificitet */
   margin: 20px auto;
-  padding: 10px; /* Mindre padding for billedet? */
-  max-width: 500px; /* Eller hvad der passer til dit billedes dimensioner */
+  padding: 10px;
+  max-width: 500px;
   text-align: center;
   border: 1px solid #eee;
   border-radius: 8px;
@@ -18,22 +14,18 @@
 
 .blurredImage {
   max-width: 100%;
-  max-height: 400px; /* Begræns højden */
-  object-fit: contain; /* Sørg for at hele billedet vises, skaleret ned */
+  max-height: 400px;
+  object-fit: contain;
   border-radius: 4px;
-  transition: filter 0.5s ease-out; /* Smooth overgang for blur-ændring */
-  /* filter: blur(10px); initial blur sættes via style prop */
+  transition: filter 0.5s ease-out;
 }
 
 .photoError {
-  /* Til fejlbesked for foto-hentning */
   color: orange;
   font-style: italic;
   margin-top: 10px;
 }
 
-/* Gættehistorik for Foto Mode (hvis den skal styles anderledes) */
-/* Ellers kan du fjerne denne og bruge den delte */
 .fotoModeGuessHistory {
   /* specifikke styles for foto historik her */
   /* Genbruger .citatGuessHistory fra sharedStyles for nu */

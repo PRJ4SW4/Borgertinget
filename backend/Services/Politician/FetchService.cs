@@ -1,15 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
-using backend.Data;
 using backend.DTO.FT;
 using backend.Models.Politicians;
 using backend.Repositories.Politicians;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Services.Politicians
 {

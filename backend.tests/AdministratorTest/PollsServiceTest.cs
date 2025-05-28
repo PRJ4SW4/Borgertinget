@@ -2,9 +2,7 @@ using backend.DTOs;
 using backend.Models;
 using backend.Repositories.Polls;
 using backend.Services.Polls;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace Tests.Services;
 

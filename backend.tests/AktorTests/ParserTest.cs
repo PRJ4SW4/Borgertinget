@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using backend.Services.Politicians; // Your namespace
-using NUnit.Framework; // NUnit's main namespace
+using backend.Services.Politicians;
 
 namespace backend.Services.Tests
 {

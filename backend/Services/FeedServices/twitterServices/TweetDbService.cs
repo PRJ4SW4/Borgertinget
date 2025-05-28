@@ -1,13 +1,5 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using backend.Data;
-using backend.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 // TweetDbService, er en service, der har til ansvar at kører TwitterService, i en strukturet, så vi på den måde undgår at komme i problemer med twitters 15 min cool down regl for free users.
 // det der sker i koden, er at den fetcher hele listen af potiker i PollitianwitterIds table, og bruger disse id'er til at fetcher hver især, vente 16 min, hvorefter den fetcher den næste

@@ -1,12 +1,8 @@
-// backend.Controllers/SubscriptionController.cs
-using System;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using backend.DTOs;
 using backend.Services.Subscription;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Controllers
 {

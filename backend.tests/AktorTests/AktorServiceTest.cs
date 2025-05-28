@@ -1,14 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using backend.DTO.FT;
 using backend.Models.Politicians;
 using backend.Repositories.Politicians;
-using backend.Services.Politicians;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace backend.Services.Politicians.Tests
 {
