@@ -188,6 +188,7 @@ namespace backend.Services.Search
             }
         }
 
+        /*               mappers                    */
         private SearchDocument MapAktorToSearchDocument(Aktor aktor)
         {
             //opret liste af content, fylder content feltet i opensearch response
@@ -293,8 +294,6 @@ namespace backend.Services.Search
                     : null,
             };
         }
-
-        /*               mappers                    */
 
         private SearchDocument MapPartyToSearchDocument(Party party)
         { //content til partier
@@ -437,7 +436,7 @@ namespace backend.Services.Search
                 return;
             }
 
-            if (indexTrulyExists)
+            if (indexTrulyExists) //Vi er sikker på indexet eksisterer og vil ikke oprette borgertinget-search (failsafe in case der forsøges at oprette index når det allerede eksisterer)
             {
                 logger.LogInformation(
                     "[SearchIndexSetup] Index '{IndexName}' already exists. Verifying 'suggest' field mapping...",
@@ -511,7 +510,7 @@ namespace backend.Services.Search
                                 .Text(t => t.Name(p => p.BackText))
                                 .Keyword(k => k.Name(p => p.FrontImagePath).Index(false))
                                 .Keyword(k => k.Name(p => p.BackImagePath).Index(false))
-                                // --- Party Specific Fields (from SearchDocument) ---
+                                // --- Party Specific Fields---
                                 .Text(t =>
                                     t.Name(p => p.partyName)
                                         .Fields(f =>
@@ -522,7 +521,7 @@ namespace backend.Services.Search
                                 .Text(t => t.Name(p => p.partyProgram))
                                 .Text(t => t.Name(p => p.politics))
                                 .Text(t => t.Name(p => p.history))
-                                // --- Page Specific Fields (from SearchDocument) ---
+                                // --- Page Specific Fields ---
                                 .Text(t =>
                                     t.Name(p => p.pageTitle)
                                         .Fields(f =>

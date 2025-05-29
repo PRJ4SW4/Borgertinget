@@ -62,8 +62,8 @@ namespace backend.Services.Politicians
                 );
             }
 
-            var ministerTitlesMap = new Dictionary<int, string>(); //minister id til titel
-            var ministerRelationshipsMap = new Dictionary<int, int>(); // Person ID -> Title ID
+            var ministerTitlesMap = new Dictionary<int, string>(); //minister id til titel navn(gruppenavnkort)
+            var ministerRelationshipsMap = new Dictionary<int, int>(); // Politiker ID -> minister ID
 
             try
             {
@@ -107,7 +107,7 @@ namespace backend.Services.Politicians
 
                 // --- STEP 2: Fetch Current Minister Relationships ---
                 _logger.LogInformation("[AktorUpdateService] Fetching minister relationships...");
-                string? nextRelationsLink = ministerRelationsApiUrl + "&$format=json"; // fraAktør(politiker id) tilAktør (ministerId)
+                string? nextRelationsLink = ministerRelationsApiUrl + "&$format=json"; // fraAktør(politiker id) tilAktør (ministerId) relation
                 while (!string.IsNullOrEmpty(nextRelationsLink)) //tjekker alle relatioenr
                 { //hent data via service
                     var relationResponse = await _httpService.GetJsonAsync<
@@ -174,7 +174,7 @@ namespace backend.Services.Politicians
                         && responseJson.TryGetProperty("value", out var valueProperty)
                         && valueProperty.ValueKind == JsonValueKind.Array
                     )
-                    { //Opret object med brug af dto
+                    { //Opret list af objekter med brug af dto
                         var externalAktors = JsonSerializer.Deserialize<List<CreateAktor>>(
                             valueProperty.GetRawText(),
                             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
@@ -196,9 +196,9 @@ namespace backend.Services.Politicians
                                 string? partyShortnameFromBio =
                                     bioDetails.GetValueOrDefault("PartyShortname") as string; //shortname
 
-                                var existingAktor = await _aktorRepo.GetAktorByIdAsync(aktorDto.Id); // hent fra database
+                                var existingAktor = await _aktorRepo.GetAktorByIdAsync(aktorDto.Id); // forsøg at hent fra databasen for vedligeholdelse
 
-                                Aktor currentAktor; //opret objekt at arbejde med
+                                Aktor currentAktor; //opret objekt at arbejde med,
 
                                 if (activityStatus == "1") // Active Politician
                                 {
@@ -390,7 +390,7 @@ namespace backend.Services.Politicians
                     nextPolitikerLink = null;
                 }
             }
-            await _aktorRepo.SaveChangesAsync(); //gem alle ændringer
+            await _aktorRepo.SaveChangesAsync(); //gem alle resterende ændringer
             _logger.LogInformation(
                 "[AktorUpdateService] Aktor update process finished. Total Added: {Added}, Total Updated: {Updated}, Total Deleted: {Deleted}",
                 totalAddedCount,

@@ -8,8 +8,8 @@ namespace backend.Services.Politicians
 {
     public static class BioParser
     {
-        //Helper til at udtrække bog titler politikere har udgivet. skal udviddes for fuld coverage af alle partiers politikere
-        //Virker ikke på alle politikere, da struktur er forskellige, men nogle bruger '>> titel <<>> titel2 <<', virker på dem
+        //Helper til at udtrække bog titler politikere har udgivet. skal udviddes for fuld coverage af alle partiers politikere,
+        //da struktur er forskellige, men nogle bruger '>> titel <<>> titel2 <<', virker i dette tilfælde
         private static List<string> ExtractPublicationTitles(string? publicationsText)
         {
             var titles = new List<string>();
@@ -30,7 +30,7 @@ namespace backend.Services.Politicians
             return titles;
         }
 
-        //Biografi parser, opretter en dictionare af streng(datapunkt) og værdi
+        //Biografi parser, opretter en dictionarary af streng(datapunkt) og værdi (base object)
         public static Dictionary<string, object> ParseBiografiXml(string? biografiXml)
         {
             var extractedData = new Dictionary<string, object>();
@@ -140,7 +140,7 @@ namespace backend.Services.Politicians
                     ?? memberElement.Element("positionsOfTrust")?.Element("positionOfTrust")?.Value
                     ?? "";
 
-                // Publications
+                // Publications (Det er denne der skal udviddes)
                 string? publicationsText = memberElement
                     .Element("publications")
                     ?.Element("editorFormattedText")
