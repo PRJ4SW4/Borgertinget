@@ -52,6 +52,10 @@ Pass: Borgertinget123
 
 **All functionality should now be working, the twitter feed will take a while to warm up as we can only pull from their API one politician at a time every 16 minutes**
 
+# Postman collection
+
+There is not a lot of setup required to run the POSTMAN collection. Register, forgot password, and Google OAuth cannot be tested, as these are external. The only requirement is to complete the steps above, and then change the user login to any verified normal user in the system. Go into the body of User/Users/Login and update the login credentials. Everything should then work.
+
 # READ IF NOT A BORGERTINGET DEV!
 
 You obviously need a specific .env file for most of the features to work. Below is the template for the kind of authentication you need, you could fill it out yourself.
