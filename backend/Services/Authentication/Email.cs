@@ -1,10 +1,6 @@
-using System.Threading.Tasks;
-using System.Web;
 using backend.Models;
 using backend.DTO.UserAuthentication;
 using MailKit.Net.Smtp;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using MimeKit;
 
 namespace backend.Services.Authentication

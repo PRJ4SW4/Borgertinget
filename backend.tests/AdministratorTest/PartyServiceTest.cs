@@ -4,7 +4,6 @@ using backend.Repositories.Politicians;
 using backend.Services.Politicians;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace Tests.Services;
 

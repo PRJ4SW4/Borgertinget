@@ -19,15 +19,12 @@ namespace backend.Models
         [Column("gamemode")]
         public GamemodeTypes GameMode { get; set; } // Bruger enum'en
 
-        // --- Andre kolonner ---
         [Column("lastselecteddate")]
         public DateOnly? LastSelectedDate { get; set; } // .NET 6+ type for kun dato
 
         [Column("algovægt")]
         public int? AlgoWeight { get; set; } // Overvej C# navnet AlgoWeight
 
-        // --- Navigation Property tilbage til Aktor ---
-        // Fortæller EF Core hvilken property der er FK for denne navigation
         [ForeignKey(nameof(PolitikerId))]
         public virtual Aktor Politician { get; set; } = null!;
     }

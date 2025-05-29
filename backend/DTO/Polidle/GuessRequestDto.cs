@@ -15,8 +15,5 @@ namespace backend.DTO
         // Overvej EnumDataType hvis du vil have model validering på enum værdier
         [EnumDataType(typeof(GamemodeTypes), ErrorMessage = "Ugyldig spiltype angivet.")]
         public GamemodeTypes GameMode { get; set; }
-
-        //TODO: Evt. Tilføj UserId senere, hvis gæt skal knyttes til en bruger
-        //* public string? UserId { get; set; }
     }
 }

@@ -13,12 +13,9 @@
 
 /* NYT: Styling for når hele gættet er korrekt */
 .guessCorrectOverall {
-  border: 3px solid gold !important; /* Tyk gylden kant for hele rækken */
-  border-radius: 6px; /* Lidt afrunding for den ydre ramme */
-  margin-bottom: -1px; /* Juster for at undgå dobbelt border hvis der er border-bottom på .guessItem */
-  /* Baggrundsfarven for selve .guessItem skal IKKE sættes her,
-     da det vil overskrive de individuelle cellers farver.
-     Hver celle vil blive grøn individuelt via .correct klassen. */
+  border: 3px solid gold !important;
+  border-radius: 6px;
+  margin-bottom: -1px;
 }
 
 /* Styling for hver celle/blok i et gæt */

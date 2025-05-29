@@ -6,7 +6,6 @@ using backend.Services.Calendar;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace Tests.Services;
 

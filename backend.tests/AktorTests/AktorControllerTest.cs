@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using backend.Controllers;
 using backend.DTO.FT;
 using backend.Services.Politicians;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using NUnit.Framework;
 
 namespace backend.Controllers.Tests
 {

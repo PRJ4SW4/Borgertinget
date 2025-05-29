@@ -20,7 +20,6 @@ namespace backend.Persistence.Repositories
         public async Task<Aktor?> GetByIdAsync(int id, bool includeParty = false)
         {
             var query = _context.Aktor.AsQueryable();
-            //if (includeParty) query = query.Include(a => a.Party); // Tilpas til din Party relation
             return await query.FirstOrDefaultAsync(a => a.Id == id);
         }
 
@@ -42,12 +41,10 @@ namespace backend.Persistence.Repositories
 
         public async Task<List<Aktor>> GetAllWithDetailsForSelectionAsync()
         {
-            // Inkluder alt nødvendigt for *alle* gamemodes' udvælgelse + tracker opdatering
             return await _context
                 .Aktor.Include(a => a.Quotes)
                 .Include(a => a.GamemodeTrackings)
-                // .Include(a => a.Party) // Hvis Party relation bruges direkte
-                .Where(a => a.navn != null) // Eksempel på filter
+                .Where(a => a.navn != null)
                 .ToListAsync();
         }
     }

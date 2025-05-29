@@ -1,4 +1,3 @@
-// Fil: Services/DailySelectionService.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +7,11 @@ using backend.DTO;
 using backend.Enums;
 using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
-using backend.Interfaces.Utility; // For IDateTimeProvider
+using backend.Interfaces.Utility;
 using backend.Models;
 using backend.Models.Politicians;
 using backend.Utils;
-using Microsoft.EntityFrameworkCore; // Nødvendig for Transaction
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace backend.Services
@@ -38,7 +37,7 @@ namespace backend.Services
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly ILogger<DailySelectionService> _logger;
         private readonly IRandomProvider _randomProvider;
-        private readonly DataContext _context; // Stadig nødvendig for Transaktion / Unit of Work
+        private readonly DataContext _context;
 
         public DailySelectionService(
             IAktorRepository aktorRepository,
@@ -49,7 +48,7 @@ namespace backend.Services
             IDateTimeProvider dateTimeProvider,
             ILogger<DailySelectionService> logger,
             IRandomProvider randomProvider,
-            DataContext context // Til transaktion,
+            DataContext context
         )
         {
             _aktorRepository =
@@ -65,13 +64,12 @@ namespace backend.Services
             _dateTimeProvider =
                 dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _context = context ?? throw new ArgumentNullException(nameof(context)); // Til transaktion
+            _context = context ?? throw new ArgumentNullException(nameof(context));
             _randomProvider =
                 randomProvider ?? throw new ArgumentNullException(nameof(randomProvider));
         }
 
         // --- Public Methods ---
-
         public async Task<List<SearchListDto>> GetAllPoliticiansForGuessingAsync(
             string? search = null
         )
@@ -81,15 +79,14 @@ namespace backend.Services
             _logger.LogInformation(
                 "Fetching politicians for guessing. Search: '{SearchTerm}'",
                 sanitizedSearchForLog
-            ); // <<< RETTET HER
-            // Den *originale* 'search' streng bruges i _aktorRepository.GetAllForSummaryAsync(search)
+            );
             var aktors = await _aktorRepository.GetAllForSummaryAsync(search);
             var dtos = _mapper.MapToSummaryDtoList(aktors);
             _logger.LogInformation(
                 "Returning {Count} politician summaries. Search: '{SearchTerm}'",
                 dtos.Count,
                 sanitizedSearchForLog
-            ); // <<< RETTET HER
+            );
             return dtos;
         }
 
@@ -119,7 +116,6 @@ namespace backend.Services
             _logger.LogDebug("Getting photo of the day.");
             DateOnly today = _dateTimeProvider.TodayUtc;
 
-            // Hent selection og Aktor sammen for at få URL
             var selection = await _dailySelectionRepository.GetByDateAndModeAsync(
                 today,
                 GamemodeTypes.Foto,
@@ -128,7 +124,7 @@ namespace backend.Services
 
             if (selection?.SelectedPolitiker == null)
             {
-                bool exists = selection != null; // Fandtes selectionen, men ikke politikeren?
+                bool exists = selection != null;
                 if (!exists)
                     throw new KeyNotFoundException(
                         $"Ingen DailySelection fundet for Foto d. {today}."
@@ -173,7 +169,7 @@ namespace backend.Services
                     );
             }
 
-            return _mapper.MapToDetailsDto(selection.SelectedPolitiker); // Mapper klarer alder etc.
+            return _mapper.MapToDetailsDto(selection.SelectedPolitiker);
         }
 
         public async Task<GuessResultDto?> ProcessGuessAsync(GuessRequestDto guessDto)
@@ -192,7 +188,7 @@ namespace backend.Services
                 includeAktor: true
             );
             if (correctSelection?.SelectedPolitiker == null)
-            { /* ... exception som i GetClassicDetails ... */
+            {
                 throw new KeyNotFoundException(
                     $"Dagens valg for {guessDto.GameMode} d. {today} er ikke tilgængeligt."
                 );
@@ -203,7 +199,7 @@ namespace backend.Services
             var guessedPolitician = await _aktorRepository.GetByIdAsync(
                 guessDto.GuessedPoliticianId,
                 includeParty: true
-            ); // Antager vi skal bruge parti info
+            );
             if (guessedPolitician == null)
                 throw new KeyNotFoundException(
                     $"Den gættede politiker med ID {guessDto.GuessedPoliticianId} blev ikke fundet."
@@ -226,7 +222,6 @@ namespace backend.Services
             {
                 CalculateClassicFeedback(result, correctPoliticianDto, guessedPoliticianDto);
             }
-            // Andre modes har pt. kun IsCorrectGuess
 
             _logger.LogInformation(
                 "Guess result calculated for GuessedId {GuessedId}: IsCorrect={IsCorrect}",
@@ -236,7 +231,6 @@ namespace backend.Services
             return result;
         }
 
-        //TODO: Change to select new each call
         public async Task SelectAndSaveDailyPoliticiansAsync(
             DateOnly date,
             bool overwriteExisting = false
@@ -251,7 +245,6 @@ namespace backend.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // ... (din kode for at tjekke ExistsForDateAsync og hente allPoliticiansData - antaget at den virker) ...
                 if (await _dailySelectionRepository.ExistsForDateAsync(date))
                 {
                     if (overwriteExisting)
@@ -281,7 +274,6 @@ namespace backend.Services
                     await transaction.RollbackAsync();
                     throw new InvalidOperationException($"No politicians in DB for {date}.");
                 }
-                // ... (din logik for kandidatlister) ...
                 var candidatesClassic = allPoliticiansData
                     .Select(p => new CandidateData(
                         p,
@@ -304,10 +296,9 @@ namespace backend.Services
                         $"Cannot select classic politician for {date}."
                     );
                 }
-                // Nu er classicPolitician garanteret ikke null
 
                 // --- Citat Logik ---
-                Aktor quoteAktorForSelection = classicPolitician; // Default til classic
+                Aktor quoteAktorForSelection = classicPolitician;
                 PoliticianQuote? selectedQuote = null;
                 var candidatesQuoteInternal = allPoliticiansData
                     .Where(p =>
@@ -330,7 +321,7 @@ namespace backend.Services
                         );
                     if (initiallySelectedQuoteAktor != null)
                     {
-                        quoteAktorForSelection = initiallySelectedQuoteAktor; // Brug den specifikt valgte
+                        quoteAktorForSelection = initiallySelectedQuoteAktor;
                         var validQuotes = quoteAktorForSelection
                             .Quotes?.Where(q => !string.IsNullOrWhiteSpace(q.QuoteText))
                             .ToList();
@@ -357,7 +348,6 @@ namespace backend.Services
                 {
                     _logger.LogWarning("No candidates with quotes. Using classic for Citat Aktor.");
                 }
-                // Hvis selectedQuote stadig er null efter ovenstående, og Aktor for Citat er classic, prøv igen på classic:
                 if (selectedQuote == null && quoteAktorForSelection.Id == classicPolitician.Id)
                 {
                     var classicValidQuotes = classicPolitician
@@ -375,7 +365,7 @@ namespace backend.Services
                 }
 
                 // --- Foto Logik ---
-                Aktor photoAktorForSelection = classicPolitician; // Default til classic
+                Aktor photoAktorForSelection = classicPolitician;
                 var candidatesPhotoInternal = allPoliticiansData
                     .Where(p => !string.IsNullOrWhiteSpace(p.PictureMiRes))
                     .Select(p => new CandidateData(
@@ -409,7 +399,6 @@ namespace backend.Services
                     );
                 }
 
-                // --- Forbered Værdier til Logning (Linje 241 område) ---
                 string logDate = date.ToString("yyyy-MM-dd");
                 string logClassicId = classicPolitician.Id.ToString();
                 string logClassicName = classicPolitician.navn ?? "IKKE_ANGIVET_NAVN_CLASSIC";
@@ -419,8 +408,6 @@ namespace backend.Services
                 string logPhotoAktorId = photoAktorForSelection.Id.ToString();
                 string logPhotoAktorName = photoAktorForSelection.navn ?? "IKKE_ANGIVET_NAVN_FOTO";
 
-                // Tjek antal placeholders: 8 (Date, ClassicId, ClassicName, QuoteAktorId, QuoteAktorName, QuoteText, PhotoAktorId, PhotoAktorName)
-                // Tjek antal argumenter: 8
                 _logger.LogInformation(
                     "PREP_DS: Date:{Date}, ClsId:{ClassicId}({ClassicName}), QteAktorId:{QuoteAktorId}({QuoteAktorName}), QteTxt:'{QuoteText}', PhoAktorId:{PhotoAktorId}({PhotoAktorName})",
                     logDate,
@@ -486,12 +473,8 @@ namespace backend.Services
                     date
                 );
 
-                // --- Forbered Værdier til Slut-Logning (Linje 341/345 område) ---
-                // Bruger de samme log-variabler som ovenfor, da de er garanteret non-null Aktor objekter
                 string finalChangesSavedStr = changesSaved.ToString();
 
-                // Tjek antal placeholders: 8 (Date, ClassicId, ClassicName, QuoteAktorId, QuoteAktorName, PhotoAktorId, PhotoAktorName, ChangesCount)
-                // Tjek antal argumenter: 8
                 _logger.LogInformation(
                     "FINAL_SELECTIONS: Date:{Date} - ClsId:{ClassicId}({ClassicName}), QteAktorId:{QuoteAktorId}({QuoteAktorName}), PhoAktorId:{PhotoAktorId}({PhotoAktorName}). Changes:{ChangesCount}",
                     logDate,
@@ -513,7 +496,7 @@ namespace backend.Services
                     overwriteExisting
                 );
                 await transaction.RollbackAsync();
-                throw; // Vigtigt at kaste videre, så controlleren ved, at noget gik galt
+                throw;
             }
         }
 
@@ -522,7 +505,6 @@ namespace backend.Services
         {
             "Fremtiden kræver modige beslutninger og fælles ansvar.",
             "Vi skal sikre et Danmark i balance, både socialt og økonomisk.",
-            // ... (indsæt resten af dine 20+ generiske citater her) ...
             "En stærk velfærdsstat er fundamentet for tryghed og lige muligheder.",
             "Investering i uddannelse og forskning er investering i vores fremtid.",
             "Den grønne omstilling er en nødvendighed, vi må gribe som en mulighed.",
@@ -560,9 +542,9 @@ namespace backend.Services
             }
 
             var allAktors = await _context
-                .Aktor // Brug _context direkte her, eller _aktorRepository
-                .Include(a => a.Quotes) // Vigtigt at inkludere eksisterende citater
-                .Where(a => a.typeid == 5) // Antager du kun vil have citater for typeid 5
+                .Aktor
+                .Include(a => a.Quotes)
+                .Where(a => a.typeid == 5)
                 .ToListAsync();
 
             if (!allAktors.Any())
@@ -581,7 +563,6 @@ namespace backend.Services
 
             foreach (var aktor in allAktors)
             {
-                // Tæl kun gyldige, eksisterende citater
                 int existingValidQuotesCount =
                     aktor.Quotes?.Count(q => !string.IsNullOrWhiteSpace(q.QuoteText)) ?? 0;
                 int quotesNeeded = 2 - existingValidQuotesCount;
@@ -605,12 +586,10 @@ namespace backend.Services
 
                         var newQuote = new PoliticianQuote
                         {
-                            // INGEN QuoteId her - databasen skal generere den
                             AktorId = aktor.Id,
                             QuoteText = quoteText,
-                            // Politician navigation property sættes automatisk af EF Core pga. AktorId
                         };
-                        quotesToAdd.Add(newQuote); // Tilføj til en liste først
+                        quotesToAdd.Add(newQuote);
                         quotesAddedTotal++;
                     }
                     aktorsProcessed++;
@@ -619,9 +598,8 @@ namespace backend.Services
 
             if (quotesToAdd.Any())
             {
-                // Tilføj alle nye citater til context i én omgang
-                _context.PoliticianQuotes.AddRange(quotesToAdd); // <<< BRUG AddRange
-                await _context.SaveChangesAsync(); // Gem alle nye citater
+                _context.PoliticianQuotes.AddRange(quotesToAdd);
+                await _context.SaveChangesAsync();
                 string successMsg =
                     $"Successfully added {quotesAddedTotal} quotes for {aktorsProcessed} Aktors.";
                 _logger.LogInformation(successMsg);
@@ -644,9 +622,8 @@ namespace backend.Services
             DailyPoliticianDto guessedDto
         )
         {
-            // Antager at IsCorrectGuess allerede er sat, og at result.Feedback er initialiseret
             if (result.IsCorrectGuess)
-                return; // Ingen grund til feedback hvis gættet er korrekt
+                return;
 
             result.Feedback[FeedbackKeys.PartyShortname] = string.Equals(
                 correctDto.PartyShortname,

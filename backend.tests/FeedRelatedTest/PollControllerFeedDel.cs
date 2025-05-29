@@ -1,18 +1,12 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using backend.Controllers;
-using backend.Data;
 using backend.DTOs;
 using backend.Hubs;
 using backend.Models;
 using backend.Services.Polls;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace Tests.Controllers
 {

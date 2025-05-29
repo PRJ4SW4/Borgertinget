@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using backend.DTOs;
 
 namespace backend.Services.Subscription

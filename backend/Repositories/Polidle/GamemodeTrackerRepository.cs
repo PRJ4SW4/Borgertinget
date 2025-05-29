@@ -6,19 +6,19 @@ using backend.Interfaces.Repositories;
 using backend.Models;
 using backend.Models.Politicians;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging; // Tilføjet for logging
+using Microsoft.Extensions.Logging;
 
 namespace backend.Repositories.PolidleTracker
 {
     public class GamemodeTrackerRepository : IGamemodeTrackerRepository
     {
         private readonly DataContext _context;
-        private readonly ILogger<GamemodeTrackerRepository> _logger; // Tilføjet logger
+        private readonly ILogger<GamemodeTrackerRepository> _logger;
 
         public GamemodeTrackerRepository(
             DataContext context,
             ILogger<GamemodeTrackerRepository> logger
-        ) // Tilføjet logger
+        )
         {
             _context = context;
             _logger = logger;
@@ -37,13 +37,11 @@ namespace backend.Repositories.PolidleTracker
         public async Task AddAsync(GamemodeTracker tracker)
         {
             await _context.GamemodeTrackers.AddAsync(tracker);
-            // SaveChangesAsync kaldes centralt
         }
 
         public void Update(GamemodeTracker tracker)
         {
             _context.GamemodeTrackers.Update(tracker);
-            // SaveChangesAsync kaldes centralt
         }
 
         public async Task UpdateOrCreateForAktorAsync(
@@ -52,14 +50,12 @@ namespace backend.Repositories.PolidleTracker
             DateOnly selectionDate
         )
         {
-            // Forsøg at finde eksisterende tracker via navigation property først (hvis loaded)
             var existingTracker = aktor.GamemodeTrackings?.FirstOrDefault(gt =>
                 gt.GameMode == gameMode
             );
 
             if (existingTracker == null)
             {
-                // Hvis ikke loaded, prøv at finde i DB
                 existingTracker = await FindByAktorAndModeAsync(aktor.Id, gameMode);
             }
 
@@ -67,7 +63,7 @@ namespace backend.Repositories.PolidleTracker
             {
                 // Opdater
                 existingTracker.LastSelectedDate = selectionDate;
-                existingTracker.AlgoWeight = null; // Nulstil evt. gammel vægt
+                existingTracker.AlgoWeight = null;
                 Update(existingTracker);
                 _logger.LogDebug(
                     "Updated GamemodeTracker for Aktor {AktorId}, Gamemode {Gamemode}, Date {Date}",

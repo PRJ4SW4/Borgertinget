@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using backend.DTOs;
 using backend.Models;
 using Microsoft.AspNetCore.Authentication;

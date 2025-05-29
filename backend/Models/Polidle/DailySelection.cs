@@ -1,12 +1,12 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using backend.Enums; // Sørg for at enum er tilgængelig
+using backend.Enums;
 using backend.Models.Politicians;
 
 namespace backend.Models
 {
-    [Table("daily_selections")] // Angiver tabelnavn
+    [Table("daily_selections")]
     public class DailySelection
     {
         // --- Del 1 af Sammensat Primærnøgle ---

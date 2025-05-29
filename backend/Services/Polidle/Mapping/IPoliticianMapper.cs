@@ -1,4 +1,4 @@
-using System; // For DateOnly
+using System;
 using System.Collections.Generic;
 using backend.DTO;
 using backend.Models.Politicians;

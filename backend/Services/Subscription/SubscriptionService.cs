@@ -1,7 +1,5 @@
-using System.Threading.Tasks;
 using backend.DTOs;
 using backend.Repositories.Subscription;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Services.Subscription
 {

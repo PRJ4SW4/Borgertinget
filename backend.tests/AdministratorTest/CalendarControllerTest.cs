@@ -1,10 +1,5 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using backend.Controllers;
-using backend.Data;
 using backend.DTO.Calendar;
-using backend.Models.Calendar;
 using backend.Services.Calendar;
 using backend.Services.Calendar.Scraping;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using NUnit.Framework;
 
 namespace Tests.Controllers
 {

@@ -3,11 +3,8 @@ namespace backend.Repositories.Authentication;
 using backend.Data;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
-using System.Security.Claims;
-using System;
 
 public class UserAuthenticationRepository : IUserAuthenticationRepository
 {

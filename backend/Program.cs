@@ -457,8 +457,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
-
-    //! DELETED DUMMMY MIDDLEWARE
 }
 else
 {

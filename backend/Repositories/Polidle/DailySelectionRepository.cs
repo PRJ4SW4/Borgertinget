@@ -29,7 +29,6 @@ namespace backend.Repositories.PolidleSelection
             if (includeAktor)
             {
                 query = query.Include(ds => ds.SelectedPolitiker);
-                //.ThenInclude(a => a.Party); // Inkluder evt. parti her også
             }
             return await query.FirstOrDefaultAsync(ds =>
                 ds.SelectionDate == date && ds.GameMode == gameMode
@@ -46,7 +45,6 @@ namespace backend.Repositories.PolidleSelection
             if (selections == null || !selections.Any())
                 return;
             await _context.DailySelections.AddRangeAsync(selections);
-            // SaveChangesAsync kaldes centralt (f.eks. i service eller Unit of Work)
         }
 
         public async Task DeleteByDateAsync(DateOnly date)
@@ -58,7 +56,6 @@ namespace backend.Repositories.PolidleSelection
             if (selectionsToDelete.Any())
             {
                 _context.DailySelections.RemoveRange(selectionsToDelete);
-                // SaveChangesAsync kaldes centralt i servicen indenfor transaktionen
             }
         }
 

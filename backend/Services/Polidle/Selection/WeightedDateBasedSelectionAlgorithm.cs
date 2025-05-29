@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using backend.Enums;
-using backend.Interfaces.Repositories; // Hvis den skal bruge tracker repo
+using backend.Interfaces.Repositories;
 using backend.Interfaces.Services;
 using backend.Interfaces.Utility;
 using backend.Models;
