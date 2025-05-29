@@ -1,7 +1,5 @@
 using backend.DTO.FT;
 using backend.Services.Politicians;
-using NSubstitute;
-using NUnit.Framework;
 
 namespace backend.Services.Tests
 {

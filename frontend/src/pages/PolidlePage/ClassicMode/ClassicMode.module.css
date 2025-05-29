@@ -1,6 +1,3 @@
-/* src/pages/Polidle/ClassicMode.module.css */
-
-/* Generel container for siden, hvis PolidlePage.module.css's .container ikke er nok */
 .pageContainer {
   /* Kan arve fra en generel page-styling eller have unikke ting her */
   /* F.eks. specifik padding, baggrund for Classic Mode */
@@ -10,7 +7,3 @@
 .classicSpecificLayout {
   /* ... */
 }
-
-/* Du vil sandsynligvis importere og bruge mange klasser fra en delt fil
-   som SharedPolidle.module.css for elementer som searchContainer, guessListContainer etc.
-   Denne fil er til *unikke* Classic Mode styles. */

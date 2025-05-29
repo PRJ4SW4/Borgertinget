@@ -76,7 +76,7 @@ function PageContent() {
 
     // Return the cleanup function to be called on component unmount or before effect re-runs for a new pageId
     return cleanupAllTimeouts;
-  }, [pageId, timeoutIds]); // pageId is the key dependency. timeoutIds is managed internally.
+  }, [pageId]); // pageId is the key dependency. timeoutIds is managed internally.
 
   // Allow changing answer only if feedback not given yet for this question
   const handleAnswerChange = (questionId: number, answerOptionId: number) => {

@@ -1,21 +1,20 @@
-// Fil: Services/Mapping/PoliticianMapper.cs
 using System;
 using System.Collections.Generic;
-using System.Globalization; // For CultureInfo
+using System.Globalization;
 using System.Linq;
 using backend.DTO;
 using backend.Interfaces.Services;
-using backend.Interfaces.Utility; // For IDateTimeProvider
+using backend.Interfaces.Utility;
 using backend.Models;
 using backend.Models.Politicians;
-using Microsoft.Extensions.Logging; // For logging
+using Microsoft.Extensions.Logging;
 
 namespace backend.Services.Mapping
 {
     public class PoliticianMapper : IPoliticianMapper
     {
         private readonly ILogger<PoliticianMapper> _logger;
-        private readonly IDateTimeProvider _dateTimeProvider; // Til at få dags dato for alder
+        private readonly IDateTimeProvider _dateTimeProvider;
 
         public PoliticianMapper(
             ILogger<PoliticianMapper> logger,
@@ -26,21 +25,19 @@ namespace backend.Services.Mapping
             _dateTimeProvider = dateTimeProvider;
         }
 
-        public DailyPoliticianDto MapToDetailsDto(Aktor? aktor, DateOnly referenceDate) // ReferenceDate kan evt. fjernes hvis IDateTimeProvider altid bruges
+        public DailyPoliticianDto MapToDetailsDto(Aktor? aktor, DateOnly referenceDate)
         {
             if (aktor == null)
                 throw new ArgumentNullException(nameof(aktor));
 
-            // Her sker simplificering/mapping - SKAL VEDLIGEHOLDES!
-            string? region = aktor.Constituencies?.FirstOrDefault(); // Tag første valgkreds
-            string? uddannelse = aktor.Educations?.FirstOrDefault() ?? aktor.EducationStatistic; // Tag første udd. eller statistik
+            string? region = aktor.Constituencies?.FirstOrDefault();
+            string? uddannelse = aktor.Educations?.FirstOrDefault() ?? aktor.EducationStatistic;
 
-            // Use PartyShortname if available, otherwise fallback to full Party name, then "Ukendt Parti"
             string partyDisplayValue = !string.IsNullOrWhiteSpace(aktor.PartyShortname)
                 ? aktor.PartyShortname
                 : (!string.IsNullOrWhiteSpace(aktor.Party) ? aktor.Party : "Ukendt Parti");
 
-            int age = CalculateAge(aktor.Born, _dateTimeProvider.TodayUtc); // Brug IDateTimeProvider
+            int age = CalculateAge(aktor.Born, _dateTimeProvider.TodayUtc);
 
             var dto = new DailyPoliticianDto
             {
@@ -58,7 +55,6 @@ namespace backend.Services.Mapping
             return dto;
         }
 
-        // Overload for nemheds skyld, bruger TodayUtc fra provider
         public DailyPoliticianDto MapToDetailsDto(Aktor aktor) =>
             MapToDetailsDto(aktor, _dateTimeProvider.TodayUtc);
 
@@ -77,12 +73,11 @@ namespace backend.Services.Mapping
             {
                 Id = aktor.Id,
                 PolitikerNavn = aktor.navn ?? "N/A",
-                PictureUrl = aktor.PictureMiRes, // Antager DTO bruger PictureUrl
+                PictureUrl = aktor.PictureMiRes,
             };
         }
 
         // --- Privat Age Calculation ---
-        // (Kan også flyttes til en statisk DateUtils klasse)
         private int CalculateAge(string? dateOfBirthString, DateOnly referenceDate)
         {
             if (string.IsNullOrEmpty(dateOfBirthString))

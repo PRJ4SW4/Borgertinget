@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using backend.DTO.Flashcards;
 using backend.DTOs;
-using backend.Models;
 
 namespace backend.Services
 {

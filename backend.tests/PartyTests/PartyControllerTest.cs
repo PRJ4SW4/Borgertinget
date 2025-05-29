@@ -1,20 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using backend.Controllers; // Assuming PartyController is here
-using backend.DTO.FT; // Assuming PartyDetailsDto and UpdatePartyDto are here
-using backend.Services.Politicians; // Assuming IPartyService is here
+using backend.DTO.FT;
+using backend.Services.Politicians;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // For DbUpdateException and DbUpdateConcurrencyException
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions; // For ThrowsAsync
-using NUnit.Framework;
-
-// Ensure DTOs are correctly referenced from your main project.
-// If they are not in backend.DTO.FT, adjust the using statement.
+using NSubstitute.ExceptionExtensions;
 
 namespace backend.Controllers.Tests
 {

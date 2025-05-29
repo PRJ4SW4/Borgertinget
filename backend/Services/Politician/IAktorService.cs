@@ -1,5 +1,4 @@
 using backend.DTO.FT;
-using backend.Models.Politicians;
 
 namespace backend.Services.Politicians;
 

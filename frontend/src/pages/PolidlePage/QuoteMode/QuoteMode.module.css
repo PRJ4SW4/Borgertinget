@@ -28,8 +28,6 @@
   margin-top: 10px;
 }
 
-/* Gættehistorik for Citat Mode (hvis den skal styles anderledes end sharedStyles.citatGuessHistory) */
-/* Ellers kan du fjerne denne og bruge den delte */
 .citatModeGuessHistory {
   /* specifikke styles for citat historik her */
 }

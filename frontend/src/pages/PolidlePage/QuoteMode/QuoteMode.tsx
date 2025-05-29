@@ -8,8 +8,6 @@ import { useQuoteMode } from "./QuoteMode.logic"; // <<< Importer den nye hook
 import pageStyles from "./QuoteMode.module.css";
 import sharedStyles from "../../../components/Polidle/SharedPolidle.module.css";
 
-// Dette interface bruges til at definere strukturen for gættehistorik-elementer i denne komponent.
-// DailyPoliticianDto er nødvendig, da guessHistory-items fra hook'en forventes at indeholde `guessedInfo` af denne type.
 interface CitatGuessHistoryDisplayItem {
   guessedInfo: DailyPoliticianDto;
   isCorrect: boolean;
@@ -24,27 +22,16 @@ const QuoteMode: React.FC = () => {
     selectedPoliticianId, // Bruges til at styre 'disabled' på gætte-knappen
     handleSearchChange,
     handleOptionSelect,
-    // setSearchText, // Kun nødvendig hvis du har brug for at sætte searchText direkte udenom handleSearchChange/handleOptionSelect
-
     quote,
     isLoadingQuote,
     quoteError,
-    guessHistory, // Forventes at være CitatGuessHistoryDisplayItem[] eller kompatibel
+    guessHistory,
     isGuessing,
     gameGuessError,
     isGameWon,
     handleGuessSubmit,
     resetGame,
-  } = useQuoteMode(); // <<< Brug den nye hook
-
-  // Sideeffekter som f.eks. en alert ved spil vundet kan håndteres her med useEffect, hvis det ønskes.
-  // F.eks.:
-  // useEffect(() => {
-  //   if (isGameWon) {
-  //     alert("Tillykke, du gættede rigtigt! (Citat Mode)");
-  //   }
-  // }, [isGameWon]);
-  // Ofte er den besked, der vises i JSX'en, når isGameWon er true, tilstrækkelig.
+  } = useQuoteMode();
 
   return (
     <div

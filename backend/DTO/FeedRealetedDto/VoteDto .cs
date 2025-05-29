@@ -1,4 +1,3 @@
-// backend.DTOs/VoteDto.cs
 using System.ComponentModel.DataAnnotations;
 
 namespace backend.DTOs

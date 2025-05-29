@@ -44,14 +44,13 @@ namespace backend.Services.Search
                 IndexName
             );
 
-            // ... (rest of RunFullIndexAsync method remains the same - no changes needed here for mapping)
             var bulkRequest = new BulkRequest(IndexName);
             var operations = new List<IBulkOperation>();
             int aktorCount = 0;
             int flashcardCount = 0;
             int partyCount = 0;
             int pagesCount = 0;
-            const int batchSize = 300;
+            const int batchSize = 50;
 
             try
             {
@@ -71,7 +70,7 @@ namespace backend.Services.Search
                     );
                     aktorCount++;
 
-                    if (operations.Count >= batchSize)
+                    if (operations.Count >= batchSize) //hvis batch size er nået, send til opensearch
                     {
                         await SendBulkRequestAsync(operations, cancellationToken);
                         operations.Clear();
@@ -87,7 +86,7 @@ namespace backend.Services.Search
                 _logger.LogInformation("Fetching Flashcards from database...");
                 var flashcards = await _dbContext
                     .Flashcards.AsNoTracking()
-                    .Include(f => f.FlashcardCollection) // Include collection for title
+                    .Include(f => f.FlashcardCollection) // Inkluder collection ved match på flashcard
                     .ToListAsync(cancellationToken);
 
                 _logger.LogInformation(
@@ -102,7 +101,7 @@ namespace backend.Services.Search
                     );
                     flashcardCount++;
 
-                    if (operations.Count >= batchSize)
+                    if (operations.Count >= batchSize) //send index når vi har en batch
                     {
                         await SendBulkRequestAsync(operations, cancellationToken);
                         operations.Clear();
@@ -189,8 +188,10 @@ namespace backend.Services.Search
             }
         }
 
+        /*               mappers                    */
         private SearchDocument MapAktorToSearchDocument(Aktor aktor)
         {
+            //opret liste af content, fylder content feltet i opensearch response
             var contentParts = new List<string?>
             {
                 aktor.navn,
@@ -202,6 +203,7 @@ namespace backend.Services.Search
                 aktor.Sex,
                 aktor.Born,
             };
+            //udfyld contents parts
             if (aktor.Spokesmen != null)
                 contentParts.AddRange(aktor.Spokesmen);
             if (aktor.Ministers != null)
@@ -237,7 +239,7 @@ namespace backend.Services.Search
                 Party = aktor.Party,
                 PartyShortname = aktor.PartyShortname,
                 MinisterTitle = aktor.MinisterTitel,
-                Constituencies = aktor.Constituencies?.ToList(), // Ensure it's a List if not null
+                Constituencies = aktor.Constituencies?.ToList(), // prøv at lav en liste i tilfælde af flere værdier
                 Suggest = suggestInputs.Any()
                     ? new CompletionField { Input = suggestInputs }
                     : null,
@@ -245,7 +247,7 @@ namespace backend.Services.Search
         }
 
         private SearchDocument MapFlashcardToSearchDocument(Flashcard flashcard)
-        {
+        { //mapper af flashcards, tilføjer collection til response
             var contentParts = new List<string?> { flashcard.FrontText, flashcard.BackText };
             string? title =
                 flashcard.FrontContentType == FlashcardContentType.Text
@@ -294,13 +296,8 @@ namespace backend.Services.Search
         }
 
         private SearchDocument MapPartyToSearchDocument(Party party)
-        {
-            var contentParts = new List<string?>
-            {
-                party.history,
-                party.politics,
-                party.partyProgram,
-            };
+        { //content til partier
+            var contentParts = new List<string?> { party.history, party.politics, party.partyProgram };
             string? title = party.partyName;
             var suggestInputs = new List<string>();
             if (!string.IsNullOrWhiteSpace(party.partyName))
@@ -330,7 +327,7 @@ namespace backend.Services.Search
         }
 
         private SearchDocument MapPageToSearchDocument(Page page)
-        {
+        { //liste over contents
             var contentParts = new List<string?> { page.Title, page.Content };
             string? title = page.Title;
             var suggestInputs = new List<string>();
@@ -355,6 +352,7 @@ namespace backend.Services.Search
             };
         }
 
+        //Send request metode
         private async Task SendBulkRequestAsync(
             List<IBulkOperation> operations,
             CancellationToken cancellationToken
@@ -403,7 +401,7 @@ namespace backend.Services.Search
         public static async Task EnsureIndexExistsWithMapping(IServiceProvider services)
         {
             var client = services.GetRequiredService<IOpenSearchClient>();
-            var logger = services.GetRequiredService<ILogger<SearchIndexingService>>(); // Changed logger category
+            var logger = services.GetRequiredService<ILogger<SearchIndexingService>>();
             const string indexName = "borgertinget-search";
 
             logger.LogInformation(
@@ -414,11 +412,11 @@ namespace backend.Services.Search
             var indexExistsResponse = await client.Indices.ExistsAsync(indexName);
 
             bool indexTrulyExists = false;
-            if (indexExistsResponse.IsValid) // If the response is considered valid by the client
+            if (indexExistsResponse.IsValid) //valid response
             {
                 indexTrulyExists = indexExistsResponse.Exists;
             }
-            else if (indexExistsResponse.ApiCall is { Success: true, HttpStatusCode: 404 }) // Specifically handle the 404 case
+            else if (indexExistsResponse.ApiCall is { Success: true, HttpStatusCode: 404 }) // tjek 404
             {
                 logger.LogInformation(
                     "[SearchIndexSetup] Index '{IndexName}' does not exist (confirmed by 404).",
@@ -426,7 +424,7 @@ namespace backend.Services.Search
                 );
                 indexTrulyExists = false;
             }
-            else // Any other invalid response is an actual error
+            else // invalid response
             {
                 logger.LogError(
                     "[SearchIndexSetup] Failed to check index existence for '{IndexName}'. Status: {StatusCode}. Error: {Error}. DebugInfo: {DebugInfo}",
@@ -437,9 +435,8 @@ namespace backend.Services.Search
                 );
                 return;
             }
-            // --- END OF MODIFIED LOGIC ---
 
-            if (indexTrulyExists)
+            if (indexTrulyExists) //Vi er sikker på indexet eksisterer og vil ikke oprette borgertinget-search (failsafe in case der forsøges at oprette index når det allerede eksisterer)
             {
                 logger.LogInformation(
                     "[SearchIndexSetup] Index '{IndexName}' already exists. Verifying 'suggest' field mapping...",
@@ -453,12 +450,11 @@ namespace backend.Services.Search
                 return;
             }
 
-            // If we reach here, indexTrulyExists is false, so we create the index.
             logger.LogInformation(
                 "[SearchIndexSetup] Index '{IndexName}' does not exist. Attempting to create index with fully explicit mapping...",
                 indexName
             );
-
+            //opret index
             var createIndexResponse = await client.Indices.CreateAsync(
                 indexName,
                 c =>
@@ -466,7 +462,7 @@ namespace backend.Services.Search
                         m.Properties<SearchDocument>(ps =>
                             ps
                             // --- Common Fields ---
-                            .Keyword(k => k.Name(p => p.Id))
+                            .Keyword(k => k.Name(p => p.Id)) //Id felt keyword
                                 .Keyword(k => k.Name(p => p.DataType))
                                 .Text(t =>
                                     t.Name(p => p.Title)
@@ -478,18 +474,18 @@ namespace backend.Services.Search
                                 .Date(d => d.Name(p => p.LastUpdated))
                                 // --- Aktor Specific Fields ---
                                 .Text(t =>
-                                    t.Name(p => p.AktorName)
+                                    t.Name(p => p.AktorName) //politiker navn keyword
                                         .Fields(f =>
                                             f.Keyword(k => k.Name("keyword").IgnoreAbove(256))
                                         )
                                 )
                                 .Text(t =>
-                                    t.Name(p => p.Party)
+                                    t.Name(p => p.Party) //parti navn
                                         .Fields(f =>
                                             f.Keyword(k => k.Name("keyword").IgnoreAbove(256))
                                         )
                                 )
-                                .Keyword(k => k.Name(p => p.PartyShortname))
+                                .Keyword(k => k.Name(p => p.PartyShortname)) //forkortelse
                                 .Keyword(k => k.Name(p => p.PictureUrl).Index(false))
                                 .Text(t =>
                                     t.Name(p => p.MinisterTitle)
@@ -514,7 +510,7 @@ namespace backend.Services.Search
                                 .Text(t => t.Name(p => p.BackText))
                                 .Keyword(k => k.Name(p => p.FrontImagePath).Index(false))
                                 .Keyword(k => k.Name(p => p.BackImagePath).Index(false))
-                                // --- Party Specific Fields (from SearchDocument) ---
+                                // --- Party Specific Fields---
                                 .Text(t =>
                                     t.Name(p => p.partyName)
                                         .Fields(f =>
@@ -525,7 +521,7 @@ namespace backend.Services.Search
                                 .Text(t => t.Name(p => p.partyProgram))
                                 .Text(t => t.Name(p => p.politics))
                                 .Text(t => t.Name(p => p.history))
-                                // --- Page Specific Fields (from SearchDocument) ---
+                                // --- Page Specific Fields ---
                                 .Text(t =>
                                     t.Name(p => p.pageTitle)
                                         .Fields(f =>
@@ -534,7 +530,7 @@ namespace backend.Services.Search
                                 )
                                 .Text(t => t.Name(p => p.pageContent))
                                 .Completion(cp =>
-                                    cp.Name(p => p.Suggest) // This should map SearchDocument.Suggest
+                                    cp.Name(p => p.Suggest) //suggestions
                                 )
                         )
                     )

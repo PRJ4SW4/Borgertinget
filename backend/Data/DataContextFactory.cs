@@ -1,8 +1,5 @@
-using System.IO;
-using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 
 namespace backend.Data
 {

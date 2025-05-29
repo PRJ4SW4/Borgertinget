@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using backend.DTO;
 using backend.Interfaces.Utility;
 using backend.Models.Politicians;
 using backend.Services.Mapping;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace backend.tests.PolidleTest
 {
@@ -18,6 +13,7 @@ namespace backend.tests.PolidleTest
         private IDateTimeProvider _dateTimeProviderMock;
         private PoliticianMapper _mapper;
 
+        #region Set Up
         [SetUp]
         public void SetUp()
         {
@@ -51,7 +47,8 @@ namespace backend.tests.PolidleTest
                 Educations = educations,
             };
         }
-
+        #endregion
+        #region MapDetailsDto Test
         [Test]
         public void MapToDetailsDto_WithReferenceDate_ValidAktor_MapsAllPropertiesCorrectly()
         {
@@ -213,9 +210,9 @@ namespace backend.tests.PolidleTest
 
         private static IEnumerable<TestCaseData> CalculateAgeTestCases()
         {
-            yield return new TestCaseData("01-01-1990", "01-01-2023", 33); // Birthday passed
-            yield return new TestCaseData("25-05-1990", "25-05-2024", 34); // Born today (relative to year)
-            yield return new TestCaseData("01-01-2023", "01-01-2023", 0); // Born on reference date
+            yield return new TestCaseData("01-01-1990", "01-01-2023", 33);
+            yield return new TestCaseData("25-05-1990", "25-05-2024", 34);
+            yield return new TestCaseData("01-01-2023", "01-01-2023", 0); 
             yield return new TestCaseData(null, "01-01-2023", 0);
             yield return new TestCaseData("", "01-01-2023", 0);
             yield return new TestCaseData("invalid-date", "01-01-2023", 0);
@@ -230,16 +227,17 @@ namespace backend.tests.PolidleTest
         {
             // Arrange
             var referenceDate = DateOnly.ParseExact(refDateString, "dd-MM-yyyy");
-            _dateTimeProviderMock.TodayUtc.Returns(referenceDate); // Ensure provider is used if overload is tested
+            _dateTimeProviderMock.TodayUtc.Returns(referenceDate); 
             var aktor = CreateTestAktor(born: dobString);
 
             // Act
-            var result = _mapper.MapToDetailsDto(aktor, referenceDate); // Test with explicit referenceDate
+            var result = _mapper.MapToDetailsDto(aktor, referenceDate);
 
             // Assert
             Assert.That(result.Age, Is.EqualTo(expectedAge));
         }
-
+        #endregion
+        #region MapToSummaryDto
         [Test]
         public void MapToSummaryDtoList_ValidAktors_ReturnsMappedList()
         {
@@ -346,4 +344,5 @@ namespace backend.tests.PolidleTest
             Assert.Throws<ArgumentNullException>(() => _mapper.MapToSummaryDto(aktor));
         }
     }
+    #endregion
 }

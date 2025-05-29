@@ -2,7 +2,6 @@ namespace backend.Services.LearningEnvironment;
 
 using System.Threading.Tasks;
 using backend.DTO.LearningEnvironment;
-using backend.Models.LearningEnvironment;
 
 // Defines a contract for services that handle answer-related operations.
 public interface IAnswerService

@@ -1,6 +1,3 @@
-// backend.Models/Poll.cs
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 // i polls models.cs er der på nuværende tidspunkt 3 forskellige

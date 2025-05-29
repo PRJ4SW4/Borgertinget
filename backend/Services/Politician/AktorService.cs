@@ -1,5 +1,4 @@
 using backend.DTO.FT;
-using backend.Models.Politicians;
 using backend.Repositories.Politicians;
 
 namespace backend.Services.Politicians;
@@ -47,7 +46,7 @@ public class AktorService : IAktorService
         List<AktorDetailDto> aktorDtos = new List<AktorDetailDto>();
         foreach (var aktor in aktors)
         {
-            aktorDtos.Add(AktorDetailDto.FromAktor(aktor));
+            aktorDtos.Add(AktorDetailDto.FromAktor(aktor)); //Map til aktorDetailDto
         }
         return aktorDtos;
     }

@@ -1,20 +1,18 @@
-/* src/components/Polidle/Infobox/Infobox.module.css */
-
 .infoboxContainer {
   width: 100%;
-  max-width: 450px; /* Juster bredden efter behov */
-  margin: 20px auto; /* Centrerer hele sektionen */
+  max-width: 450px;
+  margin: 20px auto;
   padding: 15px;
-  background-color: #e9ecef; /* Lys grå baggrund, matcher billedet */
-  border-radius: 8px; /* Afrundede hjørner */
+  background-color: #e9ecef;
+  border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .infoboxTitle {
   text-align: center;
-  font-size: 1.1em; /* Lidt mindre end h2 */
+  font-size: 1.1em;
   font-weight: bold;
-  color: #c0392b; /* Rødlig farve som på billedet */
+  color: #c0392b;
   margin-bottom: 15px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -22,8 +20,8 @@
 
 .infobox {
   display: flex;
-  justify-content: space-around; /* Fordeler items jævnt */
-  align-items: flex-start; /* Juster hvis items har forskellig højde på tekst */
+  justify-content: space-around;
+  align-items: flex-start;
 }
 
 .item {
@@ -31,44 +29,42 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  flex-basis: 22%; /* Giver lidt plads mellem items, juster for antal */
-  max-width: 80px; /* Begræns bredden af hvert item */
+  flex-basis: 22%;
+  max-width: 80px;
 }
 
 .indikator {
-  width: 45px; /* Firkantens bredde */
-  height: 45px; /* Firkantens højde */
-  border-radius: 4px; /* Let afrundede hjørner for firkanten */
+  width: 45px;
+  height: 45px;
+  border-radius: 4px;
   margin-bottom: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: inset 0 -2px 2px rgba(0, 0, 0, 0.1); /* Lille indre skygge for dybde */
+  box-shadow: inset 0 -2px 2px rgba(0, 0, 0, 0.1);
 }
 
 .icon {
-  font-size: 1.8em; /* Størrelse på pil-ikon */
-  color: white; /* Hvid pil */
+  font-size: 1.8em;
+  color: white;
   font-weight: bold;
-  line-height: 1; /* For bedre centrering af pil */
+  line-height: 1;
 }
 
 .label {
-  font-size: 0.9em; /* Størrelse på teksten under firkanten */
-  color: #343a40; /* Mørkegrå tekst */
-  font-weight: 500;
+  font-size: 0.9em;
+  color: #343a40;
 }
 
-/* Specifikke farver for indikatorerne */
 .korrekt {
-  background-color: #a3e635; /* Lysegrøn fra billedet */
+  background-color: #a3e635;
 }
 
 .forkert {
-  background-color: #ef4444; /* Rød fra billedet */
+  background-color: #ef4444;
 }
 
 .hoejere,
 .lavere {
-  background-color: #ef4444; /* Rød fra billedet for begge */
+  background-color: #ef4444;
 }

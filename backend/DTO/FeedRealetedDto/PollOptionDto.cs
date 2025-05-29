@@ -1,4 +1,3 @@
-// backend.DTOs/PollOptionDto.cs
 namespace backend.DTOs
 {
     public class PollOptionDto

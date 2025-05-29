@@ -1,15 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
-using backend.Data;
 using backend.DTO.FT;
-using backend.Models.Politicians;
 using backend.Services.Politicians;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace backend.Controllers;
 
@@ -91,7 +83,7 @@ public class AktorController : ControllerBase
         );
         try
         {
-            var (added, updated, deleted) = await _FetchService.FetchAndUpdateAktorsAsync();
+            var (added, updated, deleted) = await _FetchService.FetchAndUpdateAktorsAsync(); //kald service
             _logger.LogInformation(
                 "[AktorController] Aktor update process completed. Added: {Added}, Updated: {Updated}, Deleted: {Deleted}",
                 added,

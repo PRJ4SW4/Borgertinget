@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using backend.Controllers;
-using backend.Data;
 using backend.DTOs; // Required for Poll DTOs
 using backend.Hubs; // Required for FeedHub
 using backend.Models; // Required for PoliticianTwitterId models
@@ -13,7 +8,6 @@ using Microsoft.AspNetCore.SignalR; // Required for IHubContext
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 
 namespace Tests.Controllers
 {
