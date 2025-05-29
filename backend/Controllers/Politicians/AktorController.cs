@@ -83,7 +83,7 @@ public class AktorController : ControllerBase
         );
         try
         {
-            var (added, updated, deleted) = await _FetchService.FetchAndUpdateAktorsAsync();
+            var (added, updated, deleted) = await _FetchService.FetchAndUpdateAktorsAsync(); //kald service
             _logger.LogInformation(
                 "[AktorController] Aktor update process completed. Added: {Added}, Updated: {Updated}, Deleted: {Deleted}",
                 added,
