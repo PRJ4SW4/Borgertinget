@@ -1,4 +1,4 @@
-import { useState, useEffect, JSX, useCallback } from "react";
+import { useState, useEffect, JSX, useCallback, useRef } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 
 // Layout Components: Provide consistent page structure.
@@ -130,14 +130,20 @@ function App() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const alertShownRef = useRef(false); // Prevent double alert on expired token
 
   useEffect(() => {
     // Check token expiration on route change or token change
     if (token && isTokenExpired(token)) {
-      console.log("Token expired. Logging out...");
-      memoizedHandleSetToken(null); // Clear token state and localStorage
-      navigate("/login", { replace: true }); // Redirect to login page without adding to history
-      alert("Din session er udløbet. Log ind igen for at fortsætte."); // Alert user about session expiration
+      if (!alertShownRef.current) {
+        alertShownRef.current = true;
+        console.log("Token expired. Logging out...");
+        memoizedHandleSetToken(null);
+        navigate("/login", { replace: true }); // Redirect to login page without adding to history
+        alert("Din session er udløbet. Log ind igen for at fortsætte."); // Alert user about session expiration
+      }
+    } else {
+      alertShownRef.current = false; // Reset if token is valid or null
     }
   }, [token, location, memoizedHandleSetToken, navigate]); // Run effects on token or route change
 
